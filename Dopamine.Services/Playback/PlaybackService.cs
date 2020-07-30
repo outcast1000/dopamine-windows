@@ -1266,7 +1266,7 @@ namespace Dopamine.Services.Playback
             {
                 foreach (QueuedTrack queuedTrack in queuedTracks)
                 {
-                    Track foundDatabaseTrack = databaseTracks.Where(x => x.SafePath.Equals(queuedTrack.SafePath)).FirstOrDefault();
+                    Track foundDatabaseTrack = databaseTracks.Where(x => x.SafePath.Equals(queuedTrack.Path)).FirstOrDefault();
 
                     if (foundDatabaseTrack != null)
                     {

@@ -48,7 +48,7 @@ namespace Dopamine.Data
 
         public static IEnumerable<string> SplitColumnMultiValue(string columnMultiValue)
         {
-            return columnMultiValue.Split(Constants.DoubleColumnValueDelimiter);
+            return columnMultiValue.Split(",");//Constants.DoubleColumnValueDelimiter);
         }
 
         public static string TrimColumnValue(string columnValue)

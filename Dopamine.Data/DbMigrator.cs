@@ -347,11 +347,11 @@ namespace Dopamine.Data
 
                 //=== TrackIndexing: (One 2 One) Each Track may have zero or one Indexing record 
                 conn.Execute("CREATE TABLE TrackIndexing (" +
-                            "track_id           INTEGER," +
-                            "NeedsAlbumArtworkIndexing             TEXT NOT NULL COLLATE NOCASE," +
-                            "IndexingFailureReason             TEXT," +
-                            "IndexingSuccess           TEXT," +
-                            "NeedsIndexing         INTEGER ," +
+                            "track_id                       INTEGER," +
+                            "needs_album_artwork_indexing   INTEGER," +
+                            "indexing_failure_reason        TEXT," +
+                            "indexing_success               INTEGER," +
+                            "needs_indexing                 INTEGER ," +
                             "FOREIGN KEY (track_id) REFERENCES Tracks(id));");
 
                 conn.Execute("CREATE UNIQUE INDEX TrackIndexingTrackIDIndex ON TrackIndexing(track_id);");
@@ -387,7 +387,7 @@ namespace Dopamine.Data
                 foreach (Folder folder in folders)
                 {
                     Console.WriteLine("Migrating Folder {0}", folder.Path);
-                    conn.Insert(new Folder2() { Path = folder.Path});
+                    conn.Insert(new Folder2() { Path = folder.Path, Show = folder.ShowInCollection});
                 }
 
                 // Get all the items from "track" table. Add them to the new structure
@@ -515,8 +515,10 @@ SELECT Artists.name, COUNT(t.id)
 from Tracks t
 LEFT JOIN TrackArtists  ON TrackArtists.track_id =t.id 
 LEFT JOIN Artists ON Artists.id =TrackArtists.artist_id  
+LEFT JOIN TrackIndexing ON TrackIndexing.track_id=t.id
+INNER JOIN Folders ON Folders.id = t.folder_id
+WHERE Folders.show = 1 AND TrackIndexing.indexing_success is null AND TrackIndexing.needs_indexing is null
 GROUP BY Artists.id
-ORDER BY Artists.name
 
 ----- GET THE ALBUMS OF AN ARTIST
 SELECT Albums.name, COUNT(t.id) 

@@ -22,20 +22,21 @@ namespace Dopamine.Data.Repositories
         private string SelectVisibleTracksQuery()
         {
             return @"SELECT DISTINCT t.id as TrackID, GROUP_CONCAT(DISTINCT Artists.name) as Artists, GROUP_CONCAT(DISTINCT Genres.name) as Genres, GROUP_CONCAT(DISTINCT Albums.name) as AlbumTitle, "" as AlbumArtists, "" as AlbumKey,
-                     t.path, t.path as SafePath, "" as FileName, "" as MimeType, t.filesize as FileSize, t.bitrate as BitRate, 
-                     t.samplerate as SampleRate, t.name as TrackTitle, TrackAlbums.track_number as TrackNumber, 0 as TrackCount, TrackAlbums.disc_number as DiscNumber,
-                     0 as DiscCount, t.duration as Duration, t.year as Year, 0 as HasLyrics, t.date_added as DateAdded, 0 as DateFileCreated,
-                     0 as DateLastSynced, 0 as DateFileModified, 0 as NeedsIndexing, 0 as NeedsAlbumArtworkIndexing, 0 as IndexingSuccess,
-                     "" as IndexingFailureReason, t.rating as Rating, t.love as Love, 0 as PlayCount, 0 as SkipCount, 0 as DateLastPlayed
-                     FROM Tracks t
+                    t.path, t.path as SafePath, "" as FileName, "" as MimeType, t.filesize as FileSize, t.bitrate as BitRate, 
+                    t.samplerate as SampleRate, t.name as TrackTitle, TrackAlbums.track_number as TrackNumber, 0 as TrackCount, TrackAlbums.disc_number as DiscNumber,
+                    0 as DiscCount, t.duration as Duration, t.year as Year, 0 as HasLyrics, t.date_added as DateAdded, 0 as DateFileCreated,
+                    0 as DateLastSynced, 0 as DateFileModified, TrackIndexing.needs_indexing as NeedsIndexing, TrackIndexing.needs_album_artwork_indexing as NeedsAlbumArtworkIndexing, TrackIndexing.indexing_success as IndexingSuccess,
+                    TrackIndexing.indexing_failure_reason as IndexingFailureReason, t.rating as Rating, t.love as Love, 0 as PlayCount, 0 as SkipCount, 0 as DateLastPlayed
+                    FROM Tracks t
                     LEFT JOIN TrackArtists ON TrackArtists.track_id =t.id 
                     LEFT JOIN Artists ON Artists.id =TrackArtists.artist_id  
                     LEFT JOIN TrackAlbums ON TrackAlbums.track_id =t.id 
                     LEFT JOIN Albums ON Albums.id =TrackAlbums.album_id  
                     LEFT JOIN TrackGenres ON TrackGenres.track_id =t.id 
                     LEFT JOIN Genres ON Genres.id =TrackGenres.genre_id  
-                     INNER JOIN Folders ON Folders.id = t.folder_id
-                     WHERE Folders.show = 1 AND t.IndexingSuccess = 1 AND t.NeedsIndexing = 0";
+                    INNER JOIN Folders ON Folders.id = t.folder_id
+                    LEFT JOIN TrackIndexing ON TrackIndexing.track_id=t.id
+                    WHERE Folders.show = 1 AND TrackIndexing.indexing_success is null AND TrackIndexing.needs_indexing is null";
 
 
             return @"SELECT DISTINCT t.TrackID, t.Artists, t.Genres, t.AlbumTitle, t.AlbumArtists, t.AlbumKey,
@@ -87,7 +88,7 @@ namespace Dopamine.Data.Repositories
                         {
                             IList<string> safePaths = paths.Select((p) => p.ToSafePath()).ToList();
 
-                            tracks = conn.Query<Track>($"{this.SelectVisibleTracksQuery()} AND {DataUtils.CreateInClause("t.SafePath", safePaths)};");
+                            tracks = conn.Query<Track>($"{this.SelectVisibleTracksQuery()} AND {DataUtils.CreateInClause("t.path", safePaths)};");
                         }
                         catch (Exception ex)
                         {
@@ -476,20 +477,30 @@ namespace Dopamine.Data.Repositories
                     {
                         try
                         {
-                            List<Track> tracks = conn.Query<Track>(this.SelectVisibleTracksQuery());
-                            List<Track> tracks2 = tracks.ToList();
+                            String artistQuery = @"SELECT Artists.id as id, Artists.name as name
+                                                    from Tracks t
+                                                    LEFT JOIN TrackArtists  ON TrackArtists.track_id =t.id 
+                                                    LEFT JOIN Artists ON Artists.id =TrackArtists.artist_id  
+                                                    LEFT JOIN TrackIndexing ON TrackIndexing.track_id=t.id
+                                                    INNER JOIN Folders ON Folders.id = t.folder_id
+                                                    WHERE Folders.show = 1 AND TrackIndexing.indexing_success is null AND TrackIndexing.needs_indexing is null
+                                                    GROUP BY Artists.id";
+                            List<Artist> artists = conn.Query<Artist>(artistQuery);
+                            artistNames = artists.Select((t) => t.Name).ToList();
+                            /*List<Track> tracks2 = tracks.ToList();
                             IEnumerable<string> tracks3 = tracks2.Select((t) => t.Artists);
                             IEnumerable<string> tracks4 = tracks3.SelectMany(a => DataUtils.SplitColumnMultiValue(a));
                             IEnumerable<string> tracks5 = tracks4.Distinct();
                             List<string> tracks6 = tracks5.ToList();
+                            */
 
 
 
 
-                            artistNames = conn.Query<Track>(this.SelectVisibleTracksQuery()).ToList()
-                                                            .Select((t) => t.Artists)
-                                                            .SelectMany(a => DataUtils.SplitColumnMultiValue(a))
-                                                            .Distinct().ToList();
+                            //artistNames = conn.Query<Track>(this.SelectVisibleTracksQuery()).ToList()
+                            //                                .Select((t) => t.Artists)
+                            //                                .SelectMany(a => DataUtils.SplitColumnMultiValue(a))
+                            //                                .Distinct().ToList();
                         }
                         catch (Exception ex)
                         {
