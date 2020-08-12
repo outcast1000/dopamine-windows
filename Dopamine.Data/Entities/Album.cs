@@ -13,5 +13,8 @@ namespace Dopamine.Data.Entities
         [Column("name"), Unique(), Collation("NOCASE"), NotNull()]
         public string Name { get; set; }
 
+        [Column("artist_id")]
+        public long ArtistId { get; set; }
+
     }
 }

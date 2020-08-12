@@ -45,11 +45,10 @@ namespace Dopamine.Services.Utils
             // Trim is required here, otherwise the filter might flip on the space at the beginning (and probably at the end)
             string[] pieces = filter.Trim().Split(Convert.ToChar(" "));
 
-            return pieces.All((s) => 
-            track.TrackTitle.ToLower().Contains(s.ToLower()) | 
+            return pieces.All((s) =>
+            (track.TrackTitle == null ? false : track.TrackTitle.ToLower().Contains(s.ToLower())) | 
             track.ArtistName.ToLower().Contains(s.ToLower()) | 
             track.AlbumTitle.ToLower().Contains(s.ToLower()) | 
-            track.FileName.ToLower().Contains(s.ToLower()) | 
             track.Year.ToString().Contains(s.ToLower()));
         }
 

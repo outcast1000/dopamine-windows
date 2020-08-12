@@ -102,7 +102,10 @@
     <Compile Include="AlbumData.cs" />
     <Compile Include="DataUtils.cs" />
     <Compile Include="DbMigrator.cs" />
+    <Compile Include="Entities\AlbumV.cs" />
+    <Compile Include="Entities\ArtistV.cs" />
     <Compile Include="Entities\Folder2.cs" />
+    <Compile Include="Entities\GenreV.cs" />
     <Compile Include="Entities\Genre.cs" />
     <Compile Include="Entities\Album.cs" />
     <Compile Include="Entities\Artist.cs" />
@@ -111,6 +114,7 @@
     <Compile Include="Entities\FolderTrack.cs" />
     <Compile Include="Entities\QueuedTrack.cs" />
     <Compile Include="Entities\RemovedTrack.cs" />
+    <Compile Include="Entities\TrackV.cs" />
     <Compile Include="Entities\Track.cs" />
     <Compile Include="Entities\TrackGenre.cs" />
     <Compile Include="Entities\TrackAlbum.cs" />

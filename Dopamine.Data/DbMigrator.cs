@@ -207,6 +207,7 @@ namespace Dopamine.Data
                 //=== Albums:
                 conn.Execute("CREATE TABLE Albums (" +
                             "id                 INTEGER PRIMARY KEY AUTOINCREMENT," +
+                            "artist_id          INTEGER," +
                             "name               TEXT NOT NULL COLLATE NOCASE); ");
 
                 conn.Execute("CREATE UNIQUE INDEX AlbumsNameIndex ON Albums(name);");
@@ -214,31 +215,25 @@ namespace Dopamine.Data
                 //=== AlbumReviews: (Many 2 many) Each album may have multiple reviews
                 conn.Execute("CREATE TABLE AlbumReviews (" +
                             "album_id           INTEGER NOT NULL," +
-                            "artist_id          INTEGER," +
                             "review             TEXT NOT NULL," +
                             "source             TEXT," +
                             "language           TEXT," +
                             "priority           INTEGER NOT NULL DEFAULT 0," +
                             "date_added         INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP," +
-                            "FOREIGN KEY(album_id) REFERENCES Albums(id)," +
-                            "FOREIGN KEY (artist_id) REFERENCES Artists(id));");
+                            "FOREIGN KEY(album_id) REFERENCES Albums(id));");
 
                 conn.Execute("CREATE INDEX AlbumReviewsAlbumIDIndex ON AlbumReviews(album_id);");
-                conn.Execute("CREATE INDEX AlbumReviewsArtistIDIndex ON AlbumReviews(artist_id);");
 
                 //=== AlbumImages: (Many 2 many) Each album may have multiple images
                 conn.Execute("CREATE TABLE AlbumImages (" +
                             "album_id           INTEGER NOT NULL," +
-                            "artist_id          INTEGER," +
                             "key                TEXT NOT NULL," +
                             "source             TEXT," +
                             "priority           INTEGER NOT NULL DEFAULT 0," +
                             "date_added         INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP," +
-                            "FOREIGN KEY(album_id) REFERENCES Albums(id)," +
-                            "FOREIGN KEY (artist_id) REFERENCES Artists(id));");
+                            "FOREIGN KEY(album_id) REFERENCES Albums(id));");
 
                 conn.Execute("CREATE INDEX AlbumImagesAlbumIDIndex ON AlbumImages(album_id);");
-                conn.Execute("CREATE INDEX AlbumImagesArtistIDIndex ON AlbumImages(artist_id);");
 
                 //=== Genres:
                 conn.Execute("CREATE TABLE Genres (" +
@@ -270,7 +265,7 @@ namespace Dopamine.Data
                 conn.Execute("CREATE TABLE Tracks (" +
                             "id	                INTEGER PRIMARY KEY AUTOINCREMENT," +
                             "name	            TEXT NOT NULL COLLATE NOCASE," +
-                            "path               TEXT NOT NULL," +
+                            "path               TEXT NOT NULL COLLATE NOCASE," +
                             "folder_id          INTEGER NOT NULL," +
                             "filesize           INTEGER," +
                             "bitrate            INTEGER," +
@@ -329,9 +324,8 @@ namespace Dopamine.Data
                             "FOREIGN KEY (track_id) REFERENCES Tracks(id)," +
                             "FOREIGN KEY (album_id) REFERENCES Albums(id)); ");
 
-                conn.Execute("CREATE INDEX TrackAlbumTrackIDIndex ON TrackAlbums(track_id);");
+                conn.Execute("CREATE UNIQUE INDEX TrackAlbumTrackIDIndex ON TrackAlbums(track_id);");
                 conn.Execute("CREATE INDEX TrackAlbumAlbumIDIndex ON TrackAlbums(album_id);");
-                conn.Execute("CREATE UNIQUE INDEX TrackAlbumsCombinedIndex ON TrackAlbums(track_id, album_id);");
 
                 //=== TrackLyrics: (One 2 One) Each Track may have zero or one Lyrics record 
                 conn.Execute("CREATE TABLE TrackLyrics (" +
@@ -407,10 +401,16 @@ namespace Dopamine.Data
                 List<Track> tracks = conn.Query<Track>(query);
                 int tracksMigrated = 0;
                 int timeStarted = Environment.TickCount;
+                
+
+                    
                 foreach (Track track in tracks)
                 {
 
                     Console.WriteLine("Migrating File {0}", track.Path);
+                    if (track.TrackTitle == null)
+                        Console.WriteLine("TrackTitle is null");
+
                     List<FolderTrack> folderTrackIDs = conn.Query<FolderTrack>(@"SELECT * FROM FolderTrack WHERE TrackID=?", track.TrackID);
                     conn.Insert(new Track2()
                     {
@@ -429,9 +429,13 @@ namespace Dopamine.Data
                     });
                     long track_id = GetLastInsertRowID(conn);
 
+                    string AlbumArtist = track.AlbumArtists;
+
                     //Add the artists
                     if (track.Artists.Length > 0)
                     {
+                        if (AlbumArtist.Length == 0)
+                            AlbumArtist = track.Artists;
                         string[] artists = track.Artists.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
                         for (int i = 0; i < artists.Length; i++)
                         {
@@ -446,7 +450,8 @@ namespace Dopamine.Data
                     }
                     if (track.AlbumTitle.Length > 0)
                     {
-                        long albumID = GetAlbumID(conn, track.AlbumTitle);
+                        long artistID = GetArtistID(conn, AlbumArtist);
+                        long albumID = GetAlbumID(conn, track.AlbumTitle, artistID);
                         conn.Insert(new TrackAlbum()
                         {
                             TrackId = track_id,
@@ -623,13 +628,13 @@ GROUP BY t.id
             }
             return ids[0];
         }
-        private long GetAlbumID(SQLiteConnection conn, String entry)
+        private long GetAlbumID(SQLiteConnection conn, String entry, long artistID)
         {
             List<long> ids;
-            ids = conn.QueryScalars<long>("SELECT * FROM Albums WHERE name=?", entry);
+            ids = conn.QueryScalars<long>("SELECT * FROM Albums WHERE name=? AND artist_id=?", entry, artistID);
             if (ids.Count == 0)
             {
-                conn.Insert(new Album() { Name = entry });
+                conn.Insert(new Album() { Name = entry, ArtistId = artistID });
                 return GetLastInsertRowID(conn);
             }
             return ids[0];

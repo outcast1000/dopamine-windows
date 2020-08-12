@@ -19,10 +19,10 @@ namespace Dopamine.Data.Repositories
             this.factory = factory;
         }
 
-        private string SelectVisibleTracksQuery()
+        private string SelectVisibleTracksQuery(IList<string> paths = null)
         {
-            return @"SELECT DISTINCT t.id as TrackID, GROUP_CONCAT(DISTINCT Artists.name) as Artists, GROUP_CONCAT(DISTINCT Genres.name) as Genres, GROUP_CONCAT(DISTINCT Albums.name) as AlbumTitle, "" as AlbumArtists, "" as AlbumKey,
-                    t.path, t.path as SafePath, "" as FileName, "" as MimeType, t.filesize as FileSize, t.bitrate as BitRate, 
+            string q = @"SELECT DISTINCT t.id as TrackID, GROUP_CONCAT(DISTINCT Artists.name) as Artists, GROUP_CONCAT(DISTINCT Genres.name) as Genres, GROUP_CONCAT(DISTINCT Albums.name) as AlbumTitle, '' as AlbumArtists, '' as AlbumKey,
+                    t.path as Path, t.path as SafePath, "" as FileName, "" as MimeType, t.filesize as FileSize, t.bitrate as BitRate, 
                     t.samplerate as SampleRate, t.name as TrackTitle, TrackAlbums.track_number as TrackNumber, 0 as TrackCount, TrackAlbums.disc_number as DiscNumber,
                     0 as DiscCount, t.duration as Duration, t.year as Year, 0 as HasLyrics, t.date_added as DateAdded, 0 as DateFileCreated,
                     0 as DateLastSynced, 0 as DateFileModified, TrackIndexing.needs_indexing as NeedsIndexing, TrackIndexing.needs_album_artwork_indexing as NeedsAlbumArtworkIndexing, TrackIndexing.indexing_success as IndexingSuccess,
@@ -37,18 +37,13 @@ namespace Dopamine.Data.Repositories
                     INNER JOIN Folders ON Folders.id = t.folder_id
                     LEFT JOIN TrackIndexing ON TrackIndexing.track_id=t.id
                     WHERE Folders.show = 1 AND TrackIndexing.indexing_success is null AND TrackIndexing.needs_indexing is null";
+            if (paths != null)
+            {
+                q += " AND " + DataUtils.CreateInClause("t.path", paths);
+            }
+            q += " GROUP BY t.id ";
+            return q;
 
-
-            return @"SELECT DISTINCT t.TrackID, t.Artists, t.Genres, t.AlbumTitle, t.AlbumArtists, t.AlbumKey,
-                     t.Path, t.SafePath, t.FileName, t.MimeType, t.FileSize, t.BitRate, 
-                     t.SampleRate, t.TrackTitle, t.TrackNumber, t.TrackCount, t.DiscNumber,
-                     t.DiscCount, t.Duration, t.Year, t.HasLyrics, t.DateAdded, t.DateFileCreated,
-                     t.DateLastSynced, t.DateFileModified, t.NeedsIndexing, t.NeedsAlbumArtworkIndexing, t.IndexingSuccess,
-                     t.IndexingFailureReason, t.Rating, t.Love, t.PlayCount, t.SkipCount, t.DateLastPlayed
-                     FROM Track t
-                     INNER JOIN FolderTrack ft ON ft.TrackID = t.TrackID
-                     INNER JOIN Folder f ON ft.FolderID = f.FolderID
-                     WHERE f.ShowInCollection = 1 AND t.IndexingSuccess = 1 AND t.NeedsIndexing = 0";
         }
 
         private string SelectedAlbumDataQueryPart()
@@ -87,8 +82,8 @@ namespace Dopamine.Data.Repositories
                         try
                         {
                             IList<string> safePaths = paths.Select((p) => p.ToSafePath()).ToList();
-
-                            tracks = conn.Query<Track>($"{this.SelectVisibleTracksQuery()} AND {DataUtils.CreateInClause("t.path", safePaths)};");
+                            string s = SelectVisibleTracksQuery(safePaths);
+                            tracks = conn.Query<Track>(SelectVisibleTracksQuery(safePaths));
                         }
                         catch (Exception ex)
                         {
