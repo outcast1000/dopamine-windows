@@ -230,9 +230,10 @@ namespace Dopamine
                 //=== ALEX TEST
                 //containerRegistry.RegisterSingleton<ITrackRepository, TrackRepositoryComp>();
                 //=== ALEX NEW REPOSITORIES
-                containerRegistry.RegisterSingleton<IArtistVRepository, SQLiteArtistVRepository>();
-                containerRegistry.RegisterSingleton<IAlbumVRepository, SQLiteAlbumVRepository>();
-                //containerRegistry.RegisterSingleton<IArtistVRepository, MockArtistVRepository>();
+                //containerRegistry.RegisterSingleton<IArtistVRepository, SQLiteArtistVRepository>();
+                //containerRegistry.RegisterSingleton<IAlbumVRepository, SQLiteAlbumVRepository>();
+                containerRegistry.RegisterSingleton<IArtistVRepository, MockArtistVRepository>();
+                containerRegistry.RegisterSingleton<IAlbumVRepository, MockAlbumVRepository>();
             }
 
             void RegisterServices()
