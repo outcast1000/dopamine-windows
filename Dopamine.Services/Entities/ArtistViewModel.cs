@@ -1,5 +1,6 @@
 ﻿using Dopamine.Core.Utils;
 using Dopamine.Data;
+using Dopamine.Data.Entities;
 using Dopamine.Services.Utils;
 using Prism.Mvvm;
 using System;
@@ -8,27 +9,28 @@ namespace Dopamine.Services.Entities
 {
     public class ArtistViewModel : BindableBase, ISemanticZoomable
     {
-        private string artistName;
+        private ArtistV data;
         private bool isHeader;
 
-        public ArtistViewModel(string artistName)
+        public ArtistViewModel(ArtistV data)
         {
-            this.artistName = DataUtils.TrimColumnValue(artistName);
+            this.data = data;
             this.isHeader = false;
         }
 
-        public string ArtistName
+        public ArtistV Data
         {
-            get { return this.artistName; }
+            get { return data; }
             set
             {
-                SetProperty<string>(ref this.artistName, value);
+                SetProperty<ArtistV>(ref this.data, value);
             }
         }
 
-        public string SortArtistName => FormatUtils.GetSortableString(this.artistName, true);
 
-        public string Header => SemanticZoomUtils.GetGroupHeader(this.artistName, true);
+        public string SortArtistName => FormatUtils.GetSortableString(data.Name, true);
+
+        public string Header => SemanticZoomUtils.GetGroupHeader(data.Name, true);
 
         public bool IsHeader
         {
@@ -38,7 +40,7 @@ namespace Dopamine.Services.Entities
 
         public override string ToString()
         {
-            return this.artistName;
+            return data.Name;
         }
 
         public override bool Equals(object obj)
@@ -48,12 +50,12 @@ namespace Dopamine.Services.Entities
                 return false;
             }
 
-            return string.Equals(this.artistName, ((ArtistViewModel)obj).artistName, StringComparison.CurrentCultureIgnoreCase);
+            return string.Equals(data.Name, ((ArtistViewModel)obj).data.Name, StringComparison.CurrentCultureIgnoreCase);
         }
 
         public override int GetHashCode()
         {
-            return this.artistName.GetHashCode();
+            return data.Name.GetHashCode();
         }
     }
 }

@@ -12,5 +12,12 @@ namespace Dopamine.Data.Entities
 
         public long TrackCount { get; set; }
 
+        public string AlbumArtist { get; set; }
+
+        public string Artists { get; set; }
+
+        public long? Year { get; set; }
+
+
     }
 }

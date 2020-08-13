@@ -146,8 +146,15 @@
     <Compile Include="Repositories\AlbumArtworkRepository.cs" />
     <Compile Include="Repositories\FolderRepository.cs" />
     <Compile Include="Repositories\IAlbumArtworkRepository.cs" />
+    <Compile Include="Repositories\SQLiteArtistVRepository.cs" />
+    <Compile Include="Repositories\SQLiteAlbumVRepository.cs" />
+    <Compile Include="Repositories\IGenreVRepository.cs" />
+    <Compile Include="Repositories\IAlbumVRepository.cs" />
     <Compile Include="Repositories\IFolderRepository.cs" />
     <Compile Include="Repositories\IQueuedTrackRepository.cs" />
+    <Compile Include="Repositories\IArtistVRepository.cs" />
+	<Compile Include="Repositories\IAlbumVRepository.cs" />
+    <Compile Include="Repositories\ITrackVRepository.cs" />
     <Compile Include="Repositories\ITrackRepository.cs" />
     <Compile Include="Repositories\QueuedTrackRepository.cs" />
     <Compile Include="Repositories\TrackRepositoryComp.cs" />

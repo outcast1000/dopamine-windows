@@ -82,7 +82,7 @@ namespace Dopamine.Views.Common.Base
                 }
                 else if (lb.SelectedItem.GetType().Name == typeof(ArtistViewModel).Name)
                 {
-                    await this.playbackService.EnqueueArtistsAsync(new List<string> { ((ArtistViewModel)lb.SelectedItem).ArtistName }, false, false);
+                    await this.playbackService.EnqueueArtistsAsync(new List<string> { ((ArtistViewModel)lb.SelectedItem).Data.Name }, false, false);
                 }
                 else if (lb.SelectedItem.GetType().Name == typeof(GenreViewModel).Name)
                 {

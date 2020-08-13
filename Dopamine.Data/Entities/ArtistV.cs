@@ -14,7 +14,7 @@ namespace Dopamine.Data.Entities
 
         public string Name { get; set; }
 
-        public long TrackCount { get;}
+        public long TrackCount { get; set; }
 
         public string Genres { get; set; }
 

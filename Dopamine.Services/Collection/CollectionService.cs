@@ -2,6 +2,7 @@
 using Digimezzo.Foundation.Core.Utils;
 using Dopamine.Core.Utils;
 using Dopamine.Data;
+using Dopamine.Data.Entities;
 using Dopamine.Data.Repositories;
 using Dopamine.Services.Cache;
 using Dopamine.Services.Entities;
@@ -22,13 +23,23 @@ namespace Dopamine.Services.Collection
         private IPlaybackService playbackService;
         private IContainerProvider container;
 
-        public CollectionService(ITrackRepository trackRepository, IFolderRepository folderRepository, ICacheService cacheService, IPlaybackService playbackService, IContainerProvider container)
+        //=== ALEX
+        private IArtistVRepository artistVRepository;
+        private IAlbumVRepository albumVRepository;
+
+
+        public CollectionService(ITrackRepository trackRepository, IFolderRepository folderRepository, ICacheService cacheService, IPlaybackService playbackService, IContainerProvider container,
+            IArtistVRepository artistVRepository, IAlbumVRepository albumVRepository)
         {
             this.trackRepository = trackRepository;
             this.folderRepository = folderRepository;
             this.cacheService = cacheService;
             this.playbackService = playbackService;
             this.container = container;
+            this.artistVRepository = artistVRepository;
+            this.albumVRepository = albumVRepository;
+
+
         }
 
         public event EventHandler CollectionChanged = delegate { };
@@ -80,7 +91,7 @@ namespace Dopamine.Services.Collection
                 return RemoveTracksResult.Success;
             return RemoveTracksResult.Error;
         }
-
+        /*
         private async Task<IList<ArtistViewModel>> GetUniqueArtistsAsync(IList<string> artists)
         {
             IList<ArtistViewModel> uniqueArtists = new List<ArtistViewModel>();
@@ -119,7 +130,7 @@ namespace Dopamine.Services.Collection
 
             return uniqueArtists;
         }
-
+        */
         private async Task<IList<GenreViewModel>> GetUniqueGenresAsync(IList<string> genres)
         {
             IList<GenreViewModel> uniqueGenres = new List<GenreViewModel>();
@@ -159,6 +170,7 @@ namespace Dopamine.Services.Collection
             return uniqueGenres;
         }
 
+        /*
         private async Task<IList<AlbumViewModel>> GetUniqueAlbumsAsync(IList<AlbumData> albums)
         {
             IList<AlbumViewModel> uniqueAlbums = new List<AlbumViewModel>();
@@ -178,7 +190,7 @@ namespace Dopamine.Services.Collection
 
             return uniqueAlbums;
         }
-
+        */
 
         public async Task<IList<GenreViewModel>> GetAllGenresAsync()
         {
@@ -195,8 +207,10 @@ namespace Dopamine.Services.Collection
 
         public async Task<IList<ArtistViewModel>> GetAllArtistsAsync(ArtistType artistType)
         {
-            IList<string> artists = null;
+            //IList<string> artists = null;
+            IList<ArtistV> artistsV = artistVRepository.GetArtists();
 
+            /*
             switch (artistType)
             {
                 case ArtistType.All:
@@ -215,8 +229,11 @@ namespace Dopamine.Services.Collection
                     // Can't happen	
                     break;
             }
+            */
 
-            IList<ArtistViewModel> orderedArtists = (await this.GetUniqueArtistsAsync(artists)).OrderBy(a => FormatUtils.GetSortableString(a.ArtistName, true)).ToList();
+            //IList<ArtistViewModel> orderedArtists = (await this.GetUniqueArtistsAsync(artists)).OrderBy(a => FormatUtils.GetSortableString(a.ArtistName, true)).ToList();
+
+            IList<ArtistViewModel> orderedArtists = artistsV.Select(x => new ArtistViewModel(x)).ToList();
 
             // Workaround to make sure the "#" GroupHeader is shown at the top of the list
             List<ArtistViewModel> tempArtistViewModels = new List<ArtistViewModel>();
@@ -228,23 +245,27 @@ namespace Dopamine.Services.Collection
 
         public async Task<IList<AlbumViewModel>> GetAllAlbumsAsync()
         {
-            IList<AlbumData> albums = await this.trackRepository.GetAllAlbumDataAsync();
+            IList<AlbumV> albumsV = albumVRepository.GetAlbums();
 
-            return await this.GetUniqueAlbumsAsync(albums);
-        }
+            return albumsV.Select(a => new AlbumViewModel(a)).ToList();
+
+            //IList<AlbumData> albums = await this.trackRepository.GetAllAlbumDataAsync();
+            //return await this.GetUniqueAlbumsAsync(albums);
+          }
 
         public async Task<IList<AlbumViewModel>> GetArtistAlbumsAsync(IList<string> selectedArtists, ArtistType artistType)
         {
             IList<AlbumData> albums = await this.trackRepository.GetArtistAlbumDataAsync(selectedArtists.Select(x => x.Replace(ResourceUtils.GetString("Language_Unknown_Artist"), string.Empty)).ToList(), artistType);
-
-            return await this.GetUniqueAlbumsAsync(albums);
+            return null;
+            //ALEX return await this.GetUniqueAlbumsAsync(albums);
         }
 
         public async Task<IList<AlbumViewModel>> GetGenreAlbumsAsync(IList<string> selectedGenres)
         {
             IList<AlbumData> albums = await this.trackRepository.GetGenreAlbumDataAsync(selectedGenres.Select(x => x.Replace(ResourceUtils.GetString("Language_Unknown_Genre"), string.Empty)).ToList());
+            return null;
 
-            return await this.GetUniqueAlbumsAsync(albums);
+            //return await this.GetUniqueAlbumsAsync(albums);
         }
 
         public async Task<IList<AlbumViewModel>> OrderAlbumsAsync(IList<AlbumViewModel> albums, AlbumOrder albumOrder)

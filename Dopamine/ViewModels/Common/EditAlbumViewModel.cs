@@ -9,6 +9,8 @@ using Dopamine.Utils;
 using Dopamine.ViewModels.Common.Base;
 using Prism.Commands;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Dopamine.ViewModels.Common
@@ -72,7 +74,8 @@ namespace Dopamine.ViewModels.Common
         {
             try
             {
-                await this.DownloadArtworkAsync(this.albumViewModel.AlbumTitle, this.albumViewModel.AlbumArtists);
+                //=== ALEX Temporary hack
+                await this.DownloadArtworkAsync(this.albumViewModel.AlbumTitle, new List<string>() { this.albumViewModel.AlbumArtists });
             }
             catch (Exception ex)
             {

@@ -273,27 +273,29 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 var artistViewModels = new ObservableCollection<ArtistViewModel>(await this.collectionService.GetAllArtistsAsync(artistType));
 
                 // Unbind to improve UI performance
-                this.ClearArtists();
+                ClearArtists();
 
                 // Populate ObservableCollection
-                this.Artists = new ObservableCollection<ISemanticZoomable>(artistViewModels);
+                Artists = new ObservableCollection<ISemanticZoomable>(artistViewModels);
             }
             catch (Exception ex)
             {
                 LogClient.Error("An error occurred while getting Artists. Exception: {0}", ex.Message);
 
                 // Failed getting Artists. Create empty ObservableCollection.
-                this.Artists = new ObservableCollection<ISemanticZoomable>();
+                Artists = new ObservableCollection<ISemanticZoomable>();
             }
+
+
 
             Application.Current.Dispatcher.Invoke(() =>
             {
                 // Populate CollectionViewSource
-                this.ArtistsCvs = new CollectionViewSource { Source = this.Artists };
-                this.ArtistsCvs.Filter += new FilterEventHandler(ArtistsCvs_Filter);
+                this.ArtistsCvs = new CollectionViewSource { Source = Artists };
+                //this.ArtistsCvs.Filter += new FilterEventHandler(ArtistsCvs_Filter);
 
                 // Update count
-                this.ArtistsCount = this.ArtistsCvs.View.Cast<ISemanticZoomable>().Count();
+                this.ArtistsCount = Artists.Count;
             });
 
             // Update Semantic Zoom Headers
@@ -308,7 +310,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
                 foreach (ArtistViewModel item in (IList)parameter)
                 {
-                    this.SelectedArtists.Add(item.ArtistName);
+                    this.SelectedArtists.Add(item.Data.Name);
                 }
             }
 
@@ -473,7 +475,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         protected async override Task FillListsAsync()
         {
-            await this.GetArtistsAsync(this.ArtistType);
+            await GetArtistsAsync(ArtistType);
+
             await this.GetArtistAlbumsAsync(this.SelectedArtists, this.ArtistType, this.AlbumOrder);
             await this.GetTracksAsync(this.SelectedArtists, null, this.SelectedAlbums, this.TrackOrder);
         }

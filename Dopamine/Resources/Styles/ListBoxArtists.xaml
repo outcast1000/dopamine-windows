@@ -74,21 +74,60 @@
                             </Grid>
                         </Button>
                         <!-- Artist -->
-                        <Grid>
-                            <Border x:Name="MouseHoverHelper" Height="32" Background="{DynamicResource Brush_ItemHovered}" Opacity="0"/>
-                            <Border 
+                        <Grid ShowGridLines="True">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Image Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left"  Height="40" Width="40" Source="https://cdn.britannica.com/s:700x500/27/23027-004-633EF982/Nirvana-Kurt-Cobain-Krist-Novoselic-Dave-Grohl.jpg" />
+                            <Grid Grid.Column="1" Grid.Row="0">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition/>
+                                </Grid.RowDefinitions>
+
+                                <Border Grid.Column="0" Grid.Row="0" x:Name="MouseHoverHelper" Height="32" Background="{DynamicResource Brush_ItemHovered}" Opacity="0"/>
+                                <Border Grid.Column="0" Grid.Row="0"
                                 Background="{TemplateBinding Background}" 
                                 Height="32"
                                 Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ScrollContentPresenter}}}">
-                                <TextBlock 
-                                    Text="{Binding ArtistName}"
-                                    VerticalAlignment="Center"
-                                    HorizontalAlignment="Stretch" 
-                                    TextTrimming="CharacterEllipsis"
-                                    FontSize="13"
-                                    Margin="10,0,10,0"
-                                    ToolTip="{Binding ArtistName}"/>
-                            </Border>
+                                    <TextBlock 
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Stretch" 
+                                        TextTrimming="CharacterEllipsis"
+                                        FontSize="13"
+                                        Margin="10,0,10,0"
+                                        ToolTip="{Binding Data.Name}">
+                                        <TextBlock.Text>
+                                            <MultiBinding StringFormat="{}{0} ({1} tracks)">
+                                                <Binding Path="Data.Name" />
+                                                <Binding Path="Data.TrackCount" />
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+
+                                </Border>
+                                <Border Grid.Column="0" Grid.Row="1"
+                                Background="{TemplateBinding Background}" 
+                                Height="32"
+                                Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ScrollContentPresenter}}}">
+                                    <TextBlock 
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Stretch" 
+                                        TextTrimming="CharacterEllipsis"
+                                        FontSize="13"
+                                        Margin="10,0,10,0"
+                                        ToolTip="{Binding Data.Genres}">
+                                        <TextBlock.Text>
+                                            <MultiBinding StringFormat="{}{0}">
+                                                <Binding Path="Data.Genres" />
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+
+                                </Border>
+                            </Grid>
                         </Grid>
                     </DockPanel>
                     <ControlTemplate.Triggers>

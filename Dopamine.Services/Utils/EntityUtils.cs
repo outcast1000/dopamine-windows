@@ -19,8 +19,8 @@ namespace Dopamine.Services.Utils
             string[] pieces = filter.Trim().Split(Convert.ToChar(" "));
 
             return pieces.All((s) => 
-            album.AlbumTitle.ToLower().Contains(s.ToLower()) | 
-            album.AlbumArtist.ToLower().Contains(s.ToLower()) | 
+            album.AlbumTitle.ToLower().Contains(s.ToLower()) |
+            (album.AlbumArtist != null ? album.AlbumArtist.ToLower().Contains(s.ToLower()) : true) | 
             album.Year.ToString().ToLower().Contains(s.ToLower()));
         }
 
@@ -29,7 +29,7 @@ namespace Dopamine.Services.Utils
             // Trim is required here, otherwise the filter might flip on the space at the beginning (and probably at the end)
             string[] pieces = filter.Trim().Split(Convert.ToChar(" "));
 
-            return pieces.All((s) => artist.ArtistName.ToLower().Contains(s.ToLower()));
+            return pieces.All((s) => artist.Data.Name.ToLower().Contains(s.ToLower()));
         }
 
         public static bool FilterGenres(GenreViewModel genre, string filter)

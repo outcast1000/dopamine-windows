@@ -1,5 +1,6 @@
 ﻿using Digimezzo.Foundation.Core.Utils;
 using Dopamine.Data;
+using Dopamine.Data.Entities;
 using Prism.Mvvm;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace Dopamine.Services.Entities
     {
         private string albumTitle;
         private string albumArtist;
-        private IList<string> albumArtists;
+        private string albumArtists;
         private string year;
         private string artworkPath;
         private string mainHeader;
@@ -19,16 +20,16 @@ namespace Dopamine.Services.Entities
         private long? dateFileCreated;
         private long sortYear;
 
-        public AlbumViewModel(AlbumData albumData)
+        public AlbumViewModel(AlbumV albumData)
         {
-            this.albumArtist = this.GetAlbumArtist(albumData);
-            this.albumTitle = !string.IsNullOrEmpty(albumData.AlbumTitle) ? albumData.AlbumTitle : ResourceUtils.GetString("Language_Unknown_Album");
-            this.albumArtists = this.GetAlbumArtists(albumData);
+            this.albumArtist = albumData.AlbumArtist;
+            this.albumTitle = !string.IsNullOrEmpty(albumData.Name) ? albumData.Name : ResourceUtils.GetString("Language_Unknown_Album");
+            this.albumArtists = albumData.Artists;// this.GetAlbumArtists(albumData.Artists);
             this.year = albumData.Year.HasValue && albumData.Year.Value > 0 ? albumData.Year.Value.ToString() : string.Empty;
             this.SortYear = albumData.Year.HasValue ? albumData.Year.Value : 0;
-            this.AlbumKey = albumData.AlbumKey;
-            this.DateAdded = albumData.DateAdded;
-            this.DateFileCreated = albumData.DateFileCreated;
+            this.AlbumKey = albumData.Name + albumData.AlbumArtist + albumData.Artists;
+            //this.DateAdded = albumData.DateAdded;
+            //this.DateFileCreated = albumData.DateFileCreated;
         }
 
         private string GetAlbumArtist(AlbumData albumData)
@@ -134,10 +135,10 @@ namespace Dopamine.Services.Entities
             set { SetProperty<string>(ref this.albumArtist, value); }
         }
 
-        public IList<string> AlbumArtists
+        public string AlbumArtists
         {
             get { return this.albumArtists; }
-            set { SetProperty<IList<string>>(ref this.albumArtists, value); }
+            set { SetProperty<string>(ref this.albumArtists, value); }
         }
 
         public string ArtworkPath

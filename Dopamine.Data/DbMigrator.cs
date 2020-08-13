@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Diagnostics;
 
 namespace Dopamine.Data
 {
@@ -208,9 +209,10 @@ namespace Dopamine.Data
                 conn.Execute("CREATE TABLE Albums (" +
                             "id                 INTEGER PRIMARY KEY AUTOINCREMENT," +
                             "artist_id          INTEGER," +
-                            "name               TEXT NOT NULL COLLATE NOCASE); ");
+                            "name               TEXT NOT NULL COLLATE NOCASE," +
+                            "FOREIGN KEY (artist_id) REFERENCES Artists(id)); ");
 
-                conn.Execute("CREATE UNIQUE INDEX AlbumsNameIndex ON Albums(name);");
+                conn.Execute("CREATE UNIQUE INDEX AlbumsUniqueIndex ON Albums(name, artist_id);");
 
                 //=== AlbumReviews: (Many 2 many) Each album may have multiple reviews
                 conn.Execute("CREATE TABLE AlbumReviews (" +
@@ -380,7 +382,7 @@ namespace Dopamine.Data
                 List<Folder> folders = conn.Table<Folder>().ToList();
                 foreach (Folder folder in folders)
                 {
-                    Console.WriteLine("Migrating Folder {0}", folder.Path);
+                    Trace.WriteLine("Migrating Folder {0}", folder.Path);
                     conn.Insert(new Folder2() { Path = folder.Path, Show = folder.ShowInCollection});
                 }
 
@@ -407,9 +409,9 @@ namespace Dopamine.Data
                 foreach (Track track in tracks)
                 {
 
-                    Console.WriteLine("Migrating File {0}", track.Path);
+                    Trace.WriteLine("Migrating File {0}", track.Path);
                     if (track.TrackTitle == null)
-                        Console.WriteLine("TrackTitle is null");
+                        Trace.WriteLine("TrackTitle is null");
 
                     List<FolderTrack> folderTrackIDs = conn.Query<FolderTrack>(@"SELECT * FROM FolderTrack WHERE TrackID=?", track.TrackID);
                     conn.Insert(new Track2()
@@ -429,16 +431,22 @@ namespace Dopamine.Data
                     });
                     long track_id = GetLastInsertRowID(conn);
 
-                    string AlbumArtist = track.AlbumArtists;
+                    string[] AlbumArtists = track.AlbumArtists.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
+                    string AlbumArtist = "";
+                    if (AlbumArtists.Length == 1)
+                        AlbumArtist = AlbumArtists[0];
+                    else if (AlbumArtists.Length > 1)
+                        Trace.WriteLine("MANY ALBUM ARTISTS");
+
 
                     //Add the artists
                     if (track.Artists.Length > 0)
                     {
-                        if (AlbumArtist.Length == 0)
-                            AlbumArtist = track.Artists;
                         string[] artists = track.Artists.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
                         for (int i = 0; i < artists.Length; i++)
                         {
+                            if (AlbumArtist.Length == 0 && i == 0)
+                                AlbumArtist = artists[i];//=== ALEX COMMENT. Select the "first artist" as the "MAIN Artist" of the album
                             long curID = GetArtistID(conn, artists[i]);
                             conn.Insert(new TrackArtist()
                             {
@@ -1673,9 +1681,9 @@ GROUP BY t.id
             {
                 try
                 {
-                    //=== ALEX DEBUG:
-                    userDatabaseVersion = 26;
-                    //this.userDatabaseVersion = Convert.ToInt32(conn.ExecuteScalar<string>("SELECT Value FROM Configuration WHERE Key = 'DatabaseVersion'"));
+                    this.userDatabaseVersion = Convert.ToInt32(conn.ExecuteScalar<string>("SELECT Value FROM Configuration WHERE Key = 'DatabaseVersion'"));
+                    //=== ALEX DEBUG. USE "26" to force the update. "27" to avoid it. Reenable the Execute scalar
+                    userDatabaseVersion = 27;
                 }
                 catch (Exception)
                 {
