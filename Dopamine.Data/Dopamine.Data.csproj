@@ -103,7 +103,7 @@
     <Compile Include="DataUtils.cs" />
     <Compile Include="DbMigrator.cs" />
     <Compile Include="Entities\AlbumV.cs" />
-    <Compile Include="Entities\ArtistCollectionsArtists.cs" />
+    <Compile Include="Entities\ArtistCollectionsArtist.cs" />
     <Compile Include="Entities\ArtistCollection.cs" />
     <Compile Include="Entities\ArtistV.cs" />
     <Compile Include="Entities\Folder2.cs" />

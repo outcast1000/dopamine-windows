@@ -19,8 +19,8 @@ namespace Dopamine.Services.Utils
             string[] pieces = filter.Trim().Split(Convert.ToChar(" "));
 
             return pieces.All((s) => 
-            album.AlbumTitle.ToLower().Contains(s.ToLower()) |
-            (album.AlbumArtist != null ? album.AlbumArtist.ToLower().Contains(s.ToLower()) : true) | 
+            album.Name.ToLower().Contains(s.ToLower()) |
+            (album.AlbumArtists != null ? album.AlbumArtists.ToLower().Contains(s.ToLower()) : true) | 
             album.Year.ToString().ToLower().Contains(s.ToLower()));
         }
 

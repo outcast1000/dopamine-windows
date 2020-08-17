@@ -234,7 +234,7 @@ namespace Dopamine.Data
                             "id                     INTEGER PRIMARY KEY AUTOINCREMENT," +
                             "artist_collection_id   INTEGER," +
                             "name                   TEXT NOT NULL COLLATE NOCASE," +
-                            "FOREIGN KEY (artist_collection_id) REFERENCES ArtistCollection(id)); ");
+                            "FOREIGN KEY (artist_collection_id) REFERENCES ArtistCollections(id)); ");
 
                 conn.Execute("CREATE UNIQUE INDEX AlbumsUniqueIndex ON Albums(name, artist_collection_id);");
 
@@ -316,6 +316,7 @@ namespace Dopamine.Data
                             "date_deleted	    INTEGER," +
                             "rating	            INTEGER," +
                             "love	            INTEGER," +
+                            "date_file_created  INTEGER," +
                             "FOREIGN KEY (folder_id) REFERENCES Folders(id));");
 
                 conn.Execute("CREATE INDEX TracksNameIndex ON Tracks(name);");
@@ -464,7 +465,8 @@ namespace Dopamine.Data
                         Language = null,
                         DateAdded = track.DateAdded,
                         Rating = track.Rating,
-                        Love = track.Love
+                        Love = track.Love,
+                        DateFileCreated = track.DateFileCreated
                     });
                     long track_id = GetLastInsertRowID(conn);
 
@@ -486,7 +488,7 @@ namespace Dopamine.Data
                     //Add the artists
                     if (track.Artists.Length > 0)
                     {
-                        bool bUseArtistForAlbumArtistCollection = artistCollection.Count != 0;
+                        bool bUseArtistForAlbumArtistCollection = artistCollection.Count == 0;
 
                         string[] artists = track.Artists.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
                         for (int i = 0; i < artists.Length; i++)
@@ -699,7 +701,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 long artist_collection_id = GetLastInsertRowID(conn);
                 foreach (long artistID in artistIDs)
                 {
-                    conn.Insert(new ArtistCollectionsArtists() { ArtistCollectionId = artist_collection_id, ArtistId = artistID }); ;
+                    conn.Insert(new ArtistCollectionsArtist() { ArtistCollectionId = artist_collection_id, ArtistId = artistID }); ;
                 }
                 return artist_collection_id;
             }
@@ -709,13 +711,13 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
 
 
         
-        private long GetAlbumID(SQLiteConnection conn, String entry, long artist_collection_ID)
+        private long GetAlbumID(SQLiteConnection conn, String entry, long artist_collection_id)
         {
             List<long> ids;
-            ids = conn.QueryScalars<long>("SELECT * FROM Albums WHERE name=? AND artist_collection_ID=?", entry, artist_collection_ID);
+            ids = conn.QueryScalars<long>("SELECT * FROM Albums WHERE name=? AND artist_collection_ID=?", entry, artist_collection_id);
             if (ids.Count == 0)
             {
-                conn.Insert(new Album() { Name = entry, ArtistCollectionId = artist_collection_ID });
+                conn.Insert(new Album() { Name = entry, ArtistCollectionId = artist_collection_id });
                 return GetLastInsertRowID(conn);
             }
             return ids[0];

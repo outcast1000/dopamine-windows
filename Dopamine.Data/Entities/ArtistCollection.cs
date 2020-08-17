@@ -4,7 +4,7 @@ using System;
 
 namespace Dopamine.Data.Entities
 {
-    [Table("ArtistCollection")]
+    [Table("ArtistCollections")]
     public class ArtistCollection
     {
         public ArtistCollection() { }

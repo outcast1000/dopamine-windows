@@ -42,17 +42,26 @@ namespace Dopamine.Data.Repositories
         private string GetSQL()
         {
             return @"
-SELECT Artists.ID as Id, Artists.name as Name, COUNT(t.id) as TrackCount, GROUP_CONCAT(DISTINCT Genres.name ) as Genres
+SELECT
+Artists.ID as Id,
+Artists.name as Name,
+COUNT(t.id) as TrackCount,
+GROUP_CONCAT(DISTINCT Genres.name ) as Genres,
+ArtistThumbnail.key as Thumbnail ,
+MIN(t.date_added) as DateAdded,
+MIN(t.date_file_created) as DateFileCreated
 from Tracks t
 LEFT JOIN TrackArtists  ON TrackArtists.track_id = t.id
 LEFT JOIN Artists ON Artists.id = TrackArtists.artist_id
+LEFT JOIN ArtistThumbnail ON Artists.id = ArtistThumbnail.artist_id
 LEFT JOIN TrackIndexing ON TrackIndexing.track_id = t.id
 LEFT JOIN TrackGenres ON TrackGenres.track_id = t.id
-INNER JOIN Genres ON TrackGenres.genre_id = Genres.id 
+LEFT JOIN Genres ON TrackGenres.genre_id = Genres.id
 INNER JOIN Folders ON Folders.id = t.folder_id
 WHERE Folders.show = 1 AND TrackIndexing.indexing_success is null AND TrackIndexing.needs_indexing is null
 GROUP BY Artists.id
-ORDER BY Artists.name ";
+ORDER BY Artists.name;
+";
         }    
     }
 

@@ -143,6 +143,9 @@
                             Click="AlbumsButton_Click" ToolTip="{DynamicResource Language_Select_None}"/>
                 </DockPanel>
                 <dc:MultiSelectListBox x:Name="ListBoxAlbums"
+                                                                                      VirtualizingStackPanel.IsVirtualizing="True"
+                                               VirtualizingPanel.IsVirtualizingWhenGrouping="True"
+                                               VirtualizingStackPanel.VirtualizationMode="Recycling"  
                                        Style="{StaticResource ListBoxAlbums}"
                                        ItemsSource="{Binding AlbumsCvs.View}"
                                        BorderThickness="0"

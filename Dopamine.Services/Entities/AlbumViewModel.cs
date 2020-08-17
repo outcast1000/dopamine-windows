@@ -17,19 +17,39 @@ namespace Dopamine.Services.Entities
             this.data = data;
         }
 
-        private string GetAlbumArtist()
+        public string Name
         {
-            if (!string.IsNullOrEmpty(data.AlbumArtist))
+            get
             {
-                return data.AlbumArtist;
+                if (string.IsNullOrEmpty(data.Name))
+                    return ResourceUtils.GetString("Language_Unknown_Album");
+                return data.Name;
             }
-
-            return ResourceUtils.GetString("Language_Unknown_Artist");
+            set
+            {
+                data.Name = value;
+                //RaisePropertyChanged(nameof(this.HasTitle));
+            }
         }
 
-        public string GetArtists()
+        public string AlbumArtists
         {
-            return data.Artists;
+            get
+            {
+                if (string.IsNullOrEmpty(data.AlbumArtists))
+                    return ResourceUtils.GetString("Language_Unknown_Artist");
+                return data.AlbumArtists;
+            }
+        }
+
+        public string Artists
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(data.Artists))
+                    return ResourceUtils.GetString("Language_Unknown_Artist");
+                return data.Artists;
+            }
         }
 
         public bool HasCover
@@ -53,21 +73,7 @@ namespace Dopamine.Services.Entities
         }
 
  
-        public string AlbumTitle
-        {
-            get { return data.Name; }
-            set
-            {
-                data.Name = value;
-                //RaisePropertyChanged(nameof(this.HasTitle));
-            }
-        }
 
-        public string AlbumArtist
-        {
-            get { return data.AlbumArtist; }
-            set { data.AlbumArtist = value; }
-        }
 
         public string Thumbnail { get { return data.Thumbnail; } }
 
@@ -87,13 +93,15 @@ namespace Dopamine.Services.Entities
             {
                 return false;
             }
+            if (Name == null)
+                return ((AlbumViewModel)obj).Name == null;
 
-            return AlbumTitle.Equals(((AlbumViewModel)obj).AlbumTitle) && AlbumArtist.Equals(((AlbumViewModel)obj).AlbumArtist);
+            return Name.Equals(((AlbumViewModel)obj).Name) && Name.Equals(((AlbumViewModel)obj).Name);
         }
 
         public override int GetHashCode()
         {
-            return (AlbumTitle + AlbumArtist).GetHashCode();
+            return (Name + Artists + AlbumArtists).GetHashCode();
         }
     }
 }

@@ -5,14 +5,14 @@ using System;
 namespace Dopamine.Data.Entities
 {
     [Table("ArtistCollectionsArtists")]
-    public class ArtistCollectionsArtists
+    public class ArtistCollectionsArtist
     {
-        public ArtistCollectionsArtists() { }
+        public ArtistCollectionsArtist() { }
 
         [Column("artist_collection_id")]
         public long ArtistCollectionId { get; set; }
 
-        [Column("artist__id")]
+        [Column("artist_id")]
         public long ArtistId { get; set; }
 
     }

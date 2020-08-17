@@ -43,6 +43,9 @@ namespace Dopamine.Data.Entities
         [Column("date_deleted")]
         public long? DateDeleted { get; set; }
 
+        [Column("date_file_created")]
+        public long? DateFileCreated { get; set; }
+
         [Column("rating")]
         public long? Rating { get; set; }
 

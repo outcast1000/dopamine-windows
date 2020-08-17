@@ -98,11 +98,11 @@
                                         TextTrimming="CharacterEllipsis"
                                         FontSize="13"
                                         Margin="10,0,10,0"
-                                        ToolTip="{Binding Data.Name}">
+                                        ToolTip="{Binding Name}">
                                         <TextBlock.Text>
                                             <MultiBinding StringFormat="{}{0} ({1} tracks)">
-                                                <Binding Path="Data.Name" />
-                                                <Binding Path="Data.TrackCount" />
+                                                <Binding Path="Name" />
+                                                <Binding Path="TrackCount" />
                                             </MultiBinding>
                                         </TextBlock.Text>
                                     </TextBlock>
@@ -118,10 +118,10 @@
                                         TextTrimming="CharacterEllipsis"
                                         FontSize="13"
                                         Margin="10,0,10,0"
-                                        ToolTip="{Binding Data.Genres}">
+                                        ToolTip="{Binding Genres}">
                                         <TextBlock.Text>
                                             <MultiBinding StringFormat="{}{0}">
-                                                <Binding Path="Data.Genres" />
+                                                <Binding Path="Genres" />
                                             </MultiBinding>
                                         </TextBlock.Text>
                                     </TextBlock>

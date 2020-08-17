@@ -10,7 +10,7 @@ namespace Dopamine.Data.Repositories
         public List<AlbumV> GetAlbums()
         {
             return new List<AlbumV>() { 
-                new AlbumV() { Id = 1, Name = "album 1", TrackCount = 2, Genres = "Genre 1, Genre 2", Year = 1999, AlbumArtist="Album Artist 1", Artists="Artist 1" },
+                new AlbumV() { Id = 1, Name = "album 1", TrackCount = 2, Genres = "Genre 1, Genre 2", Year = 1999, AlbumArtists="Album Artist 1", Artists="Artist 1" },
                 new AlbumV() { Id = 2, Name = "album 2", TrackCount = 3, Genres = "Genre 1, Genre 3", Artists="Artist 2"   } 
             };
         }

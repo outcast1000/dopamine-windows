@@ -99,7 +99,7 @@
                                    RenderOptions.BitmapScalingMode="HighQuality">
                                         <pc:SourceChangedImage.Source>
                                             <MultiBinding Converter="{StaticResource PathToImageConverter}">
-                                                <Binding Path="ArtworkPath" IsAsync="True"/>
+                                                <Binding Path="Thumbnail" IsAsync="True"/>
                                                 <Binding Path="DataContext.UpscaledCoverSize" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type UserControl}}"/>
                                             </MultiBinding>
                                         </pc:SourceChangedImage.Source>
@@ -117,8 +117,8 @@
                                 <StackPanel Background="{DynamicResource Brush_AlbumTileInfoBackground}" Height="{x:Static base:Constants.AlbumTileAlbumInfoHeight}">
                                     <Grid Margin="6">
                                         <StackPanel>
-                                            <TextBlock Text="{Binding AlbumTitle}" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Brush_PrimaryText}"/>
-                                            <TextBlock Text="{Binding AlbumArtist}" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Brush_SecondaryText}"/>
+                                            <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Brush_PrimaryText}"/>
+                                            <TextBlock Text="{Binding AlbumArtists}" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Brush_SecondaryText}"/>
                                             <TextBlock Text="{Binding Artists}" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Brush_SecondaryText}"/>
                                             <TextBlock Text="{Binding Genres}" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Brush_SecondaryText}"/>
                                         </StackPanel>

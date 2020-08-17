@@ -217,7 +217,7 @@ namespace Dopamine.ViewModels.Common.Base
                         }
                         catch (Exception ex)
                         {
-                            LogClient.Error("Error while refreshing artwork for Album {0}/{1}. Exception: {2}", alb.AlbumTitle, alb.AlbumArtist, ex.Message);
+                            LogClient.Error("Error while refreshing artwork for Album {0}/{1}. Exception: {2}", alb.Name, alb.AlbumArtists, ex.Message);
                         }
                     }
                 });
@@ -362,10 +362,10 @@ namespace Dopamine.ViewModels.Common.Base
             {
                 // Populate CollectionViewSource
                 this.AlbumsCvs = new CollectionViewSource { Source = this.Albums };
-                this.AlbumsCvs.Filter += new FilterEventHandler(AlbumsCvs_Filter);
+                //this.AlbumsCvs.Filter += new FilterEventHandler(AlbumsCvs_Filter);
 
                 // Update count
-                this.AlbumsCount = this.AlbumsCvs.View.Cast<AlbumViewModel>().Count();
+                this.AlbumsCount = albums.Count;// this.AlbumsCvs.View.Cast<AlbumViewModel>().Count();
             });
 
             // Set Album artwork

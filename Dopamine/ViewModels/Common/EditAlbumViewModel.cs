@@ -75,7 +75,7 @@ namespace Dopamine.ViewModels.Common
             try
             {
                 //=== ALEX Temporary hack
-                await this.DownloadArtworkAsync(this.albumViewModel.AlbumTitle, new List<string>() { this.albumViewModel.AlbumArtist });
+                await this.DownloadArtworkAsync(this.albumViewModel.Name, new List<string>() { this.albumViewModel.AlbumArtists });
             }
             catch (Exception ex)
             {
@@ -90,7 +90,7 @@ namespace Dopamine.ViewModels.Common
                 return false;
             }
 
-            return !string.IsNullOrEmpty(this.albumViewModel.AlbumArtist) && !string.IsNullOrEmpty(this.albumViewModel.AlbumTitle);
+            return !string.IsNullOrEmpty(this.albumViewModel.AlbumArtists) && !string.IsNullOrEmpty(this.albumViewModel.Name);
         }
 
         protected override void UpdateArtwork(byte[] imageData)
@@ -115,7 +115,7 @@ namespace Dopamine.ViewModels.Common
                 }
                 catch (Exception ex)
                 {
-                    LogClient.Error("An error occurred while getting the artwork for album title='{0}' and artist='{1}'. Exception: {2}", (string)this.albumViewModel.AlbumTitle, (string)this.albumViewModel.AlbumArtist, ex.Message);
+                    LogClient.Error("An error occurred while getting the artwork for album title='{0}' and artist='{1}'. Exception: {2}", (string)this.albumViewModel.Name, (string)this.albumViewModel.AlbumArtists, ex.Message);
                 }
             });
         }
@@ -133,7 +133,7 @@ namespace Dopamine.ViewModels.Common
             }
             catch (Exception ex)
             {
-                LogClient.Error("An error occurred while saving the album with title='{0}' and artist='{1}'. Exception: {2}", (string)this.albumViewModel.AlbumTitle, (string)this.albumViewModel.AlbumArtist, ex.Message);
+                LogClient.Error("An error occurred while saving the album with title='{0}' and artist='{1}'. Exception: {2}", (string)this.albumViewModel.Name, (string)this.albumViewModel.AlbumArtists, ex.Message);
             }
 
             this.IsBusy = false;

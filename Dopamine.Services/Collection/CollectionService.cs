@@ -277,7 +277,7 @@ namespace Dopamine.Services.Collection
                 switch (albumOrder)
                 {
                     case AlbumOrder.Alphabetical:
-                        orderedAlbums = albums.OrderBy((a) => FormatUtils.GetSortableString(a.AlbumTitle)).ToList();
+                        orderedAlbums = albums.OrderBy((a) => FormatUtils.GetSortableString(a.Name)).ToList();
                         break;
                     case AlbumOrder.ByDateAdded:
                         orderedAlbums = albums.OrderByDescending((a) => a.DateAdded).ToList();
@@ -286,7 +286,7 @@ namespace Dopamine.Services.Collection
                         orderedAlbums = albums.OrderByDescending((a) => a.DateFileCreated).ToList();
                         break;
                     case AlbumOrder.ByAlbumArtist:
-                        orderedAlbums = albums.OrderBy((a) => FormatUtils.GetSortableString(a.AlbumArtist, true)).ToList();
+                        orderedAlbums = albums.OrderBy((a) => FormatUtils.GetSortableString(a.AlbumArtists, true)).ToList();
                         break;
                     case AlbumOrder.ByYearAscending:
                         orderedAlbums = albums.OrderBy((a) => a.Year).ToList();
@@ -296,7 +296,7 @@ namespace Dopamine.Services.Collection
                         break;
                     default:
                         // Alphabetical
-                        orderedAlbums = albums.OrderBy((a) => FormatUtils.GetSortableString(a.AlbumTitle)).ToList();
+                        orderedAlbums = albums.OrderBy((a) => FormatUtils.GetSortableString(a.Name)).ToList();
                         break;
                 }
                 /* ALEX AVOID Headers
