@@ -117,8 +117,10 @@
                                 <StackPanel Background="{DynamicResource Brush_AlbumTileInfoBackground}" Height="{x:Static base:Constants.AlbumTileAlbumInfoHeight}">
                                     <Grid Margin="6">
                                         <StackPanel>
-                                            <TextBlock Text="{Binding MainHeader}" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Brush_PrimaryText}"/>
-                                            <TextBlock Text="{Binding SubHeader}" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Brush_SecondaryText}"/>
+                                            <TextBlock Text="{Binding AlbumTitle}" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Brush_PrimaryText}"/>
+                                            <TextBlock Text="{Binding AlbumArtist}" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Brush_SecondaryText}"/>
+                                            <TextBlock Text="{Binding Artists}" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Brush_SecondaryText}"/>
+                                            <TextBlock Text="{Binding Genres}" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Brush_SecondaryText}"/>
                                         </StackPanel>
                                     </Grid>
                                     <StackPanel.ToolTip>

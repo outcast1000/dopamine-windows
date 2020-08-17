@@ -289,17 +289,17 @@ namespace Dopamine.Services.Collection
                         orderedAlbums = albums.OrderBy((a) => FormatUtils.GetSortableString(a.AlbumArtist, true)).ToList();
                         break;
                     case AlbumOrder.ByYearAscending:
-                        orderedAlbums = albums.OrderBy((a) => a.SortYear).ToList();
+                        orderedAlbums = albums.OrderBy((a) => a.Year).ToList();
                         break;
                     case AlbumOrder.ByYearDescending:
-                        orderedAlbums = albums.OrderByDescending((a) => a.SortYear).ToList();
+                        orderedAlbums = albums.OrderByDescending((a) => a.Year).ToList();
                         break;
                     default:
                         // Alphabetical
                         orderedAlbums = albums.OrderBy((a) => FormatUtils.GetSortableString(a.AlbumTitle)).ToList();
                         break;
                 }
-
+                /* ALEX AVOID Headers
                 foreach (AlbumViewModel alb in orderedAlbums)
                 {
                     string mainHeader = alb.AlbumTitle;
@@ -327,6 +327,7 @@ namespace Dopamine.Services.Collection
                     alb.MainHeader = mainHeader;
                     alb.SubHeader = subHeader;
                 }
+                */
             });
 
             return orderedAlbums;

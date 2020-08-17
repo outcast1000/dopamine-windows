@@ -29,7 +29,7 @@ namespace Dopamine.Services.Utils
             // Trim is required here, otherwise the filter might flip on the space at the beginning (and probably at the end)
             string[] pieces = filter.Trim().Split(Convert.ToChar(" "));
 
-            return pieces.All((s) => artist.Data.Name.ToLower().Contains(s.ToLower()));
+            return pieces.All((s) => artist.Name.ToLower().Contains(s.ToLower()));
         }
 
         public static bool FilterGenres(GenreViewModel genre, string filter)

@@ -310,7 +310,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
                 foreach (ArtistViewModel item in (IList)parameter)
                 {
-                    this.SelectedArtists.Add(item.Data.Name);
+                    this.SelectedArtists.Add(item.Name);
                 }
             }
 

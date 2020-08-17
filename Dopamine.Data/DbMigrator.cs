@@ -161,14 +161,19 @@ namespace Dopamine.Data
                 conn.Execute("DROP TABLE IF EXISTS Tracks;");
 
                 conn.Execute("DROP TABLE IF EXISTS GenreImages;");
+                conn.Execute("DROP TABLE IF EXISTS GenreThumbnail;");
                 conn.Execute("DROP TABLE IF EXISTS Genres;");
 
                 conn.Execute("DROP TABLE IF EXISTS AlbumReviews;");
                 conn.Execute("DROP TABLE IF EXISTS AlbumImages;");
+                conn.Execute("DROP TABLE IF EXISTS AlbumThumbnail;");
                 conn.Execute("DROP TABLE IF EXISTS Albums;");
 
+                conn.Execute("DROP TABLE IF EXISTS ArtistCollectionsArtists;");
+                conn.Execute("DROP TABLE IF EXISTS ArtistCollections;");
                 conn.Execute("DROP TABLE IF EXISTS ArtistBiographies;");
                 conn.Execute("DROP TABLE IF EXISTS ArtistImages;");
+                conn.Execute("DROP TABLE IF EXISTS ArtistThumbnail;");
                 conn.Execute("DROP TABLE IF EXISTS Artists;");
                 conn.Execute("DROP TABLE IF EXISTS ArtistRoles;");
 
@@ -182,60 +187,85 @@ namespace Dopamine.Data
 
                 conn.Execute("CREATE UNIQUE INDEX ArtistsNameIndex ON Artists(name);");
 
-                //=== ArtistBiographies: (Many 2 many) Each Artist may have multiple biographies
+                //=== ArtistBiographies: (One 2 One) Each Artist may have only one biographies
                 conn.Execute("CREATE TABLE ArtistBiographies (" +
                             "artist_id          INTEGER," +
                             "biography          TEXT NOT NULL," +
                             "source             TEXT," +
                             "language           TEXT," +
-                            "priority           INTEGER NOT NULL DEFAULT 0," +
                             "date_added         INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP," +
                             "FOREIGN KEY (artist_id) REFERENCES Artists(id));");
 
-                conn.Execute("CREATE INDEX ArtistBiographiesArtistIDIndex ON ArtistBiographies(artist_id);");
+                conn.Execute("CREATE UNIQUE INDEX ArtistBiographiesArtistIDIndex ON ArtistBiographies(artist_id);");
 
-                //=== ArtistImages: (Many 2 many) Each Artist may have multiple images
+                //=== ArtistImages: (One 2 Many) Each Artist may have multiple images
                 conn.Execute("CREATE TABLE ArtistImages (" +
                             "artist_id          INTEGER," +
                             "key                TEXT NOT NULL," + 
                             "source             TEXT," +
-                            "priority           INTEGER NOT NULL DEFAULT 0," +
                             "date_added         INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP," +
                             "FOREIGN KEY (artist_id) REFERENCES Artists(id));");
 
                 conn.Execute("CREATE INDEX ArtistImagesArtistIDIndex ON ArtistImages(artist_id);");
 
-                //=== Albums:
-                conn.Execute("CREATE TABLE Albums (" +
-                            "id                 INTEGER PRIMARY KEY AUTOINCREMENT," +
+                //=== ArtistThumbnail: (One 2 One) Each Artist may have only one thumbnail
+                conn.Execute("CREATE TABLE ArtistThumbnail (" +
                             "artist_id          INTEGER," +
-                            "name               TEXT NOT NULL COLLATE NOCASE," +
+                            "key                TEXT NOT NULL," +
+                            "FOREIGN KEY (artist_id) REFERENCES Artists(id));");
+
+                conn.Execute("CREATE UNIQUE INDEX ArtistThumbnailArtistIDIndex ON ArtistThumbnail(artist_id);");
+
+
+                //=== ArtistCollections: 
+                conn.Execute("CREATE TABLE ArtistCollections (" +
+                            "id                 INTEGER PRIMARY KEY AUTOINCREMENT);");
+
+                //=== ArtistCollectionArtists: (Many to Many) Each Artist may be in many ArtistCollections. Each ArtistCollection may have many artists
+                conn.Execute("CREATE TABLE ArtistCollectionsArtists (" +
+                            "artist_collection_id   INTEGER," +
+                            "artist_id              INTEGER," +
+                            "FOREIGN KEY (artist_collection_id) REFERENCES ArtistCollections(id), " +
                             "FOREIGN KEY (artist_id) REFERENCES Artists(id)); ");
 
-                conn.Execute("CREATE UNIQUE INDEX AlbumsUniqueIndex ON Albums(name, artist_id);");
 
-                //=== AlbumReviews: (Many 2 many) Each album may have multiple reviews
+                //=== Albums:
+                conn.Execute("CREATE TABLE Albums (" +
+                            "id                     INTEGER PRIMARY KEY AUTOINCREMENT," +
+                            "artist_collection_id   INTEGER," +
+                            "name                   TEXT NOT NULL COLLATE NOCASE," +
+                            "FOREIGN KEY (artist_collection_id) REFERENCES ArtistCollection(id)); ");
+
+                conn.Execute("CREATE UNIQUE INDEX AlbumsUniqueIndex ON Albums(name, artist_collection_id);");
+
+                //=== AlbumReviews: (One 2 One) Each album may have one review
                 conn.Execute("CREATE TABLE AlbumReviews (" +
                             "album_id           INTEGER NOT NULL," +
                             "review             TEXT NOT NULL," +
                             "source             TEXT," +
                             "language           TEXT," +
-                            "priority           INTEGER NOT NULL DEFAULT 0," +
                             "date_added         INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP," +
                             "FOREIGN KEY(album_id) REFERENCES Albums(id));");
 
-                conn.Execute("CREATE INDEX AlbumReviewsAlbumIDIndex ON AlbumReviews(album_id);");
+                conn.Execute("CREATE UNIQUE INDEX AlbumReviewsAlbumIDIndex ON AlbumReviews(album_id);");
 
-                //=== AlbumImages: (Many 2 many) Each album may have multiple images
+                //=== AlbumImages: (One 2 many) Each album may have multiple images
                 conn.Execute("CREATE TABLE AlbumImages (" +
                             "album_id           INTEGER NOT NULL," +
                             "key                TEXT NOT NULL," +
                             "source             TEXT," +
-                            "priority           INTEGER NOT NULL DEFAULT 0," +
                             "date_added         INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP," +
                             "FOREIGN KEY(album_id) REFERENCES Albums(id));");
 
                 conn.Execute("CREATE INDEX AlbumImagesAlbumIDIndex ON AlbumImages(album_id);");
+
+                //=== AlbumThumbnail: (One 2 One) Each Album may have only one thumbnail
+                conn.Execute("CREATE TABLE AlbumThumbnail (" +
+                            "album_id          INTEGER," +
+                            "key                TEXT NOT NULL," +
+                            "FOREIGN KEY (album_id) REFERENCES Albums(id));");
+
+                conn.Execute("CREATE UNIQUE INDEX AlbumThumbnailAlbumIDIndex ON AlbumThumbnail(album_id);");
 
                 //=== Genres:
                 conn.Execute("CREATE TABLE Genres (" +
@@ -249,11 +279,18 @@ namespace Dopamine.Data
                             "genre_id           INTEGER," +
                             "key                TEXT NOT NULL," +
                             "source             TEXT," +
-                            "priority           INTEGER NOT NULL DEFAULT 0," +
                             "date_added         INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP," +
                             "FOREIGN KEY (genre_id) REFERENCES Genres(id));");
 
                 conn.Execute("CREATE INDEX GenreImagesArtistIDIndex ON GenreImages(genre_id);");
+                
+                //=== GenreThumbnail: (One 2 One) Each Genre may have only one thumbnail
+                conn.Execute("CREATE TABLE GenreThumbnail (" +
+                            "genre_id           INTEGER," +
+                            "key                TEXT NOT NULL," +
+                            "FOREIGN KEY (genre_id) REFERENCES Genres(id));");
+
+                conn.Execute("CREATE UNIQUE INDEX GenreThumbnailGenreIDIndex ON GenreThumbnail(genre_id);");
 
                 //=== Folders:
                 conn.Execute("CREATE TABLE Folders (" +
@@ -431,23 +468,32 @@ namespace Dopamine.Data
                     });
                     long track_id = GetLastInsertRowID(conn);
 
-                    string[] AlbumArtists = track.AlbumArtists.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
-                    string AlbumArtist = "";
-                    if (AlbumArtists.Length == 1)
-                        AlbumArtist = AlbumArtists[0];
-                    else if (AlbumArtists.Length > 1)
-                        Trace.WriteLine("MANY ALBUM ARTISTS");
 
+                    //Add the (Album) artists
+                    List<long> artistCollection = new List<long>();
+
+
+                    if (track.AlbumArtists.Length > 0)
+                    {
+                        string[] artists = track.AlbumArtists.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
+                        for (int i = 0; i < artists.Length; i++)
+                        {
+                            long curID = GetArtistID(conn, artists[i]);
+                            artistCollection.Add(curID);
+                        }
+                    }
 
                     //Add the artists
                     if (track.Artists.Length > 0)
                     {
+                        bool bUseArtistForAlbumArtistCollection = artistCollection.Count != 0;
+
                         string[] artists = track.Artists.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
                         for (int i = 0; i < artists.Length; i++)
                         {
-                            if (AlbumArtist.Length == 0 && i == 0)
-                                AlbumArtist = artists[i];//=== ALEX COMMENT. Select the "first artist" as the "MAIN Artist" of the album
                             long curID = GetArtistID(conn, artists[i]);
+                            if (bUseArtistForAlbumArtistCollection)
+                                artistCollection.Add(curID);
                             conn.Insert(new TrackArtist()
                             {
                                 TrackId = track_id,
@@ -458,8 +504,8 @@ namespace Dopamine.Data
                     }
                     if (track.AlbumTitle.Length > 0)
                     {
-                        long artistID = GetArtistID(conn, AlbumArtist);
-                        long albumID = GetAlbumID(conn, track.AlbumTitle, artistID);
+                        long artistCollectionID = GetArtistCollectionID(conn, artistCollection);
+                        long albumID = GetAlbumID(conn, track.AlbumTitle, artistCollectionID);
                         conn.Insert(new TrackAlbum()
                         {
                             TrackId = track_id,
@@ -636,13 +682,40 @@ GROUP BY t.id
             }
             return ids[0];
         }
-        private long GetAlbumID(SQLiteConnection conn, String entry, long artistID)
+
+        private long GetArtistCollectionID(SQLiteConnection conn, List<long> artistIDs)
         {
-            List<long> ids;
-            ids = conn.QueryScalars<long>("SELECT * FROM Albums WHERE name=? AND artist_id=?", entry, artistID);
+            string inString = string.Join(",", artistIDs);
+            List<long> ids = conn.QueryScalars<long>(@"
+SELECT DISTINCT artist_collection_id from ArtistCollectionsArtists 
+INNER JOIN (
+SELECT artist_collection_id as id, count(*) as c FROM ArtistCollectionsArtists
+GROUP BY artist_collection_id) AGROUP ON ArtistCollectionsArtists.artist_collection_id = AGROUP.id
+WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString());
+
             if (ids.Count == 0)
             {
-                conn.Insert(new Album() { Name = entry, ArtistId = artistID });
+                conn.Insert(new ArtistCollection() {});
+                long artist_collection_id = GetLastInsertRowID(conn);
+                foreach (long artistID in artistIDs)
+                {
+                    conn.Insert(new ArtistCollectionsArtists() { ArtistCollectionId = artist_collection_id, ArtistId = artistID }); ;
+                }
+                return artist_collection_id;
+            }
+            return ids[0];
+        }
+
+
+
+        
+        private long GetAlbumID(SQLiteConnection conn, String entry, long artist_collection_ID)
+        {
+            List<long> ids;
+            ids = conn.QueryScalars<long>("SELECT * FROM Albums WHERE name=? AND artist_collection_ID=?", entry, artist_collection_ID);
+            if (ids.Count == 0)
+            {
+                conn.Insert(new Album() { Name = entry, ArtistCollectionId = artist_collection_ID });
                 return GetLastInsertRowID(conn);
             }
             return ids[0];
@@ -1683,7 +1756,7 @@ GROUP BY t.id
                 {
                     this.userDatabaseVersion = Convert.ToInt32(conn.ExecuteScalar<string>("SELECT Value FROM Configuration WHERE Key = 'DatabaseVersion'"));
                     //=== ALEX DEBUG. USE "26" to force the update. "27" to avoid it. Reenable the Execute scalar
-                    userDatabaseVersion = 27;
+                    userDatabaseVersion = 26;
                 }
                 catch (Exception)
                 {

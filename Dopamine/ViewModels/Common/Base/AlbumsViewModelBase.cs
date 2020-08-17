@@ -20,6 +20,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -202,13 +203,15 @@ namespace Dopamine.ViewModels.Common.Base
                     {
                         try
                         {
-                            if (allAlbumArtwork != null && allAlbumArtwork.Count > 0 && albumsKeys != null ? albumsKeys.Contains(alb.AlbumKey) : true)
+                            if (allAlbumArtwork != null && allAlbumArtwork.Count > 0 && albumsKeys != null ? albumsKeys.Contains(alb.Thumbnail) : true)
                             {
-                                AlbumArtwork albumArtwork = allAlbumArtwork.Where(a => a.AlbumKey.Equals(alb.AlbumKey)).FirstOrDefault();
+                                AlbumArtwork albumArtwork = allAlbumArtwork.Where(a => a.AlbumKey.Equals(alb.Thumbnail)).FirstOrDefault();
 
                                 if (albumArtwork != null)
                                 {
-                                    alb.ArtworkPath = this.cacheService.GetCachedArtworkPath(albumArtwork.ArtworkID);
+                                    //ALEX Diaable
+                                    Debug.Assert(false, "TODO");
+                                    //alb.Thumbnail = this.cacheService.GetCachedArtworkPath(albumArtwork.ArtworkID);
                                 }
                             }
                         }

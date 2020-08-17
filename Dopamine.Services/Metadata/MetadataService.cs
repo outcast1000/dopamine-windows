@@ -250,12 +250,12 @@ namespace Dopamine.Services.Metadata
             string artworkID = await this.cacheService.CacheArtworkAsync(artwork.Value);
 
             // Add or update AlbumArtwork in the database
-            await this.albumArtworkRepository.UpdateAlbumArtworkAsync(albumViewModel.AlbumKey, artworkID);
+            await this.albumArtworkRepository.UpdateAlbumArtworkAsync(albumViewModel.Thumbnail, artworkID);
 
             if (updateFileArtwork)
             {
                 // Get the tracks for this album
-                IList<Track> tracks = await this.trackRepository.GetAlbumTracksAsync(new List<string> { albumViewModel.AlbumKey });
+                IList<Track> tracks = await this.trackRepository.GetAlbumTracksAsync(new List<string> { albumViewModel.Thumbnail });
                 IList<FileMetadata> fileMetadatas = new List<FileMetadata>();
 
                 foreach (Track track in tracks)

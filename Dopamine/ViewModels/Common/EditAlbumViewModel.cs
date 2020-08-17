@@ -75,7 +75,7 @@ namespace Dopamine.ViewModels.Common
             try
             {
                 //=== ALEX Temporary hack
-                await this.DownloadArtworkAsync(this.albumViewModel.AlbumTitle, new List<string>() { this.albumViewModel.AlbumArtists });
+                await this.DownloadArtworkAsync(this.albumViewModel.AlbumTitle, new List<string>() { this.albumViewModel.AlbumArtist });
             }
             catch (Exception ex)
             {
@@ -104,9 +104,9 @@ namespace Dopamine.ViewModels.Common
             {
                 try
                 {
-                    if (!string.IsNullOrEmpty(this.albumViewModel.ArtworkPath))
+                    if (!string.IsNullOrEmpty(this.albumViewModel.Thumbnail))
                     {
-                        this.ShowArtwork(ImageUtils.Image2ByteArray(this.albumViewModel.ArtworkPath, 0, 0));
+                        this.ShowArtwork(ImageUtils.Image2ByteArray(this.albumViewModel.Thumbnail, 0, 0));
                     }
                     else
                     {

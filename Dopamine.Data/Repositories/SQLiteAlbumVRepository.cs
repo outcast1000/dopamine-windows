@@ -59,20 +59,25 @@ namespace Dopamine.Data.Repositories
         private string GetSQL()
         {
             return @"
-SELECT Albums.ID as Id, Albums.name as Name, Artists1.name as AlbumArtist, COUNT(t.id) as TrackCount, GROUP_CONCAT(DISTINCT Genres.name ) as Genres, GROUP_CONCAT(DISTINCT Artists2.name ) as Artists
+SELECT Albums.ID as Id, Albums.name as Name, Artists1.name as AlbumArtist, COUNT(t.id) as TrackCount, 
+GROUP_CONCAT(DISTINCT Genres.name ) as Genres, GROUP_CONCAT(DISTINCT Artists2.name ) as Artists,
+FIRST_VALUE(AlbumImages.key ) OVER (
+        ORDER BY AlbumImages.priority DESC 
+    ) AS Image
 from Tracks t
 LEFT JOIN TrackAlbums ON TrackAlbums.track_id = t.id
 LEFT JOIN Albums ON Albums.id = TrackAlbums.album_id
 LEFT JOIN Artists Artists1 ON Artists1.id = Albums.artist_id
 LEFT JOIN TrackIndexing ON TrackIndexing.track_id = t.id
 LEFT JOIN TrackGenres ON TrackGenres.track_id = t.id
-INNER JOIN Genres ON TrackGenres.genre_id = Genres.id 
+LEFT JOIN Genres ON TrackGenres.genre_id = Genres.id 
 LEFT JOIN TrackArtists ON TrackArtists.track_id = t.id
-INNER JOIN Artists Artists2 ON Artists2.id = TrackArtists.artist_id
-INNER JOIN Folders ON Folders.id = t.folder_id
+LEFT JOIN Artists Artists2 ON Artists2.id = TrackArtists.artist_id
+LEFT JOIN Folders ON Folders.id = t.folder_id
+LEFT JOIN AlbumImages ON AlbumImages.album_id = Albums.ID 
 WHERE Folders.show = 1 AND TrackIndexing.indexing_success is null AND TrackIndexing.needs_indexing is null #WHERE#
 GROUP BY Albums.id
-ORDER BY Albums.name ";
+ORDER BY Albums.name";
         }    
     }
 

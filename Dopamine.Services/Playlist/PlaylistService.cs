@@ -313,7 +313,7 @@ namespace Dopamine.Services.Playlist
 
         public async Task<AddTracksToPlaylistResult> AddAlbumsToStaticPlaylistAsync(IList<AlbumViewModel> albumViewModels, string playlistName)
         {
-            IList<Track> tracks = await this.trackRepository.GetAlbumTracksAsync(albumViewModels.Select(x => x.AlbumKey).ToList());
+            IList<Track> tracks = await this.trackRepository.GetAlbumTracksAsync(albumViewModels.Select(x => x.Thumbnail).ToList());
             List<TrackViewModel> orderedTracks = await EntityUtils.OrderTracksAsync(tracks.Select(t => this.container.ResolveTrackViewModel(t)).ToList(), TrackOrder.ByAlbum);
             AddTracksToPlaylistResult result = await this.AddTracksToStaticPlaylistAsync(orderedTracks, playlistName);
 

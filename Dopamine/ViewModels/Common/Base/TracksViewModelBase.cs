@@ -181,7 +181,7 @@ namespace Dopamine.ViewModels.Common.Base
             if (albumViewModels != null && albumViewModels.Count > 0)
             {
                 // First, check Albums. They topmost have priority.
-                tracks = await this.trackRepository.GetAlbumTracksAsync(albumViewModels.Select(x => x.AlbumKey).ToList());
+                tracks = await this.trackRepository.GetAlbumTracksAsync(albumViewModels.Select(x => x.Thumbnail).ToList());
             }
             else if (!artists.IsNullOrEmpty())
             {

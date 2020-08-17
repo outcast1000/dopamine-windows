@@ -804,7 +804,7 @@ namespace Dopamine.Services.Playback
                 return;
             }
 
-            IList<Track> tracks = await this.trackRepository.GetAlbumTracksAsync(albumViewModels.Select(x => x.AlbumKey).ToList());
+            IList<Track> tracks = await this.trackRepository.GetAlbumTracksAsync(albumViewModels.Select(x => x.Thumbnail).ToList());
             List<TrackViewModel> orderedTracks = await Utils.EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
             await this.EnqueueAsync(orderedTracks, shuffle, unshuffle);
         }
@@ -909,7 +909,7 @@ namespace Dopamine.Services.Playback
 
         public async Task<EnqueueResult> AddAlbumsToQueueAsync(IList<AlbumViewModel> albumViewModels)
         {
-            IList<Track> tracks = await this.trackRepository.GetAlbumTracksAsync(albumViewModels.Select(x => x.AlbumKey).ToList());
+            IList<Track> tracks = await this.trackRepository.GetAlbumTracksAsync(albumViewModels.Select(x => x.Thumbnail).ToList());
             List<TrackViewModel> orederedTracks = await EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
             return await this.AddToQueueAsync(orederedTracks);
         }

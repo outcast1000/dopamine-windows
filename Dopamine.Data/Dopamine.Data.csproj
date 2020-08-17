@@ -103,6 +103,8 @@
     <Compile Include="DataUtils.cs" />
     <Compile Include="DbMigrator.cs" />
     <Compile Include="Entities\AlbumV.cs" />
+    <Compile Include="Entities\ArtistCollectionsArtists.cs" />
+    <Compile Include="Entities\ArtistCollection.cs" />
     <Compile Include="Entities\ArtistV.cs" />
     <Compile Include="Entities\Folder2.cs" />
     <Compile Include="Entities\GenreV.cs" />
@@ -148,9 +150,9 @@
     <Compile Include="Repositories\IAlbumArtworkRepository.cs" />
     <Compile Include="Repositories\SQLiteArtistVRepository.cs" />
     <Compile Include="Repositories\SQLiteAlbumVRepository.cs" />
-	  <Compile Include="Repositories\MockArtistVRepository.cs" />
-	  <Compile Include="Repositories\MockAlbumVRepository.cs" />
-	  <Compile Include="Repositories\IGenreVRepository.cs" />
+    <Compile Include="Repositories\MockArtistVRepository.cs" />
+    <Compile Include="Repositories\MockAlbumVRepository.cs" />
+    <Compile Include="Repositories\IGenreVRepository.cs" />
     <Compile Include="Repositories\IAlbumVRepository.cs" />
     <Compile Include="Repositories\IFolderRepository.cs" />
     <Compile Include="Repositories\IQueuedTrackRepository.cs" />

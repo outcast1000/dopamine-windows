@@ -18,19 +18,26 @@ namespace Dopamine.Services.Entities
             this.isHeader = false;
         }
 
-        public ArtistV Data
-        {
-            get { return data; }
+        public long Id { get;}
+
+        public string Name {
+            get { return data.Name; }
             set
             {
-                SetProperty<ArtistV>(ref this.data, value);
+                data.Name = value;
+                //RaisePropertyChanged(nameof(this.HasTitle));
             }
         }
 
+        public long TrackCount { get { return data.TrackCount; } }
 
-        public string SortArtistName => FormatUtils.GetSortableString(data.Name, true);
+        public string Genres { get { return data.Genres; } }
 
-        public string Header => SemanticZoomUtils.GetGroupHeader(data.Name, true);
+        public string Thumbnail { get { return data.Thumbnail; } }
+
+        public DateTime DateAdded { get { return data.DateAdded; } }
+
+        public string Header => SemanticZoomUtils.GetGroupHeader(Name, true);
 
         public bool IsHeader
         {
