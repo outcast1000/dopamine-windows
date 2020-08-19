@@ -67,15 +67,6 @@ namespace Dopamine.Services.Entities
 
         public string Thumbnail { get { return data.Thumbnail; } }
 
-        public string ThumbnailPath
-        {
-            get
-            {
-                string s = cacheService.GetCachedArtworkPath(data.Thumbnail);
-                return cacheService.GetCachedArtworkPath(data.Thumbnail);
-            }
-        }
-
         public DateTime DateAdded { get { return data.DateAdded; } }
 
         public string Header => SemanticZoomUtils.GetGroupHeader(Name, true);

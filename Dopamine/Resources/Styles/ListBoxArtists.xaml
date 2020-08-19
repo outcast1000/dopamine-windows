@@ -4,6 +4,7 @@
     xmlns:base="clr-namespace:Dopamine.Core.Base;assembly=Dopamine.Core"
     xmlns:converters="clr-namespace:Dopamine.Converters"
     xmlns:dc="clr-namespace:Digimezzo.Foundation.WPF.Controls;assembly=Digimezzo.Foundation.WPF"
+    xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
     xmlns:pc="clr-namespace:Dopamine.Controls"
     xmlns:utils="clr-namespace:Dopamine.Utils">
     <ResourceDictionary.MergedDictionaries>
@@ -12,8 +13,10 @@
     <converters:BooleanToCollapsedConverter x:Key="BooleanToCollapsedConverter" />
     <converters:InvertingBooleanToCollapsedConverter x:Key="InvertingBooleanToCollapsedConverter" />
     <converters:InvertingBooleanToVisibilityConverter x:Key="InvertingBooleanToVisibilityConverter" />
+    <converters:AddValueConverter x:Key="AddValueConverter" />
     <converters:PathToImageConverter x:Key="PathToImageConverter" />
     <converters:AddEllipsisConverter x:Key="AddEllipsisConverter" />
+    <converters:KeyToPathConverter x:Key="KeyToPathConverter" />
     <!--  ContextMenu  -->
     <ContextMenu x:Key="ListBoxArtistsContextMenu" x:Shared="False">
         <ContextMenu.Resources>
@@ -118,8 +121,8 @@
                                 Grid.Column="0"
                                 HorizontalAlignment="Left">
                                 <pc:Tile
-                                    Width="{Binding Path=DataContext.CoverSize, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
-                                    Height="{Binding Path=DataContext.CoverSize, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                    Width="64"
+                                    Height="64"
                                     Panel.ZIndex="0"
                                     Background="{DynamicResource Brush_CoverTileBackground}"
                                     IconSizePercent="{x:Static base:Constants.HeadPhoneSmallSize}">
@@ -132,7 +135,10 @@
                                 <pc:SourceChangedImage Panel.ZIndex="1" RenderOptions.BitmapScalingMode="HighQuality">
                                     <pc:SourceChangedImage.Source>
                                         <MultiBinding Converter="{StaticResource PathToImageConverter}">
-                                            <Binding IsAsync="True" Path="ThumbnailPath" />
+                                        <Binding
+                                            Converter="{StaticResource KeyToPathConverter}"
+                                            IsAsync="True"
+                                            Path="Thumbnail" />
                                             <Binding Path="DataContext.UpscaledCoverSize" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type UserControl}}" />
                                         </MultiBinding>
                                     </pc:SourceChangedImage.Source>
