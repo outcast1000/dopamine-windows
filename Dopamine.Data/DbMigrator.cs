@@ -26,7 +26,7 @@ namespace Dopamine.Data
                 get { return this.version; }
             }
         }
-      
+
         // NOTE: whenever there is a change in the database schema,
         // this version MUST be incremented and a migration method
         // MUST be supplied to match the new version number
@@ -201,7 +201,7 @@ namespace Dopamine.Data
                 //=== ArtistImages: (One 2 Many) Each Artist may have multiple images
                 conn.Execute("CREATE TABLE ArtistImages (" +
                             "artist_id          INTEGER," +
-                            "key                TEXT NOT NULL," + 
+                            "key                TEXT NOT NULL," +
                             "source             TEXT," +
                             "date_added         INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP," +
                             "FOREIGN KEY (artist_id) REFERENCES Artists(id));");
@@ -283,7 +283,7 @@ namespace Dopamine.Data
                             "FOREIGN KEY (genre_id) REFERENCES Genres(id));");
 
                 conn.Execute("CREATE INDEX GenreImagesArtistIDIndex ON GenreImages(genre_id);");
-                
+
                 //=== GenreThumbnail: (One 2 One) Each Genre may have only one thumbnail
                 conn.Execute("CREATE TABLE GenreThumbnail (" +
                             "genre_id           INTEGER," +
@@ -421,7 +421,7 @@ namespace Dopamine.Data
                 foreach (Folder folder in folders)
                 {
                     Trace.WriteLine("Migrating Folder {0}", folder.Path);
-                    conn.Insert(new Folder2() { Path = folder.Path, Show = folder.ShowInCollection});
+                    conn.Insert(new Folder2() { Path = folder.Path, Show = folder.ShowInCollection });
                 }
 
                 // Get all the items from "track" table. Add them to the new structure
@@ -431,19 +431,21 @@ namespace Dopamine.Data
                     t.SampleRate, t.TrackTitle, t.TrackNumber, t.TrackCount, t.DiscNumber,
                     t.DiscCount, t.Duration, t.Year, t.HasLyrics, t.DateAdded, t.DateFileCreated,
                     t.DateLastSynced, t.DateFileModified, t.NeedsIndexing, t.NeedsAlbumArtworkIndexing, t.IndexingSuccess,
-                    t.IndexingFailureReason, t.Rating, t.Love, t.PlayCount, t.SkipCount, t.DateLastPlayed
+                    t.IndexingFailureReason, t.Rating, t.Love, t.PlayCount, t.SkipCount, t.DateLastPlayed,
+                    AlbumArtwork.ArtworkID as AlbumImage
                     FROM Track t
                     INNER JOIN FolderTrack ft ON ft.TrackID = t.TrackID
                     INNER JOIN Folder f ON ft.FolderID = f.FolderID
+                    LEFT JOIN AlbumArtwork ON AlbumArtwork.AlbumKey=t.AlbumKey
                     WHERE f.ShowInCollection = 1 AND t.IndexingSuccess = 1 AND t.NeedsIndexing = 0";
 
                 //var tracks = new List<Track>();
                 List<Track> tracks = conn.Query<Track>(query);
                 int tracksMigrated = 0;
                 int timeStarted = Environment.TickCount;
-                
 
-                    
+
+
                 foreach (Track track in tracks)
                 {
 
@@ -507,19 +509,26 @@ namespace Dopamine.Data
                     if (track.AlbumTitle.Length > 0)
                     {
                         long artistCollectionID = GetArtistCollectionID(conn, artistCollection);
-                        long albumID = GetAlbumID(conn, track.AlbumTitle, artistCollectionID);
-                        conn.Insert(new TrackAlbum()
+                        long albumID = GetAlbumID(conn, track.AlbumTitle, artistCollectionID, track.AlbumImage);
+                        try
                         {
-                            TrackId = track_id,
-                            AlbumId = albumID,
-                            TrackNumber = track.TrackNumber,
-                            DiscNumber = track.DiscNumber
-                        });
+                            conn.Insert(new TrackAlbum()
+                            {
+                                TrackId = track_id,
+                                AlbumId = albumID,
+                                TrackNumber = track.TrackNumber,
+                                DiscNumber = track.DiscNumber
+                            });
+                        }
+                        catch (SQLite.SQLiteException ex)
+                        {
+                            Console.WriteLine("SQLiteException (Genres) {0}", ex.Message);
+                        }
                     }
 
 
 
-                if (track.Genres.Length > 0)
+                    if (track.Genres.Length > 0)
                     {
                         string[] genres = track.Genres.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
                         for (int i = 0; i < genres.Length; i++)
@@ -679,7 +688,14 @@ GROUP BY t.id
             List<long> ids = conn.QueryScalars<long>("SELECT * FROM Artists WHERE name=?", entry);
             if (ids.Count == 0)
             {
-                conn.Insert(new Artist() { Name = entry });
+                try
+                {
+                    conn.Insert(new Artist() { Name = entry });
+                }
+                catch (SQLite.SQLiteException ex)
+                {
+                    Console.WriteLine("SQLiteException (GetArtistID) {0}", ex.Message);
+                }
                 return GetLastInsertRowID(conn);
             }
             return ids[0];
@@ -697,7 +713,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
 
             if (ids.Count == 0)
             {
-                conn.Insert(new ArtistCollection() {});
+                conn.Insert(new ArtistCollection() { });
                 long artist_collection_id = GetLastInsertRowID(conn);
                 foreach (long artistID in artistIDs)
                 {
@@ -710,15 +726,32 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
 
 
 
-        
-        private long GetAlbumID(SQLiteConnection conn, String entry, long artist_collection_id)
+
+        private long GetAlbumID(SQLiteConnection conn, String entry, long artist_collection_id, string albumImage)
         {
             List<long> ids;
             ids = conn.QueryScalars<long>("SELECT * FROM Albums WHERE name=? AND artist_collection_ID=?", entry, artist_collection_id);
             if (ids.Count == 0)
             {
                 conn.Insert(new Album() { Name = entry, ArtistCollectionId = artist_collection_id });
-                return GetLastInsertRowID(conn);
+                long albumID = GetLastInsertRowID(conn);
+                if (!string.IsNullOrEmpty(albumImage))
+                {
+                    conn.Insert(new AlbumThumbnail()
+                    {
+                        AlbumId = albumID,
+                        Key = albumImage
+                    });
+                    conn.Insert(new AlbumImage()
+                    {
+                        AlbumId = albumID,
+                        Key = albumImage,
+                        Source = "Migration",
+                        DateAdded = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+                    });
+
+                }
+                return albumID;
             }
             return ids[0];
         }
@@ -992,7 +1025,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 conn.Execute("VACUUM;");
             }
         }
-       
+
         [DatabaseVersion(4)]
         private void Migrate4()
         {
@@ -1129,7 +1162,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 conn.Execute("CREATE INDEX GenresIndex ON Genres(GenreName);");
             }
         }
-      
+
         [DatabaseVersion(5)]
         private void Migrate5()
         {
@@ -1139,7 +1172,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 conn.Execute("CREATE INDEX IF NOT EXISTS AlbumsYearIndex ON Albums(Year);");
             }
         }
-   
+
         [DatabaseVersion(6)]
         private void Migrate6()
         {
@@ -1151,7 +1184,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 conn.Execute("CREATE INDEX IF NOT EXISTS TracksFolderIDIndex ON Tracks(FolderID);");
             }
         }
-    
+
         [DatabaseVersion(7)]
         private void Migrate7()
         {
@@ -1161,7 +1194,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 conn.Execute("UPDATE Folders SET ShowInCollection=1;");
             }
         }
-     
+
         [DatabaseVersion(8)]
         private void Migrate8()
         {
@@ -1174,7 +1207,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                              "PRIMARY KEY(QueuedTrackID));");
             }
         }
-       
+
         [DatabaseVersion(9)]
         private void Migrate9()
         {
@@ -1187,7 +1220,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                              "PRIMARY KEY(IndexingStatisticID));");
             }
         }
-     
+
         [DatabaseVersion(10)]
         private void Migrate10()
         {
@@ -1219,7 +1252,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 conn.Execute("VACUUM;");
             }
         }
-   
+
         [DatabaseVersion(11)]
         private void Migrate11()
         {
@@ -1263,7 +1296,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 conn.Execute("VACUUM;");
             }
         }
-   
+
         [DatabaseVersion(12)]
         private void Migrate12()
         {
@@ -1289,7 +1322,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 conn.Execute("VACUUM;");
             }
         }
-       
+
         [DatabaseVersion(13)]
         private void Migrate13()
         {
@@ -1304,7 +1337,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 conn.Execute("VACUUM;");
             }
         }
-   
+
         [DatabaseVersion(14)]
         private void Migrate14()
         {
@@ -1319,7 +1352,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 conn.Execute("VACUUM;");
             }
         }
-   
+
         [DatabaseVersion(15)]
         private void Migrate15()
         {
@@ -1336,7 +1369,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 conn.Execute("VACUUM;");
             }
         }
-  
+
         [DatabaseVersion(16)]
         private void Migrate16()
         {
@@ -1477,7 +1510,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 conn.Execute("VACUUM;");
             }
         }
- 
+
         [DatabaseVersion(17)]
         private void Migrate17()
         {
@@ -1492,7 +1525,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 conn.Execute("VACUUM;");
             }
         }
-       
+
         [DatabaseVersion(18)]
         private void Migrate18()
         {
@@ -1507,7 +1540,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 conn.Execute("VACUUM;");
             }
         }
-   
+
         [DatabaseVersion(19)]
         private void Migrate19()
         {
@@ -1523,7 +1556,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 conn.Execute("VACUUM;");
             }
         }
-       
+
         [DatabaseVersion(20)]
         private void Migrate20()
         {
@@ -1539,7 +1572,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 conn.Execute("VACUUM;");
             }
         }
-    
+
         [DatabaseVersion(21)]
         private void Migrate21()
         {
@@ -1553,7 +1586,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 conn.Execute("VACUUM;");
             }
         }
-    
+
         [DatabaseVersion(22)]
         private void Migrate22()
         {
@@ -1695,9 +1728,9 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 conn.Execute("VACUUM;");
             }
             */
-            }
+        }
 
-            public void Migrate()
+        public void Migrate()
         {
             try
             {
@@ -1724,7 +1757,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 LogClient.Error("There was a problem initializing the database. Exception: {0}", ex.Message);
             }
         }
-  
+
         private bool IsDatabaseValid()
         {
             int count = 0;
@@ -1736,7 +1769,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 // At some later point in time, this try catch can be removed.
                 count = conn.ExecuteScalar<int>("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='Configurations'");
 
-                if(count == 0)
+                if (count == 0)
                 {
                     count = conn.ExecuteScalar<int>("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='Configuration'");
                 }
@@ -1758,7 +1791,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 {
                     this.userDatabaseVersion = Convert.ToInt32(conn.ExecuteScalar<string>("SELECT Value FROM Configuration WHERE Key = 'DatabaseVersion'"));
                     //=== ALEX DEBUG. USE "26" to force the update. "27" to avoid it. Reenable the Execute scalar
-                    userDatabaseVersion = 26;
+                    userDatabaseVersion = 27;
                 }
                 catch (Exception)
                 {
@@ -1795,7 +1828,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
 
             LogClient.Info("Upgraded from database version {0} to {1}", this.userDatabaseVersion.ToString(), CURRENT_VERSION.ToString());
         }
-      
+
         private void BackupDatabase()
         {
             try

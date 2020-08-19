@@ -1,9 +1,13 @@
-﻿using Digimezzo.Foundation.Core.Utils;
+﻿using Digimezzo.Foundation.Core.Settings;
+using Digimezzo.Foundation.Core.Utils;
+using Dopamine.Core.IO;
 using Dopamine.Data;
 using Dopamine.Data.Entities;
+using Dopamine.Services.Cache;
 using Prism.Mvvm;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace Dopamine.Services.Entities
@@ -17,6 +21,7 @@ namespace Dopamine.Services.Entities
             this.data = data;
         }
 
+        public long Id { get { return data.Id; } }
         public string Name
         {
             get
@@ -29,6 +34,26 @@ namespace Dopamine.Services.Entities
             {
                 data.Name = value;
                 //RaisePropertyChanged(nameof(this.HasTitle));
+            }
+        }
+
+        public String AlbumItemInfo
+        {
+            get
+            {
+                string info = "";
+                if (AlbumArtists.Equals(Artists))
+                    info += AlbumArtists;
+                else
+                    info += string.Format("{0} ({1})", AlbumArtists, Artists);
+                if (data.Year.HasValue && data.Year > 0)
+                    info += string.Format("\n{0}", data.Year);
+                if (!string.IsNullOrEmpty(data.Genres))
+                    info += string.Format("\n{0}", data.Genres);
+                info += string.Format("\n{0} tracks", data.TrackCount);
+                //info += string.Format("\n{0}", data.DateAdded);
+                //info += string.Format("\n{0}", data.DateFileCreated);
+                return info;
             }
         }
 
@@ -72,16 +97,13 @@ namespace Dopamine.Services.Entities
             get { return data.Year.HasValue ? data.Year.ToString() : ""; }
         }
 
- 
-
-
         public string Thumbnail { get { return data.Thumbnail; } }
 
         public DateTime DateAdded { get { return data.DateAdded; } }
 
         public DateTime DateFileCreated { get { return data.DateFileCreated; } }
 
- 
+
         public override string ToString()
         {
             return data.Name;

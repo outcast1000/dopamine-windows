@@ -295,7 +295,15 @@ namespace Dopamine.Core.Audio
                 // See: https://github.com/digimezzo/Dopamine/issues/746
                 // And: https://github.com/filoe/cscore/issues/344
                 this.audioStream = File.OpenRead(filename);
-                waveSource = new FfmpegDecoder(this.audioStream);
+                try
+                {
+                    waveSource = new FfmpegDecoder(this.audioStream);
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+
             }
 
             // If the SampleRate < 32000, make it 32000. The Equalizer's maximum frequency is 16000Hz.

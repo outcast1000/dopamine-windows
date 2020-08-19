@@ -233,7 +233,7 @@ namespace Dopamine.Services.Collection
 
             //IList<ArtistViewModel> orderedArtists = (await this.GetUniqueArtistsAsync(artists)).OrderBy(a => FormatUtils.GetSortableString(a.ArtistName, true)).ToList();
 
-            IList<ArtistViewModel> orderedArtists = artistsV.Select(x => new ArtistViewModel(x)).ToList();
+            IList<ArtistViewModel> orderedArtists = artistsV.Select(x => new ArtistViewModel(x, cacheService)).ToList();
 
             // Workaround to make sure the "#" GroupHeader is shown at the top of the list
             List<ArtistViewModel> tempArtistViewModels = new List<ArtistViewModel>();

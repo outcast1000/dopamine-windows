@@ -1,6 +1,8 @@
-﻿using Dopamine.Core.Utils;
+﻿using Digimezzo.Foundation.Core.Utils;
+using Dopamine.Core.Utils;
 using Dopamine.Data;
 using Dopamine.Data.Entities;
+using Dopamine.Services.Cache;
 using Dopamine.Services.Utils;
 using Prism.Mvvm;
 using System;
@@ -11,17 +13,25 @@ namespace Dopamine.Services.Entities
     {
         private ArtistV data;
         private bool isHeader;
-
-        public ArtistViewModel(ArtistV data)
+        private ICacheService cacheService;
+        public ArtistViewModel(ArtistV data, ICacheService cacheService)
         {
             this.data = data;
+            this.cacheService = cacheService;
             this.isHeader = false;
+
         }
 
-        public long Id { get;}
+        public long Id { get { return data.Id; } }
 
-        public string Name {
-            get { return data.Name; }
+        public string Name
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(data.Name))
+                    return ResourceUtils.GetString("Language_Unknown_Artist");
+                return data.Name;
+            }
             set
             {
                 data.Name = value;
@@ -29,11 +39,42 @@ namespace Dopamine.Services.Entities
             }
         }
 
+        public String ArtistItemInfo
+        {
+            get
+            {
+                string info = "";
+
+                if (!string.IsNullOrEmpty(data.Genres))
+                    info += string.Format("\n{0}", data.Genres);
+                info += string.Format("\n{0} tracks", data.TrackCount);
+                //info += string.Format("\n{0}", data.DateAdded);
+                //info += string.Format("\n{0}", data.DateFileCreated);
+                return info;
+            }
+        }
+
+
         public long TrackCount { get { return data.TrackCount; } }
 
         public string Genres { get { return data.Genres; } }
 
+
+        public bool HasCover
+        {
+            get { return !string.IsNullOrEmpty(data.Thumbnail); }
+        }
+
         public string Thumbnail { get { return data.Thumbnail; } }
+
+        public string ThumbnailPath
+        {
+            get
+            {
+                string s = cacheService.GetCachedArtworkPath(data.Thumbnail);
+                return cacheService.GetCachedArtworkPath(data.Thumbnail);
+            }
+        }
 
         public DateTime DateAdded { get { return data.DateAdded; } }
 

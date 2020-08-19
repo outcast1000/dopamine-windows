@@ -227,8 +227,6 @@ namespace Dopamine
                 containerRegistry.RegisterSingleton<IAlbumArtworkRepository, AlbumArtworkRepository>();
                 containerRegistry.RegisterSingleton<IQueuedTrackRepository, QueuedTrackRepository>();
 
-                //=== ALEX TEST
-                //containerRegistry.RegisterSingleton<ITrackRepository, TrackRepositoryComp>();
                 //=== ALEX NEW REPOSITORIES
                 containerRegistry.RegisterSingleton<IArtistVRepository, SQLiteArtistVRepository>();
                 containerRegistry.RegisterSingleton<IAlbumVRepository, SQLiteAlbumVRepository>();
