@@ -10,6 +10,7 @@ using Dopamine.Services.Playback;
 using Prism.Ioc;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -155,7 +156,7 @@ namespace Dopamine.Services.Collection
             return uniqueArtists;
         }
         */
-   
+
 
         /*
         private async Task<IList<AlbumViewModel>> GetUniqueAlbumsAsync(IList<AlbumData> albums)
@@ -181,76 +182,91 @@ namespace Dopamine.Services.Collection
 
         public async Task<IList<GenreViewModel>> GetAllGenresAsync()
         {
-            IList<GenreV> genres = this.genreVRepository.GetGenres();
-            IList<GenreViewModel> orderedGenres = genres.Select(g => new GenreViewModel(g)).ToList();//. OrderBy(g => FormatUtils.GetSortableString(g.GenreName, true)).ToList();
-
-            // Workaround to make sure the "#" GroupHeader is shown at the top of the list
-            List<GenreViewModel> tempGenreViewModels = new List<GenreViewModel>();
-            tempGenreViewModels.AddRange(orderedGenres.Where((gvm) => gvm.Header.Equals("#")));
-            tempGenreViewModels.AddRange(orderedGenres.Where((gvm) => !gvm.Header.Equals("#")));
-
+            List<GenreViewModel> tempGenreViewModels = null;
+            await Task.Run(() =>
+            {
+                IList<GenreV> genres = this.genreVRepository.GetGenres();
+                IList<GenreViewModel> orderedGenres = genres.Select(g => new GenreViewModel(g)).ToList();//. OrderBy(g => FormatUtils.GetSortableString(g.GenreName, true)).ToList();
+                // Workaround to make sure the "#" GroupHeader is shown at the top of the list
+                tempGenreViewModels = new List<GenreViewModel>();
+                tempGenreViewModels.AddRange(orderedGenres.Where((gvm) => gvm.Header.Equals("#")));
+                tempGenreViewModels.AddRange(orderedGenres.Where((gvm) => !gvm.Header.Equals("#")));
+            });
             return tempGenreViewModels;
         }
 
         public async Task<IList<ArtistViewModel>> GetAllArtistsAsync(ArtistType artistType)
         {
-            //IList<string> artists = null;
-            IList<ArtistV> artistsV = artistVRepository.GetArtists();
-
-            /*
-            switch (artistType)
-            {
-                case ArtistType.All:
-                    IList<string> trackArtists = await this.trackRepository.GetTrackArtistsAsync();
-                    IList<string> albumArtists = await this.trackRepository.GetAlbumArtistsAsync();
-                    ((List<string>)trackArtists).AddRange(albumArtists);
-                    artists = trackArtists;
-                    break;
-                case ArtistType.Track:
-                    artists = await this.trackRepository.GetTrackArtistsAsync();
-                    break;
-                case ArtistType.Album:
-                    artists = await this.trackRepository.GetAlbumArtistsAsync();
-                    break;
-                default:
-                    // Can't happen	
-                    break;
-            }
-            */
-
-            //IList<ArtistViewModel> orderedArtists = (await this.GetUniqueArtistsAsync(artists)).OrderBy(a => FormatUtils.GetSortableString(a.ArtistName, true)).ToList();
-
-            IList<ArtistViewModel> orderedArtists = artistsV.Select(x => new ArtistViewModel(x, cacheService)).ToList();
-
-            // Workaround to make sure the "#" GroupHeader is shown at the top of the list
             List<ArtistViewModel> tempArtistViewModels = new List<ArtistViewModel>();
-            tempArtistViewModels.AddRange(orderedArtists.Where((avm) => avm.Header.Equals("#")));
-            tempArtistViewModels.AddRange(orderedArtists.Where((avm) => !avm.Header.Equals("#")));
+            await Task.Run(() =>
+            {
+               //IList<string> artists = null;
+               IList<ArtistV> artistsV = artistVRepository.GetArtists();
 
+               /*
+               switch (artistType)
+               {
+                   case ArtistType.All:
+                       IList<string> trackArtists = await this.trackRepository.GetTrackArtistsAsync();
+                       IList<string> albumArtists = await this.trackRepository.GetAlbumArtistsAsync();
+                       ((List<string>)trackArtists).AddRange(albumArtists);
+                       artists = trackArtists;
+                       break;
+                   case ArtistType.Track:
+                       artists = await this.trackRepository.GetTrackArtistsAsync();
+                       break;
+                   case ArtistType.Album:
+                       artists = await this.trackRepository.GetAlbumArtistsAsync();
+                       break;
+                   default:
+                       // Can't happen	
+                       break;
+               }
+               */
+
+               //IList<ArtistViewModel> orderedArtists = (await this.GetUniqueArtistsAsync(artists)).OrderBy(a => FormatUtils.GetSortableString(a.ArtistName, true)).ToList();
+
+               IList<ArtistViewModel> orderedArtists = artistsV.Select(x => new ArtistViewModel(x, cacheService)).ToList();
+
+               // Workaround to make sure the "#" GroupHeader is shown at the top of the list
+               tempArtistViewModels.AddRange(orderedArtists.Where((avm) => avm.Header.Equals("#")));
+               tempArtistViewModels.AddRange(orderedArtists.Where((avm) => !avm.Header.Equals("#")));
+
+            });
             return tempArtistViewModels;
         }
 
         public async Task<IList<AlbumViewModel>> GetAllAlbumsAsync()
         {
-            IList<AlbumV> albumsV = albumVRepository.GetAlbums();
-
-            return albumsV.Select(a => new AlbumViewModel(a)).ToList();
-
-            //IList<AlbumData> albums = await this.trackRepository.GetAllAlbumDataAsync();
-            //return await this.GetUniqueAlbumsAsync(albums);
-          }
+            IList<AlbumViewModel> avm = null;
+            await Task.Run(() =>
+            {
+                IList<AlbumV> albumsV = albumVRepository.GetAlbums();
+                avm = albumsV.Select(a => new AlbumViewModel(a)).ToList();
+            });
+            return avm;
+        }
 
         public async Task<IList<AlbumViewModel>> GetArtistAlbumsAsync(IList<ArtistViewModel> selectedArtists, ArtistType artistType)
         {
-            IList<AlbumV> albums = albumVRepository.GetAlbumsWithArtists(selectedArtists.Select(x => x.Id).ToList());
-            return albums.Select(x => new AlbumViewModel(x)).ToList();
-            //ALEX return await this.GetUniqueAlbumsAsync(albums);
+            IList<AlbumViewModel> avm = null;
+            await Task.Run(() =>
+            {
+                IList<AlbumV> albums = albumVRepository.GetAlbumsWithArtists(selectedArtists.Select(x => x.Id).ToList());
+                avm = albums.Select(x => new AlbumViewModel(x)).ToList();
+            });
+            return avm;
         }
 
         public async Task<IList<AlbumViewModel>> GetGenreAlbumsAsync(IList<GenreViewModel> selectedGenres)
         {
-            IList<AlbumV> albums = albumVRepository.GetAlbumsWithGenres(selectedGenres.Select(x => x.Id).ToList());
-            return albums.Select(x => new AlbumViewModel(x)).ToList();
+            IList<AlbumViewModel> avm = null;
+            await Task.Run(() =>
+            {
+                IList<AlbumV> albums = albumVRepository.GetAlbumsWithGenres(selectedGenres.Select(x => x.Id).ToList());
+                avm = albums.Select(x => new AlbumViewModel(x)).ToList();
+            });
+            return avm;
         }
 
         public async Task<IList<AlbumViewModel>> OrderAlbumsAsync(IList<AlbumViewModel> albums, AlbumOrder albumOrder)
