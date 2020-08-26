@@ -293,7 +293,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             {
                 // Populate CollectionViewSource
                 this.ArtistsCvs = new CollectionViewSource { Source = Artists };
-                //this.ArtistsCvs.Filter += new FilterEventHandler(ArtistsCvs_Filter);
+                this.ArtistsCvs.Filter += new FilterEventHandler(ArtistsCvs_Filter);
 
                 // Update count
                 this.ArtistsCount = Artists.Count;
@@ -316,10 +316,11 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
 
             this.RaisePropertyChanged(nameof(this.HasSelectedArtists));
-
-            await this.GetArtistAlbumsAsync(this.SelectedArtists, this.ArtistType, this.AlbumOrder);
+            Task albums = GetArtistAlbumsAsync(this.SelectedArtists, this.ArtistType, this.AlbumOrder);
             this.SetTrackOrder("ArtistsTrackOrder");
-            await this.GetTracksAsync(this.SelectedArtists, null, this.SelectedAlbums, this.TrackOrder);
+            Task tracks = GetTracksAsync(this.SelectedArtists, null, this.SelectedAlbums, this.TrackOrder);
+            Task.WhenAll(albums, tracks);
+
         }
 
         private async Task AddArtistsToPlaylistAsync(IList<ArtistViewModel> artists, string playlistName)

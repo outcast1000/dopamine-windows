@@ -76,7 +76,7 @@ namespace Dopamine.Services.Indexing
             this.factory = factory;
 
             this.watcherManager = new FolderWatcherManager(this.folderRepository);
-            this.cache = new IndexerCache(this.factory);
+            this.cache = new IndexerCache(factory, trackVRepository);
 
             Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += SettingsClient_SettingChanged;
             this.watcherManager.FoldersChanged += WatcherManager_FoldersChanged;

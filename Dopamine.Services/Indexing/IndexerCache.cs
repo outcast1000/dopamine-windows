@@ -1,6 +1,7 @@
 ﻿using Digimezzo.Foundation.Core.Logging;
 using Dopamine.Data;
 using Dopamine.Data.Entities;
+using Dopamine.Data.Repositories;
 using SQLite;
 using System;
 using System.Collections.Generic;
@@ -14,9 +15,12 @@ namespace Dopamine.Services.Indexing
 
         private ISQLiteConnectionFactory factory;
 
-        public IndexerCache(ISQLiteConnectionFactory factory)
+        private ITrackVRepository trackVRepository;
+
+        public IndexerCache(ISQLiteConnectionFactory factory, ITrackVRepository trackVRepository)
         {
             this.factory = factory;
+            this.trackVRepository = trackVRepository;
         }
 
         public bool HasCachedTrack(ref TrackV track)
@@ -52,10 +56,7 @@ namespace Dopamine.Services.Indexing
         public void Initialize()
         {
             // Comparing new and existing objects will happen in a Dictionary cache. This should improve performance.
-            using (SQLiteConnection conn = this.factory.GetConnection())
-            {
-                this.cachedTracks = conn.Table<TrackV>().ToDictionary(trk => trk.Id, trk => trk);
-            }
+            this.cachedTracks = trackVRepository.GetTracks().ToDictionary(trk => trk.Id, trk => trk);
         }
     }
 }

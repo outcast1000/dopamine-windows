@@ -54,7 +54,7 @@ namespace Dopamine.Data.Repositories
 
         private string GetSQL()
         {
-            return @"SELECT DISTINCT t.id as TrackID, 
+            return @"SELECT DISTINCT t.id as Id, 
 GROUP_CONCAT(DISTINCT Artists.name) as Artists, 
 GROUP_CONCAT(DISTINCT Genres.name) as Genres, 
 GROUP_CONCAT(DISTINCT Albums.name) as AlbumTitle, 
