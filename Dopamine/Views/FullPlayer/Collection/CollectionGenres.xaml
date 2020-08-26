@@ -132,15 +132,18 @@
                             Foreground="{DynamicResource Brush_PrimaryText}"
                             Click="AlbumsButton_Click" ToolTip="{DynamicResource Language_Select_None}"/>
                 </DockPanel>
-                <dc:MultiSelectListBox x:Name="ListBoxAlbums"
-                                                                 Style="{StaticResource ListBoxAlbums}"
-                                                                 ItemsSource="{Binding AlbumsCvs.View}"
-                                                                 BorderThickness="0"
-                                                                 MouseDoubleClick="ListBoxAlbums_MouseDoubleClick"
-                                                                 PreviewKeyDown="ListBoxAlbums_PreviewKeyDown"
-                                                                 SelectionMode="Extended"
-                                                                 HorizontalAlignment="Left" 
-                                                                 VerticalAlignment="Top">
+                <dc:MultiSelectListBox
+                    x:Name="ListBoxAlbums"
+                    VerticalAlignment="Top"
+                    BorderThickness="0"
+                    ItemsSource="{Binding AlbumsCvs.View}"
+                    MouseDoubleClick="ListBoxAlbums_MouseDoubleClick"
+                    PreviewKeyDown="ListBoxAlbums_PreviewKeyDown"
+                    SelectionMode="Extended"
+                    Style="{StaticResource ListBoxAlbums}"
+                    VirtualizingPanel.IsVirtualizingWhenGrouping="True"
+                    VirtualizingStackPanel.IsVirtualizing="True"
+                    VirtualizingStackPanel.VirtualizationMode="Recycling">
                     <i:Interaction.Triggers>
                         <i:EventTrigger EventName="SelectionChanged">
                             <i:InvokeCommandAction Command="{Binding SelectedAlbumsCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=SelectedItems}"/>

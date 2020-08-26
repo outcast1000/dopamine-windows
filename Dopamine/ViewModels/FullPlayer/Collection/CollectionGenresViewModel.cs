@@ -38,7 +38,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private IEventAggregator eventAggregator;
         private ObservableCollection<ISemanticZoomable> genres;
         private CollectionViewSource genresCvs;
-        private IList<string> selectedGenres;
+        private IList<GenreViewModel> selectedGenres = new List<GenreViewModel>();
         private ObservableCollection<ISemanticZoomSelector> genresZoomSelectors;
         private bool isGenresZoomVisible;
         private long genresCount;
@@ -94,10 +94,10 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             set { SetProperty<CollectionViewSource>(ref this.genresCvs, value); }
         }
 
-        public IList<string> SelectedGenres
+        public IList<GenreViewModel> SelectedGenres
         {
             get { return this.selectedGenres; }
-            set { SetProperty<IList<string>>(ref this.selectedGenres, value); }
+            set { SetProperty<IList<GenreViewModel>>(ref this.selectedGenres, value); }
         }
 
         public long GenresCount
@@ -269,11 +269,10 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         {
             if (parameter != null)
             {
-                this.SelectedGenres = new List<string>();
-
+                this.SelectedGenres.Clear();
                 foreach (GenreViewModel item in (IList)parameter)
                 {
-                    this.SelectedGenres.Add(item.GenreName);
+                    this.SelectedGenres.Add(item);
                 }
             }
 
@@ -282,7 +281,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             await this.GetTracksAsync(null, this.SelectedGenres, this.SelectedAlbums, this.TrackOrder);
         }
 
-        private async Task AddGenresToPlaylistAsync(IList<string> genres, string playlistName)
+        private async Task AddGenresToPlaylistAsync(IList<GenreViewModel> genres, string playlistName)
         {
             CreateNewPlaylistResult createPlaylistResult = CreateNewPlaylistResult.Success; // Default Success
 
@@ -350,7 +349,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
         }
 
-        private async Task AddGenresToNowPlayingAsync(IList<string> genres)
+        private async Task AddGenresToNowPlayingAsync(IList<GenreViewModel> genres)
         {
             EnqueueResult result = await this.playbackService.AddGenresToQueueAsync(genres);
 

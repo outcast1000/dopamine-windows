@@ -134,7 +134,7 @@ namespace Dopamine.Data
             return string.IsNullOrWhiteSpace(fileMetadata.Album.Value) ? string.Empty : FormatUtils.TrimValue(fileMetadata.Album.Value);
         }
 
-        public static void FillTrackBase(FileMetadata fileMetadata, ref Track track)
+        public static void FillTrackBase(FileMetadata fileMetadata, ref TrackV track)
         {
             track.TrackTitle = FormatUtils.TrimValue(fileMetadata.Title.Value);
             track.Year = SafeConvertToLong(fileMetadata.Year.Value);
@@ -147,19 +147,15 @@ namespace Dopamine.Data
             track.Genres = GetMultiValueTags(fileMetadata.Genres);
             track.AlbumTitle = GetAlbumTitle(fileMetadata);
             track.AlbumArtists = GetMultiValueTags(fileMetadata.AlbumArtists);
-            track.AlbumKey = GenerateInitialAlbumKey(track.AlbumTitle, track.AlbumArtists);
         }
 
-        public static void FillTrack(FileMetadata fileMetadata, ref Track track)
+        public static void FillTrack(FileMetadata fileMetadata, ref TrackV track)
         {
             string path = fileMetadata.Path;
             long nowTicks = DateTime.Now.Ticks;
 
             track.Path = path;
-            track.SafePath = path.ToSafePath();
-            track.FileName = FileUtils.FileNameWithoutExtension(path);
             track.Duration = Convert.ToInt64(fileMetadata.Duration.TotalMilliseconds);
-            track.MimeType = fileMetadata.MimeType;
             track.BitRate = fileMetadata.BitRate;
             track.SampleRate = fileMetadata.SampleRate;
             track.NeedsIndexing = 0;
@@ -189,9 +185,9 @@ namespace Dopamine.Data
             return FormatUtils.DelimitValue(albumTitle);
         }
 
-        public static async Task<Track> Path2TrackAsync(string path)
+        public static async Task<TrackV> Path2TrackAsync(string path)
         {
-            var track = Track.CreateDefault(path);
+            var track = TrackV.CreateDefault(path);
 
             if (File.Exists(path))
             {

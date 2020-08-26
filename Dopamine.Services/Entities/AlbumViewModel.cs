@@ -21,6 +21,8 @@ namespace Dopamine.Services.Entities
             this.data = data;
         }
 
+        public AlbumV Data { get { return data; } }
+
         public long Id { get { return data.Id; } }
         public string Name
         {
@@ -46,11 +48,17 @@ namespace Dopamine.Services.Entities
                     info += AlbumArtists;
                 else
                     info += string.Format("{0} ({1})", AlbumArtists, Artists);
-                if (data.Year.HasValue && data.Year > 0)
-                    info += string.Format("\n{0}", data.Year);
+                //info += string.Format("\n{0} tracks", data.TrackCount);
+                if (!data.MinYear.HasValue)
+                {
+
+                }
+                else if (data.MinYear == data.MaxYear)
+                    info += string.Format("\nYear: {0}", data.MinYear);
+                else
+                    info += string.Format("\nYears: {0} - {1}", data.MinYear, data.MaxYear);
                 if (!string.IsNullOrEmpty(data.Genres))
                     info += string.Format("\n{0}", data.Genres);
-                info += string.Format("\n{0} tracks", data.TrackCount);
                 //info += string.Format("\n{0}", data.DateAdded);
                 //info += string.Format("\n{0}", data.DateFileCreated);
                 return info;
@@ -89,12 +97,12 @@ namespace Dopamine.Services.Entities
 
         public string ToolTipYear
         {
-            get { return !data.Year.HasValue ? "(" + data.Year + ")" : string.Empty; }
+            get { return !data.MinYear.HasValue ? "(" + data.MinYear + ")" : string.Empty; }
         }
 
-        public string Year
+        public string MinYear
         {
-            get { return data.Year.HasValue ? data.Year.ToString() : ""; }
+            get { return data.MinYear.HasValue ? data.MinYear.ToString() : ""; }
         }
 
         public string Thumbnail { get { return data.Thumbnail; } }

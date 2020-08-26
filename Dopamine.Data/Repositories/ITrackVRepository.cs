@@ -6,19 +6,25 @@ namespace Dopamine.Data.Repositories
 {
     public interface ITrackVRepository
     {
-        List<TrackV> GetTracksByArtistId(long artistId);
+        List<TrackV> GetTracks();
 
-        List<TrackV> GetTracksByAlbumId(long albumId);
+        List<TrackV> GetTracksOfArtists(IList<long> artistIds);
 
-        List<TrackV> GetTracksByGenreId(long genreId);
+        List<TrackV> GetTracksOfAlbums(IList<long> albumIds);
+
+        List<TrackV> GetTracksWithGenres(IList<long> genreIds);
+
+        List<TrackV> GetTracksWithPaths(IList<string> paths);
+
+        TrackV GetTrackWithPath(string path);
 
         List<TrackV> GetTracksBySearch(string searchString);
 
         TrackV GetTrack(string path);
 
-        RemoveTracksResult RemoveTracks(IList<TrackV> tracks);
+        RemoveTracksResult RemoveTracks(IList<long> tracksIds);
 
-        bool UpdateTrack(TrackV track);
+        bool UpdateTrack(long trackId);
 
         bool UpdateTrackFileInformation(string path);
 
@@ -27,6 +33,10 @@ namespace Dopamine.Data.Repositories
         void UpdateRating(string path, int rating);
 
         void UpdateLove(string path, int love);
+
+        PlaybackCounter GetPlaybackCounters(string path);
+
+        void UpdatePlaybackCounters(PlaybackCounter counters);
 
     }
 }

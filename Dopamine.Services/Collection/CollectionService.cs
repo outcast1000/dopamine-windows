@@ -17,49 +17,73 @@ namespace Dopamine.Services.Collection
 {
     public class CollectionService : ICollectionService
     {
-        private ITrackRepository trackRepository;
         private IFolderRepository folderRepository;
         private ICacheService cacheService;
         private IPlaybackService playbackService;
         private IContainerProvider container;
 
         //=== ALEX
+        private ITrackVRepository trackVRepository;
         private IArtistVRepository artistVRepository;
         private IAlbumVRepository albumVRepository;
+        private IGenreVRepository genreVRepository;
 
 
-        public CollectionService(ITrackRepository trackRepository, IFolderRepository folderRepository, ICacheService cacheService, IPlaybackService playbackService, IContainerProvider container,
-            IArtistVRepository artistVRepository, IAlbumVRepository albumVRepository)
+        public CollectionService(ITrackVRepository trackVRepository, IFolderRepository folderRepository, ICacheService cacheService, IPlaybackService playbackService, IContainerProvider container,
+            IArtistVRepository artistVRepository, IAlbumVRepository albumVRepository, IGenreVRepository genreVRepository)
         {
-            this.trackRepository = trackRepository;
             this.folderRepository = folderRepository;
             this.cacheService = cacheService;
             this.playbackService = playbackService;
             this.container = container;
+            this.trackVRepository = trackVRepository;
             this.artistVRepository = artistVRepository;
             this.albumVRepository = albumVRepository;
+            this.genreVRepository = genreVRepository;
 
 
         }
 
         public event EventHandler CollectionChanged = delegate { };
 
-        public async Task<RemoveTracksResult> RemoveTracksFromCollectionAsync(IList<TrackViewModel> selectedTracks)
+        public async Task<RemoveTracksResult> RemoveTracksFromCollectionAsync(IList<TrackViewModel> selectedTracks, bool bAlsoDeleteFromDisk)
         {
-            RemoveTracksResult result = await this.trackRepository.RemoveTracksAsync(selectedTracks.Select(t => t.Track).ToList());
-
+            var sendToRecycleBinResult = RemoveTracksResult.Success;
+            RemoveTracksResult result = this.trackVRepository.RemoveTracks(selectedTracks.Select(t => t.Id).ToList());
             if (result == RemoveTracksResult.Success)
             {
+                // If result is Success: we can assume that all selected tracks were removed from the collection,
+                // as this happens in a transaction in trackRepository. If removing 1 or more tracks fails, the
+                // transaction is rolled back and no tracks are removed.
+                foreach (TrackViewModel track in selectedTracks)
+                {
+                    // When the track is playing, the corresponding file is handled by IPlayer.
+                    // To delete the file properly, PlaybackService must release this handle.
+                    await this.playbackService.StopIfPlayingAsync(track);
+
+                    try
+                    {
+                        // Delete file from disk
+                        FileUtils.SendToRecycleBinSilent(track.Path);
+                    }
+                    catch (Exception ex)
+                    {
+                        LogClient.Error($"Error while removing track '{track.TrackTitle}' from disk. Exception: {ex.Message}");
+                        sendToRecycleBinResult = RemoveTracksResult.Error;
+                    }
+                }
                 this.CollectionChanged(this, new EventArgs());
             }
 
-            return result;
+            if (sendToRecycleBinResult == RemoveTracksResult.Success && result == RemoveTracksResult.Success)
+                return RemoveTracksResult.Success;
+            return RemoveTracksResult.Error;
         }
 
         public async Task<RemoveTracksResult> RemoveTracksFromDiskAsync(IList<TrackViewModel> selectedTracks)
         {
             var sendToRecycleBinResult = RemoveTracksResult.Success;
-            var result = await this.trackRepository.RemoveTracksAsync(selectedTracks.Select(t => t.Track).ToList());
+            var result = this.trackVRepository.RemoveTracks(selectedTracks.Select(t => t.Id).ToList());
 
             if (result == RemoveTracksResult.Success)
             {
@@ -131,44 +155,7 @@ namespace Dopamine.Services.Collection
             return uniqueArtists;
         }
         */
-        private async Task<IList<GenreViewModel>> GetUniqueGenresAsync(IList<string> genres)
-        {
-            IList<GenreViewModel> uniqueGenres = new List<GenreViewModel>();
-
-            await Task.Run(() =>
-            {
-                bool hasUnknownGenres = false;
-
-                foreach (string genre in genres)
-                {
-                    if (!string.IsNullOrEmpty(genre))
-                    {
-                        var newGenre = new GenreViewModel(genre);
-
-                        if (!uniqueGenres.Contains(newGenre))
-                        {
-                            uniqueGenres.Add(newGenre);
-                        }
-                    }
-                    else
-                    {
-                        hasUnknownGenres = true;
-                    }
-                }
-
-                if (hasUnknownGenres)
-                {
-                    var unknownGenre = new GenreViewModel(ResourceUtils.GetString("Language_Unknown_Genre"));
-
-                    if (!uniqueGenres.Contains(unknownGenre))
-                    {
-                        uniqueGenres.Add(unknownGenre);
-                    }
-                }
-            });
-
-            return uniqueGenres;
-        }
+   
 
         /*
         private async Task<IList<AlbumViewModel>> GetUniqueAlbumsAsync(IList<AlbumData> albums)
@@ -194,8 +181,8 @@ namespace Dopamine.Services.Collection
 
         public async Task<IList<GenreViewModel>> GetAllGenresAsync()
         {
-            IList<string> genres = await this.trackRepository.GetGenresAsync();
-            IList<GenreViewModel> orderedGenres = (await this.GetUniqueGenresAsync(genres)).OrderBy(g => FormatUtils.GetSortableString(g.GenreName, true)).ToList();
+            IList<GenreV> genres = this.genreVRepository.GetGenres();
+            IList<GenreViewModel> orderedGenres = genres.Select(g => new GenreViewModel(g)).ToList();//. OrderBy(g => FormatUtils.GetSortableString(g.GenreName, true)).ToList();
 
             // Workaround to make sure the "#" GroupHeader is shown at the top of the list
             List<GenreViewModel> tempGenreViewModels = new List<GenreViewModel>();
@@ -253,19 +240,17 @@ namespace Dopamine.Services.Collection
             //return await this.GetUniqueAlbumsAsync(albums);
           }
 
-        public async Task<IList<AlbumViewModel>> GetArtistAlbumsAsync(IList<string> selectedArtists, ArtistType artistType)
+        public async Task<IList<AlbumViewModel>> GetArtistAlbumsAsync(IList<ArtistViewModel> selectedArtists, ArtistType artistType)
         {
-            IList<AlbumData> albums = await this.trackRepository.GetArtistAlbumDataAsync(selectedArtists.Select(x => x.Replace(ResourceUtils.GetString("Language_Unknown_Artist"), string.Empty)).ToList(), artistType);
-            return null;
+            IList<AlbumV> albums = albumVRepository.GetAlbumsWithArtists(selectedArtists.Select(x => x.Id).ToList());
+            return albums.Select(x => new AlbumViewModel(x)).ToList();
             //ALEX return await this.GetUniqueAlbumsAsync(albums);
         }
 
-        public async Task<IList<AlbumViewModel>> GetGenreAlbumsAsync(IList<string> selectedGenres)
+        public async Task<IList<AlbumViewModel>> GetGenreAlbumsAsync(IList<GenreViewModel> selectedGenres)
         {
-            IList<AlbumData> albums = await this.trackRepository.GetGenreAlbumDataAsync(selectedGenres.Select(x => x.Replace(ResourceUtils.GetString("Language_Unknown_Genre"), string.Empty)).ToList());
-            return null;
-
-            //return await this.GetUniqueAlbumsAsync(albums);
+            IList<AlbumV> albums = albumVRepository.GetAlbumsWithGenres(selectedGenres.Select(x => x.Id).ToList());
+            return albums.Select(x => new AlbumViewModel(x)).ToList();
         }
 
         public async Task<IList<AlbumViewModel>> OrderAlbumsAsync(IList<AlbumViewModel> albums, AlbumOrder albumOrder)
@@ -289,10 +274,10 @@ namespace Dopamine.Services.Collection
                         orderedAlbums = albums.OrderBy((a) => FormatUtils.GetSortableString(a.AlbumArtists, true)).ToList();
                         break;
                     case AlbumOrder.ByYearAscending:
-                        orderedAlbums = albums.OrderBy((a) => a.Year).ToList();
+                        orderedAlbums = albums.OrderBy((a) => a.MinYear).ToList();
                         break;
                     case AlbumOrder.ByYearDescending:
-                        orderedAlbums = albums.OrderByDescending((a) => a.Year).ToList();
+                        orderedAlbums = albums.OrderByDescending((a) => a.MinYear).ToList();
                         break;
                     default:
                         // Alphabetical

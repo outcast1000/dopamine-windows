@@ -20,6 +20,13 @@ namespace Dopamine.Data
             return $"{columnName} IN ({commaSeparatedItems})";
         }
 
+        public static string CreateInClause(string columnName, IList<long> clauseItems)
+        {
+            string commaSeparatedItems = string.Join(",", clauseItems.ToArray());
+
+            return $"{columnName} IN ({commaSeparatedItems})";
+        }
+
         public static string CreateOrLikeClause(string columnName, IList<string> clauseItems, string delimiter = "")
         {
             var sb = new StringBuilder();

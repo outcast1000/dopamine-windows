@@ -14,13 +14,13 @@ namespace Dopamine.Services.Playback
 {
     internal class QueueManager
     {
-        private ITrackRepository trackRepository;
+        private ITrackVRepository trackRepository;
         private TrackViewModel currentTrack;
         private object queueLock = new object();
         private List<TrackViewModel> queue = new List<TrackViewModel>(); // Queued tracks in original order
         private List<int> playbackOrder = new List<int>(); // Playback order of queued tracks (Contains the indexes of list the queued tracks)
 
-        public QueueManager(ITrackRepository trackRepository)
+        public QueueManager(ITrackVRepository trackRepository)
         {
             this.trackRepository = trackRepository;
         }
@@ -483,7 +483,7 @@ namespace Dopamine.Services.Playback
         {
             var result = new UpdateQueueMetadataResult();
 
-            IList<Track> tracks = await this.trackRepository.GetTracksAsync(fileMetadatas.Select(x => x.Path).ToList());
+            IList<TrackV> tracks = trackRepository.GetTracksWithPaths(fileMetadatas.Select(x => x.Path).ToList());
 
             await Task.Run(() =>
             {
@@ -496,7 +496,7 @@ namespace Dopamine.Services.Playback
 
                         foreach (TrackViewModel trackViewModel in this.queue)
                         {
-                            Track newTrack = tracks.Where(x => x.SafePath.Equals(trackViewModel.SafePath)).FirstOrDefault();
+                            TrackV newTrack = tracks.Where(x => x.Path.Equals(trackViewModel.Path)).FirstOrDefault();
 
                             trackViewModel.UpdateTrack(newTrack);
 

@@ -287,7 +287,7 @@ namespace Dopamine.ViewModels.Common.Base
             RaisePropertyChanged(nameof(this.AlbumOrderText));
         }
 
-        protected async Task GetArtistAlbumsAsync(IList<string> selectedArtists, ArtistType artistType, AlbumOrder albumOrder)
+        protected async Task GetArtistAlbumsAsync(IList<ArtistViewModel> selectedArtists, ArtistType artistType, AlbumOrder albumOrder)
         {
             if (!selectedArtists.IsNullOrEmpty())
             {
@@ -299,7 +299,7 @@ namespace Dopamine.ViewModels.Common.Base
             await this.GetAlbumsCommonAsync(await this.collectionService.GetAllAlbumsAsync(), albumOrder);
         }
 
-        protected async Task GetGenreAlbumsAsync(IList<string> selectedGenres, AlbumOrder albumOrder)
+        protected async Task GetGenreAlbumsAsync(IList<GenreViewModel> selectedGenres, AlbumOrder albumOrder)
         {
             if (!selectedGenres.IsNullOrEmpty())
             {

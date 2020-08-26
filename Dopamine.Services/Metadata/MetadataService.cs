@@ -24,7 +24,7 @@ namespace Dopamine.Services.Metadata
     {
         private IPlaybackService playbackService;
         private ICacheService cacheService;
-        private ITrackRepository trackRepository;
+        private ITrackVRepository trackRepository;
         private IAlbumArtworkRepository albumArtworkRepository;
         private FileMetadataUpdater updater;
         ObjectCache artworkCache = MemoryCache.Default;
@@ -34,7 +34,7 @@ namespace Dopamine.Services.Metadata
         public event Action<RatingChangedEventArgs> RatingChanged = delegate { };
         public event Action<LoveChangedEventArgs> LoveChanged = delegate { };
 
-        public MetadataService(IPlaybackService playbackService, ICacheService cacheService, ITrackRepository trackRepository,
+        public MetadataService(IPlaybackService playbackService, ICacheService cacheService, ITrackVRepository trackRepository,
             IAlbumArtworkRepository albumArtworkRepository)
         {
             this.playbackService = playbackService;
@@ -71,7 +71,7 @@ namespace Dopamine.Services.Metadata
 
         public async Task UpdateTrackRatingAsync(string path, int rating)
         {
-            await this.trackRepository.UpdateRatingAsync(path, rating);
+            trackRepository.UpdateRating(path, rating);
 
             // Update the rating in the file if the user selected this option
             if (SettingsClient.Get<bool>("Behaviour", "SaveRatingToAudioFiles"))
@@ -90,7 +90,7 @@ namespace Dopamine.Services.Metadata
 
         public async Task UpdateTrackLoveAsync(string path, bool love)
         {
-            await this.trackRepository.UpdateLoveAsync(path, love ? 1 : 0);
+            this.trackRepository.UpdateLove(path, love ? 1 : 0);
 
             this.LoveChanged(new LoveChangedEventArgs(path.ToSafePath(), love));
         }
@@ -191,7 +191,7 @@ namespace Dopamine.Services.Metadata
         private async Task UpdateDatabaseMetadataAsync(FileMetadata fileMetadata, bool updateAlbumArtwork)
         {
             // Get the track from the database
-            Track track = await this.trackRepository.GetTrackAsync(fileMetadata.SafePath);
+            TrackV track = trackRepository.GetTrackWithPath(fileMetadata.SafePath);
 
             if (track == null)
             {
@@ -202,7 +202,7 @@ namespace Dopamine.Services.Metadata
             await Task.Run(() => MetadataUtils.FillTrackBase(fileMetadata, ref track));
 
             // Update the Track in the database
-            await this.trackRepository.UpdateTrackAsync(track);
+            this.trackRepository.UpdateTrack(track.Id);
 
             if (updateAlbumArtwork)
             {
@@ -210,7 +210,7 @@ namespace Dopamine.Services.Metadata
                 string artworkID = await this.cacheService.CacheArtworkAsync(fileMetadata.ArtworkData.Value);
 
                 // Add or update AlbumArtwork in the database
-                await this.albumArtworkRepository.UpdateAlbumArtworkAsync(track.AlbumKey, artworkID);
+                await this.albumArtworkRepository.UpdateAlbumArtworkAsync(track.AlbumTitle, artworkID);
             }
         }
 
@@ -255,10 +255,10 @@ namespace Dopamine.Services.Metadata
             if (updateFileArtwork)
             {
                 // Get the tracks for this album
-                IList<Track> tracks = await this.trackRepository.GetAlbumTracksAsync(new List<string> { albumViewModel.Thumbnail });
+                IList<TrackV> tracks = this.trackRepository.GetTracksOfAlbums(new List<long> { albumViewModel.Id});
                 IList<FileMetadata> fileMetadatas = new List<FileMetadata>();
 
-                foreach (Track track in tracks)
+                foreach (TrackV track in tracks)
                 {
                     FileMetadata fileMetadata = await this.GetFileMetadataAsync(track.Path);
                     fileMetadata.ArtworkData = artwork;

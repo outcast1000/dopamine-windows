@@ -10,13 +10,13 @@ namespace Dopamine.Services.Extensions
 {
     public static class ContainerProviderExtensions
     {
-        public static TrackViewModel ResolveTrackViewModel(this IContainerProvider container, Track track)
+        public static TrackViewModel ResolveTrackViewModel(this IContainerProvider container, TrackV track)
         {
-            var getTrackViewModel = container.Resolve<Func<Track, TrackViewModel>>();
+            var getTrackViewModel = container.Resolve<Func<TrackV, TrackViewModel>>();
             return getTrackViewModel(track);
         }
 
-        public async static Task<IList<TrackViewModel>> ResolveTrackViewModelsAsync(this IContainerProvider container, IList<Track> tracks)
+        public async static Task<IList<TrackViewModel>> ResolveTrackViewModelsAsync(this IContainerProvider container, IList<TrackV> tracks)
         {
             IList<TrackViewModel> trackViewModels = null;
             await Task.Run(() => { trackViewModels = tracks.Select(t => container.ResolveTrackViewModel(t)).ToList(); });

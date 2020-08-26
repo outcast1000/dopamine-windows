@@ -51,7 +51,7 @@ namespace Dopamine.Views.FullPlayer.Collection
                     foreach (GenreViewModel genre in listBox.Items)
                     {
 
-                        if (SemanticZoomUtils.GetGroupHeader(genre.GenreName).ToLower().Equals(letter.ToLower()))
+                        if (SemanticZoomUtils.GetGroupHeader(genre.Name).ToLower().Equals(letter.ToLower()))
                         {
                             // We can only access the ListBox from the UI Thread
                             Application.Current.Dispatcher.Invoke(() => listBox.ScrollIntoView(genre));

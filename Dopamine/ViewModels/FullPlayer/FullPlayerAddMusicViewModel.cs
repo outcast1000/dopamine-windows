@@ -12,10 +12,10 @@ namespace Dopamine.ViewModels.FullPlayer
         private bool checkBoxRefreshCollectionAutomaticallyChecked;
         private bool checkBoxIgnoreRemovedFilesChecked;
         private bool checkBoxDownloadMissingAlbumCoversChecked;
-        private ITrackRepository trackRepository;
+        private ITrackVRepository trackRepository;
         private IIndexingService indexingService;
 
-        public FullPlayerAddMusicViewModel(ITrackRepository trackRepository, IIndexingService indexingService)
+        public FullPlayerAddMusicViewModel(ITrackVRepository trackRepository, IIndexingService indexingService)
         {
             this.trackRepository = trackRepository;
             this.indexingService = indexingService;
@@ -52,7 +52,7 @@ namespace Dopamine.ViewModels.FullPlayer
                 if (!value)
                 {
                     // Fire and forget
-                    this.trackRepository.ClearRemovedTrackAsync(); 
+                    trackRepository.ClearRemovedTrack(); 
                 }
             }
         }

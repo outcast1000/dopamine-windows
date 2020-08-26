@@ -9,9 +9,7 @@ namespace Dopamine.Services.Collection
 {
     public interface ICollectionService
     {
-        Task<RemoveTracksResult> RemoveTracksFromCollectionAsync(IList<TrackViewModel> selectedTracks);
-
-        Task<RemoveTracksResult> RemoveTracksFromDiskAsync(IList<TrackViewModel> selectedTracks);
+        Task<RemoveTracksResult> RemoveTracksFromCollectionAsync(IList<TrackViewModel> selectedTracks, bool bAlsoDeleteFromDisk);
 
         Task<IList<ArtistViewModel>> GetAllArtistsAsync(ArtistType artistType);
 
@@ -19,9 +17,9 @@ namespace Dopamine.Services.Collection
 
         Task<IList<AlbumViewModel>> GetAllAlbumsAsync();
 
-        Task<IList<AlbumViewModel>> GetArtistAlbumsAsync(IList<string> selectedArtists, ArtistType artistType);
+        Task<IList<AlbumViewModel>> GetArtistAlbumsAsync(IList<ArtistViewModel> selectedArtists, ArtistType artistType);
 
-        Task<IList<AlbumViewModel>> GetGenreAlbumsAsync(IList<string> selectedGenres);
+        Task<IList<AlbumViewModel>> GetGenreAlbumsAsync(IList<GenreViewModel> selectedGenres);
 
         Task<IList<AlbumViewModel>> OrderAlbumsAsync(IList<AlbumViewModel> albums, AlbumOrder albumOrder);
 

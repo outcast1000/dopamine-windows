@@ -21,7 +21,7 @@ namespace Dopamine.Services.Utils
             return pieces.All((s) => 
             album.Name.ToLower().Contains(s.ToLower()) |
             (album.AlbumArtists != null ? album.AlbumArtists.ToLower().Contains(s.ToLower()) : true) | 
-            album.Year.ToString().ToLower().Contains(s.ToLower()));
+            album.MinYear.ToString().ToLower().Contains(s.ToLower()));
         }
 
         public static bool FilterArtists(ArtistViewModel artist, string filter)
@@ -37,7 +37,7 @@ namespace Dopamine.Services.Utils
             // Trim is required here, otherwise the filter might flip on the space at the beginning (and probably at the end)
             string[] pieces = filter.Trim().Split(Convert.ToChar(" "));
 
-            return pieces.All((s) => genre.GenreName.ToLower().Contains(s.ToLower()));
+            return pieces.All((s) => string.IsNullOrEmpty(genre.Name) ? false : genre.Name.ToLower().Contains(s.ToLower()));
         }
 
         public static bool FilterTracks(TrackViewModel track, string filter)

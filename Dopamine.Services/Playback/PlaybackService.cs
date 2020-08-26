@@ -63,7 +63,7 @@ namespace Dopamine.Services.Playback
 
         private IPlayerFactory playerFactory;
 
-        private ITrackRepository trackRepository;
+        private ITrackVRepository trackRepository;
 
         private System.Timers.Timer savePlaybackCountersTimer = new System.Timers.Timer();
         private int savePlaybackCountersTimeoutSeconds = 2;
@@ -242,10 +242,10 @@ namespace Dopamine.Services.Playback
                     if (this.player != null && this.player.CanStop && this.HasCurrentTrack && this.CurrentTrack.Duration != null)
                     {
                         // In some cases, the duration reported by TagLib is 1 second longer than the duration reported by IPlayer.
-                        if (this.CurrentTrack.Track.Duration > this.player.GetTotalTime().TotalMilliseconds)
+                        if (this.CurrentTrack.Data.Duration > this.player.GetTotalTime().TotalMilliseconds)
                         {
                             // To show the same duration everywhere, we report the TagLib duration here instead of the IPlayer duration.
-                            return new TimeSpan(0, 0, 0, 0, Convert.ToInt32(this.CurrentTrack.Track.Duration));
+                            return new TimeSpan(0, 0, 0, 0, Convert.ToInt32(this.CurrentTrack.Data.Duration));
                         }
                         else
                         {
@@ -273,7 +273,7 @@ namespace Dopamine.Services.Playback
             get { return this.player; }
         }
 
-        public PlaybackService(IFileService fileService, II18nService i18nService, ITrackRepository trackRepository,
+        public PlaybackService(IFileService fileService, II18nService i18nService, ITrackVRepository trackRepository,
             IEqualizerService equalizerService, IQueuedTrackRepository queuedTrackRepository, IContainerProvider container, IPlaylistService playlistService)
         {
             this.fileService = fileService;
@@ -534,7 +534,7 @@ namespace Dopamine.Services.Playback
 
             foreach (PlaybackCounter localCounter in localCounters)
             {
-                await this.trackRepository.UpdatePlaybackCountersAsync(localCounter);
+                trackRepository.UpdatePlaybackCounters(localCounter);
             }
 
             this.PlaybackCountersChanged(localCounters);
@@ -752,7 +752,7 @@ namespace Dopamine.Services.Playback
 
         public async Task EnqueueAsync(bool shuffle, bool unshuffle)
         {
-            IList<Track> tracks = await this.trackRepository.GetTracksAsync();
+            IList<TrackV> tracks = this.trackRepository.GetTracks();
             List<TrackViewModel> orederedTracks = await EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
             await this.EnqueueAsync(orederedTracks, shuffle, unshuffle);
         }
@@ -773,26 +773,26 @@ namespace Dopamine.Services.Playback
             await this.PlaySelectedAsync(track);
         }
 
-        public async Task EnqueueArtistsAsync(IList<string> artists, bool shuffle, bool unshuffle)
+        public async Task EnqueueArtistsAsync(IList<ArtistViewModel> artists, bool shuffle, bool unshuffle)
         {
             if (artists == null)
             {
                 return;
             }
 
-            IList<Track> tracks = await this.trackRepository.GetArtistTracksAsync(artists);
+            IList<TrackV> tracks = trackRepository.GetTracksOfArtists(artists.Select(x => x.Id).ToList());
             List<TrackViewModel> orderedTracks = await EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
             await this.EnqueueAsync(orderedTracks, shuffle, unshuffle);
         }
 
-        public async Task EnqueueGenresAsync(IList<string> genres, bool shuffle, bool unshuffle)
+        public async Task EnqueueGenresAsync(IList<GenreViewModel> genres, bool shuffle, bool unshuffle)
         {
             if (genres == null)
             {
                 return;
             }
 
-            IList<Track> tracks = await this.trackRepository.GetGenreTracksAsync(genres);
+            IList<TrackV> tracks = trackRepository.GetTracksWithGenres(genres.Select(x => x.Id).ToList());
             List<TrackViewModel> orderedTracks = await EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
             await this.EnqueueAsync(orderedTracks, shuffle, unshuffle);
         }
@@ -804,7 +804,7 @@ namespace Dopamine.Services.Playback
                 return;
             }
 
-            IList<Track> tracks = await this.trackRepository.GetAlbumTracksAsync(albumViewModels.Select(x => x.Thumbnail).ToList());
+            IList<TrackV> tracks = trackRepository.GetTracksOfAlbums(albumViewModels.Select(x => x.Id).ToList());
             List<TrackViewModel> orderedTracks = await Utils.EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
             await this.EnqueueAsync(orderedTracks, shuffle, unshuffle);
         }
@@ -893,23 +893,23 @@ namespace Dopamine.Services.Playback
             return result;
         }
 
-        public async Task<EnqueueResult> AddArtistsToQueueAsync(IList<string> artists)
+        public async Task<EnqueueResult> AddArtistsToQueueAsync(IList<ArtistViewModel> artists)
         {
-            IList<Track> tracks = await this.trackRepository.GetArtistTracksAsync(artists);
+            IList<TrackV> tracks = trackRepository.GetTracksOfArtists(artists.Select(x=>x.Id).ToList());
             List<TrackViewModel> orederedTracks = await EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
             return await this.AddToQueueAsync(orederedTracks);
         }
 
-        public async Task<EnqueueResult> AddGenresToQueueAsync(IList<string> genres)
+        public async Task<EnqueueResult> AddGenresToQueueAsync(IList<GenreViewModel> genres)
         {
-            IList<Track> tracks = await this.trackRepository.GetGenreTracksAsync(genres);
+            IList<TrackV> tracks = trackRepository.GetTracksWithGenres(genres.Select(x => x.Id).ToList());
             List<TrackViewModel> orederedTracks = await EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
             return await this.AddToQueueAsync(orederedTracks);
         }
 
-        public async Task<EnqueueResult> AddAlbumsToQueueAsync(IList<AlbumViewModel> albumViewModels)
+        public async Task<EnqueueResult> AddAlbumsToQueueAsync(IList<AlbumViewModel> albums)
         {
-            IList<Track> tracks = await this.trackRepository.GetAlbumTracksAsync(albumViewModels.Select(x => x.Thumbnail).ToList());
+            IList<TrackV> tracks = trackRepository.GetTracksOfAlbums(albums.Select(x => x.Id).ToList());
             List<TrackViewModel> orederedTracks = await EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
             return await this.AddToQueueAsync(orederedTracks);
         }
@@ -949,7 +949,7 @@ namespace Dopamine.Services.Playback
             if (!this.playbackCounters.ContainsKey(path))
             {
                 // Try to find an existing counter
-                PlaybackCounter counters = await this.trackRepository.GetPlaybackCountersAsync(path);
+                PlaybackCounter counters = this.trackRepository.GetPlaybackCounters(path);
 
                 // If no existing counter was found, create a new one.
                 if (counters == null)
@@ -1248,9 +1248,9 @@ namespace Dopamine.Services.Playback
             await this.SaveQueuedTracksAsync();
         }
 
-        private async Task<IList<Track>> ConvertQueuedTracksToTracks(IList<QueuedTrack> queuedTracks)
+        private async Task<IList<TrackV>> ConvertQueuedTracksToTracks(IList<QueuedTrack> queuedTracks)
         {
-            IList<Track> databaseTracks = await this.trackRepository.GetTracksAsync(queuedTracks.Where(x => System.IO.File.Exists(x.Path)).Select(x => x.Path).ToList());
+            IList<TrackV> databaseTracks = trackRepository.GetTracksWithPaths(queuedTracks.Where(x => System.IO.File.Exists(x.Path)).Select(x => x.Path).ToList());
 
             // All queued tracks were found as tracks in the database: there is no need to get metadata from the files
             // (Getting metadata from files is an expensive operation, so we want to do this as little as possible.)
@@ -1260,13 +1260,13 @@ namespace Dopamine.Services.Playback
             }
 
             // Not all queued tracks exist as tracks in the database. We process them 1 by 1 and get metadata from files, if necessary.
-            IList<Track> oneByOneTracks = new List<Track>();
+            IList<TrackV> oneByOneTracks = new List<TrackV>();
 
             await Task.Run(async () =>
             {
                 foreach (QueuedTrack queuedTrack in queuedTracks)
                 {
-                    Track foundDatabaseTrack = databaseTracks.Where(x => x.SafePath.Equals(queuedTrack.Path)).FirstOrDefault();
+                    TrackV foundDatabaseTrack = databaseTracks.Where(x => x.Path.Equals(queuedTrack.Path)).FirstOrDefault();
 
                     if (foundDatabaseTrack != null)
                     {
@@ -1298,7 +1298,7 @@ namespace Dopamine.Services.Playback
                 LogClient.Info("Getting saved queued tracks");
                 IList<QueuedTrack> savedQueuedTracks = await this.queuedTrackRepository.GetSavedQueuedTracksAsync();
                 QueuedTrack playingSavedQueuedTrack = savedQueuedTracks.Where(x => x.IsPlaying == 1).FirstOrDefault();
-                IList<Track> existingTracks = await this.ConvertQueuedTracksToTracks(savedQueuedTracks);
+                IList<TrackV> existingTracks = await this.ConvertQueuedTracksToTracks(savedQueuedTracks);
                 IList<TrackViewModel> existingTrackViewModels = await this.container.ResolveTrackViewModelsAsync(existingTracks);
 
                 await this.EnqueueAlwaysAsync(existingTrackViewModels);

@@ -10,13 +10,17 @@ namespace Dopamine.Data.Entities
 
         public string Genres { get; set; }
 
-        public string Albums { get; set; }
+        public string AlbumTitle { get; set; }
 
         public string Artists { get; set; }
+
+        public string AlbumArtists { get; set; }
 
         public string Path { get; set; }
 
         //public string MimeType { get; set; }
+
+        public string FileName { get { return System.IO.Path.GetFileName(Path); } }
 
         public long? FileSize { get; set; }
 
@@ -66,13 +70,11 @@ namespace Dopamine.Data.Entities
 
         public long? DateLastPlayed { get; set; }
 
-        public static Track CreateDefault(string path)
+        public static TrackV CreateDefault(string path)
         {
-            var track = new Track()
+            var track = new TrackV()
             {
                 Path = path,
-                SafePath = path.ToSafePath(),
-                FileName = System.IO.Path.GetFileNameWithoutExtension(path),
                 IndexingSuccess = 0,
                 DateAdded = DateTime.Now.Ticks
             };
@@ -80,9 +82,9 @@ namespace Dopamine.Data.Entities
             return track;
         }
 
-        public Track ShallowCopy()
+        public TrackV ShallowCopy()
         {
-            return (Track)this.MemberwiseClone();
+            return (TrackV)this.MemberwiseClone();
         }
 
 

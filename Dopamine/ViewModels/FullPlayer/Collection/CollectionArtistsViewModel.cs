@@ -24,6 +24,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
+using Dopamine.Data.Entities;
 
 namespace Dopamine.ViewModels.FullPlayer.Collection
 {
@@ -38,7 +39,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private IEventAggregator eventAggregator;
         private ObservableCollection<ISemanticZoomable> artists;
         private CollectionViewSource artistsCvs;
-        private IList<string> selectedArtists;
+        private IList<ArtistViewModel> selectedArtists;
         private ObservableCollection<ISemanticZoomSelector> artistsZoomSelectors;
         private bool isArtistsZoomVisible;
         private long artistsCount;
@@ -113,10 +114,10 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             set { SetProperty<CollectionViewSource>(ref this.artistsCvs, value); }
         }
 
-        public IList<string> SelectedArtists
+        public IList<ArtistViewModel> SelectedArtists
         {
             get { return this.selectedArtists; }
-            set { SetProperty<IList<string>>(ref this.selectedArtists, value); }
+            set { SetProperty<IList<ArtistViewModel>>(ref this.selectedArtists, value); }
         }
 
         public long ArtistsCount
@@ -306,11 +307,11 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         {
             if (parameter != null)
             {
-                this.SelectedArtists = new List<string>();
+                this.SelectedArtists = new List<ArtistViewModel>();
 
                 foreach (ArtistViewModel item in (IList)parameter)
                 {
-                    this.SelectedArtists.Add(item.Name);
+                    this.SelectedArtists.Add(item);
                 }
             }
 
@@ -321,7 +322,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             await this.GetTracksAsync(this.SelectedArtists, null, this.SelectedAlbums, this.TrackOrder);
         }
 
-        private async Task AddArtistsToPlaylistAsync(IList<string> artists, string playlistName)
+        private async Task AddArtistsToPlaylistAsync(IList<ArtistViewModel> artists, string playlistName)
         {
             CreateNewPlaylistResult addPlaylistResult = CreateNewPlaylistResult.Success; // Default Success
 
@@ -393,7 +394,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             e.Accepted = Services.Utils.EntityUtils.FilterArtists(avm, this.searchService.SearchText);
         }
 
-        private async Task AddArtistsToNowPlayingAsync(IList<string> artists)
+        private async Task AddArtistsToNowPlayingAsync(IList<ArtistViewModel> artists)
         {
             EnqueueResult result = await this.playbackService.AddArtistsToQueueAsync(artists);
 

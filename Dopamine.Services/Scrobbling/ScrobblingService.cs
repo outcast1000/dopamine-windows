@@ -218,7 +218,7 @@ namespace Dopamine.Services.Scrobbling
 
             if (this.SignInState == SignInState.SignedIn)
             {
-                foreach (string artist in DataUtils.SplitAndTrimColumnMultiValue(track.Track.Artists))
+                foreach (string artist in DataUtils.SplitAndTrimColumnMultiValue(track.Data.Artists))
                 {
                     if (love)
                     {

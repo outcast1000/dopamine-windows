@@ -27,7 +27,8 @@ namespace Dopamine.Services.Indexing
         private IInfoDownloadService infoDownloadService;
 
         // Repositories
-        private ITrackRepository trackRepository;
+        private ITrackVRepository trackVRepository;
+        private IAlbumVRepository albumVRepository;
         private IAlbumArtworkRepository albumArtworkRepository;
         private IFolderRepository folderRepository;
 
@@ -64,11 +65,12 @@ namespace Dopamine.Services.Indexing
         }
 
         public IndexingService(ISQLiteConnectionFactory factory, ICacheService cacheService, IInfoDownloadService infoDownloadService,
-            ITrackRepository trackRepository, IFolderRepository folderRepository, IAlbumArtworkRepository albumArtworkRepository)
+            ITrackVRepository trackVRepository, IFolderRepository folderRepository, IAlbumArtworkRepository albumArtworkRepository, IAlbumVRepository albumVRepository)
         {
             this.cacheService = cacheService;
             this.infoDownloadService = infoDownloadService;
-            this.trackRepository = trackRepository;
+            this.trackVRepository = trackVRepository; 
+            this.albumVRepository = albumVRepository;
             this.folderRepository = folderRepository;
             this.albumArtworkRepository = albumArtworkRepository;
             this.factory = factory;
@@ -185,7 +187,7 @@ namespace Dopamine.Services.Indexing
                     {
                         if (SettingsClient.Get<bool>("Indexing", "RefreshCollectionAutomatically"))
                         {
-                            this.AddArtworkInBackgroundAsync();
+                            this.AddArtworkInBackgroundAsync(false, false);
                             await this.watcherManager.StartWatchingAsync();
                         }
                     }
@@ -233,7 +235,7 @@ namespace Dopamine.Services.Indexing
             this.isIndexing = false;
             this.IndexingStopped(this, new EventArgs());
 
-            this.AddArtworkInBackgroundAsync();
+            this.AddArtworkInBackgroundAsync(false, false);
 
             if (SettingsClient.Get<bool>("Indexing", "RefreshCollectionAutomatically"))
             {
@@ -450,13 +452,13 @@ namespace Dopamine.Services.Indexing
                     {
                         conn.BeginTransaction();
 
-                        List<Track> alltracks = conn.Table<Track>().Select((t) => t).ToList();
+                        List<TrackV> alltracks = trackVRepository.GetTracks();
 
                         long currentValue = 0;
                         long totalValue = alltracks.Count;
                         int lastPercent = 0;
 
-                        foreach (Track dbTrack in alltracks)
+                        foreach (TrackV dbTrack in alltracks)
                         {
                             try
                             {
@@ -527,7 +529,7 @@ namespace Dopamine.Services.Indexing
 
                         foreach (FolderPathInfo newDiskPath in this.newDiskPaths)
                         {
-                            Track diskTrack = Track.CreateDefault(newDiskPath.Path);
+                            TrackV diskTrack = TrackV.CreateDefault(newDiskPath.Path);
 
                             try
                             {
@@ -541,7 +543,7 @@ namespace Dopamine.Services.Indexing
                                     unsavedItemCount += 1;
                                 }
 
-                                conn.Insert(new FolderTrack(newDiskPath.FolderId, diskTrack.TrackID));
+                                conn.Insert(new FolderTrack(newDiskPath.FolderId, diskTrack.Id));
 
                                 // Intermediate save to the database if 20% is reached
                                 if (unsavedItemCount == saveItemCount)
@@ -585,7 +587,7 @@ namespace Dopamine.Services.Indexing
             return numberAddedTracks;
         }
 
-        private void ProcessTrack(Track track, SQLiteConnection conn)
+        private void ProcessTrack(TrackV track, SQLiteConnection conn)
         {
             try
             {
@@ -674,10 +676,14 @@ namespace Dopamine.Services.Indexing
             return numberDeletedFromDatabase + numberDeletedFromDisk > 0;
         }
 
-        private async Task<string> GetArtworkFromFile(string albumKey)
+        private async Task<string> GetArtworkFromFile(long albumId)
         {
-            Track track = await this.trackRepository.GetLastModifiedTrackForAlbumKeyAsync(albumKey);
-            return await this.cacheService.CacheArtworkAsync(IndexerUtils.GetArtwork(albumKey, new FileMetadata(track.Path)));
+            List<TrackV> tracks = this.trackVRepository.GetTracksOfAlbums(new List<long>() { albumId });
+            if (tracks.Count == 0)
+                return null;
+            //tracks = tracks.OrderBy(t => t.DateFileModified).ToList();
+            tracks.Sort((x, y) => x.DateFileModified.CompareTo(y.DateFileModified));
+            return await this.cacheService.CacheArtworkAsync(IndexerUtils.GetArtwork(albumId, new FileMetadata(tracks.First().Path)));
         }
 
         private async Task<string> GetArtworkFromInternet(string albumTitle, IList<string> albumArtists, string trackTitle, IList<string> artists)
@@ -686,23 +692,20 @@ namespace Dopamine.Services.Indexing
             return await this.cacheService.CacheArtworkAsync(artworkUriString);
         }
 
-        private async void AddArtworkInBackgroundAsync()
+        private async void AddArtworkInBackgroundAsync(bool rescanFailed, bool rescanAll)
         {
             // First, add artwork from file.
-            await this.AddArtworkInBackgroundAsync(1);
+            await this.AddArtworkInBackgroundAsync(1, rescanFailed, rescanAll);
 
             // Next, add artwork from the Internet, if the user has chosen to do so.
             if (SettingsClient.Get<bool>("Covers", "DownloadMissingAlbumCovers"))
             {
                 // Add artwork from the Internet.
-                await this.AddArtworkInBackgroundAsync(2);
+                await this.AddArtworkInBackgroundAsync(2, rescanFailed, rescanAll);
             }
-
-            // We don't need to scan for artwork anymore
-            await this.trackRepository.DisableNeedsAlbumArtworkIndexingForAllTracksAsync();
         }
 
-        private async Task AddArtworkInBackgroundAsync(int passNumber)
+        private async Task AddArtworkInBackgroundAsync(int passNumber, bool rescanFailed, bool rescanAll)
         {
             LogClient.Info("+++ STARTED ADDING ARTWORK IN THE BACKGROUND +++");
             this.canIndexArtwork = true;
@@ -717,9 +720,10 @@ namespace Dopamine.Services.Indexing
                     try
                     {
                         IList<string> albumKeysWithArtwork = new List<string>();
-                        IList<AlbumData> albumDatasToIndex = await this.trackRepository.GetAlbumDataToIndexAsync();
+                        
+                        IList<AlbumV> albumDatasToIndex = rescanAll ? albumVRepository.GetAlbums() : albumVRepository.GetAlbumsToIndex(rescanFailed);
 
-                        foreach (AlbumData albumDataToIndex in albumDatasToIndex)
+                        foreach (AlbumV albumDataToIndex in albumDatasToIndex)
                         {
                             // Check if we must cancel artwork indexing
                             if (!this.canIndexArtwork)
@@ -743,42 +747,31 @@ namespace Dopamine.Services.Indexing
                             try
                             {
                                 // Delete existing AlbumArtwork
-                                await this.albumArtworkRepository.DeleteAlbumArtworkAsync(albumDataToIndex.AlbumKey);
-
-                                // Create a new AlbumArtwork
-                                var albumArtwork = new AlbumArtwork(albumDataToIndex.AlbumKey);
+                                albumVRepository.DeleteImage(albumDataToIndex);
+                                string ArtworkID = null;
 
                                 if (passNumber.Equals(1))
                                 {
                                     // During the 1st pass, look for artwork in file(s).
                                     // Only set NeedsAlbumArtworkIndexing = 0 if artwork was found. So when no artwork was found, 
                                     // this gives the 2nd pass a chance to look for artwork on the Internet.
-                                    albumArtwork.ArtworkID = await this.GetArtworkFromFile(albumDataToIndex.AlbumKey);
-
-                                    if (!string.IsNullOrEmpty(albumArtwork.ArtworkID))
-                                    {
-                                        await this.trackRepository.DisableNeedsAlbumArtworkIndexingAsync(albumDataToIndex.AlbumKey);
-                                    }
+                                    ArtworkID = await this.GetArtworkFromFile(albumDataToIndex.Id);
                                 }
                                 else if (passNumber.Equals(2))
                                 {
                                     // During the 2nd pass, look for artwork on the Internet and set NeedsAlbumArtworkIndexing = 0.
                                     // We don't want future passes to index for this AlbumKey anymore.
-                                    albumArtwork.ArtworkID = await this.GetArtworkFromInternet(
-                                        albumDataToIndex.AlbumTitle,
+                                    ArtworkID = await this.GetArtworkFromInternet(
+                                        albumDataToIndex.AlbumArtists,
                                         DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToList(),
-                                        albumDataToIndex.TrackTitle,
+                                        null, //albumDataToIndex.TrackTitle,
                                         DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.Artists).ToList()
                                         );
-
-                                    await this.trackRepository.DisableNeedsAlbumArtworkIndexingAsync(albumDataToIndex.AlbumKey);
                                 }
 
-                                // If artwork was found, keep track of the albumID
-                                if (!string.IsNullOrEmpty(albumArtwork.ArtworkID))
+                                if (!string.IsNullOrEmpty(ArtworkID))
                                 {
-                                    albumKeysWithArtwork.Add(albumArtwork.AlbumKey);
-                                    conn.Insert(albumArtwork);
+                                    this.albumVRepository.AddImage(albumDataToIndex, ArtworkID, true);
                                 }
 
                                 // If artwork was found for 20 albums, trigger a refresh of the UI.
@@ -791,7 +784,7 @@ namespace Dopamine.Services.Indexing
                             }
                             catch (Exception ex)
                             {
-                                LogClient.Error("There was a problem while updating the cover art for Album {0}/{1}. Exception: {2}", albumDataToIndex.AlbumTitle, albumDataToIndex.AlbumArtists, ex.Message);
+                                LogClient.Error("There was a problem while updating the cover art for Album {0}/{1}. Exception: {2}", albumDataToIndex.Name, albumDataToIndex.AlbumArtists, ex.Message);
                             }
                         }
 
@@ -825,9 +818,9 @@ namespace Dopamine.Services.Indexing
                 await Task.Delay(100);
             }
 
-            await this.trackRepository.EnableNeedsAlbumArtworkIndexingForAllTracksAsync(onlyWhenHasNoCover);
+            //await this.trackRepository.EnableNeedsAlbumArtworkIndexingForAllTracksAsync(onlyWhenHasNoCover);
 
-            this.AddArtworkInBackgroundAsync();
+            this.AddArtworkInBackgroundAsync(true, false);
         }
 
         private async Task<List<FolderPathInfo>> GetFolderPaths()

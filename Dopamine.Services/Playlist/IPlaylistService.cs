@@ -1,4 +1,5 @@
-﻿using Dopamine.Services.Entities;
+﻿using Dopamine.Data.Entities;
+using Dopamine.Services.Entities;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -19,9 +20,9 @@ namespace Dopamine.Services.Playlist
 
         Task<AddTracksToPlaylistResult> AddTracksToStaticPlaylistAsync(IList<TrackViewModel> tracks, string playlistName);
 
-        Task<AddTracksToPlaylistResult> AddArtistsToStaticPlaylistAsync(IList<string> artists, string playlistName);
+        Task<AddTracksToPlaylistResult> AddArtistsToStaticPlaylistAsync(IList<ArtistViewModel> artists, string playlistName);
 
-        Task<AddTracksToPlaylistResult> AddGenresToStaticPlaylistAsync(IList<string> genres, string playlistName);
+        Task<AddTracksToPlaylistResult> AddGenresToStaticPlaylistAsync(IList<GenreViewModel> genres, string playlistName);
 
         Task<AddTracksToPlaylistResult> AddAlbumsToStaticPlaylistAsync(IList<AlbumViewModel> albumViewModels, string playlistName);
 

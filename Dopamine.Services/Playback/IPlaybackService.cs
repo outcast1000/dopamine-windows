@@ -1,6 +1,7 @@
 ﻿using Dopamine.Core.Audio;
 using Dopamine.Core.Base;
 using Dopamine.Data;
+using Dopamine.Data.Entities;
 using Dopamine.Data.Metadata;
 using Dopamine.Services.Entities;
 using System;
@@ -87,9 +88,9 @@ namespace Dopamine.Services.Playback
 
         Task EnqueueAsync(IList<TrackViewModel> tracks, bool shuffle, bool unshuffle);
 
-        Task EnqueueArtistsAsync(IList<string> artists, bool shuffle, bool unshuffle);
+        Task EnqueueArtistsAsync(IList<ArtistViewModel> artists, bool shuffle, bool unshuffle);
 
-        Task EnqueueGenresAsync(IList<string> genres, bool shuffle, bool unshuffle);
+        Task EnqueueGenresAsync(IList<GenreViewModel> genres, bool shuffle, bool unshuffle);
 
         Task EnqueueAlbumsAsync(IList<AlbumViewModel> albumViewModels, bool shuffle, bool unshuffle);
 
@@ -99,9 +100,9 @@ namespace Dopamine.Services.Playback
 
         Task<EnqueueResult> AddToQueueAsync(IList<TrackViewModel> tracks);
 
-        Task<EnqueueResult> AddArtistsToQueueAsync(IList<string> artists);
+        Task<EnqueueResult> AddArtistsToQueueAsync(IList<ArtistViewModel> artists);
 
-        Task<EnqueueResult> AddGenresToQueueAsync(IList<string> genres);
+        Task<EnqueueResult> AddGenresToQueueAsync(IList<GenreViewModel> genres);
 
         Task<EnqueueResult> AddAlbumsToQueueAsync(IList<AlbumViewModel> albumViewModels);
 

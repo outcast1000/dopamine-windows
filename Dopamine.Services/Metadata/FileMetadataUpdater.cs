@@ -15,7 +15,7 @@ namespace Dopamine.Services.Metadata
     public class FileMetadataUpdater
     {
         private IPlaybackService playbackService;
-        private ITrackRepository trackRepository;
+        private ITrackVRepository trackRepository;
         private Timer updateFileMetadataTimer = new Timer();
         private int updateMetadataShortTimeout = 50; // 50 milliseconds
         private int updateMetadataLongTimeout = 15000; // 15 seconds
@@ -23,7 +23,7 @@ namespace Dopamine.Services.Metadata
         private object fileMetadataToUpdateLock = new object();
         private bool isUpdatingFileMetadata;
 
-        public FileMetadataUpdater(IPlaybackService playbackService, ITrackRepository trackRepository)
+        public FileMetadataUpdater(IPlaybackService playbackService, ITrackVRepository trackRepository)
         {
             this.playbackService = playbackService;
             this.trackRepository = trackRepository;
@@ -151,7 +151,7 @@ namespace Dopamine.Services.Metadata
             // Sync file size and last modified date in the database
             foreach (FileMetadata fmd in filesToSync)
             {
-                await this.trackRepository.UpdateTrackFileInformationAsync(fmd.SafePath);
+                trackRepository.UpdateTrackFileInformation(fmd.SafePath);
             }
 
             // The next time, wait longer.

@@ -39,6 +39,8 @@ namespace Dopamine.Services.Entities
             }
         }
 
+        public ArtistV Data { get { return this.data; } }
+
         public String ArtistItemInfo
         {
             get
@@ -48,8 +50,15 @@ namespace Dopamine.Services.Entities
                 if (!string.IsNullOrEmpty(data.Genres))
                     info += string.Format("\n{0}", data.Genres);
                 info += string.Format("\n{0} tracks", data.TrackCount);
-                //info += string.Format("\n{0}", data.DateAdded);
-                //info += string.Format("\n{0}", data.DateFileCreated);
+                info += string.Format("\n{0} albums", data.AlbumCount);
+                if (!data.MinYear.HasValue)
+                {
+
+                }
+                else if (data.MinYear == data.MaxYear)
+                    info += string.Format("\nYear: {0}", data.MinYear);
+                else
+                    info += string.Format("\nYears: {0} - {1}", data.MinYear, data.MaxYear);
                 return info;
             }
         }
@@ -94,7 +103,7 @@ namespace Dopamine.Services.Entities
 
         public override int GetHashCode()
         {
-            return data.Name.GetHashCode();
+            return string.IsNullOrEmpty(data.Name) ? 0 : data.Name.GetHashCode();
         }
     }
 }

@@ -8,7 +8,15 @@ namespace Dopamine.Data.Repositories
     {
         List<AlbumV> GetAlbums();
 
-        List<AlbumV> GetAlbumsByArtist(long artistId);
+        List<AlbumV> GetAlbumsWithArtists(List<long> artistIds);
+
+        List<AlbumV> GetAlbumsWithGenres(List<long> genreIds);
+
+        List<AlbumV> GetAlbumsToIndex(bool includeFailed);
+
+        bool AddImage(AlbumV album, string path, bool asThumbnail);
+
+        bool DeleteImage(AlbumV album);
 
     }
 }

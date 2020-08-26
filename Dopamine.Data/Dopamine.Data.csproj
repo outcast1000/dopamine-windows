@@ -150,6 +150,7 @@
     <Compile Include="Repositories\AlbumArtworkRepository.cs" />
     <Compile Include="Repositories\FolderRepository.cs" />
     <Compile Include="Repositories\IAlbumArtworkRepository.cs" />
+    <Compile Include="Repositories\SQLiteGenreVRepository.cs" />
     <Compile Include="Repositories\SQLiteArtistVRepository.cs" />
     <Compile Include="Repositories\SQLiteAlbumVRepository.cs" />
     <Compile Include="Repositories\MockArtistVRepository.cs" />
@@ -160,10 +161,10 @@
     <Compile Include="Repositories\IQueuedTrackRepository.cs" />
     <Compile Include="Repositories\IArtistVRepository.cs" />
     <Compile Include="Repositories\ITrackVRepository.cs" />
-    <Compile Include="Repositories\ITrackRepository.cs" />
+    <None Include="Repositories\ITrackRepository.cs.disable" />
     <Compile Include="Repositories\QueuedTrackRepository.cs" />
-    <Compile Include="Repositories\TrackRepositoryComp.cs" />
-    <Compile Include="Repositories\TrackRepository.cs" />
+    <None Include="Repositories\TrackRepositoryComp.cs.disable" />
+    <Compile Include="Repositories\SQLiteTrackVRepository.cs" />
     <Compile Include="SQLiteConnectionFactory.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

@@ -30,7 +30,7 @@ namespace Dopamine.Views.Common.Base
             {
                 if (lb.SelectedItem != null)
                 {
-                    Actions.TryViewInExplorer(((TrackViewModel)lb.SelectedItem).Track.Path);
+                    Actions.TryViewInExplorer(((TrackViewModel)lb.SelectedItem).Data.Path);
                 }
             }
         }
@@ -82,11 +82,11 @@ namespace Dopamine.Views.Common.Base
                 }
                 else if (lb.SelectedItem.GetType().Name == typeof(ArtistViewModel).Name)
                 {
-                    await this.playbackService.EnqueueArtistsAsync(new List<string> { ((ArtistViewModel)lb.SelectedItem).Name }, false, false);
+                    await this.playbackService.EnqueueArtistsAsync(new List<ArtistViewModel> { ((ArtistViewModel)lb.SelectedItem) }, false, false);
                 }
                 else if (lb.SelectedItem.GetType().Name == typeof(GenreViewModel).Name)
                 {
-                    await this.playbackService.EnqueueGenresAsync(new List<string> { ((GenreViewModel)lb.SelectedItem).GenreName }, false, false);
+                    await this.playbackService.EnqueueGenresAsync(new List<GenreViewModel> { ((GenreViewModel)lb.SelectedItem) }, false, false);
                 }
                 else if (lb.SelectedItem.GetType().Name == typeof(AlbumViewModel).Name)
                 {
@@ -134,7 +134,7 @@ namespace Dopamine.Views.Common.Base
 
                 if (lb.SelectedItem != null)
                 {
-                    Actions.TryViewInExplorer(((TrackViewModel)lb.SelectedItem).Track.Path);
+                    Actions.TryViewInExplorer(((TrackViewModel)lb.SelectedItem).Data.Path);
                 }
             }
             catch (Exception ex)

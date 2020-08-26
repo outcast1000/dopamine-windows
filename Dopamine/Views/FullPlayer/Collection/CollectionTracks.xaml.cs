@@ -89,7 +89,7 @@ namespace Dopamine.Views.FullPlayer.Collection
             {
                 if (dg.SelectedItem != null)
                 {
-                    Actions.TryViewInExplorer(((TrackViewModel)dg.SelectedItem).Track.Path);
+                    Actions.TryViewInExplorer(((TrackViewModel)dg.SelectedItem).Path);
                 }
             }
         }
@@ -152,7 +152,7 @@ namespace Dopamine.Views.FullPlayer.Collection
 
                 if (dg.SelectedItem != null)
                 {
-                    Actions.TryViewInExplorer(((TrackViewModel)dg.SelectedItem).Track.Path);
+                    Actions.TryViewInExplorer(((TrackViewModel)dg.SelectedItem).Path);
                 }
             }
             catch (Exception ex)

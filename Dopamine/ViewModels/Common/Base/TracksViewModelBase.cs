@@ -36,7 +36,7 @@ namespace Dopamine.ViewModels.Common.Base
     {
         private IContainerProvider container;
         private IDialogService dialogService;
-        private ITrackRepository trackRepository;
+        private ITrackVRepository trackRepository;
         private ISearchService searchService;
         private IPlaybackService playbackService;
         private ICollectionService collectionService;
@@ -75,7 +75,7 @@ namespace Dopamine.ViewModels.Common.Base
         {
             // Dependency injection
             this.container = container;
-            this.trackRepository = container.Resolve<ITrackRepository>();
+            this.trackRepository = container.Resolve<ITrackVRepository>();
             this.dialogService = container.Resolve<IDialogService>();
             this.searchService = container.Resolve<ISearchService>();
             this.playbackService = container.Resolve<IPlaybackService>();
@@ -143,10 +143,10 @@ namespace Dopamine.ViewModels.Common.Base
             {
                 foreach (TrackViewModel vm in this.Tracks)
                 {
-                    if (counters.Select(c => c.SafePath).Contains(vm.Track.SafePath))
+                    if (counters.Select(c => c.SafePath).Contains(vm.SafePath))
                     {
                         // The UI is only updated if PropertyChanged is fired on the UI thread
-                        PlaybackCounter counter = counters.Where(c => c.SafePath.Equals(vm.Track.SafePath)).FirstOrDefault();
+                        PlaybackCounter counter = counters.Where(c => c.SafePath.Equals(vm.SafePath)).FirstOrDefault();
                         Application.Current.Dispatcher.Invoke(() => vm.UpdateVisibleCounters(counter));
                     }
                 }
@@ -174,6 +174,7 @@ namespace Dopamine.ViewModels.Common.Base
             e.Accepted = EntityUtils.FilterTracks(track, this.searchService.SearchText);
         }
 
+        /*
         protected async Task GetTracksAsync(IList<string> artists, IList<string> genres, IList<AlbumViewModel> albumViewModels, TrackOrder trackOrder)
         {
             IList<Track> tracks = null;
@@ -197,6 +198,35 @@ namespace Dopamine.ViewModels.Common.Base
             {
                 // Tracks have lowest priority
                 tracks = await this.trackRepository.GetTracksAsync();
+            }
+
+            await this.GetTracksCommonAsync(await this.container.ResolveTrackViewModelsAsync(tracks), trackOrder);
+        }
+        */
+
+        protected async Task GetTracksAsync(IList<ArtistViewModel> artists, IList<GenreViewModel> genres, IList<AlbumViewModel> albums, TrackOrder trackOrder)
+        {
+            IList<TrackV> tracks = null;
+
+            if (albums != null && albums.Count > 0)
+            {
+                // First, check Albums. They topmost have priority.
+                tracks = trackRepository.GetTracksOfAlbums(albums.Select(x => x.Id).ToList());
+            }
+            else if (!artists.IsNullOrEmpty())
+            {
+                // Artists and Genres have the same priority
+                tracks = trackRepository.GetTracksOfArtists(artists.Select(x => x.Id).ToList());
+            }
+            else if (!genres.IsNullOrEmpty())
+            {
+                // Artists and Genres have the same priority
+                tracks = trackRepository.GetTracksWithGenres(genres.Select(x => x.Id).ToList());
+            }
+            else
+            {
+                // Tracks have lowest priority
+                tracks = trackRepository.GetTracks();
             }
 
             await this.GetTracksCommonAsync(await this.container.ResolveTrackViewModelsAsync(tracks), trackOrder);
@@ -284,7 +314,7 @@ namespace Dopamine.ViewModels.Common.Base
 
             if (this.dialogService.ShowConfirmation(0xe11b, 16, title, body, ResourceUtils.GetString("Language_Yes"), ResourceUtils.GetString("Language_No")))
             {
-                RemoveTracksResult result = await this.collectionService.RemoveTracksFromCollectionAsync(selectedTracks);
+                RemoveTracksResult result = await this.collectionService.RemoveTracksFromCollectionAsync(selectedTracks, false);
 
                 if (result == RemoveTracksResult.Error)
                 {
@@ -309,7 +339,7 @@ namespace Dopamine.ViewModels.Common.Base
 
             if (this.dialogService.ShowConfirmation(0xe11b, 16, title, body, ResourceUtils.GetString("Language_Yes"), ResourceUtils.GetString("Language_No")))
             {
-                RemoveTracksResult result = await this.collectionService.RemoveTracksFromDiskAsync(selectedTracks);
+                RemoveTracksResult result = await this.collectionService.RemoveTracksFromCollectionAsync(selectedTracks, true);
 
                 if (result == RemoveTracksResult.Error)
                 {
@@ -349,8 +379,8 @@ namespace Dopamine.ViewModels.Common.Base
 
                         foreach (TrackViewModel vm in viewCopy)
                         {
-                            totalDuration += vm.Track.Duration.HasValue ? vm.Track.Duration.Value : 0;
-                            totalSize += vm.Track.FileSize.HasValue ? vm.Track.FileSize.Value : 0;
+                            totalDuration += vm.Data.Duration.HasValue ? vm.Data.Duration.Value : 0;
+                            totalSize += vm.Data.FileSize.HasValue ? vm.Data.FileSize.Value : 0;
                         }
 
                         this.SetSizeInformation(totalDuration, totalSize);
@@ -480,7 +510,7 @@ namespace Dopamine.ViewModels.Common.Base
             {
                 foreach (TrackViewModel vm in this.Tracks)
                 {
-                    if (vm.Track.SafePath.Equals(e.SafePath))
+                    if (vm.SafePath.Equals(e.SafePath))
                     {
                         // The UI is only updated if PropertyChanged is fired on the UI thread
                         Application.Current.Dispatcher.Invoke(() => vm.UpdateVisibleRating(e.Rating));
@@ -500,7 +530,7 @@ namespace Dopamine.ViewModels.Common.Base
             {
                 foreach (TrackViewModel vm in this.Tracks)
                 {
-                    if (vm.Track.SafePath.Equals(e.SafePath))
+                    if (vm.SafePath.Equals(e.SafePath))
                     {
                         // The UI is only updated if PropertyChanged is fired on the UI thread
                         Application.Current.Dispatcher.Invoke(() => vm.UpdateVisibleLove(e.Love));

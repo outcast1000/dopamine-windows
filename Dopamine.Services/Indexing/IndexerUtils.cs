@@ -10,7 +10,7 @@ namespace Dopamine.Services.Indexing
 {
     public static class IndexerUtils
     {
-        public static bool IsTrackOutdated(Track track)
+        public static bool IsTrackOutdated(TrackV track)
         {
             if (track.FileSize == null || track.FileSize != FileUtils.SizeInBytes(track.Path) || track.DateFileModified < FileUtils.DateModifiedTicks(track.Path))
             {
@@ -77,14 +77,14 @@ namespace Dopamine.Services.Indexing
             return artworkData;
         }
 
-        public static byte[] GetArtwork(string albumKey, FileMetadata fileMetadata)
+        public static byte[] GetArtwork(long albumId, FileMetadata fileMetadata)
         {
             byte[] artworkData = null;
 
             try
             {
                 // Don't get artwork if the album is unknown
-                if (!string.IsNullOrEmpty(albumKey))
+                //ALEX=== if (!string.IsNullOrEmpty(albumKey))
                 {
                     // Get embedded artwork
                     artworkData = GetEmbeddedArtwork(fileMetadata);
@@ -98,7 +98,7 @@ namespace Dopamine.Services.Indexing
             }
             catch (Exception ex)
             {
-                LogClient.Error($"Could not get artwork for Album with AlbumKey='{albumKey}'. Exception: {ex.Message}");
+                LogClient.Error($"Could not get artwork for Album with albumId='{albumId}'. Exception: {ex.Message}");
             }
 
             return artworkData;

@@ -10,7 +10,7 @@ namespace Dopamine.Services.Indexing
 {
     internal class IndexerCache
     {
-        private Dictionary<long, Track> cachedTracks;
+        private Dictionary<long, TrackV> cachedTracks;
 
         private ISQLiteConnectionFactory factory;
 
@@ -19,12 +19,12 @@ namespace Dopamine.Services.Indexing
             this.factory = factory;
         }
 
-        public bool HasCachedTrack(ref Track track)
+        public bool HasCachedTrack(ref TrackV track)
         {
             bool hasCachedTrack = false;
             long similarTrackId = 0;
 
-            Track tempTrack = track;
+            TrackV tempTrack = track;
 
             try
             {
@@ -38,15 +38,15 @@ namespace Dopamine.Services.Indexing
             if (similarTrackId != 0)
             {
                 hasCachedTrack = true;
-                track.TrackID = similarTrackId;
+                track.Id = similarTrackId;
             }
 
             return hasCachedTrack;
         }
 
-        public void AddTrack(Track track)
+        public void AddTrack(TrackV track)
         {
-            this.cachedTracks.Add(track.TrackID, track);
+            this.cachedTracks.Add(track.Id, track);
         }
 
         public void Initialize()
@@ -54,7 +54,7 @@ namespace Dopamine.Services.Indexing
             // Comparing new and existing objects will happen in a Dictionary cache. This should improve performance.
             using (SQLiteConnection conn = this.factory.GetConnection())
             {
-                this.cachedTracks = conn.Table<Track>().ToDictionary(trk => trk.TrackID, trk => trk);
+                this.cachedTracks = conn.Table<TrackV>().ToDictionary(trk => trk.Id, trk => trk);
             }
         }
     }

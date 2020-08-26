@@ -20,98 +20,102 @@ namespace Dopamine.Services.Entities
         private bool isPaused;
         private bool showTrackNumber;
 
-        public TrackViewModel(IMetadataService metadataService, IScrobblingService scrobblingService, Track track)
+        public TrackViewModel(IMetadataService metadataService, IScrobblingService scrobblingService, TrackV track)
         {
             this.metadataService = metadataService;
             this.scrobblingService = scrobblingService;
-            this.Track = track;
+            this.Data = track;
         }
 
         public string PlaylistEntry { get; set; }
 
         public bool IsPlaylistEntry => !string.IsNullOrEmpty(this.PlaylistEntry);
 
-        public Track Track { get; private set; }
+
+        public long Id { get { return Data.Id; } }
+
+        public TrackV Data { get; private set; }
+
 
         // SortDuration is used to correctly sort by Length, otherwise sorting goes like this: 1:00, 10:00, 2:00, 20:00.
-        public long SortDuration => this.Track.Duration.HasValue ? this.Track.Duration.Value : 0;
+        public long SortDuration => this.Data.Duration.HasValue ? this.Data.Duration.Value : 0;
 
         // SortAlbumTitle is used to sort by AlbumTitle, then by TrackNumber.
-        public string SortAlbumTitle => this.AlbumTitle + this.Track.TrackNumber.Value.ToString("0000");
+        public string SortAlbumTitle => this.AlbumTitle + this.Data.TrackNumber.Value.ToString("0000");
 
         // SortAlbumArtist is used to sort by AlbumArtists, then by AlbumTitle, then by TrackNumber.
-        public string SortAlbumArtist => this.AlbumArtist + this.AlbumTitle + this.Track.TrackNumber.Value.ToString("0000");
+        public string SortAlbumArtist => this.AlbumArtist + this.AlbumTitle + this.Data.TrackNumber.Value.ToString("0000");
 
         // SortArtistName is used to sort by ArtistName, then by AlbumTitle, then by TrackNumber.
-        public string SortArtistName => this.ArtistName + this.AlbumTitle + this.Track.TrackNumber.Value.ToString("0000");
+        public string SortArtistName => this.ArtistName + this.AlbumTitle + this.Data.TrackNumber.Value.ToString("0000");
 
-        public long SortBitrate => this.Track.BitRate.GetValueOrZero();
+        public long SortBitrate => this.Data.BitRate.GetValueOrZero();
 
-        public string SortPlayCount => this.Track.PlayCount.HasValueLargerThan(0) ? this.Track.PlayCount.Value.ToString("0000") : string.Empty;
+        public string SortPlayCount => this.Data.PlayCount.HasValueLargerThan(0) ? this.Data.PlayCount.Value.ToString("0000") : string.Empty;
 
-        public string SortSkipCount => this.Track.SkipCount.HasValueLargerThan(0) ? this.Track.SkipCount.Value.ToString("0000") : string.Empty;
+        public string SortSkipCount => this.Data.SkipCount.HasValueLargerThan(0) ? this.Data.SkipCount.Value.ToString("0000") : string.Empty;
 
-        public long SortTrackNumber => this.Track.TrackNumber.HasValue ? this.Track.TrackNumber.Value : 0;
+        public long SortTrackNumber => this.Data.TrackNumber.HasValue ? this.Data.TrackNumber.Value : 0;
 
-        public string SortDiscNumber => this.Track.DiscNumber.HasValueLargerThan(0) ? this.Track.DiscNumber.Value.ToString("0000") : string.Empty;
+        public string SortDiscNumber => this.Data.DiscNumber.HasValueLargerThan(0) ? this.Data.DiscNumber.Value.ToString("0000") : string.Empty;
 
-        public long SortDateAdded => this.Track.DateAdded;
+        public long SortDateAdded => this.Data.DateAdded;
 
-        public long SortDateFileCreated => this.Track.DateFileCreated;
+        public long SortDateFileCreated => this.Data.DateFileCreated;
 
-        public string DateAdded => this.Track.DateAdded.HasValueLargerThan(0) ? new DateTime(this.Track.DateAdded).ToString("d") : string.Empty;
+        public string DateAdded => this.Data.DateAdded.HasValueLargerThan(0) ? new DateTime(this.Data.DateAdded).ToString("d") : string.Empty;
 
-        public string DateFileCreated => this.Track.DateFileCreated.HasValueLargerThan(0) ? new DateTime(this.Track.DateFileCreated).ToString("d") : string.Empty;
+        public string DateFileCreated => this.Data.DateFileCreated.HasValueLargerThan(0) ? new DateTime(this.Data.DateFileCreated).ToString("d") : string.Empty;
 
-        public bool HasLyrics => this.Track.HasLyrics == 1 ? true : false;
+        public bool HasLyrics => this.Data.HasLyrics == 1 ? true : false;
 
-        public string Bitrate => this.Track.BitRate != null ? this.Track.BitRate + " kbps" : "";
+        public string Bitrate => this.Data.BitRate != null ? this.Data.BitRate + " kbps" : "";
 
-        public string AlbumTitle => !string.IsNullOrEmpty(this.Track.AlbumTitle) ? this.Track.AlbumTitle : ResourceUtils.GetString("Language_Unknown_Album");
+        public string AlbumTitle => !string.IsNullOrEmpty(this.Data.AlbumTitle) ? this.Data.AlbumTitle : ResourceUtils.GetString("Language_Unknown_Album");
 
-        public string PlayCount => this.Track.PlayCount.HasValueLargerThan(0) ? this.Track.PlayCount.Value.ToString() : string.Empty;
+        public string PlayCount => this.Data.PlayCount.HasValueLargerThan(0) ? this.Data.PlayCount.Value.ToString() : string.Empty;
 
-        public string SkipCount => this.Track.SkipCount.HasValueLargerThan(0) ? this.Track.SkipCount.Value.ToString() : string.Empty;
+        public string SkipCount => this.Data.SkipCount.HasValueLargerThan(0) ? this.Data.SkipCount.Value.ToString() : string.Empty;
 
-        public string DateLastPlayed => this.Track.DateLastPlayed.HasValueLargerThan(0) ? new DateTime(this.Track.DateLastPlayed.Value).ToString("g") : string.Empty;
+        public string DateLastPlayed => this.Data.DateLastPlayed.HasValueLargerThan(0) ? new DateTime(this.Data.DateLastPlayed.Value).ToString("g") : string.Empty;
 
-        public long SortDateLastPlayed => this.Track.DateLastPlayed.HasValue ? this.Track.DateLastPlayed.Value : 0;
+        public long SortDateLastPlayed => this.Data.DateLastPlayed.HasValue ? this.Data.DateLastPlayed.Value : 0;
 
-        public string TrackTitle => string.IsNullOrEmpty(this.Track.TrackTitle) ? this.Track.FileName : this.Track.TrackTitle;
+        public string TrackTitle => string.IsNullOrEmpty(this.Data.TrackTitle) ? this.Data.FileName : this.Data.TrackTitle;
 
-        public string FileName => this.Track.FileName;
+        public string FileName => this.Data.FileName;
 
-        public string Path => this.Track.Path;
+        public string Path => this.Data.Path;
 
-        public string SafePath => this.Track.SafePath;
+        public string SafePath => this.Data.Path;
 
-        public string ArtistName => !string.IsNullOrEmpty(this.Track.Artists) ? DataUtils.GetCommaSeparatedColumnMultiValue(this.Track.Artists) : ResourceUtils.GetString("Language_Unknown_Artist");
+        public string ArtistName => !string.IsNullOrEmpty(this.Data.Artists) ? DataUtils.GetCommaSeparatedColumnMultiValue(this.Data.Artists) : ResourceUtils.GetString("Language_Unknown_Artist");
 
         public string AlbumArtist => this.GetAlbumArtist();
 
-        public string Genre => !string.IsNullOrEmpty(this.Track.Genres) ? DataUtils.GetCommaSeparatedColumnMultiValue(this.Track.Genres) : ResourceUtils.GetString("Language_Unknown_Genre");
+        public string Genre => !string.IsNullOrEmpty(this.Data.Genres) ? DataUtils.GetCommaSeparatedColumnMultiValue(this.Data.Genres) : ResourceUtils.GetString("Language_Unknown_Genre");
 
-        public string FormattedTrackNumber => this.Track.TrackNumber.HasValueLargerThan(0) ? Track.TrackNumber.Value.ToString("00") : "--";
+        public string FormattedTrackNumber => this.Data.TrackNumber.HasValueLargerThan(0) ? Data.TrackNumber.Value.ToString("00") : "--";
 
-        public string TrackNumber => this.Track.TrackNumber.HasValueLargerThan(0) ? this.Track.TrackNumber.ToString() : string.Empty;
+        public string TrackNumber => this.Data.TrackNumber.HasValueLargerThan(0) ? this.Data.TrackNumber.ToString() : string.Empty;
 
-        public string DiscNumber => this.Track.DiscNumber.HasValueLargerThan(0) ? this.Track.DiscNumber.ToString() : string.Empty;
+        public string DiscNumber => this.Data.DiscNumber.HasValueLargerThan(0) ? this.Data.DiscNumber.ToString() : string.Empty;
 
-        public string Year => this.Track.Year.HasValueLargerThan(0) ? this.Track.Year.Value.ToString() : string.Empty;
+        public string Year => this.Data.Year.HasValueLargerThan(0) ? this.Data.Year.Value.ToString() : string.Empty;
 
-        public string GroupHeader => this.Track.DiscCount.HasValueLargerThan(1) && this.Track.DiscNumber.HasValueLargerThan(0) ? $"{this.Track.AlbumTitle} ({this.Track.DiscNumber})" : this.Track.AlbumTitle;
+        public string GroupHeader => this.Data.DiscCount.HasValueLargerThan(1) && this.Data.DiscNumber.HasValueLargerThan(0) ? $"{this.Data.AlbumTitle} ({this.Data.DiscNumber})" : this.Data.AlbumTitle;
 
         public string GroupSubHeader => this.AlbumArtist;
 
         public string GetAlbumArtist()
         {
-            if (!string.IsNullOrEmpty(this.Track.AlbumArtists))
+            if (!string.IsNullOrEmpty(this.Data.AlbumArtists))
             {
-                return DataUtils.GetCommaSeparatedColumnMultiValue(this.Track.AlbumArtists);
+                return DataUtils.GetCommaSeparatedColumnMultiValue(this.Data.AlbumArtists);
             }
-            else if (!string.IsNullOrEmpty(this.Track.Artists))
+            else if (!string.IsNullOrEmpty(this.Data.Artists))
             {
-                return DataUtils.GetCommaSeparatedColumnMultiValue(this.Track.Artists);
+                return DataUtils.GetCommaSeparatedColumnMultiValue(this.Data.Artists);
             }
 
             return ResourceUtils.GetString("Language_Unknown_Artist");
@@ -121,9 +125,9 @@ namespace Dopamine.Services.Entities
         {
             get
             {
-                if (this.Track.Duration.HasValue)
+                if (this.Data.Duration.HasValue)
                 {
-                    TimeSpan ts = new TimeSpan(0, 0, 0, 0, Convert.ToInt32(this.Track.Duration));
+                    TimeSpan ts = new TimeSpan(0, 0, 0, 0, Convert.ToInt32(this.Data.Duration));
 
                     if (ts.Hours > 0)
                     {
@@ -143,29 +147,29 @@ namespace Dopamine.Services.Entities
 
         public int Rating
         {
-            get { return NumberUtils.ConvertToInt32(this.Track.Rating); }
+            get { return NumberUtils.ConvertToInt32(this.Data.Rating); }
             set
             {
                 // Update the UI
-                this.Track.Rating = (long?)value;
+                this.Data.Rating = (long?)value;
                 this.RaisePropertyChanged(nameof(this.Rating));
 
                 // Update Rating in the database
-                this.metadataService.UpdateTrackRatingAsync(this.Track.Path, value);
+                this.metadataService.UpdateTrackRatingAsync(this.Data.Path, value);
             }
         }
 
         public bool Love
         {
-            get { return this.Track.Love.HasValue && this.Track.Love.Value != 0 ? true : false; }
+            get { return this.Data.Love.HasValue && this.Data.Love.Value != 0 ? true : false; }
             set
             {
                 // Update the UI
-                this.Track.Love = value ? 1 : 0;
+                this.Data.Love = value ? 1 : 0;
                 this.RaisePropertyChanged(nameof(this.Love));
 
                 // Update Love in the database
-                this.metadataService.UpdateTrackLoveAsync(this.Track.Path, value);
+                this.metadataService.UpdateTrackLoveAsync(this.Data.Path, value);
 
                 // Send Love/Unlove to the scrobbling service
                 this.scrobblingService.SendTrackLoveAsync(this, value);
@@ -192,21 +196,21 @@ namespace Dopamine.Services.Entities
 
         public void UpdateVisibleRating(int rating)
         {
-            this.Track.Rating = (long?)rating;
+            this.Data.Rating = (long?)rating;
             this.RaisePropertyChanged(nameof(this.Rating));
         }
 
         public void UpdateVisibleLove(bool love)
         {
-            this.Track.Love = love ? 1 : 0;
+            this.Data.Love = love ? 1 : 0;
             this.RaisePropertyChanged(nameof(this.Love));
         }
 
         public void UpdateVisibleCounters(PlaybackCounter counters)
         {
-            this.Track.PlayCount = counters.PlayCount;
-            this.Track.SkipCount = counters.SkipCount;
-            this.Track.DateLastPlayed = counters.DateLastPlayed;
+            this.Data.PlayCount = counters.PlayCount;
+            this.Data.SkipCount = counters.SkipCount;
+            this.Data.DateLastPlayed = counters.DateLastPlayed;
             this.RaisePropertyChanged(nameof(this.PlayCount));
             this.RaisePropertyChanged(nameof(this.SkipCount));
             this.RaisePropertyChanged(nameof(this.DateLastPlayed));
@@ -220,17 +224,17 @@ namespace Dopamine.Services.Entities
 
         public TrackViewModel DeepCopy()
         {
-            return new TrackViewModel(this.metadataService, this.scrobblingService, this.Track);
+            return new TrackViewModel(this.metadataService, this.scrobblingService, this.Data);
         }
 
-        public void UpdateTrack(Track track)
+        public void UpdateTrack(TrackV track)
         {
             if(track == null)
             {
                 return;
             }
 
-            this.Track = track;
+            this.Data = track;
 
             this.RaisePropertyChanged();
         }

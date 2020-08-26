@@ -1,0 +1,66 @@
+﻿using Dopamine.Data.Entities;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace Dopamine.Data.Repositories
+{
+    public interface ITrackRepository
+    {
+        Task<List<TrackV>> GetTracksAsync(IList<string> paths);
+
+        Task<List<TrackV>> GetTracksAsync();
+
+        Task<List<TrackV>> GetTracksAsync(string whereClause);
+
+        Task<List<TrackV>> GetArtistTracksAsync(IList<long> artistIds);
+
+        Task<List<TrackV>> GetGenreTracksAsync(IList<long> genreIds);
+
+        Task<List<TrackV>> GetAlbumTracksAsync(IList<long> albumIds);
+
+
+        TrackV GetTrack(string path);
+
+        Task<TrackV> GetTrackAsync(string path);
+
+        Task<RemoveTracksResult> RemoveTracksAsync(IList<long> tracksIds);
+
+        Task<bool> UpdateTrackAsync(long trackId);
+
+        Task<bool> UpdateTrackFileInformationAsync(string path);
+
+        Task ClearRemovedTrackAsync();
+
+        /*
+        Task<IList<ArtistV>> GetTrackArtistsAsync();
+
+        Task<IList<ArtistV>> GetAlbumArtistsAsync();
+
+        Task<IList<GenreV>> GetGenresAsync();
+
+        Task<IList<AlbumV>> GetArtistAlbumDataAsync(IList<ArtistV> artists, ArtistType artistType);
+
+        Task<IList<AlbumV>> GetGenreAlbumDataAsync(IList<GenreV> genres);
+
+        Task<IList<AlbumV>> GetAllAlbumDataAsync();
+
+        Task<IList<AlbumV>> GetAlbumDataToIndexAsync();
+        */
+
+        Task<TrackV> GetLastModifiedTrackForAlbumKeyAsync(long albumId);
+
+        Task DisableNeedsAlbumArtworkIndexingAsync(long albumId);
+
+        Task DisableNeedsAlbumArtworkIndexingForAllTracksAsync();
+
+        Task EnableNeedsAlbumArtworkIndexingForAllTracksAsync(bool onlyWhenHasNoCover);
+
+        Task UpdateRatingAsync(string path, int rating);
+
+        Task UpdateLoveAsync(string path, int love);
+
+        Task UpdatePlaybackCountersAsync(PlaybackCounter counters);
+
+        Task<PlaybackCounter> GetPlaybackCountersAsync(string path);
+    }
+}

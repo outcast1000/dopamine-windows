@@ -26,7 +26,7 @@ namespace Dopamine.Services.File
     public class FileService : IFileService
     {
         private ICacheService cacheService;
-        private ITrackRepository trackRepository;
+        private ITrackVRepository trackRepository;
         private IContainerProvider container;
         private IList<string> files;
         private object lockObject = new object();
@@ -34,7 +34,7 @@ namespace Dopamine.Services.File
         private int addFilesMilliseconds = 250;
         private string instanceGuid;
 
-        public FileService(ICacheService cacheService, ITrackRepository trackRepository, IContainerProvider container)
+        public FileService(ICacheService cacheService, ITrackVRepository trackRepository, IContainerProvider container)
         {
             this.cacheService = cacheService;
             this.trackRepository = trackRepository;
@@ -149,15 +149,15 @@ namespace Dopamine.Services.File
 
             try
             {
-                PlaybackCounter playbackCounters = await this.trackRepository.GetPlaybackCountersAsync(path);
-                Track track = await MetadataUtils.Path2TrackAsync(path);
+                PlaybackCounter playbackCounters = this.trackRepository.GetPlaybackCounters(path);
+                TrackV track = await MetadataUtils.Path2TrackAsync(path);
 
                 returnTrack = container.ResolveTrackViewModel(track);
             }
             catch (Exception ex)
             {
                 // Make sure the file can be opened by creating a Track with some default values
-                returnTrack = container.ResolveTrackViewModel(Track.CreateDefault(path));
+                returnTrack = container.ResolveTrackViewModel(TrackV.CreateDefault(path));
                 LogClient.Error("Error while creating Track from file '{0}'. Creating default track. Exception: {1}", path, ex.Message);
             }
 

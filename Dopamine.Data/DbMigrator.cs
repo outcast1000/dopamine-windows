@@ -167,6 +167,7 @@ namespace Dopamine.Data
                 conn.Execute("DROP TABLE IF EXISTS AlbumReviews;");
                 conn.Execute("DROP TABLE IF EXISTS AlbumImages;");
                 conn.Execute("DROP TABLE IF EXISTS AlbumThumbnail;");
+                conn.Execute("DROP TABLE IF EXISTS AlbumFailedIndexing;");
                 conn.Execute("DROP TABLE IF EXISTS Albums;");
 
                 conn.Execute("DROP TABLE IF EXISTS ArtistCollectionsArtists;");
@@ -262,10 +263,18 @@ namespace Dopamine.Data
                 //=== AlbumThumbnail: (One 2 One) Each Album may have only one thumbnail
                 conn.Execute("CREATE TABLE AlbumThumbnail (" +
                             "album_id          INTEGER," +
-                            "key                TEXT NOT NULL," +
+                            "key               TEXT NOT NULL," +
                             "FOREIGN KEY (album_id) REFERENCES Albums(id));");
 
                 conn.Execute("CREATE UNIQUE INDEX AlbumThumbnailAlbumIDIndex ON AlbumThumbnail(album_id);");
+
+                //=== AlbumFailedIndexing: (One 2 One) Each Album may have only one failed indexing record
+                conn.Execute("CREATE TABLE AlbumFailedIndexing (" +
+                            "album_id          INTEGER," +
+                            "date_added        INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP," +
+                            "FOREIGN KEY (album_id) REFERENCES Albums(id));");
+
+                conn.Execute("CREATE UNIQUE INDEX AlbumFailedIndexingAlbumIDIndex ON AlbumFailedIndexing(album_id);");
 
                 //=== Genres:
                 conn.Execute("CREATE TABLE Genres (" +
@@ -317,6 +326,7 @@ namespace Dopamine.Data
                             "rating	            INTEGER," +
                             "love	            INTEGER," +
                             "date_file_created  INTEGER," +
+                            "date_file_modified INTEGER," +
                             "FOREIGN KEY (folder_id) REFERENCES Folders(id));");
 
                 conn.Execute("CREATE INDEX TracksNameIndex ON Tracks(name);");
@@ -463,12 +473,13 @@ namespace Dopamine.Data
                         Bitrate = track.BitRate,
                         Samplerate = track.SampleRate,
                         Duration = track.Duration,
-                        Year = track.Year,
+                        Year = track.Year > 0 ? track.Year : null,
                         Language = null,
                         DateAdded = track.DateAdded,
                         Rating = track.Rating,
                         Love = track.Love,
-                        DateFileCreated = track.DateFileCreated
+                        DateFileCreated = track.DateFileCreated,
+                        DateFileModified = track.DateFileModified
                     });
                     long track_id = GetLastInsertRowID(conn);
 
