@@ -10,6 +10,38 @@ namespace Dopamine.Core.IO
 {
     public sealed class FileOperations
     {
+
+        public delegate void OnFileFoundDelegate(string path);
+        public delegate bool ShouldContinueDelegate();
+        public delegate void OnExceptionDelegate(Exception ex);
+
+        public static bool GetFiles(string directory, OnFileFoundDelegate onFileFoundDelegate, ShouldContinueDelegate shouldContinueDelegate, OnExceptionDelegate onExceptionDelegate)
+        {
+            try
+            {
+                string[] files = Directory.GetFiles(directory);
+                foreach (string file in files)
+                {
+                    onFileFoundDelegate(file);
+                    if (!shouldContinueDelegate())
+                        return false;
+                }
+                string[] dirs = Directory.GetDirectories(directory);
+                foreach (string dir in dirs)
+                {
+                    if (!GetFiles(dir, onFileFoundDelegate, shouldContinueDelegate, onExceptionDelegate))
+                        return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                onExceptionDelegate(ex);
+                if (!shouldContinueDelegate())
+                    return false;
+            }
+            return true;
+        }
+
         public static List<FolderPathInfo> GetValidFolderPaths(long folderId, string directory, string[] validExtensions)
         {
             var folderPaths = new List<FolderPathInfo>();

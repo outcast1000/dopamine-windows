@@ -19,6 +19,12 @@ namespace Dopamine.Data.Entities
         [Column("disc_number")]
         public long? DiscNumber { get; set; }
 
+        [Column("track_count")]
+        public long? TrackCount { get; set; }
+
+        [Column("disc_count")]
+        public long? DiscCount { get; set; }
+
 
     }
 }

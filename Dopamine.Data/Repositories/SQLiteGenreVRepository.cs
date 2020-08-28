@@ -22,7 +22,7 @@ namespace Dopamine.Data.Repositories
 
         public List<GenreV> GetGenresByAlbumId(long albumId)
         {
-            return GetGenresInternal(" AND Albums.Id=" + albumId);
+            return GetGenresInternal("Albums.Id=" + albumId);
         }
 
         public List<GenreV> GetGenresByArtistId(long artistId)
@@ -30,7 +30,7 @@ namespace Dopamine.Data.Repositories
             throw new NotImplementedException();
         }
 
-        private List<GenreV> GetGenresInternal(string whereClause = "")
+        private List<GenreV> GetGenresInternal(string whereClause = "", QueryOptions queryOptions = null)
         {
             try
             {
@@ -38,8 +38,7 @@ namespace Dopamine.Data.Repositories
                 {
                     try
                     {
-                        string sql = GetSQL();
-                        sql = sql.Replace("#WHERE#", whereClause);
+                        string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), whereClause, queryOptions);
                         return conn.Query<GenreV>(sql);
                     }
                     catch (Exception ex)
@@ -57,7 +56,7 @@ namespace Dopamine.Data.Repositories
             return null;
         }
 
-        private string GetSQL()
+        private string GetSQLTemplate()
         {
             return @"SELECT 
 Genres.ID as Id, 
@@ -77,11 +76,12 @@ LEFT JOIN Genres ON TrackGenres.genre_id = Genres.id
 LEFT JOIN GenreThumbnail ON Genres.id = GenreThumbnail.genre_id 
 LEFT JOIN TrackArtists ON TrackArtists.track_id = t.id
 LEFT JOIN Artists ON Artists.id = TrackArtists.artist_id
-LEFT JOIN TrackIndexing ON TrackIndexing.track_id = t.id
+LEFT JOIN TrackIndexFailed ON TrackIndexFailed.track_id = t.id
 LEFT JOIN Folders ON Folders.id = t.folder_id
-WHERE Folders.show = 1 AND TrackIndexing.indexing_success is null AND TrackIndexing.needs_indexing is null 
+#WHERE# 
 GROUP BY Genres.id
-ORDER BY Genres.name;";
+ORDER BY Genres.name
+#LIMIT#";
         }    
     }
 

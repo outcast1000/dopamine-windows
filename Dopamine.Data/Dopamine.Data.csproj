@@ -150,6 +150,7 @@
     <Compile Include="Repositories\AlbumArtworkRepository.cs" />
     <Compile Include="Repositories\FolderRepository.cs" />
     <Compile Include="Repositories\IAlbumArtworkRepository.cs" />
+    <Compile Include="Repositories\RepositoryCommon.cs" />
     <Compile Include="Repositories\SQLiteGenreVRepository.cs" />
     <Compile Include="Repositories\SQLiteArtistVRepository.cs" />
     <Compile Include="Repositories\SQLiteAlbumVRepository.cs" />

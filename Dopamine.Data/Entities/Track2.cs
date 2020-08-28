@@ -40,8 +40,8 @@ namespace Dopamine.Data.Entities
         [Column("date_added")]
         public long DateAdded { get; set; }
 
-        [Column("date_deleted")]
-        public long? DateDeleted { get; set; }
+        [Column("date_file_deleted")]
+        public long? DateFileDeleted { get; set; }
 
         [Column("date_file_created")]
         public long? DateFileCreated { get; set; }
@@ -54,6 +54,9 @@ namespace Dopamine.Data.Entities
 
         [Column("love")]
         public long? Love { get; set; }
+
+        [Column("date_ignored")]
+        public long? DateIgnored { get; set; }
 
         public static Track2 CreateDefault(string path)
         {

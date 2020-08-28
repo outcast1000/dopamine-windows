@@ -157,7 +157,7 @@ namespace Dopamine.Data
                 conn.Execute("DROP TABLE IF EXISTS TrackAlbums;");
                 conn.Execute("DROP TABLE IF EXISTS TrackLyrics;");
                 conn.Execute("DROP TABLE IF EXISTS TrackGenres;");
-                conn.Execute("DROP TABLE IF EXISTS TrackIndexing;");
+                conn.Execute("DROP TABLE IF EXISTS TrackIndexFailed;");
                 conn.Execute("DROP TABLE IF EXISTS Tracks;");
 
                 conn.Execute("DROP TABLE IF EXISTS GenreImages;");
@@ -312,7 +312,7 @@ namespace Dopamine.Data
                 //=== Tracks:
                 conn.Execute("CREATE TABLE Tracks (" +
                             "id	                INTEGER PRIMARY KEY AUTOINCREMENT," +
-                            "name	            TEXT NOT NULL COLLATE NOCASE," +
+                            "name	            TEXT COLLATE NOCASE," +
                             "path               TEXT NOT NULL COLLATE NOCASE," +
                             "folder_id          INTEGER NOT NULL," +
                             "filesize           INTEGER," +
@@ -322,16 +322,19 @@ namespace Dopamine.Data
                             "year	            INTEGER," +
                             "language           TEXT," +
                             "date_added	        INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP," +
-                            "date_deleted	    INTEGER," +
+                            "date_ignored       INTEGER," +
                             "rating	            INTEGER," +
                             "love	            INTEGER," +
                             "date_file_created  INTEGER," +
                             "date_file_modified INTEGER," +
+                            "date_file_deleted	INTEGER," +
                             "FOREIGN KEY (folder_id) REFERENCES Folders(id));");
 
                 conn.Execute("CREATE INDEX TracksNameIndex ON Tracks(name);");
                 conn.Execute("CREATE UNIQUE INDEX TracksPathIndex ON Tracks(path);");
                 conn.Execute("CREATE INDEX TracksFolderIDIndex ON Tracks(folder_id);");
+                conn.Execute("CREATE INDEX TracksDateFileDeletedIndex ON Tracks(date_file_deleted);");
+                conn.Execute("CREATE INDEX TracksDateIgnoredIndex ON Tracks(date_ignored);");
 
                 //=== ArtistRoles:
                 conn.Execute("CREATE TABLE ArtistRoles (" +
@@ -371,6 +374,8 @@ namespace Dopamine.Data
                             "album_id           INTEGER NOT NULL," +
                             "track_number       INTEGER," +
                             "disc_number        INTEGER," +
+                            "track_count        INTEGER," +
+                            "disc_count         INTEGER," +
                             "FOREIGN KEY (track_id) REFERENCES Tracks(id)," +
                             "FOREIGN KEY (album_id) REFERENCES Albums(id)); ");
 
@@ -390,15 +395,13 @@ namespace Dopamine.Data
                 conn.Execute("CREATE INDEX TrackLyricsLyricsIndex ON TrackLyrics(lyrics);");
 
                 //=== TrackIndexing: (One 2 One) Each Track may have zero or one Indexing record 
-                conn.Execute("CREATE TABLE TrackIndexing (" +
+                conn.Execute("CREATE TABLE TrackIndexFailed (" +
                             "track_id                       INTEGER," +
-                            "needs_album_artwork_indexing   INTEGER," +
                             "indexing_failure_reason        TEXT," +
-                            "indexing_success               INTEGER," +
-                            "needs_indexing                 INTEGER ," +
+                            "date_happened                  INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP," +
                             "FOREIGN KEY (track_id) REFERENCES Tracks(id));");
 
-                conn.Execute("CREATE UNIQUE INDEX TrackIndexingTrackIDIndex ON TrackIndexing(track_id);");
+                conn.Execute("CREATE UNIQUE INDEX TrackIndexFailedTrackIDIndex ON TrackIndexFailed(track_id);");
 
                 //=== HistoryActions: Should include Added, Deleted, Modified, Played, AutoPlayed, Skipped, Rated, Loved
                 conn.Execute("CREATE TABLE HistoryActions (" +
@@ -446,8 +449,8 @@ namespace Dopamine.Data
                     FROM Track t
                     INNER JOIN FolderTrack ft ON ft.TrackID = t.TrackID
                     INNER JOIN Folder f ON ft.FolderID = f.FolderID
-                    LEFT JOIN AlbumArtwork ON AlbumArtwork.AlbumKey=t.AlbumKey
-                    WHERE f.ShowInCollection = 1 AND t.IndexingSuccess = 1 AND t.NeedsIndexing = 0";
+                    LEFT JOIN AlbumArtwork ON AlbumArtwork.AlbumKey=t.AlbumKey";
+                    //WHERE f.ShowInCollection = 1 AND t.IndexingSuccess = 1 AND t.NeedsIndexing = 0";
 
                 //var tracks = new List<Track>();
                 List<Track> tracks = conn.Query<Track>(query);
@@ -488,7 +491,7 @@ namespace Dopamine.Data
                     List<long> artistCollection = new List<long>();
 
 
-                    if (track.AlbumArtists.Length > 0)
+                    if (!string.IsNullOrEmpty(track.AlbumArtists))
                     {
                         string[] artists = track.AlbumArtists.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
                         for (int i = 0; i < artists.Length; i++)
@@ -499,7 +502,7 @@ namespace Dopamine.Data
                     }
 
                     //Add the artists
-                    if (track.Artists.Length > 0)
+                    if (!string.IsNullOrEmpty(track.Artists))
                     {
                         bool bUseArtistForAlbumArtistCollection = artistCollection.Count == 0;
 
@@ -517,7 +520,7 @@ namespace Dopamine.Data
                             });
                         }
                     }
-                    if (track.AlbumTitle.Length > 0)
+                    if (!string.IsNullOrEmpty(track.AlbumTitle))
                     {
                         long artistCollectionID = GetArtistCollectionID(conn, artistCollection);
                         long albumID = GetAlbumID(conn, track.AlbumTitle, artistCollectionID, track.AlbumImage);
@@ -528,7 +531,9 @@ namespace Dopamine.Data
                                 TrackId = track_id,
                                 AlbumId = albumID,
                                 TrackNumber = track.TrackNumber,
-                                DiscNumber = track.DiscNumber
+                                DiscNumber = track.DiscNumber,
+                                TrackCount = track.TrackCount,
+                                DiscCount = track.DiscCount
                             });
                         }
                         catch (SQLite.SQLiteException ex)
@@ -539,7 +544,7 @@ namespace Dopamine.Data
 
 
 
-                    if (track.Genres.Length > 0)
+                    if (!string.IsNullOrEmpty(track.Genres))
                     {
                         string[] genres = track.Genres.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
                         for (int i = 0; i < genres.Length; i++)
@@ -1802,7 +1807,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 {
                     this.userDatabaseVersion = Convert.ToInt32(conn.ExecuteScalar<string>("SELECT Value FROM Configuration WHERE Key = 'DatabaseVersion'"));
                     //=== ALEX DEBUG. USE "26" to force the update. "27" to avoid it. Reenable the Execute scalar
-                    userDatabaseVersion = 27;
+                    userDatabaseVersion = 26;
                 }
                 catch (Exception)
                 {

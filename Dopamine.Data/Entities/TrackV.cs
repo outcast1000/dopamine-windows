@@ -48,17 +48,19 @@ namespace Dopamine.Data.Entities
 
         public long DateFileCreated { get; set; }
 
-        public long DateLastSynced { get; set; }
-
         public long DateFileModified { get; set; }
+
+        public long DateFileDeleted { get; set; }
+        /*
+        public long DateLastSynced { get; set; }
 
         public long? NeedsIndexing { get; set; }
 
         public long? NeedsAlbumArtworkIndexing { get; set; }
-
+        */
         public long? IndexingSuccess { get; set; }
 
-        public string IndexingFailureReason { get; set; }
+        //public string IndexingFailureReason { get; set; }
 
         public long? Rating { get; set; }
 
@@ -70,12 +72,15 @@ namespace Dopamine.Data.Entities
 
         public long? DateLastPlayed { get; set; }
 
+        public long DateIgnored { get; set; }
+
+        public long FolderID { get; set; }
+
         public static TrackV CreateDefault(string path)
         {
             var track = new TrackV()
             {
                 Path = path,
-                IndexingSuccess = 0,
                 DateAdded = DateTime.Now.Ticks
             };
 

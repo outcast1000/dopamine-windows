@@ -14,9 +14,11 @@ using Dopamine.Services.Utils;
 using SQLite;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Media.Animation;
 
 namespace Dopamine.Services.Indexing
 {
@@ -135,8 +137,90 @@ namespace Dopamine.Services.Indexing
             await this.CheckCollectionAsync(true);
         }
 
+        private async Task CheckCollectionV2Async(bool bReReadTags)
+        {
+            if (this.IsIndexing)
+            {
+                return;
+            }
+
+            LogClient.Info("+++ STARTED CHECKING COLLECTION +++");
+
+            this.canIndexArtwork = false;
+
+            // Wait until artwork indexing is stopped
+            while (this.isIndexingArtwork)
+            {
+                await Task.Delay(100);
+            }
+
+            await this.watcherManager.StopWatchingAsync();
+
+
+            var allFolderPaths = new List<FolderPathInfo>();
+            List<Folder> folders = await this.folderRepository.GetFoldersAsync();
+
+            await Task.Run(() =>
+            {
+
+                // Recursively get all the files in the collection folders
+                bool bContinue = true;
+                foreach (Folder fol in folders)
+                {
+                    //=== Get All the paths from the DB (in chunks of 1000)
+                    //=== For each one of them
+                    //=== if they exist then OK. Otherwise then set the date to "DELETED_AT"
+                    long offset = 0;
+                    const long limit = 1000;
+                    while (true)
+                    {
+                        IList<TrackV> tracks = trackVRepository.GetTracksOfFolders(new List<long>() { fol.FolderID }, new QueryOptions() { Limit = limit, Offset = offset, WhereIgnored = QueryOptionsBool.Ignore, WhereIndexingFailed = QueryOptionsBool.Ignore, WhereVisibleFolders = QueryOptionsBool.Ignore });
+                        foreach (TrackV track in tracks)
+                        {
+                            if (System.IO.File.Exists(track.Path))
+                            {
+                                Trace.WriteLine(String.Format("File found OK: {0}", track.Path));
+                            }
+                            else
+                            {
+                                Trace.WriteLine(String.Format("File not found: {0}", track.Path));
+                                trackVRepository.DeleteTrack(track);
+                                //=== Add "DELETE" DATE in the file
+                            }
+                        }
+                        if (tracks.Count < limit)
+                            break;
+                        offset += limit;
+                    }
+
+                    FileOperations.GetFiles(fol.Path,
+                        (path) => {
+                            //=== Get File Info
+                            //=== Check the DB for the path
+                            //=== if it is not in DB then add it
+                            //=== else if it is not ignored then 
+                            //===       if file modified date > DB modified date OR bReReadTags
+                            //===           Reread Tags
+                            //=== 
+                            Debug.WriteLine("Process file: {0}", path);
+                            //MetadataUtils.FillTrack(new FileMetadata(track.Path), ref track);
+                        },
+                        () => { 
+                            return bContinue; 
+                        },
+                        (ex) => {
+                            Debug.WriteLine("Exception: {0}", ex.Message);
+                        });
+                }
+            });
+
+        }
+
         private async Task CheckCollectionAsync(bool forceIndexing)
         {
+            //=== ALEX DEBUG
+            await CheckCollectionV2Async(forceIndexing);
+            return;
             if (this.IsIndexing)
             {
                 return;
@@ -462,7 +546,7 @@ namespace Dopamine.Services.Indexing
                         {
                             try
                             {
-                                if (IndexerUtils.IsTrackOutdated(dbTrack) | dbTrack.NeedsIndexing == 1)
+                                if (IndexerUtils.IsTrackOutdated(dbTrack))// | dbTrack.NeedsIndexing == 1)
                                 {
                                     this.ProcessTrack(dbTrack, conn);
                                     conn.Update(dbTrack);
@@ -593,16 +677,18 @@ namespace Dopamine.Services.Indexing
             {
                 MetadataUtils.FillTrack(new FileMetadata(track.Path), ref track);
 
-                track.IndexingSuccess = 1;
+                Debug.Assert(false, "ALEX TODO");
+                //track.IndexingSuccess = 1;
 
                 // Make sure that we check for album cover art
-                track.NeedsAlbumArtworkIndexing = 1;
+                //track.NeedsAlbumArtworkIndexing = 1;
             }
             catch (Exception ex)
             {
-                track.IndexingSuccess = 0;
-                track.NeedsIndexing = 0; // Let's not keep trying to indexing this track
-                track.IndexingFailureReason = ex.Message;
+                Debug.Assert(false, "ALEX TODO");
+                //track.IndexingSuccess = 0;
+                //track.NeedsIndexing = 0; // Let's not keep trying to indexing this track
+                //track.IndexingFailureReason = ex.Message;
 
                 LogClient.Error("Error while retrieving tag information for file {0}. Exception: {1}", track.Path, ex.Message);
             }

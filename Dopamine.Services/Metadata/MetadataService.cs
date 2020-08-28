@@ -202,7 +202,7 @@ namespace Dopamine.Services.Metadata
             await Task.Run(() => MetadataUtils.FillTrackBase(fileMetadata, ref track));
 
             // Update the Track in the database
-            this.trackRepository.UpdateTrack(track.Id);
+            this.trackRepository.UpdateTrack(track);
 
             if (updateAlbumArtwork)
             {

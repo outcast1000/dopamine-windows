@@ -37,15 +37,15 @@ namespace Dopamine.Data.Repositories
 
         public List<AlbumV> GetAlbumsWithArtists(List<long> artistIds)
         {
-            return GetAlbumsInternal("AND Artists.id in (" + string.Join(",", artistIds) + ")");
+            return GetAlbumsInternal("Artists.id in (" + string.Join(",", artistIds) + ")");
         }
 
         public List<AlbumV> GetAlbumsWithGenres(List<long> genreIds)
         {
-            return GetAlbumsInternal("AND Genres.id in (" + string.Join(",", genreIds) + ")");
+            return GetAlbumsInternal("Genres.id in (" + string.Join(",", genreIds) + ")");
         }
 
-        private List<AlbumV> GetAlbumsInternal(string whereClause = "")
+        private List<AlbumV> GetAlbumsInternal(string whereClause = "", QueryOptions queryOptions = null)
         {
             try
             {
@@ -53,8 +53,7 @@ namespace Dopamine.Data.Repositories
                 {
                     try
                     {
-                        string sql = GetSQL();
-                        sql = sql.Replace("#WHERE#", whereClause);
+                        string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), whereClause, queryOptions);
                         return conn.Query<AlbumV>(sql);
                     }
                     catch (Exception ex)
@@ -71,7 +70,7 @@ namespace Dopamine.Data.Repositories
             
             return null;
         }
-        private string GetSQL()
+        private string GetSQLTemplate()
         {
             return @"SELECT 
 Albums.ID as Id, 
@@ -94,17 +93,18 @@ LEFT JOIN Albums ON Albums.id = TrackAlbums.album_id
 LEFT JOIN AlbumThumbnail ON Albums.id = AlbumThumbnail.album_id 
 LEFT JOIN ArtistCollectionsArtists ON ArtistCollectionsArtists.artist_collection_id = Albums.artist_collection_id
 LEFT JOIN Artists AlbumArtists ON AlbumArtists.id = ArtistCollectionsArtists.artist_id
-LEFT JOIN TrackIndexing ON TrackIndexing.track_id = t.id
+LEFT JOIN TrackIndexFailed ON TrackIndexFailed.track_id = t.id
 LEFT JOIN TrackGenres ON TrackGenres.track_id = t.id
 LEFT JOIN Genres ON TrackGenres.genre_id = Genres.id 
 LEFT JOIN TrackArtists ON TrackArtists.track_id = t.id
 LEFT JOIN Artists ON Artists.id = TrackArtists.artist_id
 LEFT JOIN Folders ON Folders.id = t.folder_id
-WHERE Folders.show = 1 AND TrackIndexing.indexing_success is null AND TrackIndexing.needs_indexing is null 
 #WHERE#
 GROUP BY Albums.id
-ORDER BY Albums.name;
+ORDER BY Albums.name
+#LIMIT#
 ";
+
         }    
     }
 

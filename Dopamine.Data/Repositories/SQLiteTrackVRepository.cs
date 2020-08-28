@@ -20,12 +20,17 @@ namespace Dopamine.Data.Repositories
             this.factory = factory;
         }
 
-        public List<TrackV> GetTracks()
+        public List<TrackV> GetTracks(QueryOptions options = null)
         {
-            return GetTracksInternal();
+            return GetTracksInternal("", options);
         }
 
-        private List<TrackV> GetTracksInternal(string whereClause = "")
+        public List<TrackV> GetTracksOfFolders(IList<long> folderIds, QueryOptions options = null)
+        {
+            return GetTracksInternal("Folders.id in (" + string.Join(",", folderIds) + ")", options);
+        }
+
+        private List<TrackV> GetTracksInternal(string whereClause, QueryOptions queryOptions = null)
         {
             try
             {
@@ -33,8 +38,7 @@ namespace Dopamine.Data.Repositories
                 {
                     try
                     {
-                        string sql = GetSQL();
-                        sql = sql.Replace("#WHERE#", whereClause);
+                        string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), whereClause, queryOptions);
                         return conn.Query<TrackV>(sql);
                     }
                     catch (Exception ex)
@@ -52,7 +56,7 @@ namespace Dopamine.Data.Repositories
             return null;
         }
 
-        private string GetSQL()
+        private string GetSQLTemplate()
         {
             return @"SELECT DISTINCT t.id as Id, 
 GROUP_CONCAT(DISTINCT Artists.name) as Artists, 
@@ -65,25 +69,24 @@ t.bitrate as BitRate,
 t.samplerate as SampleRate, 
 t.name as TrackTitle, 
 TrackAlbums.track_number as TrackNumber, 
-0 as TrackCount, 
-TrackAlbums.disc_number as DiscNumber,
-0 as DiscCount, 
+TrackAlbums.disc_number as DiscCount, 
+TrackAlbums.track_count as TrackCount, 
+TrackAlbums.disc_count as DiscCount, 
 t.duration as Duration, 
 t.year as Year, 
 0 as HasLyrics, 
 t.date_added as DateAdded, 
-0 as DateFileCreated,
-0 as DateLastSynced, 
-0 as DateFileModified, 
-TrackIndexing.needs_indexing as NeedsIndexing, 
-TrackIndexing.needs_album_artwork_indexing as NeedsAlbumArtworkIndexing, 
-TrackIndexing.indexing_success as IndexingSuccess,
-TrackIndexing.indexing_failure_reason as IndexingFailureReason, 
+t.date_ignored as DateIgnored, 
+t.date_file_created as DateFileCreated,
+t.date_file_modified as DateFileModified, 
+t.date_file_deleted as DateFileDeleted, 
+TrackIndexFailed.track_id is null as TrackIndexingSuccess,
 t.rating as Rating, 
 t.love as Love, 
 0 as PlayCount, 
 0 as SkipCount, 
-0 as DateLastPlayed
+0 as DateLastPlayed,
+t.folder_id as FolderID
 FROM Tracks t
 LEFT JOIN TrackArtists ON TrackArtists.track_id =t.id 
 LEFT JOIN Artists ON Artists.id =TrackArtists.artist_id  
@@ -92,11 +95,12 @@ LEFT JOIN Albums ON Albums.id =TrackAlbums.album_id
 LEFT JOIN ArtistCollectionsArtists ON ArtistCollectionsArtists.artist_collection_id = Albums.artist_collection_id 
 LEFT JOIN Artists as Artists2 ON Artists2.id = ArtistCollectionsArtists.artist_id 
 LEFT JOIN TrackGenres ON TrackGenres.track_id =t.id 
-LEFT JOIN Genres ON Genres.id =TrackGenres.genre_id  
+LEFT JOIN Genres ON Genres.id = TrackGenres.genre_id  
 INNER JOIN Folders ON Folders.id = t.folder_id
-LEFT JOIN TrackIndexing ON TrackIndexing.track_id=t.id
-WHERE Folders.show = 1 AND TrackIndexing.indexing_success is null AND TrackIndexing.needs_indexing is null #WHERE#
-GROUP BY t.id";
+LEFT JOIN TrackIndexFailed ON TrackIndexFailed.track_id=t.id
+#WHERE#
+GROUP BY t.id
+#LIMIT#";
         }
 
         public List<TrackV> GetTracksBySearch(string whereClause)
@@ -216,36 +220,6 @@ GROUP BY t.id";
             });
         }
 
-        public async Task<bool> UpdateTrackAsync(TrackV track)
-        {
-            bool isUpdateSuccess = false;
-
-            await Task.Run(() =>
-            {
-                try
-                {
-                    using (var conn = this.factory.GetConnection())
-                    {
-                        try
-                        {
-                            conn.Update(track);
-
-                            isUpdateSuccess = true;
-                        }
-                        catch (Exception ex)
-                        {
-                            LogClient.Error("Could not update the Track with path='{0}'. Exception: {1}", track.Path, ex.Message);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogClient.Error("Could not connect to the database. Exception: {0}", ex.Message);
-                }
-            });
-
-            return isUpdateSuccess;
-        }
         public async Task<bool> UpdateTrackFileInformationAsync(string path)
         {
             bool updateSuccess = false;
@@ -529,22 +503,22 @@ GROUP BY t.id";
 
         public List<TrackV> GetTracksOfArtists(IList<long> artistIds)
         {
-            return GetTracksInternal("AND Artists.id in (" + string.Join(",", artistIds) + ")");
+            return GetTracksInternal("Artists.id in (" + string.Join(",", artistIds) + ")");
         }
 
         public List<TrackV> GetTracksOfAlbums(IList<long> albumIds)
         {
-            return GetTracksInternal("AND Albums.id in (" + string.Join(",", albumIds) + ")");
+            return GetTracksInternal("Albums.id in (" + string.Join(",", albumIds) + ")");
         }
 
         public List<TrackV> GetTracksWithGenres(IList<long> genreIds)
         {
-            return GetTracksInternal("AND Genres.id in (" + string.Join(",", genreIds) + ")");
+            return GetTracksInternal("Genres.id in (" + string.Join(",", genreIds) + ")");
         }
 
         public List<TrackV> GetTracksWithPaths(IList<string> paths)
         {
-            return GetTracksInternal("AND t.path in (" + string.Join(",", paths.Select(x => String.Format("\"{0}\"", x))) + ")");
+            return GetTracksInternal("t.path in (" + string.Join(",", paths.Select(x => String.Format("\"{0}\"", x))) + ")");
         }
 
         public TrackV GetTrackWithPath(string path)
@@ -552,9 +526,40 @@ GROUP BY t.id";
             throw new NotImplementedException();
         }
 
-        public bool UpdateTrack(long trackId)
+        public bool UpdateTrack(TrackV track)
         {
-            throw new NotImplementedException();
+            try
+            {
+                using (var conn = this.factory.GetConnection())
+                {
+                    int ret = conn.Update(new Track2()
+                    {
+                        Id = track.Id,
+                        Name = track.TrackTitle,
+                        Path = track.Path,
+                        FolderId = track.FolderID,
+                        Filesize = track.FileSize,
+                        Bitrate = track.BitRate,
+                        Samplerate = track.SampleRate,
+                        Duration = track.Duration,
+                        Year = track.Year > 0 ? track.Year : null,
+                        Language = null,
+                        DateAdded = track.DateAdded,
+                        Rating = track.Rating,
+                        Love = track.Love,
+                        DateFileCreated = track.DateFileCreated,
+                        DateFileModified = track.DateFileModified,
+                        DateIgnored = track.DateIgnored,
+                        DateFileDeleted = track.DateFileDeleted
+                    });
+                    return ret == 1;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogClient.Error("Could not connect to the database. Exception: {0}", ex.Message);
+            }
+            return false ;
         }
 
         public PlaybackCounter GetPlaybackCounters(string path)
@@ -565,6 +570,19 @@ GROUP BY t.id";
         public void UpdatePlaybackCounters(PlaybackCounter counters)
         {
             throw new NotImplementedException();
+        }
+
+
+        public bool DeleteTrack(TrackV track)
+        {
+            track.DateFileDeleted = DateTime.UtcNow.Ticks;// DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            return UpdateTrack(track);
+        }
+
+        public bool IgnoreTrack(TrackV track)
+        {
+            track.DateIgnored = DateTime.UtcNow.Ticks;
+            return UpdateTrack(track);
         }
     }
 }

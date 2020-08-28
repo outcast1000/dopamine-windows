@@ -158,13 +158,13 @@ namespace Dopamine.Data
             track.Duration = Convert.ToInt64(fileMetadata.Duration.TotalMilliseconds);
             track.BitRate = fileMetadata.BitRate;
             track.SampleRate = fileMetadata.SampleRate;
-            track.NeedsIndexing = 0;
-            track.NeedsAlbumArtworkIndexing = 0;
+            //track.NeedsIndexing = 0;
+            //track.NeedsAlbumArtworkIndexing = 0;
             track.FileSize = FileUtils.SizeInBytes(path);
             track.DateFileCreated = FileUtils.DateCreatedTicks(path);
             track.DateFileModified = FileUtils.DateModifiedTicks(path);
             track.DateAdded = nowTicks;
-            track.DateLastSynced = nowTicks;
+            //track.DateLastSynced = nowTicks;
             track.Rating = fileMetadata.Rating.Value;
 
             FillTrackBase(fileMetadata, ref track);

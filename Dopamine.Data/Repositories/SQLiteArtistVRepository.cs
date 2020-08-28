@@ -20,7 +20,7 @@ namespace Dopamine.Data.Repositories
             return GetArtistsInternal();
         }
 
-        private List<ArtistV> GetArtistsInternal(string whereClause = "")
+        private List<ArtistV> GetArtistsInternal(string whereClause = "", QueryOptions queryOptions = null)
         {
             try
             {
@@ -28,8 +28,7 @@ namespace Dopamine.Data.Repositories
                 {
                     try
                     {
-                        string sql = GetSQL();
-                        sql = sql.Replace("#WHERE#", whereClause);
+                        string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), whereClause, queryOptions);
                         return conn.Query<ArtistV>(sql);
                     }
                     catch (Exception ex)
@@ -46,7 +45,7 @@ namespace Dopamine.Data.Repositories
             
             return null;
         }
-        private string GetSQL()
+        private string GetSQLTemplate()
         {
             return @"
 SELECT
@@ -70,12 +69,12 @@ LEFT JOIN TrackAlbums ON TrackAlbums.track_id = t.id
 LEFT JOIN Albums ON Albums.id = TrackAlbums.album_id
 LEFT JOIN TrackGenres ON TrackGenres.track_id = t.id
 LEFT JOIN Genres ON TrackGenres.genre_id = Genres.id
-LEFT JOIN TrackIndexing ON TrackIndexing.track_id = t.id
+LEFT JOIN TrackIndexFailed ON TrackIndexFailed.track_id = t.id
 INNER JOIN Folders ON Folders.id = t.folder_id
-WHERE Folders.show = 1 AND TrackIndexing.indexing_success is null AND TrackIndexing.needs_indexing is null
 #WHERE#
 GROUP BY Artists.id
-ORDER BY Artists.name;
+ORDER BY Artists.name
+#LIMIT#
 ";
         }    
     }
