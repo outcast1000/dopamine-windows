@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Diagnostics;
+using Dopamine.Data.UnitOfWorks;
 
 namespace Dopamine.Data
 {
@@ -427,7 +428,9 @@ namespace Dopamine.Data
 
                 // ==== START MIGRATING DATA
 
-                conn.Execute("BEGIN TRANSACTION;");
+                SQLiteUpdateCollectionUnitOfWork uc = new SQLiteUpdateCollectionUnitOfWork(conn);
+
+                //conn.Execute("BEGIN TRANSACTION;");
 
 
                 List<Folder> folders = conn.Table<Folder>().ToList();
@@ -467,6 +470,38 @@ namespace Dopamine.Data
                         Trace.WriteLine("TrackTitle is null");
 
                     List<FolderTrack> folderTrackIDs = conn.Query<FolderTrack>(@"SELECT * FROM FolderTrack WHERE TrackID=?", track.TrackID);
+                    uc.AddMediaFile(new MediaFileData()
+                    {
+                        Name = track.TrackTitle,
+                        Path = track.Path,
+                        Filesize = track.FileSize,
+                        Bitrate = track.BitRate,
+                        Samplerate = track.SampleRate,
+                        Duration = track.Duration,
+                        Year = track.Year > 0 ? track.Year : null,
+                        Language = null,
+                        DateAdded = track.DateAdded,
+                        Rating = track.Rating > 0 ? track.Rating : null,
+                        Love = track.Love,
+                        DateFileCreated = track.DateFileCreated,
+                        DateFileModified = track.DateFileModified,
+                        AlbumArtists = string.IsNullOrEmpty(track.AlbumArtists) ? null : track.AlbumArtists.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray(),
+                        Artists = string.IsNullOrEmpty(track.Artists) ? null : track.Artists.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray(),
+                        Genres = string.IsNullOrEmpty(track.Genres) ? null : track.Genres.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray(),
+                        Album = track.AlbumTitle,
+
+                        AlbumImage = track.AlbumImage,
+                        DateFileDeleted = null,
+                        DateIgnored = null,
+                        DiscCount = track.DiscCount,
+                        DiscNumber = track.DiscNumber,
+                        //Lyrics = track.l
+                        TrackCount = track.TrackCount,
+                        TrackNumber = track.TrackNumber
+                    }, folderTrackIDs[0].FolderID);
+
+                    /*
+
                     conn.Insert(new Track2()
                     {
                         Name = track.TrackTitle,
@@ -565,7 +600,7 @@ namespace Dopamine.Data
 
                         }
                     }
-
+                    */
                     Console.WriteLine("Stats: {0} files/sec", (1000.0 * ++tracksMigrated / (Environment.TickCount - timeStarted)));
 
 
@@ -1807,7 +1842,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 {
                     this.userDatabaseVersion = Convert.ToInt32(conn.ExecuteScalar<string>("SELECT Value FROM Configuration WHERE Key = 'DatabaseVersion'"));
                     //=== ALEX DEBUG. USE "26" to force the update. "27" to avoid it. Reenable the Execute scalar
-                    userDatabaseVersion = 26;
+                    userDatabaseVersion = 27;
                 }
                 catch (Exception)
                 {

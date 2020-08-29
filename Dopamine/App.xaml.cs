@@ -218,6 +218,7 @@ namespace Dopamine
             void RegisterFactories()
             {
                 containerRegistry.RegisterSingleton<ISQLiteConnectionFactory, SQLiteConnectionFactory>();
+                containerRegistry.RegisterSingleton<IUnitOfWorksFactory, SQLiteUnitOfWorksFactory>();
             }
 
             void RegisterRepositories()

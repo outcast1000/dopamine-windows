@@ -1,4 +1,5 @@
 ﻿using Digimezzo.Foundation.Core.Logging;
+using Digimezzo.Foundation.Core.Utils;
 using Dopamine.Core.Alex; //Digimezzo.Foundation.Core.Settings
 using Dopamine.Core.Base;
 using Dopamine.Core.Extensions;
@@ -8,12 +9,14 @@ using Dopamine.Data;
 using Dopamine.Data.Entities;
 using Dopamine.Data.Metadata;
 using Dopamine.Data.Repositories;
+using Dopamine.Data.UnitOfWorks;
 using Dopamine.Services.Cache;
 using Dopamine.Services.InfoDownload;
 using Dopamine.Services.Utils;
 using SQLite;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -36,6 +39,7 @@ namespace Dopamine.Services.Indexing
 
         // Factories
         private ISQLiteConnectionFactory factory;
+        private IUnitOfWorksFactory unitOfWorksFactory;
 
         // Watcher
         private FolderWatcherManager watcherManager;
@@ -67,15 +71,17 @@ namespace Dopamine.Services.Indexing
         }
 
         public IndexingService(ISQLiteConnectionFactory factory, ICacheService cacheService, IInfoDownloadService infoDownloadService,
-            ITrackVRepository trackVRepository, IFolderRepository folderRepository, IAlbumArtworkRepository albumArtworkRepository, IAlbumVRepository albumVRepository)
+            ITrackVRepository trackVRepository, IFolderRepository folderRepository, IAlbumArtworkRepository albumArtworkRepository, IAlbumVRepository albumVRepository,
+            IUnitOfWorksFactory unitOfWorksFactory)
         {
             this.cacheService = cacheService;
             this.infoDownloadService = infoDownloadService;
-            this.trackVRepository = trackVRepository; 
+            this.trackVRepository = trackVRepository;
             this.albumVRepository = albumVRepository;
             this.folderRepository = folderRepository;
             this.albumArtworkRepository = albumArtworkRepository;
             this.factory = factory;
+            this.unitOfWorksFactory = unitOfWorksFactory;
 
             this.watcherManager = new FolderWatcherManager(this.folderRepository);
             this.cache = new IndexerCache(factory, trackVRepository);
@@ -134,7 +140,7 @@ namespace Dopamine.Services.Indexing
 
         public async Task RefreshCollectionImmediatelyAsync()
         {
-            await this.CheckCollectionAsync(true);
+            await this.CheckCollectionV2Async(false);
         }
 
         private async Task CheckCollectionV2Async(bool bReReadTags)
@@ -159,6 +165,10 @@ namespace Dopamine.Services.Indexing
 
             var allFolderPaths = new List<FolderPathInfo>();
             List<Folder> folders = await this.folderRepository.GetFoldersAsync();
+            long addedFiles = 0;
+            long updatedFiles = 0;
+            long removedFiles = 0;
+            long failedFiles = 0;
 
             await Task.Run(() =>
             {
@@ -167,6 +177,7 @@ namespace Dopamine.Services.Indexing
                 bool bContinue = true;
                 foreach (Folder fol in folders)
                 {
+                    //=== STEP 1. DELETE ALL THE FILES from the collections that have been deleted from the disk 
                     //=== Get All the paths from the DB (in chunks of 1000)
                     //=== For each one of them
                     //=== if they exist then OK. Otherwise then set the date to "DELETED_AT"
@@ -177,15 +188,14 @@ namespace Dopamine.Services.Indexing
                         IList<TrackV> tracks = trackVRepository.GetTracksOfFolders(new List<long>() { fol.FolderID }, new QueryOptions() { Limit = limit, Offset = offset, WhereIgnored = QueryOptionsBool.Ignore, WhereIndexingFailed = QueryOptionsBool.Ignore, WhereVisibleFolders = QueryOptionsBool.Ignore });
                         foreach (TrackV track in tracks)
                         {
-                            if (System.IO.File.Exists(track.Path))
-                            {
-                                Trace.WriteLine(String.Format("File found OK: {0}", track.Path));
-                            }
-                            else
+                            if (!System.IO.File.Exists(track.Path))
                             {
                                 Trace.WriteLine(String.Format("File not found: {0}", track.Path));
-                                trackVRepository.DeleteTrack(track);
-                                //=== Add "DELETE" DATE in the file
+                                using (IDeleteMediaFileUnitOfWork uow = unitOfWorksFactory.getDeleteMediaFileUnitOfWork())
+                                {
+                                    if (uow.DeleteMediaFile(track.Id))
+                                        removedFiles++;
+                                }
                             }
                         }
                         if (tracks.Count < limit)
@@ -193,27 +203,93 @@ namespace Dopamine.Services.Indexing
                         offset += limit;
                     }
 
-                    FileOperations.GetFiles(fol.Path,
-                        (path) => {
-                            //=== Get File Info
+                    //=== STEP 2. Add OR Update the files that on disk
+                    //=== TODO Use a factory HERE
+                    using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
+                    {
+                        FileOperations.GetFiles(fol.Path,
+                        (path) =>
+                        {
+                            //=== Check the extension
+                            if (!FileFormats.SupportedMediaExtensions.Contains(Path.GetExtension(path.ToLower())))
+                                return;
+
                             //=== Check the DB for the path
-                            //=== if it is not in DB then add it
-                            //=== else if it is not ignored then 
-                            //===       if file modified date > DB modified date OR bReReadTags
-                            //===           Reread Tags
-                            //=== 
-                            Debug.WriteLine("Process file: {0}", path);
-                            //MetadataUtils.FillTrack(new FileMetadata(track.Path), ref track);
+                            TrackV trackV = trackVRepository.GetTrack(path);
+                            long DateFileModified = FileUtils.DateModifiedTicks(path);
+                            if (trackV != null && DateFileModified <= trackV.DateFileModified && !bReReadTags)
+                            {
+                                LogClient.Info(String.Format("No need to reprocess the file {0}", path));
+                                return;
+                            }
+                            //=== Get File Info
+                            FileMetadata fileMetadata;
+                            try
+                            {
+                                fileMetadata = new FileMetadata(path);
+                            }
+                            catch (Exception ex)
+                            {
+                                LogClient.Info(String.Format("Unable to process the file {0} {1}", path, ex.Message));
+                                uc.AddIndexFailedMediaFile(path, fol.FolderID, "Unable to read metadata");
+                                failedFiles++;
+                                return;
+                            }
+                            MediaFileData mediaFileData = new MediaFileData()
+                            {
+                                Name = FormatUtils.TrimValue(fileMetadata.Title.Value),
+                                Path = path,
+                                Filesize = FileUtils.SizeInBytes(path),
+                                Bitrate = fileMetadata.BitRate,
+                                Samplerate = fileMetadata.SampleRate,
+                                Duration = Convert.ToInt64(fileMetadata.Duration.TotalMilliseconds),
+                                Year = (string.IsNullOrEmpty(fileMetadata.Year.Value) ? null : (long?)MetadataUtils.SafeConvertToLong(fileMetadata.Year.Value)),
+                                Language = null,
+                                DateAdded = DateTime.Now.Ticks,
+                                Rating = fileMetadata.Rating.Value == 0 ? null : (long?)fileMetadata.Rating.Value,//Should you take it from the file?
+                                Love = null,
+                                DateFileCreated = FileUtils.DateCreatedTicks(path),
+                                DateFileModified = DateFileModified,
+                                DateFileDeleted = null,
+                                DateIgnored = null,
+                                TrackNumber = string.IsNullOrEmpty(fileMetadata.TrackNumber.Value) ? null : (long?)MetadataUtils.SafeConvertToLong(fileMetadata.TrackNumber.Value),
+                                TrackCount = string.IsNullOrEmpty(fileMetadata.TrackCount.Value) ? null : (long?)MetadataUtils.SafeConvertToLong(fileMetadata.TrackCount.Value),
+                                DiscNumber = string.IsNullOrEmpty(fileMetadata.DiscNumber.Value) ? null : (long?)MetadataUtils.SafeConvertToLong(fileMetadata.DiscNumber.Value),
+                                DiscCount = string.IsNullOrEmpty(fileMetadata.DiscCount.Value) ? null : (long?)MetadataUtils.SafeConvertToLong(fileMetadata.DiscCount.Value),
+                                Lyrics = fileMetadata.Lyrics.Value,
+                                Artists = fileMetadata.Artists.Values,
+                                Genres = fileMetadata.Genres.Values,
+                                Album = FormatUtils.TrimValue(fileMetadata.Album.Value),
+                                AlbumArtists = fileMetadata.AlbumArtists.Values
+                            };
+
+                            if (trackV == null)
+                            {
+                                if (uc.AddMediaFile(mediaFileData, fol.FolderID))
+                                    addedFiles++;
+                                else
+                                    failedFiles++;
+                            }
+                            else
+                            {
+                                if (uc.UpdateMediaFile(trackV, mediaFileData))
+                                    updatedFiles++;
+                                else
+                                    failedFiles++;
+
+                            }
                         },
-                        () => { 
-                            return bContinue; 
-                        },
-                        (ex) => {
-                            Debug.WriteLine("Exception: {0}", ex.Message);
-                        });
+                            () =>
+                            {
+                                return bContinue;
+                            },
+                            (ex) =>
+                            {
+                                Debug.WriteLine("Exception: {0}", ex.Message);
+                            });
+                    }
                 }
             });
-
         }
 
         private async Task CheckCollectionAsync(bool forceIndexing)
@@ -345,7 +421,7 @@ namespace Dopamine.Services.Indexing
 
                         foreach (TrackStatistic trackStatistic in trackStatistics)
                         {
-                            conn.Execute("UPDATE Track SET Rating=?, Love=?, PlayCount=?, SkipCount=?, DateLastPlayed=? WHERE Safepath=?;", 
+                            conn.Execute("UPDATE Track SET Rating=?, Love=?, PlayCount=?, SkipCount=?, DateLastPlayed=? WHERE Safepath=?;",
                                 trackStatistic.Rating, trackStatistic.Love, trackStatistic.PlayCount, trackStatistic.SkipCount, trackStatistic.DateLastPlayed, trackStatistic.SafePath);
                         }
 
@@ -450,16 +526,16 @@ namespace Dopamine.Services.Indexing
                     {
                         conn.BeginTransaction();
 
-                        // Create a list of folderIDs
-                        List<long> folderTrackIDs = conn.Table<FolderTrack>().ToList().Select((t) => t.TrackID).Distinct().ToList();
+                // Create a list of folderIDs
+                List<long> folderTrackIDs = conn.Table<FolderTrack>().ToList().Select((t) => t.TrackID).Distinct().ToList();
 
                         List<Track> alltracks = conn.Table<Track>().Select((t) => t).ToList();
                         List<Track> tracksInMissingFolders = alltracks.Select((t) => t).Where(t => !folderTrackIDs.Contains(t.TrackID)).ToList();
                         List<Track> remainingTracks = new List<Track>();
 
-                        // Processing tracks in missing folders in bulk first, then checking 
-                        // existence of the remaining tracks, improves speed of removing tracks.
-                        if (tracksInMissingFolders.Count > 0 && tracksInMissingFolders.Count < alltracks.Count)
+                // Processing tracks in missing folders in bulk first, then checking 
+                // existence of the remaining tracks, improves speed of removing tracks.
+                if (tracksInMissingFolders.Count > 0 && tracksInMissingFolders.Count < alltracks.Count)
                         {
                             remainingTracks = alltracks.Except(tracksInMissingFolders).ToList();
                         }
@@ -468,15 +544,15 @@ namespace Dopamine.Services.Indexing
                             remainingTracks = alltracks;
                         }
 
-                        // 1. Process tracks in missing folders
-                        // ------------------------------------
-                        if (tracksInMissingFolders.Count > 0)
+                // 1. Process tracks in missing folders
+                // ------------------------------------
+                if (tracksInMissingFolders.Count > 0)
                         {
-                            // Report progress immediately, as there are tracks in missing folders.                           
-                            this.IndexingStatusChanged(args);
+                    // Report progress immediately, as there are tracks in missing folders.                           
+                    this.IndexingStatusChanged(args);
 
-                            // Delete
-                            foreach (Track trk in tracksInMissingFolders)
+                    // Delete
+                    foreach (Track trk in tracksInMissingFolders)
                             {
                                 conn.Delete(trk);
                             }
@@ -484,21 +560,21 @@ namespace Dopamine.Services.Indexing
                             numberRemovedTracks += tracksInMissingFolders.Count;
                         }
 
-                        // 2. Process remaining tracks
-                        // ---------------------------
-                        if (remainingTracks.Count > 0)
+                // 2. Process remaining tracks
+                // ---------------------------
+                if (remainingTracks.Count > 0)
                         {
                             foreach (Track trk in remainingTracks)
                             {
-                                // If a remaining track doesn't exist on disk, delete it from the collection.
-                                if (!System.IO.File.Exists(trk.Path))
+                        // If a remaining track doesn't exist on disk, delete it from the collection.
+                        if (!System.IO.File.Exists(trk.Path))
                                 {
                                     conn.Delete(trk);
                                     numberRemovedTracks += 1;
 
-                                    // Report progress as soon as the first track was removed.
-                                    // This is indeterminate progress. No need to sent it multiple times.
-                                    if (numberRemovedTracks == 1)
+                            // Report progress as soon as the first track was removed.
+                            // This is indeterminate progress. No need to sent it multiple times.
+                            if (numberRemovedTracks == 1)
                                     {
                                         this.IndexingStatusChanged(args);
                                     }
@@ -547,7 +623,7 @@ namespace Dopamine.Services.Indexing
                             try
                             {
                                 if (IndexerUtils.IsTrackOutdated(dbTrack))// | dbTrack.NeedsIndexing == 1)
-                                {
+                        {
                                     this.ProcessTrack(dbTrack, conn);
                                     conn.Update(dbTrack);
                                     numberUpdatedTracks += 1;
@@ -562,9 +638,9 @@ namespace Dopamine.Services.Indexing
 
                             int percent = IndexerUtils.CalculatePercent(currentValue, totalValue);
 
-                            // Report progress if at least 1 track is updated OR when the progress
-                            // interval has been exceeded OR the maximum has been reached.
-                            bool mustReportProgress = numberUpdatedTracks == 1 || percent >= lastPercent + 5 || percent == 100;
+                    // Report progress if at least 1 track is updated OR when the progress
+                    // interval has been exceeded OR the maximum has been reached.
+                    bool mustReportProgress = numberUpdatedTracks == 1 || percent >= lastPercent + 5 || percent == 100;
 
                             if (mustReportProgress)
                             {
@@ -629,12 +705,12 @@ namespace Dopamine.Services.Indexing
 
                                 conn.Insert(new FolderTrack(newDiskPath.FolderId, diskTrack.Id));
 
-                                // Intermediate save to the database if 20% is reached
-                                if (unsavedItemCount == saveItemCount)
+                        // Intermediate save to the database if 20% is reached
+                        if (unsavedItemCount == saveItemCount)
                                 {
                                     unsavedItemCount = 0;
                                     conn.Commit(); // Intermediate save
-                                    conn.BeginTransaction();
+                            conn.BeginTransaction();
                                 }
                             }
                             catch (Exception ex)
@@ -646,9 +722,9 @@ namespace Dopamine.Services.Indexing
 
                             int percent = IndexerUtils.CalculatePercent(currentValue, totalValue);
 
-                            // Report progress if at least 1 track is added OR when the progress
-                            // interval has been exceeded OR the maximum has been reached.
-                            bool mustReportProgress = numberAddedTracks == 1 || percent >= lastPercent + 5 || percent == 100;
+                    // Report progress if at least 1 track is added OR when the progress
+                    // interval has been exceeded OR the maximum has been reached.
+                    bool mustReportProgress = numberAddedTracks == 1 || percent >= lastPercent + 5 || percent == 100;
 
                             if (mustReportProgress)
                             {
@@ -660,7 +736,7 @@ namespace Dopamine.Services.Indexing
                         }
 
                         conn.Commit(); // Final save
-                    }
+            }
                 }
                 catch (Exception ex)
                 {
@@ -806,19 +882,19 @@ namespace Dopamine.Services.Indexing
                     try
                     {
                         IList<string> albumKeysWithArtwork = new List<string>();
-                        
+
                         IList<AlbumV> albumDatasToIndex = rescanAll ? albumVRepository.GetAlbums() : albumVRepository.GetAlbumsToIndex(rescanFailed);
 
                         foreach (AlbumV albumDataToIndex in albumDatasToIndex)
                         {
-                            // Check if we must cancel artwork indexing
-                            if (!this.canIndexArtwork)
+                    // Check if we must cancel artwork indexing
+                    if (!this.canIndexArtwork)
                             {
                                 try
                                 {
                                     LogClient.Info("+++ ABORTED ADDING ARTWORK IN THE BACKGROUND. Time required: {0} ms +++", Convert.ToInt64(DateTime.Now.Subtract(startTime).TotalMilliseconds));
                                     this.AlbumArtworkAdded(this, new AlbumArtworkAddedEventArgs() { AlbumKeys = albumKeysWithArtwork }); // Update UI
-                                }
+                        }
                                 catch (Exception ex)
                                 {
                                     LogClient.Error("Failed to commit changes while aborting adding artwork in background. Exception: {0}", ex.Message);
@@ -829,30 +905,30 @@ namespace Dopamine.Services.Indexing
                                 return;
                             }
 
-                            // Start indexing artwork
-                            try
+                    // Start indexing artwork
+                    try
                             {
-                                // Delete existing AlbumArtwork
-                                albumVRepository.DeleteImage(albumDataToIndex);
+                        // Delete existing AlbumArtwork
+                        albumVRepository.DeleteImage(albumDataToIndex);
                                 string ArtworkID = null;
 
                                 if (passNumber.Equals(1))
                                 {
-                                    // During the 1st pass, look for artwork in file(s).
-                                    // Only set NeedsAlbumArtworkIndexing = 0 if artwork was found. So when no artwork was found, 
-                                    // this gives the 2nd pass a chance to look for artwork on the Internet.
-                                    ArtworkID = await this.GetArtworkFromFile(albumDataToIndex.Id);
+                            // During the 1st pass, look for artwork in file(s).
+                            // Only set NeedsAlbumArtworkIndexing = 0 if artwork was found. So when no artwork was found, 
+                            // this gives the 2nd pass a chance to look for artwork on the Internet.
+                            ArtworkID = await this.GetArtworkFromFile(albumDataToIndex.Id);
                                 }
                                 else if (passNumber.Equals(2))
                                 {
-                                    // During the 2nd pass, look for artwork on the Internet and set NeedsAlbumArtworkIndexing = 0.
-                                    // We don't want future passes to index for this AlbumKey anymore.
-                                    ArtworkID = await this.GetArtworkFromInternet(
-                                        albumDataToIndex.AlbumArtists,
-                                        DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToList(),
-                                        null, //albumDataToIndex.TrackTitle,
-                                        DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.Artists).ToList()
-                                        );
+                            // During the 2nd pass, look for artwork on the Internet and set NeedsAlbumArtworkIndexing = 0.
+                            // We don't want future passes to index for this AlbumKey anymore.
+                            ArtworkID = await this.GetArtworkFromInternet(
+                                albumDataToIndex.AlbumArtists,
+                                DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToList(),
+                                null, //albumDataToIndex.TrackTitle,
+                                DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.Artists).ToList()
+                                );
                                 }
 
                                 if (!string.IsNullOrEmpty(ArtworkID))
@@ -860,13 +936,13 @@ namespace Dopamine.Services.Indexing
                                     this.albumVRepository.AddImage(albumDataToIndex, ArtworkID, true);
                                 }
 
-                                // If artwork was found for 20 albums, trigger a refresh of the UI.
-                                if (albumKeysWithArtwork.Count >= 20)
+                        // If artwork was found for 20 albums, trigger a refresh of the UI.
+                        if (albumKeysWithArtwork.Count >= 20)
                                 {
                                     var eventAlbumKeys = new List<string>(albumKeysWithArtwork);
                                     albumKeysWithArtwork.Clear();
                                     this.AlbumArtworkAdded(this, new AlbumArtworkAddedEventArgs() { AlbumKeys = eventAlbumKeys }); // Update UI
-                                }
+                        }
                             }
                             catch (Exception ex)
                             {
@@ -877,7 +953,7 @@ namespace Dopamine.Services.Indexing
                         try
                         {
                             this.AlbumArtworkAdded(this, new AlbumArtworkAddedEventArgs() { AlbumKeys = albumKeysWithArtwork }); // Update UI
-                        }
+                }
                         catch (Exception ex)
                         {
                             LogClient.Error("Failed to commit changes while finishing adding artwork in background. Exception: {0}", ex.Message);
@@ -916,15 +992,15 @@ namespace Dopamine.Services.Indexing
 
             await Task.Run(() =>
             {
-                // Recursively get all the files in the collection folders
-                foreach (Folder fol in folders)
+        // Recursively get all the files in the collection folders
+        foreach (Folder fol in folders)
                 {
                     if (Directory.Exists(fol.Path))
                     {
                         try
                         {
-                            // Get all audio files recursively
-                            List<FolderPathInfo> folderPaths = FileOperations.GetValidFolderPaths(fol.FolderID, fol.Path, FileFormats.SupportedMediaExtensions);
+                    // Get all audio files recursively
+                    List<FolderPathInfo> folderPaths = FileOperations.GetValidFolderPaths(fol.FolderID, fol.Path, FileFormats.SupportedMediaExtensions);
                             allFolderPaths.AddRange(folderPaths);
                         }
                         catch (Exception ex)

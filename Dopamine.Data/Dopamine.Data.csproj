@@ -118,6 +118,7 @@
     <Compile Include="Entities\FolderTrack.cs" />
     <Compile Include="Entities\QueuedTrack.cs" />
     <Compile Include="Entities\RemovedTrack.cs" />
+    <Compile Include="Entities\TrackIndexFailed.cs" />
     <Compile Include="Entities\TrackV.cs" />
     <Compile Include="Entities\Track.cs" />
     <Compile Include="Entities\TrackGenre.cs" />
@@ -126,6 +127,8 @@
     <Compile Include="Entities\Track2.cs" />
     <Compile Include="Entities\TrackStatistic.cs" />
     <Compile Include="Enums.cs" />
+    <Compile Include="SQLiteUnitOfWorksFactory.cs" />
+    <Compile Include="IUnitOfWorksFactory.cs" />
     <Compile Include="ISQLiteConnectionFactory.cs" />
     <Compile Include="MetaDataUtils.cs" />
     <Compile Include="Metadata\FileMetadata.cs" />
@@ -150,6 +153,12 @@
     <Compile Include="Repositories\AlbumArtworkRepository.cs" />
     <Compile Include="Repositories\FolderRepository.cs" />
     <Compile Include="Repositories\IAlbumArtworkRepository.cs" />
+    <Compile Include="UnitOfWorks\SQLiteDeleteTrackUnitOfWork.cs" />
+    <Compile Include="UnitOfWorks\IIgnoreTrackUnitOfWork.cs" />
+    <Compile Include="UnitOfWorks\SQLiteIgnoreTrackUnitOfWork.cs" />
+    <Compile Include="UnitOfWorks\IDeleteTrackUnitOfWork.cs" />
+    <Compile Include="UnitOfWorks\SQLiteUpdateCollectionUnitOfWork.cs" />
+    <Compile Include="UnitOfWorks\IUpdateCollectionUnitOfWork.cs" />
     <Compile Include="Repositories\RepositoryCommon.cs" />
     <Compile Include="Repositories\SQLiteGenreVRepository.cs" />
     <Compile Include="Repositories\SQLiteArtistVRepository.cs" />
