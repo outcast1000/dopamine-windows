@@ -10,6 +10,12 @@ namespace Dopamine.Data
         {
             this.sQLiteConnectionFactory = sQLiteConnectionFactory;
         }
+
+        public IAddFolderUnitOfWork getAddFolderUnitOfWork()
+        {
+            throw new System.NotImplementedException();
+        }
+
         public IDeleteMediaFileUnitOfWork getDeleteMediaFileUnitOfWork()
         {
             return new SQLiteDeleteMediaFileUnitOfWork(sQLiteConnectionFactory.GetConnection());
@@ -18,9 +24,20 @@ namespace Dopamine.Data
         {
             return new SQLiteIgnoreMediaFileUnitOfWork(sQLiteConnectionFactory.GetConnection());
         }
+
+        public IRemoveFolderUnitOfWork getRemoveFolderUnitOfWork()
+        {
+            throw new System.NotImplementedException();
+        }
+
         public IUpdateCollectionUnitOfWork getUpdateCollectionUnitOfWork()
         {
             return new SQLiteUpdateCollectionUnitOfWork(sQLiteConnectionFactory.GetConnection());
+        }
+
+        public IUpdateFolderUnitOfWork getUpdateFolderUnitOfWork()
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

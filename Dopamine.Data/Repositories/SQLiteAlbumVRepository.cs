@@ -93,7 +93,6 @@ LEFT JOIN Albums ON Albums.id = TrackAlbums.album_id
 LEFT JOIN AlbumThumbnail ON Albums.id = AlbumThumbnail.album_id 
 LEFT JOIN ArtistCollectionsArtists ON ArtistCollectionsArtists.artist_collection_id = Albums.artist_collection_id
 LEFT JOIN Artists AlbumArtists ON AlbumArtists.id = ArtistCollectionsArtists.artist_id
-LEFT JOIN TrackIndexFailed ON TrackIndexFailed.track_id = t.id
 LEFT JOIN TrackGenres ON TrackGenres.track_id = t.id
 LEFT JOIN Genres ON TrackGenres.genre_id = Genres.id 
 LEFT JOIN TrackArtists ON TrackArtists.track_id = t.id

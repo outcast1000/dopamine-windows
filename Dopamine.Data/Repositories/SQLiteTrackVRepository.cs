@@ -8,16 +8,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using Dopamine.Core.Alex;
+using SQLite;
 
 namespace Dopamine.Data.Repositories
 {
     public class SQLiteTrackVRepository : ITrackVRepository
     {
         private ISQLiteConnectionFactory factory;
+        private SQLiteConnection connection;
 
         public SQLiteTrackVRepository(ISQLiteConnectionFactory factory)
         {
             this.factory = factory;
+        }
+        public void SetSQLiteConnection(SQLiteConnection connection)
+        {
+            this.connection = connection;
         }
 
         public List<TrackV> GetTracks(QueryOptions options = null)
@@ -32,19 +39,13 @@ namespace Dopamine.Data.Repositories
 
         private List<TrackV> GetTracksInternal(string whereClause, QueryOptions queryOptions = null)
         {
+            if (connection != null)
+                return GetTracksInternal(connection, whereClause, queryOptions);
             try
             {
                 using (var conn = factory.GetConnection())
                 {
-                    try
-                    {
-                        string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), whereClause, queryOptions);
-                        return conn.Query<TrackV>(sql);
-                    }
-                    catch (Exception ex)
-                    {
-                        LogClient.Error("Query Failed. Exception: {0}", ex.Message);
-                    }
+                    return GetTracksInternal(conn, whereClause, queryOptions);
                 }
             }
             catch (Exception ex)
@@ -52,7 +53,52 @@ namespace Dopamine.Data.Repositories
                 LogClient.Error("Could not connect to the database. Exception: {0}", ex.Message);
             }
 
+            return null;
+        }
 
+        private List<TrackV> GetTracksInternal(SQLiteConnection connection, string whereClause, QueryOptions queryOptions = null)
+        {
+            try
+            {
+                string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), whereClause, queryOptions);
+                return connection.Query<TrackV>(sql);
+            }
+            catch (Exception ex)
+            {
+                LogClient.Error("Query Failed. Exception: {0}", ex.Message);
+            }
+            return null;
+        }
+
+        private TrackV GetTrackInternal(string whereClause, QueryOptions queryOptions = null)
+        {
+            if (connection != null)
+                return GetTrackInternal(connection, whereClause, queryOptions);
+            try
+            {
+                using (var conn = factory.GetConnection())
+                {
+                    return GetTrackInternal(conn, whereClause, queryOptions);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogClient.Error("Could not connect to the database. Exception: {0}", ex.Message);
+            }
+            return null;
+        }
+
+        private TrackV GetTrackInternal(SQLiteConnection connection, string whereClause, QueryOptions queryOptions = null)
+        {
+            try
+            {
+                string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), whereClause, queryOptions);
+                return connection.FindWithQuery<TrackV>(sql);
+            }
+            catch (Exception ex)
+            {
+                LogClient.Error("Query Failed. Exception: {0}", ex.Message);
+            }
             return null;
         }
 
@@ -80,7 +126,6 @@ t.date_ignored as DateIgnored,
 t.date_file_created as DateFileCreated,
 t.date_file_modified as DateFileModified, 
 t.date_file_deleted as DateFileDeleted, 
-TrackIndexFailed.track_id is null as TrackIndexingSuccess,
 t.rating as Rating, 
 t.love as Love, 
 0 as PlayCount, 
@@ -97,7 +142,6 @@ LEFT JOIN Artists as Artists2 ON Artists2.id = ArtistCollectionsArtists.artist_i
 LEFT JOIN TrackGenres ON TrackGenres.track_id =t.id 
 LEFT JOIN Genres ON Genres.id = TrackGenres.genre_id  
 INNER JOIN Folders ON Folders.id = t.folder_id
-LEFT JOIN TrackIndexFailed ON TrackIndexFailed.track_id=t.id
 #WHERE#
 GROUP BY t.id
 #LIMIT#";
@@ -109,44 +153,6 @@ GROUP BY t.id
         }
 
  
-
-        public TrackV GetTrack(string path)
-        {
-            TrackV track = null;
-
-            try
-            {
-                using (var conn = this.factory.GetConnection())
-                {
-                    try
-                    {
-                        track = conn.Query<TrackV>("SELECT * FROM Track WHERE SafePath=?", path.ToSafePath()).FirstOrDefault();
-                    }
-                    catch (Exception ex)
-                    {
-                        LogClient.Error("Could not get the Track with Path='{0}'. Exception: {1}", path, ex.Message);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                LogClient.Error("Could not connect to the database. Exception: {0}", ex.Message);
-            }
-
-            return track;
-        }
-
-        public async Task<TrackV> GetTrackAsync(string path)
-        {
-            TrackV track = null;
-
-            await Task.Run(() =>
-            {
-                track = this.GetTrack(path);
-            });
-
-            return track;
-        }
 
         public async Task<RemoveTracksResult> RemoveTracksAsync(IList<TrackV> tracks)
         {
@@ -521,9 +527,9 @@ GROUP BY t.id
             return GetTracksInternal("t.path in (" + string.Join(",", paths.Select(x => String.Format("\"{0}\"", x))) + ")");
         }
 
-        public TrackV GetTrackWithPath(string path)
+        public TrackV GetTrackWithPath(string path, QueryOptions options = null)
         {
-            throw new NotImplementedException();
+            return GetTrackInternal(String.Format("t.path='{0}'", path.Replace("'", "''")), options);
         }
 
         public bool UpdateTrack(TrackV track)

@@ -5,30 +5,28 @@ namespace Dopamine.Services.Entities
 {
     public class FolderViewModel : BindableBase
     {
-        private Folder folder;
+        private FolderV folder;
 
-        public FolderViewModel(Folder folder)
+        public FolderViewModel(FolderV folder)
         {
             this.folder = folder;
         }
 
-        public Folder Folder => this.folder;
+        public FolderV Folder => this.folder;
 
         public string Path => this.folder.Path;
 
-        public string SafePath => this.folder.SafePath;
-
-        public long FolderId => this.folder.FolderID;
+        public long FolderId => this.folder.Id;
        
         public string Directory => System.IO.Path.GetFileName(this.folder.Path);
 
         public bool ShowInCollection
         {
-            get { return this.folder.ShowInCollection == 1 ? true : false; }
+            get { return this.folder.Show ? true : false; }
 
             set
             {
-                this.folder.ShowInCollection = value ? 1 : 0;
+                this.folder.Show = value;
                 RaisePropertyChanged(nameof(this.ShowInCollection));
             }
         }
@@ -40,12 +38,12 @@ namespace Dopamine.Services.Entities
                 return false;
             }
 
-            return string.Equals(this.SafePath, ((FolderViewModel)obj).SafePath);
+            return string.Equals(this.Path, ((FolderViewModel)obj).Path);
         }
 
         public override int GetHashCode()
         {
-            return this.SafePath.GetHashCode();
+            return this.Path.GetHashCode();
         }
 
         public override string ToString()

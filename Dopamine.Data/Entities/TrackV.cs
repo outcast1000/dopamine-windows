@@ -72,9 +72,11 @@ namespace Dopamine.Data.Entities
 
         public long? DateLastPlayed { get; set; }
 
-        public long DateIgnored { get; set; }
+        public long? DateIgnored { get; set; }
 
         public long FolderID { get; set; }
+
+        public string Language { get; set; }
 
         public static TrackV CreateDefault(string path)
         {

@@ -8,5 +8,8 @@ namespace Dopamine.Data
         IDeleteMediaFileUnitOfWork getDeleteMediaFileUnitOfWork();
         IIgnoreMediaFileUnitOfWork getIgnoreMediaFileUnitOfWork();
         IUpdateCollectionUnitOfWork getUpdateCollectionUnitOfWork();
+        IAddFolderUnitOfWork getAddFolderUnitOfWork();
+        IUpdateFolderUnitOfWork getUpdateFolderUnitOfWork();
+        IRemoveFolderUnitOfWork getRemoveFolderUnitOfWork();
     }
 }

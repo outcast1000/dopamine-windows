@@ -17,15 +17,17 @@ namespace Dopamine.Services.Folders
 {
     public class FoldersService : IFoldersService
     {
-        private IFolderRepository folderRepository;
+        private IFolderVRepository folderVRepository;
         private IPlaybackService playbackService;
+        private IUnitOfWorksFactory unitOfWorksFactory;
         private IList<FolderViewModel> toggledFolders = new List<FolderViewModel>();
         private object toggledFoldersLock = new object();
 
-        public FoldersService(IFolderRepository folderRepository, IPlaybackService playbackService)
+        public FoldersService(IFolderVRepository folderVRepository, IPlaybackService playbackService, IUnitOfWorksFactory unitOfWorksFactory)
         {
-            this.folderRepository = folderRepository;
+            this.folderVRepository = folderVRepository;
             this.playbackService = playbackService;
+            this.unitOfWorksFactory = unitOfWorksFactory;
         }
 
         public event EventHandler FoldersChanged = delegate { };
@@ -36,7 +38,7 @@ namespace Dopamine.Services.Folders
 
             try
             {
-                IList<Folder> folders = new List<Folder>();
+                IList<FolderV> folders = new List<FolderV>();
 
                 lock (this.toggledFoldersLock)
                 {
@@ -44,8 +46,7 @@ namespace Dopamine.Services.Folders
                     folders = this.toggledFolders.Select(x => x.Folder).ToList();
                     this.toggledFolders.Clear();
                 }
-
-                await this.folderRepository.UpdateFoldersAsync(folders);
+                unitOfWorksFactory.getUpdateFolderUnitOfWork().UpdateFolders(folders);
             }
             catch (Exception ex)
             {
@@ -86,7 +87,7 @@ namespace Dopamine.Services.Folders
 
         public async Task<IList<FolderViewModel>> GetFoldersAsync()
         {
-            IList<Folder> folders = await this.folderRepository.GetFoldersAsync();
+            IList<FolderV> folders = folderVRepository.GetFolders();
 
             IList<FolderViewModel> folderViewModels = new List<FolderViewModel>();
 
@@ -94,7 +95,7 @@ namespace Dopamine.Services.Folders
             {
                 await Task.Run(() =>
                 {
-                    foreach (Folder folder in folders)
+                    foreach (FolderV folder in folders)
                     {
                         folderViewModels.Add(new FolderViewModel(folder));
                     }
@@ -111,15 +112,17 @@ namespace Dopamine.Services.Folders
 
         public async Task<AddFolderResult> AddFolderAsync(string path)
         {
-            AddFolderResult result = await this.folderRepository.AddFolderAsync(path);
+            //AddFolderResult result = await this.folderVRepository.AddFolderAsync(path);
+            AddFolderResult result = unitOfWorksFactory.getAddFolderUnitOfWork().AddFolder(path);
 
             return result;
         }
 
         public async Task<RemoveFolderResult> RemoveFolderAsync(long folderId)
         {
-            RemoveFolderResult result = await this.folderRepository.RemoveFolderAsync(folderId);
-            
+            //RemoveFolderResult result = await this.folderVRepository.RemoveFolderAsync(folderId);
+            RemoveFolderResult result = unitOfWorksFactory.getRemoveFolderUnitOfWork().RemoveFolder(folderId);
+
             return result;
         }
 
@@ -134,12 +137,12 @@ namespace Dopamine.Services.Folders
             }
 
             if (string.IsNullOrEmpty(savedSelectedBrowseFolderPath) ||
-                !allFolders.Select(x => x.SafePath).Contains(savedSelectedBrowseFolderPath.ToSafePath()))
+                !allFolders.Select(x => x.Path).Contains(savedSelectedBrowseFolderPath.ToSafePath()))
             {
                 return allFolders.First();
             }
 
-            return allFolders.Where(x => x.SafePath.Equals(savedSelectedBrowseFolderPath.ToSafePath())).FirstOrDefault();
+            return allFolders.Where(x => x.Path.Equals(savedSelectedBrowseFolderPath.ToSafePath())).FirstOrDefault();
         }
 
         public async Task<IList<SubfolderViewModel>> GetSubfoldersAsync(FolderViewModel selectedRootFolder, SubfolderViewModel selectedSubfolder)
@@ -186,7 +189,7 @@ namespace Dopamine.Services.Folders
                             }
 
                             // If we're not browing the root folder, show a folder to go up 1 level.
-                            if (!subfolderPathToBrowse.ToSafePath().Equals(selectedRootFolder.SafePath))
+                            if (!subfolderPathToBrowse.ToSafePath().Equals(selectedRootFolder.Path))
                             {
                                 subFolders.Add(new SubfolderViewModel(subfolderPathToBrowse, true));
                             }
@@ -265,7 +268,7 @@ namespace Dopamine.Services.Folders
             IList<SubfolderBreadCrumbViewModel> subfolderBreadCrumbs = new List<SubfolderBreadCrumbViewModel>();
 
             // Add sub folders, if applicable.
-            while (!parentDirectoryPath.ToSafePath().Equals(selectedRootFolder.SafePath))
+            while (!parentDirectoryPath.Equals(selectedRootFolder.Path))
             {
                 subfolderBreadCrumbs.Add(new SubfolderBreadCrumbViewModel(parentDirectoryPath));
                 parentDirectoryPath = Directory.GetParent(parentDirectoryPath)?.FullName;

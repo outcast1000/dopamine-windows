@@ -35,7 +35,7 @@ namespace Dopamine.Services.Indexing
         private ITrackVRepository trackVRepository;
         private IAlbumVRepository albumVRepository;
         private IAlbumArtworkRepository albumArtworkRepository;
-        private IFolderRepository folderRepository;
+        private IFolderVRepository folderVRepository;
 
         // Factories
         private ISQLiteConnectionFactory factory;
@@ -71,19 +71,19 @@ namespace Dopamine.Services.Indexing
         }
 
         public IndexingService(ISQLiteConnectionFactory factory, ICacheService cacheService, IInfoDownloadService infoDownloadService,
-            ITrackVRepository trackVRepository, IFolderRepository folderRepository, IAlbumArtworkRepository albumArtworkRepository, IAlbumVRepository albumVRepository,
+            ITrackVRepository trackVRepository, IFolderVRepository folderVRepository, IAlbumArtworkRepository albumArtworkRepository, IAlbumVRepository albumVRepository,
             IUnitOfWorksFactory unitOfWorksFactory)
         {
             this.cacheService = cacheService;
             this.infoDownloadService = infoDownloadService;
             this.trackVRepository = trackVRepository;
             this.albumVRepository = albumVRepository;
-            this.folderRepository = folderRepository;
+            this.folderVRepository = folderVRepository;
             this.albumArtworkRepository = albumArtworkRepository;
             this.factory = factory;
             this.unitOfWorksFactory = unitOfWorksFactory;
 
-            this.watcherManager = new FolderWatcherManager(this.folderRepository);
+            this.watcherManager = new FolderWatcherManager(this.folderVRepository);
             this.cache = new IndexerCache(factory, trackVRepository);
 
             Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += SettingsClient_SettingChanged;
@@ -162,20 +162,16 @@ namespace Dopamine.Services.Indexing
 
             await this.watcherManager.StopWatchingAsync();
 
-
-            var allFolderPaths = new List<FolderPathInfo>();
-            List<Folder> folders = await this.folderRepository.GetFoldersAsync();
-            long addedFiles = 0;
-            long updatedFiles = 0;
-            long removedFiles = 0;
-            long failedFiles = 0;
-
             await Task.Run(() =>
             {
-
+                long addedFiles = 0;
+                long updatedFiles = 0;
+                long removedFiles = 0;
+                long failedFiles = 0; 
+                List<FolderV> folders = folderVRepository.GetFolders();
                 // Recursively get all the files in the collection folders
                 bool bContinue = true;
-                foreach (Folder fol in folders)
+                foreach (FolderV folder in folders)
                 {
                     //=== STEP 1. DELETE ALL THE FILES from the collections that have been deleted from the disk 
                     //=== Get All the paths from the DB (in chunks of 1000)
@@ -185,12 +181,12 @@ namespace Dopamine.Services.Indexing
                     const long limit = 1000;
                     while (true)
                     {
-                        IList<TrackV> tracks = trackVRepository.GetTracksOfFolders(new List<long>() { fol.FolderID }, new QueryOptions() { Limit = limit, Offset = offset, WhereIgnored = QueryOptionsBool.Ignore, WhereIndexingFailed = QueryOptionsBool.Ignore, WhereVisibleFolders = QueryOptionsBool.Ignore });
+                        IList<TrackV> tracks = trackVRepository.GetTracksOfFolders(new List<long>() { folder.Id }, new QueryOptions() { Limit = limit, Offset = offset, WhereIgnored = QueryOptionsBool.Ignore, WhereVisibleFolders = QueryOptionsBool.Ignore });
                         foreach (TrackV track in tracks)
                         {
                             if (!System.IO.File.Exists(track.Path))
                             {
-                                Trace.WriteLine(String.Format("File not found: {0}", track.Path));
+                                LogClientA.Info(String.Format("File not found: {0}", track.Path));
                                 using (IDeleteMediaFileUnitOfWork uow = unitOfWorksFactory.getDeleteMediaFileUnitOfWork())
                                 {
                                     if (uow.DeleteMediaFile(track.Id))
@@ -207,7 +203,7 @@ namespace Dopamine.Services.Indexing
                     //=== TODO Use a factory HERE
                     using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
                     {
-                        FileOperations.GetFiles(fol.Path,
+                        FileOperations.GetFiles(folder.Path,
                         (path) =>
                         {
                             //=== Check the extension
@@ -215,63 +211,75 @@ namespace Dopamine.Services.Indexing
                                 return;
 
                             //=== Check the DB for the path
-                            TrackV trackV = trackVRepository.GetTrack(path);
+                            TrackV trackV = uc.GetTrackWithPath(path);
                             long DateFileModified = FileUtils.DateModifiedTicks(path);
                             if (trackV != null && DateFileModified <= trackV.DateFileModified && !bReReadTags)
                             {
-                                LogClient.Info(String.Format("No need to reprocess the file {0}", path));
+                                //LogClientA.Info(String.Format("No need to reprocess the file {0}", path));
                                 return;
                             }
                             //=== Get File Info
-                            FileMetadata fileMetadata;
-                            try
-                            {
-                                fileMetadata = new FileMetadata(path);
-                            }
-                            catch (Exception ex)
-                            {
-                                LogClient.Info(String.Format("Unable to process the file {0} {1}", path, ex.Message));
-                                uc.AddIndexFailedMediaFile(path, fol.FolderID, "Unable to read metadata");
-                                failedFiles++;
-                                return;
-                            }
                             MediaFileData mediaFileData = new MediaFileData()
                             {
-                                Name = FormatUtils.TrimValue(fileMetadata.Title.Value),
                                 Path = path,
                                 Filesize = FileUtils.SizeInBytes(path),
-                                Bitrate = fileMetadata.BitRate,
-                                Samplerate = fileMetadata.SampleRate,
-                                Duration = Convert.ToInt64(fileMetadata.Duration.TotalMilliseconds),
-                                Year = (string.IsNullOrEmpty(fileMetadata.Year.Value) ? null : (long?)MetadataUtils.SafeConvertToLong(fileMetadata.Year.Value)),
                                 Language = null,
                                 DateAdded = DateTime.Now.Ticks,
-                                Rating = fileMetadata.Rating.Value == 0 ? null : (long?)fileMetadata.Rating.Value,//Should you take it from the file?
                                 Love = null,
                                 DateFileCreated = FileUtils.DateCreatedTicks(path),
                                 DateFileModified = DateFileModified,
                                 DateFileDeleted = null,
-                                DateIgnored = null,
-                                TrackNumber = string.IsNullOrEmpty(fileMetadata.TrackNumber.Value) ? null : (long?)MetadataUtils.SafeConvertToLong(fileMetadata.TrackNumber.Value),
-                                TrackCount = string.IsNullOrEmpty(fileMetadata.TrackCount.Value) ? null : (long?)MetadataUtils.SafeConvertToLong(fileMetadata.TrackCount.Value),
-                                DiscNumber = string.IsNullOrEmpty(fileMetadata.DiscNumber.Value) ? null : (long?)MetadataUtils.SafeConvertToLong(fileMetadata.DiscNumber.Value),
-                                DiscCount = string.IsNullOrEmpty(fileMetadata.DiscCount.Value) ? null : (long?)MetadataUtils.SafeConvertToLong(fileMetadata.DiscCount.Value),
-                                Lyrics = fileMetadata.Lyrics.Value,
-                                Artists = fileMetadata.Artists.Values,
-                                Genres = fileMetadata.Genres.Values,
-                                Album = FormatUtils.TrimValue(fileMetadata.Album.Value),
-                                AlbumArtists = fileMetadata.AlbumArtists.Values
+                                DateIgnored = null
                             };
+                            FileMetadata fileMetadata;
+                            try
+                            {
+                                fileMetadata = new FileMetadata(path);
+                                mediaFileData.Name = FormatUtils.TrimValue(fileMetadata.Title.Value);
+                                mediaFileData.Bitrate = fileMetadata.BitRate;
+                                mediaFileData.Samplerate = fileMetadata.SampleRate;
+                                mediaFileData.Duration = Convert.ToInt64(fileMetadata.Duration.TotalMilliseconds);
+                                mediaFileData.Year = (string.IsNullOrEmpty(fileMetadata.Year.Value) ? null : (long?)MetadataUtils.SafeConvertToLong(fileMetadata.Year.Value));
+                                mediaFileData.Rating = fileMetadata.Rating.Value == 0 ? null : (long?)fileMetadata.Rating.Value;//Should you take it from the file?
+                                mediaFileData.TrackNumber = string.IsNullOrEmpty(fileMetadata.TrackNumber.Value) ? null : (long?)MetadataUtils.SafeConvertToLong(fileMetadata.TrackNumber.Value);
+                                mediaFileData.TrackCount = string.IsNullOrEmpty(fileMetadata.TrackCount.Value) ? null : (long?)MetadataUtils.SafeConvertToLong(fileMetadata.TrackCount.Value);
+                                mediaFileData.DiscNumber = string.IsNullOrEmpty(fileMetadata.DiscNumber.Value) ? null : (long?)MetadataUtils.SafeConvertToLong(fileMetadata.DiscNumber.Value);
+                                mediaFileData.DiscCount = string.IsNullOrEmpty(fileMetadata.DiscCount.Value) ? null : (long?)MetadataUtils.SafeConvertToLong(fileMetadata.DiscCount.Value);
+                                mediaFileData.Lyrics = fileMetadata.Lyrics.Value;
+                                mediaFileData.Artists = fileMetadata.Artists.Values;
+                                mediaFileData.Genres = fileMetadata.Genres.Values;
+                                mediaFileData.Album = FormatUtils.TrimValue(fileMetadata.Album.Value);
+                                mediaFileData.AlbumArtists = fileMetadata.AlbumArtists.Values;
+                            }
+                            catch (Exception ex)
+                            {
+                                LogClientA.Info(String.Format("Unable to READ DATA from the file {0} {1}", path, ex.Message));
+                                mediaFileData.Name = Path.GetFileNameWithoutExtension(path);
+                                //=== TODO. Do something more advanced like getting tags from path
+                            }
+                            if (string.IsNullOrEmpty(mediaFileData.Name))
+                                mediaFileData.Name = Path.GetFileNameWithoutExtension(path);
 
                             if (trackV == null)
                             {
-                                if (uc.AddMediaFile(mediaFileData, fol.FolderID))
+                                LogClientA.Info(String.Format("Adding file: {0}", path));
+
+                                if (uc.AddMediaFile(mediaFileData, folder.Id))
                                     addedFiles++;
                                 else
                                     failedFiles++;
                             }
                             else
                             {
+                                LogClientA.Info(String.Format("Updating file: {0}", path));
+                                //= If we update the file we do not want to change these Dates
+                                mediaFileData.DateAdded = trackV.DateAdded;
+                                mediaFileData.DateIgnored = trackV.DateIgnored;
+                                //= If the file was previously deleted then now it seem that i re-emerged
+                                mediaFileData.DateFileDeleted = null;
+                                //== Love is not saved in tags
+                                mediaFileData.Love = trackV.Love;
+                                mediaFileData.Language = trackV.Language;
                                 if (uc.UpdateMediaFile(trackV, mediaFileData))
                                     updatedFiles++;
                                 else
@@ -285,7 +293,7 @@ namespace Dopamine.Services.Indexing
                             },
                             (ex) =>
                             {
-                                Debug.WriteLine("Exception: {0}", ex.Message);
+                                LogClientA.Info(String.Format("Exception: {0}", ex.Message));
                             });
                     }
                 }
@@ -988,19 +996,19 @@ namespace Dopamine.Services.Indexing
         private async Task<List<FolderPathInfo>> GetFolderPaths()
         {
             var allFolderPaths = new List<FolderPathInfo>();
-            List<Folder> folders = await this.folderRepository.GetFoldersAsync();
+            List<FolderV> folders = folderVRepository.GetFolders();
 
             await Task.Run(() =>
             {
         // Recursively get all the files in the collection folders
-        foreach (Folder fol in folders)
+        foreach (FolderV fol in folders)
                 {
                     if (Directory.Exists(fol.Path))
                     {
                         try
                         {
                     // Get all audio files recursively
-                    List<FolderPathInfo> folderPaths = FileOperations.GetValidFolderPaths(fol.FolderID, fol.Path, FileFormats.SupportedMediaExtensions);
+                    List<FolderPathInfo> folderPaths = FileOperations.GetValidFolderPaths(fol.Id, fol.Path, FileFormats.SupportedMediaExtensions);
                             allFolderPaths.AddRange(folderPaths);
                         }
                         catch (Exception ex)

@@ -19,7 +19,6 @@ namespace Dopamine.Data.Repositories
         public long Limit = 0;
         public long Offset = 0;
         public QueryOptionsBool WhereVisibleFolders = QueryOptionsBool.True;
-        public QueryOptionsBool WhereIndexingFailed = QueryOptionsBool.False;
         public QueryOptionsBool WhereIgnored = QueryOptionsBool.False;
         public QueryOptionsBool WhereDeleted = QueryOptionsBool.False;
     }
@@ -35,10 +34,12 @@ namespace Dopamine.Data.Repositories
             else if (usedOptions.WhereVisibleFolders == QueryOptionsBool.False)
                 where += "AND Folders.show = 0 ";
             //=== WhereIndexingFailed
+            /*
             if (usedOptions.WhereIndexingFailed == QueryOptionsBool.True)
                 where += "AND TrackIndexFailed.track_id is not null ";
             else if (usedOptions.WhereIndexingFailed == QueryOptionsBool.False)
                 where += "AND TrackIndexFailed.track_id is null ";
+            */
             //=== WhereIgnored
             if (usedOptions.WhereIgnored == QueryOptionsBool.True)
                 where += "AND t.date_ignored is not null ";

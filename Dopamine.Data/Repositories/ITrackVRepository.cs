@@ -19,11 +19,9 @@ namespace Dopamine.Data.Repositories
 
         List<TrackV> GetTracksWithPaths(IList<string> paths);
 
-        TrackV GetTrackWithPath(string path);
+        TrackV GetTrackWithPath(string path, QueryOptions options = null);
 
         List<TrackV> GetTracksBySearch(string searchString);
-
-        TrackV GetTrack(string path);
 
         RemoveTracksResult RemoveTracks(IList<long> tracksIds);
 

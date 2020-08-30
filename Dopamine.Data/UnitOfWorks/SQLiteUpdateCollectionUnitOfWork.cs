@@ -1,6 +1,8 @@
-﻿using Dopamine.Core.Extensions;
+﻿using Dopamine.Core.Alex;
+using Dopamine.Core.Extensions;
 using Dopamine.Data.Entities;
 using Dopamine.Data.Metadata;
+using Dopamine.Data.Repositories;
 using SQLite;
 using System;
 using System.Collections.Generic;
@@ -14,10 +16,14 @@ namespace Dopamine.Data.UnitOfWorks
     public class SQLiteUpdateCollectionUnitOfWork: IUpdateCollectionUnitOfWork
     {
         private SQLiteConnection conn;
+        private SQLiteTrackVRepository sQLiteTrackVRepository;
         public SQLiteUpdateCollectionUnitOfWork(SQLiteConnection conn)
         {
             this.conn = conn;
             this.conn.BeginTransaction();
+            sQLiteTrackVRepository = new SQLiteTrackVRepository(null);
+            sQLiteTrackVRepository.SetSQLiteConnection(conn);
+
         }
 
         public void Dispose()
@@ -28,32 +34,41 @@ namespace Dopamine.Data.UnitOfWorks
 
         public bool AddMediaFile(MediaFileData mediaFileData, long folderId)
         {
-            int added = conn.Insert(new Track2()
+            try
             {
-                Name = mediaFileData.Name,
-                Path = mediaFileData.Path,
-                FolderId = folderId,
-                Filesize = mediaFileData.Filesize,
-                Bitrate = mediaFileData.Bitrate,
-                Samplerate = mediaFileData.Samplerate,
-                Duration = mediaFileData.Duration,
-                Year = mediaFileData.Year,
-                Language = mediaFileData.Language,
-                DateAdded = mediaFileData.DateAdded,
-                Rating = mediaFileData.Rating,//Should you take it from the file?
-                Love = mediaFileData.Love,
-                DateFileCreated = mediaFileData.DateFileCreated,
-                DateFileModified = mediaFileData.DateFileModified, 
-                DateFileDeleted = mediaFileData.DateFileDeleted,
-                DateIgnored = mediaFileData.DateIgnored
-            });
-            if (added == 0)
+                int added = conn.Insert(new Track2()
+                {
+                    Name = mediaFileData.Name,
+                    Path = mediaFileData.Path,
+                    FolderId = folderId,
+                    Filesize = mediaFileData.Filesize,
+                    Bitrate = mediaFileData.Bitrate,
+                    Samplerate = mediaFileData.Samplerate,
+                    Duration = mediaFileData.Duration,
+                    Year = mediaFileData.Year,
+                    Language = mediaFileData.Language,
+                    DateAdded = mediaFileData.DateAdded,
+                    Rating = mediaFileData.Rating,//Should you take it from the file?
+                    Love = mediaFileData.Love,
+                    DateFileCreated = mediaFileData.DateFileCreated,
+                    DateFileModified = mediaFileData.DateFileModified,
+                    DateFileDeleted = mediaFileData.DateFileDeleted,
+                    DateIgnored = mediaFileData.DateIgnored
+                });
+                if (added == 0)
+                    return false;
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine(String.Format("AddMediaFile / Track2 Path: {0} Exce: {1}", mediaFileData.Path, ex.Message));
                 return false;
+            }
             long track_id = GetLastInsertRowID();
             //Add the (Album) artists in an artistCollection list
             List<long> artistCollection = new List<long>();
             if (!ListExtensions.IsNullOrEmpty<string>(mediaFileData.AlbumArtists))
             {
+                mediaFileData.AlbumArtists = mediaFileData.AlbumArtists.Distinct().ToList();
                 foreach (string artist in mediaFileData.AlbumArtists)
                 {
                     artistCollection.Add(GetArtistID(artist));
@@ -63,7 +78,7 @@ namespace Dopamine.Data.UnitOfWorks
             if (!ListExtensions.IsNullOrEmpty<string>(mediaFileData.Artists))
             {
                 bool bUseArtistForAlbumArtistCollection = artistCollection.Count == 0;
-
+                mediaFileData.Artists = mediaFileData.Artists.Distinct().ToList();
                 foreach (string artist in mediaFileData.Artists)
                 {
                     long curID = GetArtistID(artist);
@@ -96,13 +111,14 @@ namespace Dopamine.Data.UnitOfWorks
                 }
                 catch (SQLite.SQLiteException ex)
                 {
-                    Console.WriteLine("SQLiteException (Genres) {0}", ex.Message);
+                    Debug.WriteLine(String.Format("SQLiteException (Genres) {0}", ex.Message));
                 }
             }
 
 
             if (!ListExtensions.IsNullOrEmpty<string>(mediaFileData.Genres))
             {
+                mediaFileData.Genres = mediaFileData.Genres.Distinct().ToList();
                 foreach (string genre in mediaFileData.Genres)
                 {
                     long curID = GetGenreID(genre);
@@ -116,7 +132,7 @@ namespace Dopamine.Data.UnitOfWorks
                     }
                     catch (SQLite.SQLiteException ex)
                     {
-                        Console.WriteLine("SQLiteException (Genres) {0}", ex.Message);
+                        Debug.WriteLine(String.Format("SQLiteException (Genres) {0}", ex.Message));
                     }
 
                 }
@@ -124,32 +140,116 @@ namespace Dopamine.Data.UnitOfWorks
             return true;
         }
 
-        public bool AddIndexFailedMediaFile(string path, long folderId, string reason)
+        public bool UpdateMediaFile(TrackV trackV, MediaFileData mediaFileData)
         {
-            int added = conn.Insert(new Track2()
+            long track_id = trackV.Id;
+            long folder_id = trackV.FolderID;
+            int success = conn.Update(new Track2()
             {
-                Path = path,
-                FolderId = folderId
-                
+                Id = track_id,
+                Name = mediaFileData.Name,
+                Path = mediaFileData.Path,
+                FolderId = folder_id,
+                Filesize = mediaFileData.Filesize,
+                Bitrate = mediaFileData.Bitrate,
+                Samplerate = mediaFileData.Samplerate,
+                Duration = mediaFileData.Duration,
+                Year = mediaFileData.Year,
+                Language = mediaFileData.Language,
+                DateAdded = mediaFileData.DateAdded,
+                Rating = mediaFileData.Rating,
+                Love = mediaFileData.Love,
+                DateFileCreated = mediaFileData.DateFileCreated,
+                DateFileModified = mediaFileData.DateFileModified,
+                DateFileDeleted = mediaFileData.DateFileDeleted,
+                DateIgnored = mediaFileData.DateIgnored
             });
-            if (added == 0)
+            if (success == 0)
                 return false;
-            long track_id = GetLastInsertRowID();
-            conn.Insert(new TrackIndexFailed()
+            //Add the (Album) artists in an artistCollection list
+            List<long> artistCollection = new List<long>();
+            if (!ListExtensions.IsNullOrEmpty<string>(mediaFileData.AlbumArtists))
             {
-                TrackId = track_id,
-                IndexingFailureReason = reason,
-                DateHappened = DateTime.Now.Ticks
-            });
+                mediaFileData.AlbumArtists = mediaFileData.AlbumArtists.Distinct().ToList();
+                foreach (string artist in mediaFileData.AlbumArtists)
+                {
+                    artistCollection.Add(GetArtistID(artist));
+                }
+            }
+            //Add the artists
+            conn.Execute(String.Format("DELETE FROM TrackArtists WHERE track_id={0}", track_id));
+            if (!ListExtensions.IsNullOrEmpty<string>(mediaFileData.Artists))
+            {
+                mediaFileData.Artists = mediaFileData.Artists.Distinct().ToList();
+                bool bUseArtistForAlbumArtistCollection = artistCollection.Count == 0;
+
+                foreach (string artist in mediaFileData.Artists)
+                {
+                    long curID = GetArtistID(artist);
+                    if (bUseArtistForAlbumArtistCollection)
+                        artistCollection.Add(curID);
+                    conn.Insert(new TrackArtist()
+                    {
+                        TrackId = track_id,
+                        ArtistId = curID,
+                        ArtistRoleId = 1
+                    });
+                }
+            }
+
+            conn.Execute(String.Format("DELETE FROM TrackAlbums WHERE track_id={0}", track_id));
+            if (!string.IsNullOrEmpty(mediaFileData.Album))
+            {
+                long artistCollectionID = GetArtistCollectionID(artistCollection);
+                long albumID = GetAlbumID(mediaFileData.Album, artistCollectionID, mediaFileData.AlbumImage);
+                try
+                {
+                    conn.Insert(new TrackAlbum()
+                    {
+                        TrackId = track_id,
+                        AlbumId = albumID,
+                        TrackNumber = mediaFileData.TrackNumber,
+                        DiscNumber = mediaFileData.DiscNumber,
+                        TrackCount = mediaFileData.TrackCount,
+                        DiscCount = mediaFileData.DiscCount
+                    });
+                }
+                catch (SQLite.SQLiteException ex)
+                {
+                    Debug.WriteLine(String.Format("SQLiteException (Genres) {0}", ex.Message));
+                }
+            }
+
+
+            conn.Execute(String.Format("DELETE FROM TrackGenres WHERE track_id={0}", track_id));
+            if (!ListExtensions.IsNullOrEmpty<string>(mediaFileData.Genres))
+            {
+                mediaFileData.Genres = mediaFileData.Genres.Distinct().ToList();
+                foreach (string genre in mediaFileData.Genres)
+                {
+                    long curID = GetGenreID(genre);
+                    try
+                    {
+                        conn.Insert(new TrackGenre()
+                        {
+                            TrackId = track_id,
+                            GenreId = curID
+                        });
+                    }
+                    catch (SQLite.SQLiteException ex)
+                    {
+                        Debug.WriteLine(String.Format("SQLiteException (Genres) {0}", ex.Message));
+                    }
+
+                }
+            }
             return true;
         }
 
-        public bool UpdateMediaFile(TrackV trackV, MediaFileData mediaFileData)
+        public TrackV GetTrackWithPath(string path)
         {
-            throw new NotImplementedException();
+            return sQLiteTrackVRepository.GetTrackWithPath(path, new QueryOptions() {WhereDeleted = QueryOptionsBool.Ignore, WhereIgnored = QueryOptionsBool.Ignore, WhereVisibleFolders = QueryOptionsBool.Ignore, UseLimit=false });
         }
-
-
 
         private long GetArtistID(String entry)
         {
@@ -162,7 +262,7 @@ namespace Dopamine.Data.UnitOfWorks
                 }
                 catch (SQLite.SQLiteException ex)
                 {
-                    Console.WriteLine("SQLiteException (GetArtistID) {0}", ex.Message);
+                    Debug.WriteLine(String.Format("SQLiteException (GetArtistID) {0}", ex.Message));
                 }
                 return GetLastInsertRowID();
             }
@@ -239,5 +339,8 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
             SQLiteCommand cmdLastRow = conn.CreateCommand(@"select last_insert_rowid()");
             return cmdLastRow.ExecuteScalar<long>();
         }
+
     }
+
+
 }

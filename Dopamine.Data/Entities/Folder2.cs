@@ -13,5 +13,8 @@ namespace Dopamine.Data.Entities
 
         [Column("show"), Indexed(), NotNull()]
         public long Show { get; set; }
+
+        [Column("date_added")]
+        public long DateAdded { get; set; }
     }
 }

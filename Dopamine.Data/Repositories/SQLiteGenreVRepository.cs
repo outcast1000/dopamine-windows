@@ -76,7 +76,6 @@ LEFT JOIN Genres ON TrackGenres.genre_id = Genres.id
 LEFT JOIN GenreThumbnail ON Genres.id = GenreThumbnail.genre_id 
 LEFT JOIN TrackArtists ON TrackArtists.track_id = t.id
 LEFT JOIN Artists ON Artists.id = TrackArtists.artist_id
-LEFT JOIN TrackIndexFailed ON TrackIndexFailed.track_id = t.id
 LEFT JOIN Folders ON Folders.id = t.folder_id
 #WHERE# 
 GROUP BY Genres.id

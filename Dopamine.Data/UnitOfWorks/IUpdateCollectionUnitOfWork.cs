@@ -40,7 +40,7 @@ namespace Dopamine.Data.UnitOfWorks
     public interface IUpdateCollectionUnitOfWork: IDisposable
     {
         bool AddMediaFile(MediaFileData mediaFileData, long folderId);
-        bool AddIndexFailedMediaFile(string path, long folderId, string reason);
         bool UpdateMediaFile(TrackV trackV, MediaFileData mediaFileData);
+        TrackV GetTrackWithPath(string path);
     }
 }

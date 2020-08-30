@@ -158,7 +158,6 @@ namespace Dopamine.Data
                 conn.Execute("DROP TABLE IF EXISTS TrackAlbums;");
                 conn.Execute("DROP TABLE IF EXISTS TrackLyrics;");
                 conn.Execute("DROP TABLE IF EXISTS TrackGenres;");
-                conn.Execute("DROP TABLE IF EXISTS TrackIndexFailed;");
                 conn.Execute("DROP TABLE IF EXISTS Tracks;");
 
                 conn.Execute("DROP TABLE IF EXISTS GenreImages;");
@@ -195,7 +194,7 @@ namespace Dopamine.Data
                             "biography          TEXT NOT NULL," +
                             "source             TEXT," +
                             "language           TEXT," +
-                            "date_added         INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP," +
+                            "date_added         INTEGER NOT NULL," +
                             "FOREIGN KEY (artist_id) REFERENCES Artists(id));");
 
                 conn.Execute("CREATE UNIQUE INDEX ArtistBiographiesArtistIDIndex ON ArtistBiographies(artist_id);");
@@ -205,7 +204,7 @@ namespace Dopamine.Data
                             "artist_id          INTEGER," +
                             "key                TEXT NOT NULL," +
                             "source             TEXT," +
-                            "date_added         INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP," +
+                            "date_added         INTEGER NOT NULL," +
                             "FOREIGN KEY (artist_id) REFERENCES Artists(id));");
 
                 conn.Execute("CREATE INDEX ArtistImagesArtistIDIndex ON ArtistImages(artist_id);");
@@ -246,7 +245,7 @@ namespace Dopamine.Data
                             "review             TEXT NOT NULL," +
                             "source             TEXT," +
                             "language           TEXT," +
-                            "date_added         INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP," +
+                            "date_added         INTEGER NOT NULL," +
                             "FOREIGN KEY(album_id) REFERENCES Albums(id));");
 
                 conn.Execute("CREATE UNIQUE INDEX AlbumReviewsAlbumIDIndex ON AlbumReviews(album_id);");
@@ -256,7 +255,7 @@ namespace Dopamine.Data
                             "album_id           INTEGER NOT NULL," +
                             "key                TEXT NOT NULL," +
                             "source             TEXT," +
-                            "date_added         INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP," +
+                            "date_added         INTEGER NOT NULL," +
                             "FOREIGN KEY(album_id) REFERENCES Albums(id));");
 
                 conn.Execute("CREATE INDEX AlbumImagesAlbumIDIndex ON AlbumImages(album_id);");
@@ -272,7 +271,7 @@ namespace Dopamine.Data
                 //=== AlbumFailedIndexing: (One 2 One) Each Album may have only one failed indexing record
                 conn.Execute("CREATE TABLE AlbumFailedIndexing (" +
                             "album_id          INTEGER," +
-                            "date_added        INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP," +
+                            "date_added        INTEGER NOT NULL," +
                             "FOREIGN KEY (album_id) REFERENCES Albums(id));");
 
                 conn.Execute("CREATE UNIQUE INDEX AlbumFailedIndexingAlbumIDIndex ON AlbumFailedIndexing(album_id);");
@@ -289,7 +288,7 @@ namespace Dopamine.Data
                             "genre_id           INTEGER," +
                             "key                TEXT NOT NULL," +
                             "source             TEXT," +
-                            "date_added         INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP," +
+                            "date_added         INTEGER NOT NULL," +
                             "FOREIGN KEY (genre_id) REFERENCES Genres(id));");
 
                 conn.Execute("CREATE INDEX GenreImagesArtistIDIndex ON GenreImages(genre_id);");
@@ -306,6 +305,7 @@ namespace Dopamine.Data
                 conn.Execute("CREATE TABLE Folders (" +
                             "id                     INTEGER PRIMARY KEY AUTOINCREMENT," +
                             "path                   TEXT," +
+                            "date_added             INTEGER NOT NULL," +
                             "show                   INTEGER DEFAULT 1);");
 
                 conn.Execute("CREATE UNIQUE INDEX FoldersPath ON Folders(path);");
@@ -322,7 +322,7 @@ namespace Dopamine.Data
                             "duration           INTEGER," +
                             "year	            INTEGER," +
                             "language           TEXT," +
-                            "date_added	        INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP," +
+                            "date_added	        INTEGER," +
                             "date_ignored       INTEGER," +
                             "rating	            INTEGER," +
                             "love	            INTEGER," +
@@ -389,13 +389,14 @@ namespace Dopamine.Data
                             "lyrics             TEXT NOT NULL COLLATE NOCASE," +
                             "source             TEXT," +
                             "language           TEXT," +
-                            "date_added         INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP," +
+                            "date_added         INTEGER NOT NULL," +
                             "FOREIGN KEY (track_id) REFERENCES Tracks(id));");
 
                 conn.Execute("CREATE UNIQUE INDEX TrackLyricsTrackIDIndex ON TrackLyrics(track_id);");
                 conn.Execute("CREATE INDEX TrackLyricsLyricsIndex ON TrackLyrics(lyrics);");
 
-                //=== TrackIndexing: (One 2 One) Each Track may have zero or one Indexing record 
+                //=== TrackIndexFailed: (One 2 One) Each Track may have zero or one Indexing record 
+                /*
                 conn.Execute("CREATE TABLE TrackIndexFailed (" +
                             "track_id                       INTEGER," +
                             "indexing_failure_reason        TEXT," +
@@ -403,6 +404,7 @@ namespace Dopamine.Data
                             "FOREIGN KEY (track_id) REFERENCES Tracks(id));");
 
                 conn.Execute("CREATE UNIQUE INDEX TrackIndexFailedTrackIDIndex ON TrackIndexFailed(track_id);");
+                */
 
                 //=== HistoryActions: Should include Added, Deleted, Modified, Played, AutoPlayed, Skipped, Rated, Loved
                 conn.Execute("CREATE TABLE HistoryActions (" +
@@ -418,7 +420,7 @@ namespace Dopamine.Data
                             "track_id               INTEGER NOT NULL," +
                             "history_action_id      INTEGER NOT NULL," +
                             "history_action_extra   TEXT," +
-                            "date_happened          INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP," +
+                            "date_happened          INTEGER NOT NULL," +
                             "FOREIGN KEY (track_id) REFERENCES Tracks(id)," +
                             "FOREIGN KEY (history_action_id) REFERENCES HistoryActions(id));");
 
@@ -434,10 +436,12 @@ namespace Dopamine.Data
 
 
                 List<Folder> folders = conn.Table<Folder>().ToList();
+                Dictionary<long, long> folderMapID = new Dictionary<long, long>();
                 foreach (Folder folder in folders)
                 {
-                    Trace.WriteLine("Migrating Folder {0}", folder.Path);
+                    Console.WriteLine(String.Format("Migrating Folder: {0}", folder.Path));
                     conn.Insert(new Folder2() { Path = folder.Path, Show = folder.ShowInCollection });
+                    folderMapID[folder.FolderID] = GetLastInsertRowID(conn);
                 }
 
                 // Get all the items from "track" table. Add them to the new structure
@@ -465,11 +469,11 @@ namespace Dopamine.Data
                 foreach (Track track in tracks)
                 {
 
-                    Trace.WriteLine("Migrating File {0}", track.Path);
+                    Trace.WriteLine(String.Format("Migrating File {0}", track.Path));
                     if (track.TrackTitle == null)
                         Trace.WriteLine("TrackTitle is null");
 
-                    List<FolderTrack> folderTrackIDs = conn.Query<FolderTrack>(@"SELECT * FROM FolderTrack WHERE TrackID=?", track.TrackID);
+                    FolderTrack folderTrackID = conn.FindWithQuery<FolderTrack>(@"SELECT * FROM FolderTrack WHERE TrackID=?", track.TrackID);
                     uc.AddMediaFile(new MediaFileData()
                     {
                         Name = track.TrackTitle,
@@ -498,238 +502,12 @@ namespace Dopamine.Data
                         //Lyrics = track.l
                         TrackCount = track.TrackCount,
                         TrackNumber = track.TrackNumber
-                    }, folderTrackIDs[0].FolderID);
+                    }, folderMapID[folderTrackID.FolderID]);
 
-                    /*
-
-                    conn.Insert(new Track2()
-                    {
-                        Name = track.TrackTitle,
-                        Path = track.Path,
-                        FolderId = folderTrackIDs[0].FolderID,
-                        Filesize = track.FileSize,
-                        Bitrate = track.BitRate,
-                        Samplerate = track.SampleRate,
-                        Duration = track.Duration,
-                        Year = track.Year > 0 ? track.Year : null,
-                        Language = null,
-                        DateAdded = track.DateAdded,
-                        Rating = track.Rating,
-                        Love = track.Love,
-                        DateFileCreated = track.DateFileCreated,
-                        DateFileModified = track.DateFileModified
-                    });
-                    long track_id = GetLastInsertRowID(conn);
-
-
-                    //Add the (Album) artists
-                    List<long> artistCollection = new List<long>();
-
-
-                    if (!string.IsNullOrEmpty(track.AlbumArtists))
-                    {
-                        string[] artists = track.AlbumArtists.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
-                        for (int i = 0; i < artists.Length; i++)
-                        {
-                            long curID = GetArtistID(conn, artists[i]);
-                            artistCollection.Add(curID);
-                        }
-                    }
-
-                    //Add the artists
-                    if (!string.IsNullOrEmpty(track.Artists))
-                    {
-                        bool bUseArtistForAlbumArtistCollection = artistCollection.Count == 0;
-
-                        string[] artists = track.Artists.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
-                        for (int i = 0; i < artists.Length; i++)
-                        {
-                            long curID = GetArtistID(conn, artists[i]);
-                            if (bUseArtistForAlbumArtistCollection)
-                                artistCollection.Add(curID);
-                            conn.Insert(new TrackArtist()
-                            {
-                                TrackId = track_id,
-                                ArtistId = curID,
-                                ArtistRoleId = 1
-                            });
-                        }
-                    }
-                    if (!string.IsNullOrEmpty(track.AlbumTitle))
-                    {
-                        long artistCollectionID = GetArtistCollectionID(conn, artistCollection);
-                        long albumID = GetAlbumID(conn, track.AlbumTitle, artistCollectionID, track.AlbumImage);
-                        try
-                        {
-                            conn.Insert(new TrackAlbum()
-                            {
-                                TrackId = track_id,
-                                AlbumId = albumID,
-                                TrackNumber = track.TrackNumber,
-                                DiscNumber = track.DiscNumber,
-                                TrackCount = track.TrackCount,
-                                DiscCount = track.DiscCount
-                            });
-                        }
-                        catch (SQLite.SQLiteException ex)
-                        {
-                            Console.WriteLine("SQLiteException (Genres) {0}", ex.Message);
-                        }
-                    }
-
-
-
-                    if (!string.IsNullOrEmpty(track.Genres))
-                    {
-                        string[] genres = track.Genres.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
-                        for (int i = 0; i < genres.Length; i++)
-                        {
-                            long curID = GetGenreID(conn, genres[i]);
-                            try
-                            {
-                                conn.Insert(new TrackGenre()
-                                {
-                                    TrackId = track_id,
-                                    GenreId = curID
-                                });
-                            }
-                            catch (SQLite.SQLiteException ex)
-                            {
-                                Console.WriteLine("SQLiteException (Genres) {0}", ex.Message);
-                            }
-
-                        }
-                    }
-                    */
                     Console.WriteLine("Stats: {0} files/sec", (1000.0 * ++tracksMigrated / (Environment.TickCount - timeStarted)));
-
-
                 }
-
-                conn.Execute("COMMIT;");
-
-
-
-
-                //=== TODO
-                // Check if we can have all the queries that we need
-                // Check the album art etc.
-                // Create the repositories
-                // Replace the old db handling
-                // Create a proper migration
-
-                /* SAMPLE QUERIES
------ GET ALL TRACKS
-SELECT t.name as title, GROUP_CONCAT(DISTINCT Artists.name) as artist, GROUP_CONCAT(DISTINCT Albums.name) as album, GROUP_CONCAT(DISTINCT Genres.name) as genre,t."path" 
-from Tracks t 
-LEFT JOIN TrackArtists ON TrackArtists.track_id =t.id 
-LEFT JOIN Artists ON Artists.id =TrackArtists.artist_id  
-LEFT JOIN TrackAlbums ON TrackAlbums.track_id =t.id 
-LEFT JOIN Albums ON Albums.id =TrackAlbums.album_id  
-LEFT JOIN TrackGenres ON TrackGenres.track_id =t.id 
-LEFT JOIN Genres ON Genres.id =TrackGenres.genre_id  
-GROUP BY t.id 
-
-
------ GET ALL ARTISTS (GROUP)
-SELECT Artists.name, COUNT(t.id) 
-from Tracks t
-LEFT JOIN TrackArtists  ON TrackArtists.track_id =t.id 
-LEFT JOIN Artists ON Artists.id =TrackArtists.artist_id  
-LEFT JOIN TrackIndexing ON TrackIndexing.track_id=t.id
-INNER JOIN Folders ON Folders.id = t.folder_id
-WHERE Folders.show = 1 AND TrackIndexing.indexing_success is null AND TrackIndexing.needs_indexing is null
-GROUP BY Artists.id
-
------ GET THE ALBUMS OF AN ARTIST
-SELECT Albums.name, COUNT(t.id) 
-from Tracks t
-LEFT JOIN TrackAlbums  ON TrackAlbums.track_id =t.id 
-LEFT JOIN Albums  ON TrackAlbums.album_id =Albums.id 
-LEFT JOIN TrackArtists  ON TrackArtists.track_id =t.id 
-LEFT JOIN Artists ON Artists.id =TrackArtists.artist_id  
-WHERE Artists.name="Black Angels"
-GROUP BY Albums.id
-ORDER BY Albums.name
-
------ GET ALL GENRES OF AN ARTIST
-SELECT Genres.name, COUNT(t.id) 
-from Tracks t
-LEFT JOIN TrackGenres  ON TrackGenres.track_id =t.id 
-LEFT JOIN Genres  ON TrackGenres.genre_id=Genres.id 
-LEFT JOIN TrackArtists  ON TrackArtists.track_id =t.id 
-LEFT JOIN Artists ON Artists.id =TrackArtists.artist_id  
-WHERE Artists.name="Black Angels"
-GROUP BY Genres.id
-ORDER BY Genres.name
-
------ GET ALL ALBUMS (GROUP BY Album Name / DISTINCT ARTIST) RATING: 8
-SELECT Albums.name as album, GROUP_CONCAT(DISTINCT Artists.name) as artist, COUNT(t.id) 
-from Tracks t
-LEFT JOIN TrackAlbums  ON TrackAlbums.track_id =t.id 
-LEFT JOIN Albums  ON TrackAlbums.album_id =Albums.id 
-LEFT JOIN TrackArtists  ON TrackArtists.track_id =t.id 
-LEFT JOIN Artists ON Artists.id =TrackArtists.artist_id  
-GROUP BY Albums.name 
-ORDER BY Albums.name
-
------ GET ALL ARTISTS OF AN ALBUM
-SELECT Artists.name as artist, COUNT(t.id) 
-from Tracks t
-LEFT JOIN TrackAlbums  ON TrackAlbums.track_id =t.id 
-LEFT JOIN Albums  ON TrackAlbums.album_id =Albums.id 
-LEFT JOIN TrackArtists  ON TrackArtists.track_id =t.id 
-LEFT JOIN Artists ON Artists.id =TrackArtists.artist_id 
-WHERE Albums.name = "Reflections"
-GROUP BY Artists.name 
-ORDER BY COUNT(t.id) DESC
-
------ GET ALL GENRES OF AN ALBUM
-SELECT Genres.name as genre, COUNT(t.id) 
-from Tracks t
-LEFT JOIN TrackAlbums  ON TrackAlbums.track_id =t.id 
-LEFT JOIN Albums  ON TrackAlbums.album_id =Albums.id 
-LEFT JOIN TrackGenres  ON TrackGenres.track_id =t.id 
-LEFT JOIN Genres ON Genres.id =TrackGenres.genre_id 
-WHERE Albums.name = "Reflections"
-GROUP BY Genres.name 
-ORDER BY COUNT(t.id) DESC
-
-***** PROBLEM For some reason the GROUP_CONCAT(DISTINCT Artists.name, "|") is not working. There is no option but to use the default "," separator
-***** PROBLEM 2. Different albums with the same name
-
------ FULL SEARCH
-SELECT t.name as title, GROUP_CONCAT(DISTINCT Artists.name) as artist, GROUP_CONCAT(DISTINCT Albums.name) as album, GROUP_CONCAT(DISTINCT Genres.name) as genre,t."path" 
-from Tracks t 
-LEFT JOIN TrackArtists ON TrackArtists.track_id =t.id 
-LEFT JOIN Artists ON Artists.id =TrackArtists.artist_id  
-LEFT JOIN TrackAlbums ON TrackAlbums.track_id =t.id 
-LEFT JOIN Albums ON Albums.id =TrackAlbums.album_id  
-LEFT JOIN TrackGenres ON TrackGenres.track_id =t.id 
-LEFT JOIN Genres ON Genres.id =TrackGenres.genre_id  
-WHERE 
-(t.name like "%gimm%" 
-OR Albums.name like "%gimm%" 
-OR Artists.name like "%gimm%")
-AND 
-(t.name like "%st%" 
-OR Albums.name like "%st%" 
-OR Artists.name like "%st%")
-GROUP BY t.id 
-
-
-
-
-
-
-
-
-                */
-
-
-
-
-
+                uc.Dispose();
+                
 
             }
         }
@@ -745,7 +523,7 @@ GROUP BY t.id
                 }
                 catch (SQLite.SQLiteException ex)
                 {
-                    Console.WriteLine("SQLiteException (GetArtistID) {0}", ex.Message);
+                    Debug.WriteLine(String.Format("SQLiteException (GetArtistID) {0}", ex.Message));
                 }
                 return GetLastInsertRowID(conn);
             }
@@ -1842,7 +1620,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 {
                     this.userDatabaseVersion = Convert.ToInt32(conn.ExecuteScalar<string>("SELECT Value FROM Configuration WHERE Key = 'DatabaseVersion'"));
                     //=== ALEX DEBUG. USE "26" to force the update. "27" to avoid it. Reenable the Execute scalar
-                    userDatabaseVersion = 27;
+                    userDatabaseVersion = 26;
                 }
                 catch (Exception)
                 {

@@ -104,6 +104,7 @@
     <Compile Include="DbMigrator.cs" />
     <Compile Include="Entities\AlbumThumbnail.cs" />
     <Compile Include="Entities\AlbumImages.cs" />
+    <Compile Include="Entities\FolderV.cs" />
     <Compile Include="Entities\AlbumV.cs" />
     <Compile Include="Entities\ArtistCollectionsArtist.cs" />
     <Compile Include="Entities\ArtistCollection.cs" />
@@ -118,7 +119,7 @@
     <Compile Include="Entities\FolderTrack.cs" />
     <Compile Include="Entities\QueuedTrack.cs" />
     <Compile Include="Entities\RemovedTrack.cs" />
-    <Compile Include="Entities\TrackIndexFailed.cs" />
+    <None Include="Entities\TrackIndexFailed.cs.disabled" />
     <Compile Include="Entities\TrackV.cs" />
     <Compile Include="Entities\Track.cs" />
     <Compile Include="Entities\TrackGenre.cs" />
@@ -127,6 +128,8 @@
     <Compile Include="Entities\Track2.cs" />
     <Compile Include="Entities\TrackStatistic.cs" />
     <Compile Include="Enums.cs" />
+    <Compile Include="Repositories\SQLiteFolderVRepository.cs" />
+    <Compile Include="Repositories\IFolderVRepository.cs" />
     <Compile Include="SQLiteUnitOfWorksFactory.cs" />
     <Compile Include="IUnitOfWorksFactory.cs" />
     <Compile Include="ISQLiteConnectionFactory.cs" />
@@ -153,6 +156,12 @@
     <Compile Include="Repositories\AlbumArtworkRepository.cs" />
     <Compile Include="Repositories\FolderRepository.cs" />
     <Compile Include="Repositories\IAlbumArtworkRepository.cs" />
+    <Compile Include="UnitOfWorks\SQLiteUpdateFolderUnitOfWork.cs" />
+    <Compile Include="UnitOfWorks\SQLiteRemoveFolderUnitOfWork.cs" />
+    <Compile Include="UnitOfWorks\SQLiteAddFolderUnitOfWork.cs" />
+    <Compile Include="UnitOfWorks\IUpdateFolderUnitOfWork.cs" />
+    <Compile Include="UnitOfWorks\IRemoveFolderUnitOfWork.cs" />
+    <Compile Include="UnitOfWorks\IAddFolderUnitOfWork.cs" />
     <Compile Include="UnitOfWorks\SQLiteDeleteTrackUnitOfWork.cs" />
     <Compile Include="UnitOfWorks\IIgnoreTrackUnitOfWork.cs" />
     <Compile Include="UnitOfWorks\SQLiteIgnoreTrackUnitOfWork.cs" />

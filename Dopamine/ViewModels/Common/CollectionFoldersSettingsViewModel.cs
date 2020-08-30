@@ -106,7 +106,7 @@ namespace Dopamine.ViewModels.Common
 
                 lock (this.Folders)
                 {
-                    this.foldersService.ToggleFolderAsync(this.Folders.Where((f) => f.Folder.FolderID == folderId).FirstOrDefault());
+                    this.foldersService.ToggleFolderAsync(this.Folders.Where((f) => f.Folder.Id == folderId).FirstOrDefault());
                 }
             });
 

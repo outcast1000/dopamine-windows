@@ -18,7 +18,6 @@ namespace Dopamine.Services.Collection
 {
     public class CollectionService : ICollectionService
     {
-        private IFolderRepository folderRepository;
         private ICacheService cacheService;
         private IPlaybackService playbackService;
         private IContainerProvider container;
@@ -28,12 +27,13 @@ namespace Dopamine.Services.Collection
         private IArtistVRepository artistVRepository;
         private IAlbumVRepository albumVRepository;
         private IGenreVRepository genreVRepository;
+        private IFolderVRepository folderVRepository;
 
 
-        public CollectionService(ITrackVRepository trackVRepository, IFolderRepository folderRepository, ICacheService cacheService, IPlaybackService playbackService, IContainerProvider container,
+        public CollectionService(ITrackVRepository trackVRepository, IFolderVRepository folderVRepository, ICacheService cacheService, IPlaybackService playbackService, IContainerProvider container,
             IArtistVRepository artistVRepository, IAlbumVRepository albumVRepository, IGenreVRepository genreVRepository)
         {
-            this.folderRepository = folderRepository;
+            this.folderVRepository = folderVRepository;
             this.cacheService = cacheService;
             this.playbackService = playbackService;
             this.container = container;

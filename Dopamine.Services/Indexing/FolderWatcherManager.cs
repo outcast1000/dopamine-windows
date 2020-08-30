@@ -12,14 +12,14 @@ namespace Dopamine.Services.Indexing
 {
     internal class FolderWatcherManager
     {
-        private IFolderRepository folderRepository;
+        private IFolderVRepository folderVRepository;
         private IList<GentleFolderWatcher> watchers = new List<GentleFolderWatcher>();
 
         public event EventHandler FoldersChanged = delegate { };
 
-        public FolderWatcherManager(IFolderRepository folderRepository)
+        public FolderWatcherManager(IFolderVRepository folderVRepository)
         {
-            this.folderRepository = folderRepository;
+            this.folderVRepository = folderVRepository;
         }
 
         private void Watcher_FolderChanged(object sender, EventArgs e)
@@ -34,9 +34,9 @@ namespace Dopamine.Services.Indexing
         {
             await this.StopWatchingAsync();
 
-            List<Folder> folders = await this.folderRepository.GetFoldersAsync();
+            List<FolderV> folders = folderVRepository.GetFolders();
 
-            foreach (Folder fol in folders)
+            foreach (FolderV fol in folders)
             {
                 if (Directory.Exists(fol.Path))
                 {

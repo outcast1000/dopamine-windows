@@ -1,26 +1,29 @@
-﻿using Dopamine.Data.Entities;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using Digimezzo.Foundation.Core.Logging;
+using Dopamine.Core.Extensions;
+using Dopamine.Data.Entities;
 using System;
-using Digimezzo.Foundation.Core.Logging;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Dopamine.Data.Repositories
 {
-    public class SQLiteArtistVRepository: IArtistVRepository
+    public class SQLiteFolderVRepository : IFolderVRepository
     {
         private ISQLiteConnectionFactory factory;
 
-        public SQLiteArtistVRepository(ISQLiteConnectionFactory factory)
+        public SQLiteFolderVRepository(ISQLiteConnectionFactory factory)
         {
             this.factory = factory;
         }
 
-        public List<ArtistV> GetArtists()
+        public List<FolderV> GetFolders()
         {
-            return GetArtistsInternal();
+            return GetFoldersInternal();
         }
 
-        private List<ArtistV> GetArtistsInternal(string whereClause = "", QueryOptions queryOptions = null)
+
+        private List<FolderV> GetFoldersInternal()
         {
             try
             {
@@ -28,8 +31,8 @@ namespace Dopamine.Data.Repositories
                 {
                     try
                     {
-                        string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), whereClause, queryOptions);
-                        return conn.Query<ArtistV>(sql);
+                        string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), null, null);
+                        return conn.Query<FolderV>(sql);
                     }
                     catch (Exception ex)
                     {
@@ -42,42 +45,38 @@ namespace Dopamine.Data.Repositories
                 LogClient.Error("Could not connect to the database. Exception: {0}", ex.Message);
             }
 
-            
+
             return null;
         }
         private string GetSQLTemplate()
         {
             return @"
 SELECT
-Artists.ID as Id,
-Artists.name as Name,
+Folders.ID as Id,
+Folders.path as Path,
+Folders.show as Show,
+Folders.date_added as DateAdded,
 COUNT(t.id) as TrackCount,
 COUNT(DISTINCT Genres.id ) as GenreCount,
-GROUP_CONCAT(DISTINCT Genres.name ) as Genres,
 COUNT(DISTINCT Albums.id ) as AlbumCount,
-GROUP_CONCAT(DISTINCT Albums.name ) as Albums,
-ArtistThumbnail.key as Thumbnail ,
+COUNT(DISTINCT Artists.id ) as ArtistsCount,
 MIN(t.year) as MinYear,
 MAX(t.year) as MaxYear,
-MIN(t.date_added) as DateAdded,
-MIN(t.date_file_created) as DateFileCreated
-from Tracks t
+SUM(t.duration) as TotalDuration,
+SUM(t.fileSize) as TotalFileSize,
+AVG(t.bitrate) as AverageBitrate
+FROM Folders
+LEFT JOIN Tracks t ON Folders.id = t.folder_id
 LEFT JOIN TrackArtists  ON TrackArtists.track_id = t.id
 LEFT JOIN Artists ON Artists.id = TrackArtists.artist_id
-LEFT JOIN ArtistThumbnail ON Artists.id = ArtistThumbnail.artist_id
 LEFT JOIN TrackAlbums ON TrackAlbums.track_id = t.id
 LEFT JOIN Albums ON Albums.id = TrackAlbums.album_id
 LEFT JOIN TrackGenres ON TrackGenres.track_id = t.id
 LEFT JOIN Genres ON TrackGenres.genre_id = Genres.id
-INNER JOIN Folders ON Folders.id = t.folder_id
-#WHERE#
-GROUP BY Artists.id
-ORDER BY Artists.name
-#LIMIT#
+GROUP BY Folders.id
 ";
-        }    
+        }
+
+
     }
-
-
-
 }

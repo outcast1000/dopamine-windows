@@ -223,7 +223,7 @@ namespace Dopamine
 
             void RegisterRepositories()
             {
-                containerRegistry.RegisterSingleton<IFolderRepository, FolderRepository>();
+                //containerRegistry.RegisterSingleton<IFolderRepository, FolderRepository>();
                 containerRegistry.RegisterSingleton<IAlbumArtworkRepository, AlbumArtworkRepository>();
                 containerRegistry.RegisterSingleton<IQueuedTrackRepository, QueuedTrackRepository>();
 
@@ -232,6 +232,7 @@ namespace Dopamine
                 containerRegistry.RegisterSingleton<IArtistVRepository, SQLiteArtistVRepository>();
                 containerRegistry.RegisterSingleton<IAlbumVRepository, SQLiteAlbumVRepository>();
                 containerRegistry.RegisterSingleton<IGenreVRepository, SQLiteGenreVRepository>();
+                containerRegistry.RegisterSingleton<IFolderVRepository, SQLiteFolderVRepository>();
                 //containerRegistry.RegisterSingleton<IArtistVRepository, MockArtistVRepository>();
                 //containerRegistry.RegisterSingleton<IAlbumVRepository, MockAlbumVRepository>();
             }
