@@ -13,7 +13,7 @@ namespace Dopamine.Data
 
         public IAddFolderUnitOfWork getAddFolderUnitOfWork()
         {
-            throw new System.NotImplementedException();
+            return new SQLiteAddFolderUnitOfWork(sQLiteConnectionFactory.GetConnection());
         }
 
         public IDeleteMediaFileUnitOfWork getDeleteMediaFileUnitOfWork()
@@ -27,7 +27,7 @@ namespace Dopamine.Data
 
         public IRemoveFolderUnitOfWork getRemoveFolderUnitOfWork()
         {
-            throw new System.NotImplementedException();
+            return new SQLiteRemoveFolderUnitOfWork(sQLiteConnectionFactory.GetConnection());
         }
 
         public IUpdateCollectionUnitOfWork getUpdateCollectionUnitOfWork()
@@ -37,7 +37,7 @@ namespace Dopamine.Data
 
         public IUpdateFolderUnitOfWork getUpdateFolderUnitOfWork()
         {
-            throw new System.NotImplementedException();
+            return new SQLiteUpdateFolderUnitOfWork(sQLiteConnectionFactory.GetConnection());
         }
     }
 }
