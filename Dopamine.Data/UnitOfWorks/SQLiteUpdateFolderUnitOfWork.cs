@@ -31,7 +31,8 @@ namespace Dopamine.Data.UnitOfWorks
                     if (dbFolder != null)
                     {
                         dbFolder.Show = fol.Show ? 1 : 0;
-                        conn.Update(dbFolder);
+                        if (conn.Update(dbFolder) == 0)
+                            LogClient.Error("Could not update the Folders. No folders affected");
                     }
                 }
             }

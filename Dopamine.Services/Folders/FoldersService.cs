@@ -4,6 +4,7 @@ using Dopamine.Core.Extensions;
 using Dopamine.Data;
 using Dopamine.Data.Entities;
 using Dopamine.Data.Repositories;
+using Dopamine.Data.UnitOfWorks;
 using Dopamine.Services.Entities;
 using Dopamine.Services.Playback;
 using System;
@@ -46,7 +47,11 @@ namespace Dopamine.Services.Folders
                     folders = this.toggledFolders.Select(x => x.Folder).ToList();
                     this.toggledFolders.Clear();
                 }
-                unitOfWorksFactory.getUpdateFolderUnitOfWork().UpdateFolders(folders);
+                using (IUpdateFolderUnitOfWork u = unitOfWorksFactory.getUpdateFolderUnitOfWork())
+                {
+                    u.UpdateFolders(folders);
+
+                }
             }
             catch (Exception ex)
             {
@@ -113,16 +118,28 @@ namespace Dopamine.Services.Folders
         public async Task<AddFolderResult> AddFolderAsync(string path)
         {
             //AddFolderResult result = await this.folderVRepository.AddFolderAsync(path);
-            AddFolderResult result = unitOfWorksFactory.getAddFolderUnitOfWork().AddFolder(path);
-
+            AddFolderResult result = AddFolderResult.Success;
+            await Task.Run(() =>
+            {
+                using (IAddFolderUnitOfWork uow = unitOfWorksFactory.getAddFolderUnitOfWork())
+                {
+                    result = uow.AddFolder(path);
+                }
+            });
             return result;
         }
 
         public async Task<RemoveFolderResult> RemoveFolderAsync(long folderId)
         {
             //RemoveFolderResult result = await this.folderVRepository.RemoveFolderAsync(folderId);
-            RemoveFolderResult result = unitOfWorksFactory.getRemoveFolderUnitOfWork().RemoveFolder(folderId);
-
+            RemoveFolderResult result = RemoveFolderResult.Success;
+            await Task.Run(() =>
+            {
+                using (IRemoveFolderUnitOfWork uow = unitOfWorksFactory.getRemoveFolderUnitOfWork())
+                {
+                    result = uow.RemoveFolder(folderId);
+                }
+            });
             return result;
         }
 
