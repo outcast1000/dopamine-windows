@@ -19,7 +19,7 @@ namespace Dopamine.ViewModels.FullPlayer
         {
             this.trackRepository = trackRepository;
             this.indexingService = indexingService;
-            this.RefreshNowCommand = new DelegateCommand(() => this.indexingService.RefreshCollectionImmediatelyAsync());
+            this.RefreshNowCommand = new DelegateCommand(() => this.indexingService.RefreshCollectionAsync(true, false));
             this.ReloadAllCoversCommand = new DelegateCommand(() => this.indexingService.ReScanAlbumArtworkAsync(false));
             this.ReloadMissingCoversCommand = new DelegateCommand(() => this.indexingService.ReScanAlbumArtworkAsync(true));
             this.GetCheckBoxesAsync();

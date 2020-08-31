@@ -23,7 +23,7 @@ namespace Dopamine.Views
             SettingsClient.Set<bool>("General", "ShowOobe", false);
 
             // We're closing the OOBE window, tell the IndexingService to start checking the collection.
-            this.indexingService.RefreshCollectionImmediatelyAsync();
+            this.indexingService.RefreshCollectionAsync(false, false);
         }
 
         private void ButtonFinish_Click(object sender, RoutedEventArgs e)

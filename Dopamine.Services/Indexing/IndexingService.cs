@@ -117,35 +117,14 @@ namespace Dopamine.Services.Indexing
             }
         }
 
-        public async Task RefreshCollectionAsync()
+        public async Task RefreshCollectionAsync(bool bForce, bool bReadTags = false)
         {
-            if (!SettingsClient.Get<bool>("Indexing", "RefreshCollectionAutomatically"))
-            {
-                return;
-            }
-
-            await this.CheckCollectionAsync(false);
+            await PrivateRefreshCollectionAsync(bReadTags);
         }
 
-        public async void RefreshCollectionIfFoldersChangedAsync()
+        private async Task PrivateRefreshCollectionAsync(bool bReReadTags)
         {
-            if (!this.isFoldersChanged)
-            {
-                return;
-            }
-
-            this.isFoldersChanged = false;
-            await this.RefreshCollectionAsync();
-        }
-
-        public async Task RefreshCollectionImmediatelyAsync()
-        {
-            await this.CheckCollectionV2Async(false);
-        }
-
-        private async Task CheckCollectionV2Async(bool bReReadTags)
-        {
-            if (this.IsIndexing)
+            if (IsIndexing)
             {
                 return;
             }
@@ -155,14 +134,14 @@ namespace Dopamine.Services.Indexing
             this.canIndexArtwork = false;
 
             // Wait until artwork indexing is stopped
-            while (this.isIndexingArtwork)
+            while (isIndexingArtwork)
             {
                 await Task.Delay(100);
             }
-
             await this.watcherManager.StopWatchingAsync();
-
-            await Task.Run(() =>
+            this.isIndexing = true;
+            this.IndexingStarted(this, new EventArgs());
+            await Task.Run(async () =>
             {
                 long addedFiles = 0;
                 long updatedFiles = 0;
@@ -177,26 +156,28 @@ namespace Dopamine.Services.Indexing
                     //=== Get All the paths from the DB (in chunks of 1000)
                     //=== For each one of them
                     //=== if they exist then OK. Otherwise then set the date to "DELETED_AT"
-                    long offset = 0;
-                    const long limit = 1000;
-                    while (true)
-                    {
-                        IList<TrackV> tracks = trackVRepository.GetTracksOfFolders(new List<long>() { folder.Id }, new QueryOptions() { Limit = limit, Offset = offset, WhereIgnored = QueryOptionsBool.Ignore, WhereVisibleFolders = QueryOptionsBool.Ignore });
-                        foreach (TrackV track in tracks)
+                    if (!SettingsClient.Get<bool>("Indexing", "IgnoreRemovedFiles")){
+                        long offset = 0;
+                        const long limit = 1000;
+                        while (true)
                         {
-                            if (!System.IO.File.Exists(track.Path))
+                            IList<TrackV> tracks = trackVRepository.GetTracksOfFolders(new List<long>() { folder.Id }, new QueryOptions() { Limit = limit, Offset = offset, WhereIgnored = QueryOptionsBool.Ignore, WhereVisibleFolders = QueryOptionsBool.Ignore });
+                            foreach (TrackV track in tracks)
                             {
-                                LogClientA.Info(String.Format("File not found: {0}", track.Path));
-                                using (IDeleteMediaFileUnitOfWork uow = unitOfWorksFactory.getDeleteMediaFileUnitOfWork())
+                                if (!System.IO.File.Exists(track.Path))
                                 {
-                                    if (uow.DeleteMediaFile(track.Id))
-                                        removedFiles++;
+                                    LogClientA.Info(String.Format("File not found: {0}", track.Path));
+                                    using (IDeleteMediaFileUnitOfWork uow = unitOfWorksFactory.getDeleteMediaFileUnitOfWork())
+                                    {
+                                        if (uow.DeleteMediaFile(track.Id))
+                                            removedFiles++;
+                                    }
                                 }
                             }
+                            if (tracks.Count < limit)
+                                break;
+                            offset += limit;
                         }
-                        if (tracks.Count < limit)
-                            break;
-                        offset += limit;
                     }
 
                     //=== STEP 2. Add OR Update the files that on disk
@@ -296,15 +277,34 @@ namespace Dopamine.Services.Indexing
                                 LogClientA.Info(String.Format("Exception: {0}", ex.Message));
                             });
                     }
+                    //=== STEP 3
+                    bool isArtworkCleanedUp = await this.CleanupArtworkAsync();
+                    bool isTracksChanged = (addedFiles + updatedFiles + removedFiles) > 0;
+                    // Refresh lists
+                    // -------------
+                    if (isTracksChanged || isArtworkCleanedUp)
+                    {
+                        LogClient.Info("Sending event to refresh the lists because: isTracksChanged = {0}, isArtworkCleanedUp = {1}", isTracksChanged, isArtworkCleanedUp);
+                        this.RefreshLists(this, new EventArgs());
+                    }
+
+                    // Finalize
+                    // --------
+                    this.isIndexing = false;
+                    this.IndexingStopped(this, new EventArgs());
+
+                    this.AddArtworkInBackgroundAsync(false, false);
+
+                    if (SettingsClient.Get<bool>("Indexing", "RefreshCollectionAutomatically"))
+                    {
+                        await this.watcherManager.StartWatchingAsync();
+                    }
                 }
             });
         }
 
         private async Task CheckCollectionAsync(bool forceIndexing)
         {
-            //=== ALEX DEBUG
-            await CheckCollectionV2Async(forceIndexing);
-            return;
             if (this.IsIndexing)
             {
                 return;
@@ -782,7 +782,7 @@ namespace Dopamine.Services.Indexing
 
         private async void WatcherManager_FoldersChanged(object sender, EventArgs e)
         {
-            await this.RefreshCollectionAsync();
+            await this.RefreshCollectionAsync(false, false);
         }
 
         private async Task<long> DeleteUnusedArtworkFromCacheAsync()

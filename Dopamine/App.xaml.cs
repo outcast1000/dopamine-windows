@@ -162,7 +162,7 @@ namespace Dopamine
             // We're not showing the OOBE screen, tell the IndexingService to start.
             if (!showOobe)
             {
-                Container.Resolve<IIndexingService>().RefreshCollectionAsync();
+                Container.Resolve<IIndexingService>().RefreshCollectionAsync(false, false);
             }
         }
 

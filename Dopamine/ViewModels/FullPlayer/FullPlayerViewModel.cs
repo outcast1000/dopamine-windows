@@ -107,7 +107,7 @@ namespace Dopamine.ViewModels.FullPlayer
                 null);
 
             await this.foldersService.SaveToggledFoldersAsync();
-            this.indexingService.RefreshCollectionIfFoldersChangedAsync();
+            this.indexingService.RefreshCollectionAsync(false, false);
         }
     }
 }

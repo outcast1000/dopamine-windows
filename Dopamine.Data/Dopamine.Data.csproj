@@ -120,6 +120,7 @@
     <Compile Include="Entities\QueuedTrack.cs" />
     <Compile Include="Entities\RemovedTrack.cs" />
     <None Include="Entities\TrackIndexFailed.cs.disabled" />
+    <Compile Include="Entities\TrackLyrics.cs" />
     <Compile Include="Entities\TrackV.cs" />
     <Compile Include="Entities\Track.cs" />
     <Compile Include="Entities\TrackGenre.cs" />

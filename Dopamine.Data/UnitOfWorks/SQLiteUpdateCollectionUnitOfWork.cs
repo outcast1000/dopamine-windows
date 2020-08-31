@@ -137,6 +137,26 @@ namespace Dopamine.Data.UnitOfWorks
 
                 }
             }
+
+            if (!string.IsNullOrEmpty(mediaFileData.Lyrics))
+            {
+                try
+                {
+                    conn.Insert(new TrackLyrics()
+                    {
+                        TrackId = track_id,
+                        Lyrics = mediaFileData.Lyrics,
+                        Source = "(Embedded in file)",
+                        DateAdded = DateTime.Now.Ticks,
+                        Language = null
+                    }); ;
+                }
+                catch (SQLite.SQLiteException ex)
+                {
+                    Debug.WriteLine(String.Format("SQLiteException (TrackLyrics) {0}", ex.Message));
+                }
+            }
+
             return true;
         }
 
