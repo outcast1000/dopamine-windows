@@ -35,6 +35,8 @@ namespace Dopamine.Data.UnitOfWorks
         public long? DiscCount { get; set; }
         public string AlbumImage { get; set; }
         public string Lyrics { get; set; }
+        public string LyricsSource { get; set; }
+
 
     }
     public interface IUpdateCollectionUnitOfWork: IDisposable

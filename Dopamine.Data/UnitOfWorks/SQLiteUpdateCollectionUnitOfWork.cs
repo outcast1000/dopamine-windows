@@ -146,7 +146,7 @@ namespace Dopamine.Data.UnitOfWorks
                     {
                         TrackId = track_id,
                         Lyrics = mediaFileData.Lyrics,
-                        Source = "(Embedded in file)",
+                        Source = mediaFileData.LyricsSource,
                         DateAdded = DateTime.Now.Ticks,
                         Language = null
                     }); ;
@@ -261,6 +261,26 @@ namespace Dopamine.Data.UnitOfWorks
                         Debug.WriteLine(String.Format("SQLiteException (Genres) {0}", ex.Message));
                     }
 
+                }
+            }
+
+            conn.Execute(String.Format("DELETE FROM TrackLyrics WHERE track_id={0}", track_id));
+            if (!string.IsNullOrEmpty(mediaFileData.Lyrics))
+            {
+                try
+                {
+                    conn.Insert(new TrackLyrics()
+                    {
+                        TrackId = track_id,
+                        Lyrics = mediaFileData.Lyrics,
+                        Source = mediaFileData.LyricsSource,
+                        DateAdded = DateTime.Now.Ticks,
+                        Language = null
+                    }); ;
+                }
+                catch (SQLite.SQLiteException ex)
+                {
+                    Debug.WriteLine(String.Format("SQLiteException (TrackLyrics) {0}", ex.Message));
                 }
             }
             return true;

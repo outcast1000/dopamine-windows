@@ -25,12 +25,12 @@ namespace Dopamine.Data.UnitOfWorks
 
             try
             {
-                conn.Execute($"DELETE FROM TrackArtists WHERE track_id in (SELECT id from tracks where folder_id={folderId};");
-                conn.Execute($"DELETE FROM TrackAlbums WHERE track_id in (SELECT id from tracks where folder_id={folderId};");
-                conn.Execute($"DELETE FROM TrackGenres WHERE track_id in (SELECT id from tracks where folder_id={folderId};");
-                conn.Execute($"DELETE FROM TrackLyrics WHERE track_id in (SELECT id from tracks where folder_id={folderId};");
-                conn.Execute($"DELETE FROM Tracks WHERE folder_id={folderId};");
-                conn.Execute($"DELETE FROM Folders WHERE id={folderId};");
+                long rowsAffected = conn.Execute($"DELETE FROM TrackArtists WHERE track_id in (SELECT id from tracks where folder_id={folderId});");
+                rowsAffected = conn.Execute($"DELETE FROM TrackAlbums WHERE track_id in (SELECT id from tracks where folder_id={folderId});");
+                rowsAffected = conn.Execute($"DELETE FROM TrackGenres WHERE track_id in (SELECT id from tracks where folder_id={folderId});");
+                rowsAffected = conn.Execute($"DELETE FROM TrackLyrics WHERE track_id in (SELECT id from tracks where folder_id={folderId});");
+                rowsAffected = conn.Execute($"DELETE FROM Tracks WHERE folder_id={folderId};");
+                rowsAffected = conn.Execute($"DELETE FROM Folders WHERE id={folderId};");
                 LogClient.Info("Removed the Folder with FolderID={0}", folderId);
             }
             catch (Exception ex)

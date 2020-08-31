@@ -128,7 +128,7 @@ namespace Dopamine.Services.Indexing
             {
                 return;
             }
-
+            this.isIndexing = true;
             LogClient.Info("+++ STARTED CHECKING COLLECTION +++");
 
             this.canIndexArtwork = false;
@@ -139,14 +139,13 @@ namespace Dopamine.Services.Indexing
                 await Task.Delay(100);
             }
             await this.watcherManager.StopWatchingAsync();
-            this.isIndexing = true;
             this.IndexingStarted(this, new EventArgs());
             await Task.Run(async () =>
             {
                 long addedFiles = 0;
                 long updatedFiles = 0;
                 long removedFiles = 0;
-                long failedFiles = 0; 
+                long failedFiles = 0;
                 List<FolderV> folders = folderVRepository.GetFolders();
                 // Recursively get all the files in the collection folders
                 bool bContinue = true;
@@ -156,7 +155,8 @@ namespace Dopamine.Services.Indexing
                     //=== Get All the paths from the DB (in chunks of 1000)
                     //=== For each one of them
                     //=== if they exist then OK. Otherwise then set the date to "DELETED_AT"
-                    if (!SettingsClient.Get<bool>("Indexing", "IgnoreRemovedFiles")){
+                    if (!SettingsClient.Get<bool>("Indexing", "IgnoreRemovedFiles"))
+                    {
                         long offset = 0;
                         const long limit = 1000;
                         while (true)
@@ -303,482 +303,7 @@ namespace Dopamine.Services.Indexing
             });
         }
 
-        private async Task CheckCollectionAsync(bool forceIndexing)
-        {
-            if (this.IsIndexing)
-            {
-                return;
-            }
 
-            LogClient.Info("+++ STARTED CHECKING COLLECTION +++");
-
-            this.canIndexArtwork = false;
-
-            // Wait until artwork indexing is stopped
-            while (this.isIndexingArtwork)
-            {
-                await Task.Delay(100);
-            }
-
-            await this.watcherManager.StopWatchingAsync();
-
-            try
-            {
-                this.allDiskPaths = await this.GetFolderPaths();
-
-                using (var conn = this.factory.GetConnection())
-                {
-                    bool performIndexing = false;
-
-                    if (forceIndexing)
-                    {
-                        performIndexing = true;
-                    }
-                    else
-                    {
-                        long databaseNeedsIndexingCount = conn.Table<Track>().Select(t => t).ToList().Where(t => t.NeedsIndexing == 1).LongCount();
-                        long databaseLastDateFileModified = conn.Table<Track>().Select(t => t).ToList().OrderByDescending(t => t.DateFileModified).Select(t => t.DateFileModified).FirstOrDefault();
-                        long diskLastDateFileModified = this.allDiskPaths.Count > 0 ? this.allDiskPaths.Select((t) => t.DateModifiedTicks).OrderByDescending((t) => t).First() : 0;
-                        long databaseTrackCount = conn.Table<Track>().Select(t => t).LongCount();
-
-                        performIndexing = databaseNeedsIndexingCount > 0 |
-                                          databaseTrackCount != this.allDiskPaths.Count |
-                                          databaseLastDateFileModified < diskLastDateFileModified;
-                    }
-
-                    if (performIndexing)
-                    {
-                        await Task.Delay(1000);
-                        await this.IndexCollectionAsync();
-                    }
-                    else
-                    {
-                        if (SettingsClient.Get<bool>("Indexing", "RefreshCollectionAutomatically"))
-                        {
-                            this.AddArtworkInBackgroundAsync(false, false);
-                            await this.watcherManager.StartWatchingAsync();
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                LogClient.Error("Could not check the collection. Exception: {0}", ex.Message);
-            }
-        }
-
-        private async Task IndexCollectionAsync()
-        {
-            if (this.IsIndexing)
-            {
-                return;
-            }
-
-            this.isIndexing = true;
-
-            this.IndexingStarted(this, new EventArgs());
-
-            // Tracks
-            // ------
-            bool isTracksChanged = await this.IndexTracksAsync(SettingsClient.Get<bool>("Indexing", "IgnoreRemovedFiles")) > 0 ? true : false;
-
-            // Track statistics (for upgrade from 1.x to 2.x)
-            // ----------------------------------------------
-            await this.MigrateTrackStatisticsIfExistsAsync();
-
-            // Artwork cleanup
-            // ---------------
-            bool isArtworkCleanedUp = await this.CleanupArtworkAsync();
-
-            // Refresh lists
-            // -------------
-            if (isTracksChanged || isArtworkCleanedUp)
-            {
-                LogClient.Info("Sending event to refresh the lists because: isTracksChanged = {0}, isArtworkCleanedUp = {1}", isTracksChanged, isArtworkCleanedUp);
-                this.RefreshLists(this, new EventArgs());
-            }
-
-            // Finalize
-            // --------
-            this.isIndexing = false;
-            this.IndexingStopped(this, new EventArgs());
-
-            this.AddArtworkInBackgroundAsync(false, false);
-
-            if (SettingsClient.Get<bool>("Indexing", "RefreshCollectionAutomatically"))
-            {
-                await this.watcherManager.StartWatchingAsync();
-            }
-        }
-
-        private async Task MigrateTrackStatisticsIfExistsAsync()
-        {
-            await Task.Run(() =>
-            {
-                using (var conn = this.factory.GetConnection())
-                {
-                    int count = conn.ExecuteScalar<int>("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='TrackStatistic'");
-
-                    if (count > 0)
-                    {
-                        List<TrackStatistic> trackStatistics = conn.Query<TrackStatistic>("SELECT * FROM TrackStatistic WHERE (Rating IS NOT NULL AND Rating <> 0) " +
-                            "OR (Love IS NOT NULL AND Love <> 0) " +
-                            "OR (PlayCount IS NOT NULL AND PlayCount <> 0)" +
-                            "OR (SkipCount IS NOT NULL AND SkipCount <> 0)" +
-                            "OR (DateLastPlayed IS NOT NULL AND DateLastPlayed <> 0)");
-
-                        foreach (TrackStatistic trackStatistic in trackStatistics)
-                        {
-                            conn.Execute("UPDATE Track SET Rating=?, Love=?, PlayCount=?, SkipCount=?, DateLastPlayed=? WHERE Safepath=?;",
-                                trackStatistic.Rating, trackStatistic.Love, trackStatistic.PlayCount, trackStatistic.SkipCount, trackStatistic.DateLastPlayed, trackStatistic.SafePath);
-                        }
-
-                        conn.Execute("DROP TABLE TrackStatistic;");
-                    }
-                }
-            });
-        }
-
-        private async Task<long> IndexTracksAsync(bool ignoreRemovedFiles)
-        {
-            LogClient.Info("+++ STARTED INDEXING COLLECTION +++");
-
-            DateTime startTime = DateTime.Now;
-
-            long numberTracksRemoved = 0;
-            long numberTracksAdded = 0;
-            long numberTracksUpdated = 0;
-
-            try
-            {
-                // Step 1: remove Tracks which are not found on disk
-                // -------------------------------------------------
-                DateTime removeTracksStartTime = DateTime.Now;
-
-                numberTracksRemoved = await this.RemoveTracksAsync();
-
-                LogClient.Info("Tracks removed: {0}. Time required: {1} ms +++", numberTracksRemoved, Convert.ToInt64(DateTime.Now.Subtract(removeTracksStartTime).TotalMilliseconds));
-
-                await this.GetNewDiskPathsAsync(ignoreRemovedFiles); // Obsolete tracks are removed, now we can determine new files.
-                this.cache.Initialize(); // After obsolete tracks are removed, we can initialize the cache.
-
-                // Step 2: update outdated Tracks
-                // ------------------------------
-                DateTime updateTracksStartTime = DateTime.Now;
-                numberTracksUpdated = await this.UpdateTracksAsync();
-
-                LogClient.Info("Tracks updated: {0}. Time required: {1} ms +++", numberTracksUpdated, Convert.ToInt64(DateTime.Now.Subtract(updateTracksStartTime).TotalMilliseconds));
-
-                // Step 3: add new Tracks
-                // ----------------------
-                DateTime addTracksStartTime = DateTime.Now;
-                numberTracksAdded = await this.AddTracksAsync();
-
-                LogClient.Info("Tracks added: {0}. Time required: {1} ms +++", numberTracksAdded, Convert.ToInt64(DateTime.Now.Subtract(addTracksStartTime).TotalMilliseconds));
-            }
-            catch (Exception ex)
-            {
-                LogClient.Info("There was a problem while indexing the collection. Exception: {0}", ex.Message);
-            }
-
-            LogClient.Info("+++ FINISHED INDEXING COLLECTION: Tracks removed: {0}. Tracks updated: {1}. Tracks added: {2}. Time required: {3} ms +++", numberTracksRemoved, numberTracksUpdated, numberTracksAdded, Convert.ToInt64(DateTime.Now.Subtract(startTime).TotalMilliseconds));
-
-            return numberTracksRemoved + numberTracksAdded + numberTracksUpdated;
-        }
-
-        private async Task GetNewDiskPathsAsync(bool ignoreRemovedFiles)
-        {
-            await Task.Run(() =>
-            {
-                var dbPaths = new List<string>();
-
-                using (var conn = this.factory.GetConnection())
-                {
-                    dbPaths = conn.Table<Track>().ToList().Select((trk) => trk.SafePath).ToList();
-                }
-
-                var removedPaths = new List<string>();
-
-                using (var conn = this.factory.GetConnection())
-                {
-                    removedPaths = conn.Table<RemovedTrack>().ToList().Select((t) => t.SafePath).ToList();
-                }
-
-                this.newDiskPaths = new List<FolderPathInfo>();
-
-                foreach (FolderPathInfo diskpath in this.allDiskPaths)
-                {
-                    if (!dbPaths.Contains(diskpath.Path.ToSafePath()) && (ignoreRemovedFiles ? !removedPaths.Contains(diskpath.Path.ToSafePath()) : true))
-                    {
-                        this.newDiskPaths.Add(diskpath);
-                    }
-                }
-            });
-        }
-
-        private async Task<long> RemoveTracksAsync()
-        {
-            long numberRemovedTracks = 0;
-
-            var args = new IndexingStatusEventArgs()
-            {
-                IndexingAction = IndexingAction.RemoveTracks,
-                ProgressPercent = 0
-            };
-
-            await Task.Run(() =>
-            {
-                try
-                {
-                    using (var conn = this.factory.GetConnection())
-                    {
-                        conn.BeginTransaction();
-
-                // Create a list of folderIDs
-                List<long> folderTrackIDs = conn.Table<FolderTrack>().ToList().Select((t) => t.TrackID).Distinct().ToList();
-
-                        List<Track> alltracks = conn.Table<Track>().Select((t) => t).ToList();
-                        List<Track> tracksInMissingFolders = alltracks.Select((t) => t).Where(t => !folderTrackIDs.Contains(t.TrackID)).ToList();
-                        List<Track> remainingTracks = new List<Track>();
-
-                // Processing tracks in missing folders in bulk first, then checking 
-                // existence of the remaining tracks, improves speed of removing tracks.
-                if (tracksInMissingFolders.Count > 0 && tracksInMissingFolders.Count < alltracks.Count)
-                        {
-                            remainingTracks = alltracks.Except(tracksInMissingFolders).ToList();
-                        }
-                        else
-                        {
-                            remainingTracks = alltracks;
-                        }
-
-                // 1. Process tracks in missing folders
-                // ------------------------------------
-                if (tracksInMissingFolders.Count > 0)
-                        {
-                    // Report progress immediately, as there are tracks in missing folders.                           
-                    this.IndexingStatusChanged(args);
-
-                    // Delete
-                    foreach (Track trk in tracksInMissingFolders)
-                            {
-                                conn.Delete(trk);
-                            }
-
-                            numberRemovedTracks += tracksInMissingFolders.Count;
-                        }
-
-                // 2. Process remaining tracks
-                // ---------------------------
-                if (remainingTracks.Count > 0)
-                        {
-                            foreach (Track trk in remainingTracks)
-                            {
-                        // If a remaining track doesn't exist on disk, delete it from the collection.
-                        if (!System.IO.File.Exists(trk.Path))
-                                {
-                                    conn.Delete(trk);
-                                    numberRemovedTracks += 1;
-
-                            // Report progress as soon as the first track was removed.
-                            // This is indeterminate progress. No need to sent it multiple times.
-                            if (numberRemovedTracks == 1)
-                                    {
-                                        this.IndexingStatusChanged(args);
-                                    }
-                                }
-                            }
-                        }
-
-                        conn.Commit();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogClient.Error("There was a problem while removing Tracks. Exception: {0}", ex.Message);
-                }
-            });
-
-            return numberRemovedTracks;
-        }
-
-        private async Task<long> UpdateTracksAsync()
-        {
-            long numberUpdatedTracks = 0;
-
-            var args = new IndexingStatusEventArgs()
-            {
-                IndexingAction = IndexingAction.UpdateTracks,
-                ProgressPercent = 0
-            };
-
-            await Task.Run(() =>
-            {
-                try
-                {
-                    using (var conn = this.factory.GetConnection())
-                    {
-                        conn.BeginTransaction();
-
-                        List<TrackV> alltracks = trackVRepository.GetTracks();
-
-                        long currentValue = 0;
-                        long totalValue = alltracks.Count;
-                        int lastPercent = 0;
-
-                        foreach (TrackV dbTrack in alltracks)
-                        {
-                            try
-                            {
-                                if (IndexerUtils.IsTrackOutdated(dbTrack))// | dbTrack.NeedsIndexing == 1)
-                        {
-                                    this.ProcessTrack(dbTrack, conn);
-                                    conn.Update(dbTrack);
-                                    numberUpdatedTracks += 1;
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                LogClient.Error("There was a problem while updating Track with path='{0}'. Exception: {1}", dbTrack.Path, ex.Message);
-                            }
-
-                            currentValue += 1;
-
-                            int percent = IndexerUtils.CalculatePercent(currentValue, totalValue);
-
-                    // Report progress if at least 1 track is updated OR when the progress
-                    // interval has been exceeded OR the maximum has been reached.
-                    bool mustReportProgress = numberUpdatedTracks == 1 || percent >= lastPercent + 5 || percent == 100;
-
-                            if (mustReportProgress)
-                            {
-                                lastPercent = percent;
-                                args.ProgressPercent = percent;
-                                this.IndexingStatusChanged(args);
-                            }
-                        }
-
-                        conn.Commit();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogClient.Error("There was a problem while updating Tracks. Exception: {0}", ex.Message);
-                }
-            });
-
-            return numberUpdatedTracks;
-        }
-
-        private async Task<long> AddTracksAsync()
-        {
-            long numberAddedTracks = 0;
-
-            var args = new IndexingStatusEventArgs()
-            {
-                IndexingAction = IndexingAction.AddTracks,
-                ProgressPercent = 0
-            };
-
-            await Task.Run(() =>
-            {
-                try
-                {
-                    long currentValue = 0;
-                    long totalValue = this.newDiskPaths.Count;
-
-                    long saveItemCount = IndexerUtils.CalculateSaveItemCount(totalValue);
-                    long unsavedItemCount = 0;
-                    int lastPercent = 0;
-
-                    using (var conn = this.factory.GetConnection())
-                    {
-                        conn.BeginTransaction();
-
-                        foreach (FolderPathInfo newDiskPath in this.newDiskPaths)
-                        {
-                            TrackV diskTrack = TrackV.CreateDefault(newDiskPath.Path);
-
-                            try
-                            {
-                                this.ProcessTrack(diskTrack, conn);
-
-                                if (!this.cache.HasCachedTrack(ref diskTrack))
-                                {
-                                    conn.Insert(diskTrack);
-                                    this.cache.AddTrack(diskTrack);
-                                    numberAddedTracks += 1;
-                                    unsavedItemCount += 1;
-                                }
-
-                                conn.Insert(new FolderTrack(newDiskPath.FolderId, diskTrack.Id));
-
-                        // Intermediate save to the database if 20% is reached
-                        if (unsavedItemCount == saveItemCount)
-                                {
-                                    unsavedItemCount = 0;
-                                    conn.Commit(); // Intermediate save
-                            conn.BeginTransaction();
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                LogClient.Error("There was a problem while adding Track with path='{0}'. Exception: {1}", diskTrack.Path, ex.Message);
-                            }
-
-                            currentValue += 1;
-
-                            int percent = IndexerUtils.CalculatePercent(currentValue, totalValue);
-
-                    // Report progress if at least 1 track is added OR when the progress
-                    // interval has been exceeded OR the maximum has been reached.
-                    bool mustReportProgress = numberAddedTracks == 1 || percent >= lastPercent + 5 || percent == 100;
-
-                            if (mustReportProgress)
-                            {
-                                lastPercent = percent;
-                                args.ProgressCurrent = numberAddedTracks;
-                                args.ProgressPercent = percent;
-                                this.IndexingStatusChanged(args);
-                            }
-                        }
-
-                        conn.Commit(); // Final save
-            }
-                }
-                catch (Exception ex)
-                {
-                    LogClient.Error("There was a problem while adding Tracks. Exception: {0}", ex.Message);
-                }
-            });
-
-            return numberAddedTracks;
-        }
-
-        private void ProcessTrack(TrackV track, SQLiteConnection conn)
-        {
-            try
-            {
-                MetadataUtils.FillTrack(new FileMetadata(track.Path), ref track);
-
-                Debug.Assert(false, "ALEX TODO");
-                //track.IndexingSuccess = 1;
-
-                // Make sure that we check for album cover art
-                //track.NeedsAlbumArtworkIndexing = 1;
-            }
-            catch (Exception ex)
-            {
-                Debug.Assert(false, "ALEX TODO");
-                //track.IndexingSuccess = 0;
-                //track.NeedsIndexing = 0; // Let's not keep trying to indexing this track
-                //track.IndexingFailureReason = ex.Message;
-
-                LogClient.Error("Error while retrieving tag information for file {0}. Exception: {1}", track.Path, ex.Message);
-            }
-
-            return;
-        }
 
         private async void WatcherManager_FoldersChanged(object sender, EventArgs e)
         {
@@ -895,14 +420,14 @@ namespace Dopamine.Services.Indexing
 
                         foreach (AlbumV albumDataToIndex in albumDatasToIndex)
                         {
-                    // Check if we must cancel artwork indexing
-                    if (!this.canIndexArtwork)
+                            // Check if we must cancel artwork indexing
+                            if (!this.canIndexArtwork)
                             {
                                 try
                                 {
                                     LogClient.Info("+++ ABORTED ADDING ARTWORK IN THE BACKGROUND. Time required: {0} ms +++", Convert.ToInt64(DateTime.Now.Subtract(startTime).TotalMilliseconds));
                                     this.AlbumArtworkAdded(this, new AlbumArtworkAddedEventArgs() { AlbumKeys = albumKeysWithArtwork }); // Update UI
-                        }
+                                }
                                 catch (Exception ex)
                                 {
                                     LogClient.Error("Failed to commit changes while aborting adding artwork in background. Exception: {0}", ex.Message);
@@ -913,30 +438,30 @@ namespace Dopamine.Services.Indexing
                                 return;
                             }
 
-                    // Start indexing artwork
-                    try
+                            // Start indexing artwork
+                            try
                             {
-                        // Delete existing AlbumArtwork
-                        albumVRepository.DeleteImage(albumDataToIndex);
+                                // Delete existing AlbumArtwork
+                                albumVRepository.DeleteImage(albumDataToIndex);
                                 string ArtworkID = null;
 
                                 if (passNumber.Equals(1))
                                 {
-                            // During the 1st pass, look for artwork in file(s).
-                            // Only set NeedsAlbumArtworkIndexing = 0 if artwork was found. So when no artwork was found, 
-                            // this gives the 2nd pass a chance to look for artwork on the Internet.
-                            ArtworkID = await this.GetArtworkFromFile(albumDataToIndex.Id);
+                                    // During the 1st pass, look for artwork in file(s).
+                                    // Only set NeedsAlbumArtworkIndexing = 0 if artwork was found. So when no artwork was found, 
+                                    // this gives the 2nd pass a chance to look for artwork on the Internet.
+                                    ArtworkID = await this.GetArtworkFromFile(albumDataToIndex.Id);
                                 }
                                 else if (passNumber.Equals(2))
                                 {
-                            // During the 2nd pass, look for artwork on the Internet and set NeedsAlbumArtworkIndexing = 0.
-                            // We don't want future passes to index for this AlbumKey anymore.
-                            ArtworkID = await this.GetArtworkFromInternet(
-                                albumDataToIndex.AlbumArtists,
-                                DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToList(),
-                                null, //albumDataToIndex.TrackTitle,
-                                DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.Artists).ToList()
-                                );
+                                    // During the 2nd pass, look for artwork on the Internet and set NeedsAlbumArtworkIndexing = 0.
+                                    // We don't want future passes to index for this AlbumKey anymore.
+                                    ArtworkID = await this.GetArtworkFromInternet(
+                                        albumDataToIndex.AlbumArtists,
+                                        DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToList(),
+                                        null, //albumDataToIndex.TrackTitle,
+                                        DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.Artists).ToList()
+                                        );
                                 }
 
                                 if (!string.IsNullOrEmpty(ArtworkID))
@@ -944,13 +469,13 @@ namespace Dopamine.Services.Indexing
                                     this.albumVRepository.AddImage(albumDataToIndex, ArtworkID, true);
                                 }
 
-                        // If artwork was found for 20 albums, trigger a refresh of the UI.
-                        if (albumKeysWithArtwork.Count >= 20)
+                                // If artwork was found for 20 albums, trigger a refresh of the UI.
+                                if (albumKeysWithArtwork.Count >= 20)
                                 {
                                     var eventAlbumKeys = new List<string>(albumKeysWithArtwork);
                                     albumKeysWithArtwork.Clear();
                                     this.AlbumArtworkAdded(this, new AlbumArtworkAddedEventArgs() { AlbumKeys = eventAlbumKeys }); // Update UI
-                        }
+                                }
                             }
                             catch (Exception ex)
                             {
@@ -961,7 +486,7 @@ namespace Dopamine.Services.Indexing
                         try
                         {
                             this.AlbumArtworkAdded(this, new AlbumArtworkAddedEventArgs() { AlbumKeys = albumKeysWithArtwork }); // Update UI
-                }
+                        }
                         catch (Exception ex)
                         {
                             LogClient.Error("Failed to commit changes while finishing adding artwork in background. Exception: {0}", ex.Message);
@@ -993,33 +518,5 @@ namespace Dopamine.Services.Indexing
             this.AddArtworkInBackgroundAsync(true, false);
         }
 
-        private async Task<List<FolderPathInfo>> GetFolderPaths()
-        {
-            var allFolderPaths = new List<FolderPathInfo>();
-            List<FolderV> folders = folderVRepository.GetFolders();
-
-            await Task.Run(() =>
-            {
-        // Recursively get all the files in the collection folders
-        foreach (FolderV fol in folders)
-                {
-                    if (Directory.Exists(fol.Path))
-                    {
-                        try
-                        {
-                    // Get all audio files recursively
-                    List<FolderPathInfo> folderPaths = FileOperations.GetValidFolderPaths(fol.Id, fol.Path, FileFormats.SupportedMediaExtensions);
-                            allFolderPaths.AddRange(folderPaths);
-                        }
-                        catch (Exception ex)
-                        {
-                            LogClient.Error("Error while recursively getting files/folders for directory={0}. Exception: {1}", fol.Path, ex.Message);
-                        }
-                    }
-                }
-            });
-
-            return allFolderPaths;
-        }
     }
 }
