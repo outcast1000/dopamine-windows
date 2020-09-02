@@ -3,6 +3,7 @@ using Dopamine.Core.Alex;
 using SQLite;
 using System;
 using System.IO;
+using System.Diagnostics;
 
 namespace Dopamine.Data
 {

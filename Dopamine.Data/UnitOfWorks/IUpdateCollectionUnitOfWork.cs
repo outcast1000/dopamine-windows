@@ -8,6 +8,19 @@ using System.Threading.Tasks;
 
 namespace Dopamine.Data.UnitOfWorks
 {
+
+    public class MediaFileDataImage
+    {
+        public string Path { get; set; }
+        public string Source { get; set; }
+    }
+
+    public class MediaFileDataText
+    {
+        public string Text { get; set; }
+        public string Source { get; set; }
+        public string Language { get; set; }
+    }
     public class MediaFileData
     {
         public string Name { get; set; }
@@ -33,16 +46,34 @@ namespace Dopamine.Data.UnitOfWorks
         public long? TrackCount { get; set; }
         public long? DiscNumber { get; set; }
         public long? DiscCount { get; set; }
-        public string AlbumImage { get; set; }
-        public string Lyrics { get; set; }
-        public string LyricsSource { get; set; }
-
+        //public IList<MediaFileDataImage> AlbumImages { get; set; }
+        public MediaFileDataText Lyrics { get; set; }
 
     }
+
+    public class AddMediaFileResult
+    {
+        public bool Success { get; set; }
+        public long? TrackId { get; set; }
+        public long? AlbumId { get; set; }
+    }
+
+    public class UpdateMediaFileResult
+    {
+        public bool Success { get; set; }
+        public long? AlbumId { get; set; }
+    }
+
     public interface IUpdateCollectionUnitOfWork: IDisposable
     {
-        bool AddMediaFile(MediaFileData mediaFileData, long folderId);
-        bool UpdateMediaFile(TrackV trackV, MediaFileData mediaFileData);
+
+
+        AddMediaFileResult AddMediaFile(MediaFileData mediaFileData, long folderId);
+        UpdateMediaFileResult UpdateMediaFile(TrackV trackV, MediaFileData mediaFileData);
         TrackV GetTrackWithPath(string path);
+
+        bool AddAlbumImage(long album_id, string path, long file_size, string source_hash, string source, bool bUseAsThumbnail);
+        bool RemoveAlbumImage(long album_id, string path);
+        bool RemoveAllAlbumImages(long album_id);
     }
 }

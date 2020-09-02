@@ -119,7 +119,6 @@
     <Compile Include="Entities\FolderTrack.cs" />
     <Compile Include="Entities\QueuedTrack.cs" />
     <Compile Include="Entities\RemovedTrack.cs" />
-    <None Include="Entities\TrackIndexFailed.cs.disabled" />
     <Compile Include="Entities\TrackLyrics.cs" />
     <Compile Include="Entities\TrackV.cs" />
     <Compile Include="Entities\Track.cs" />
@@ -129,6 +128,8 @@
     <Compile Include="Entities\Track2.cs" />
     <Compile Include="Entities\TrackStatistic.cs" />
     <Compile Include="Enums.cs" />
+    <Compile Include="Repositories\SQLiteAlbumImageRepository.cs" />
+    <Compile Include="Repositories\IAlbumImageRepository.cs" />
     <Compile Include="Repositories\SQLiteFolderVRepository.cs" />
     <Compile Include="Repositories\IFolderVRepository.cs" />
     <Compile Include="SQLiteUnitOfWorksFactory.cs" />
@@ -181,9 +182,7 @@
     <Compile Include="Repositories\IQueuedTrackRepository.cs" />
     <Compile Include="Repositories\IArtistVRepository.cs" />
     <Compile Include="Repositories\ITrackVRepository.cs" />
-    <None Include="Repositories\ITrackRepository.cs.disable" />
     <Compile Include="Repositories\QueuedTrackRepository.cs" />
-    <None Include="Repositories\TrackRepositoryComp.cs.disable" />
     <Compile Include="Repositories\SQLiteTrackVRepository.cs" />
     <Compile Include="SQLiteConnectionFactory.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">

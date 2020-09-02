@@ -32,7 +32,7 @@ namespace Dopamine.Data
 
         public IUpdateCollectionUnitOfWork getUpdateCollectionUnitOfWork()
         {
-            return new SQLiteUpdateCollectionUnitOfWork(sQLiteConnectionFactory.GetConnection());
+            return new SQLiteUpdateCollectionUnitOfWork(sQLiteConnectionFactory.GetConnection(), true);
         }
 
         public IUpdateFolderUnitOfWork getUpdateFolderUnitOfWork()

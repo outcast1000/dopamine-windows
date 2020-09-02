@@ -7,11 +7,20 @@ namespace Dopamine.Data.Entities
     [Table("AlbumImages")]
     public class AlbumImage
     {
-        [Column("album_id"), Unique()]
+        [Column("id"), PrimaryKey(), AutoIncrement()]
+        public long Id { get; set; }
+
+        [Column("album_id"), NotNull()]
         public long AlbumId { get; set; }
 
-        [Column("key"), NotNull()]
-        public string Key { get; set; }
+        [Column("path"), Unique(), NotNull()]
+        public string Path { get; set; }
+
+        [Column("file_size"), NotNull()]
+        public long FileSize { get; set; }
+
+        [Column("source_hash"), NotNull()]
+        public string SourceHash { get; set; }
 
         [Column("source")]
         public string Source { get; set; }

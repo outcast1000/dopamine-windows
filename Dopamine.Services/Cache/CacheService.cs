@@ -130,7 +130,10 @@ namespace Dopamine.Services.Cache
         {
             if (!string.IsNullOrEmpty(artworkID))
             {
-                return System.IO.Path.Combine(coverArtCacheFolderPath, artworkID + ".jpg");
+                if (artworkID.StartsWith("cache://"))
+                    return System.IO.Path.Combine(coverArtCacheFolderPath, artworkID.Substring(8) + ".jpg");
+                else
+                    return artworkID;
             }
             else
             {

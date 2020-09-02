@@ -8,6 +8,9 @@ using System.Linq;
 using System.Reflection;
 using System.Diagnostics;
 using Dopamine.Data.UnitOfWorks;
+using Dopamine.Core.Alex;
+using Dopamine.Core.IO;
+using System.Security.Cryptography;
 
 namespace Dopamine.Data
 {
@@ -150,7 +153,7 @@ namespace Dopamine.Data
         {
             using (var conn = this.factory.GetConnection())
             {
-
+                Debug.Print("CreateTablesAndIndexes_v2: DROPPING TABLES");
                 conn.Execute("DROP TABLE IF EXISTS History;");
                 conn.Execute("DROP TABLE IF EXISTS HistoryActions;");
 
@@ -165,8 +168,8 @@ namespace Dopamine.Data
                 conn.Execute("DROP TABLE IF EXISTS Genres;");
 
                 conn.Execute("DROP TABLE IF EXISTS AlbumReviews;");
-                conn.Execute("DROP TABLE IF EXISTS AlbumImages;");
                 conn.Execute("DROP TABLE IF EXISTS AlbumThumbnail;");
+                conn.Execute("DROP TABLE IF EXISTS AlbumImages;");
                 conn.Execute("DROP TABLE IF EXISTS AlbumFailedIndexing;");
                 conn.Execute("DROP TABLE IF EXISTS Albums;");
 
@@ -179,6 +182,8 @@ namespace Dopamine.Data
                 conn.Execute("DROP TABLE IF EXISTS ArtistRoles;");
 
                 conn.Execute("DROP TABLE IF EXISTS Folders;");
+
+                Debug.Print("CreateTablesAndIndexes_v2: CREATING TABLES");
 
 
                 //=== Artists:
@@ -252,21 +257,27 @@ namespace Dopamine.Data
 
                 //=== AlbumImages: (One 2 many) Each album may have multiple images
                 conn.Execute("CREATE TABLE AlbumImages (" +
+                            "id                 INTEGER PRIMARY KEY AUTOINCREMENT," +
                             "album_id           INTEGER NOT NULL," +
-                            "key                TEXT NOT NULL," +
+                            "path               TEXT NOT NULL," + //=== May be cache://
+                            "file_size          INTEGER NOT NULL," +
+                            "source_hash        TEXT," +
                             "source             TEXT," +
                             "date_added         INTEGER NOT NULL," +
                             "FOREIGN KEY(album_id) REFERENCES Albums(id));");
 
                 conn.Execute("CREATE INDEX AlbumImagesAlbumIDIndex ON AlbumImages(album_id);");
+                conn.Execute("CREATE INDEX AlbumImagesPathIndex ON AlbumImages(path);");
+                conn.Execute("CREATE UNIQUE INDEX AlbumImagesCompositeIndex ON AlbumImages(album_id, path);");
 
                 //=== AlbumThumbnail: (One 2 One) Each Album may have only one thumbnail
                 conn.Execute("CREATE TABLE AlbumThumbnail (" +
                             "album_id          INTEGER," +
-                            "key               TEXT NOT NULL," +
+                            "album_image_id    INTEGER NOT NULL," +
+                            "FOREIGN KEY (album_image_id) REFERENCES AlbumImages(id)," +
                             "FOREIGN KEY (album_id) REFERENCES Albums(id));");
 
-                conn.Execute("CREATE UNIQUE INDEX AlbumThumbnailAlbumIDIndex ON AlbumThumbnail(album_id);");
+                conn.Execute("CREATE UNIQUE INDEX AlbumThumbnailAlbumΙDIndex ON AlbumThumbnail(album_id);");
 
                 //=== AlbumFailedIndexing: (One 2 One) Each Album may have only one failed indexing record
                 conn.Execute("CREATE TABLE AlbumFailedIndexing (" +
@@ -428,9 +439,11 @@ namespace Dopamine.Data
                 conn.Execute("CREATE INDEX HistoryHistoryActionIDIndex ON History(history_action_id);");
 
 
+                Debug.Print("CreateTablesAndIndexes_v2: START MIGRATION");
+
                 // ==== START MIGRATING DATA
 
-                SQLiteUpdateCollectionUnitOfWork uc = new SQLiteUpdateCollectionUnitOfWork(conn);
+                SQLiteUpdateCollectionUnitOfWork uc = new SQLiteUpdateCollectionUnitOfWork(conn, false);
 
                 //conn.Execute("BEGIN TRANSACTION;");
 
@@ -463,18 +476,18 @@ namespace Dopamine.Data
                 List<Track> tracks = conn.Query<Track>(query);
                 int tracksMigrated = 0;
                 int timeStarted = Environment.TickCount;
-
-
-
+                string coverArtCacheFolderPath = Path.Combine(SettingsClient.ApplicationFolder(), ApplicationPaths.CacheFolder, ApplicationPaths.CoverArtCacheFolder);
                 foreach (Track track in tracks)
                 {
 
-                    Trace.WriteLine(String.Format("Migrating File {0}", track.Path));
+                    Debug.Print("Migrating File {0}", track.Path);
+
                     if (track.TrackTitle == null)
                         Trace.WriteLine("TrackTitle is null");
 
-                    FolderTrack folderTrackID = conn.FindWithQuery<FolderTrack>(@"SELECT * FROM FolderTrack WHERE TrackID=?", track.TrackID);
-                    uc.AddMediaFile(new MediaFileData()
+                    long folderTrackID = conn.ExecuteScalar<long>(@"SELECT FolderID FROM FolderTrack WHERE TrackID=?", track.TrackID);
+                    Debug.Print("folderTrackID: {0} {1}", folderTrackID, track.TrackID);
+                    AddMediaFileResult addMediaFileResult = uc.AddMediaFile(new MediaFileData()
                     {
                         Name = track.TrackTitle,
                         Path = track.Path,
@@ -493,8 +506,6 @@ namespace Dopamine.Data
                         Artists = string.IsNullOrEmpty(track.Artists) ? null : track.Artists.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray(),
                         Genres = string.IsNullOrEmpty(track.Genres) ? null : track.Genres.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray(),
                         Album = track.AlbumTitle,
-
-                        AlbumImage = track.AlbumImage,
                         DateFileDeleted = null,
                         DateIgnored = null,
                         DiscCount = track.DiscCount,
@@ -502,100 +513,31 @@ namespace Dopamine.Data
                         //Lyrics = track.l
                         TrackCount = track.TrackCount,
                         TrackNumber = track.TrackNumber
-                    }, folderMapID[folderTrackID.FolderID]);
+                    }, folderMapID[folderTrackID]);
 
+                    if (!string.IsNullOrEmpty(track.AlbumImage) && addMediaFileResult.AlbumId != null)
+                    {
+                        //string realPath = cacheService.GetCachedArtworkPath(track.AlbumImage);
+                        //long fileSize = new System.IO.FileInfo(realPath).Length;
+                        string realPath = System.IO.Path.Combine(coverArtCacheFolderPath, track.AlbumImage + ".jpg");
+                        FileInfo fi = new System.IO.FileInfo(realPath);
+                        if (fi.Exists)
+                        {
+                            uc.AddAlbumImage((long)addMediaFileResult.AlbumId, String.Format("cache://{0}", track.AlbumImage), fi.Length, null, "[migration]", true);
+                        }
+                        else
+                        {
+                            Debug.Print("Image for albumID={0} do not exist {1} ", (long)addMediaFileResult.AlbumId, realPath);
+                        }
+                    }
                     Console.WriteLine("Stats: {0} files/sec", (1000.0 * ++tracksMigrated / (Environment.TickCount - timeStarted)));
                 }
                 uc.Dispose();
-                
-
+                conn.Execute("VACUUM;");
             }
         }
 
-        private long GetArtistID(SQLiteConnection conn, String entry)
-        {
-            List<long> ids = conn.QueryScalars<long>("SELECT * FROM Artists WHERE name=?", entry);
-            if (ids.Count == 0)
-            {
-                try
-                {
-                    conn.Insert(new Artist() { Name = entry });
-                }
-                catch (SQLite.SQLiteException ex)
-                {
-                    Debug.WriteLine(String.Format("SQLiteException (GetArtistID) {0}", ex.Message));
-                }
-                return GetLastInsertRowID(conn);
-            }
-            return ids[0];
-        }
-
-        private long GetArtistCollectionID(SQLiteConnection conn, List<long> artistIDs)
-        {
-            string inString = string.Join(",", artistIDs);
-            List<long> ids = conn.QueryScalars<long>(@"
-SELECT DISTINCT artist_collection_id from ArtistCollectionsArtists 
-INNER JOIN (
-SELECT artist_collection_id as id, count(*) as c FROM ArtistCollectionsArtists
-GROUP BY artist_collection_id) AGROUP ON ArtistCollectionsArtists.artist_collection_id = AGROUP.id
-WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString());
-
-            if (ids.Count == 0)
-            {
-                conn.Insert(new ArtistCollection() { });
-                long artist_collection_id = GetLastInsertRowID(conn);
-                foreach (long artistID in artistIDs)
-                {
-                    conn.Insert(new ArtistCollectionsArtist() { ArtistCollectionId = artist_collection_id, ArtistId = artistID }); ;
-                }
-                return artist_collection_id;
-            }
-            return ids[0];
-        }
-
-
-
-
-        private long GetAlbumID(SQLiteConnection conn, String entry, long artist_collection_id, string albumImage)
-        {
-            List<long> ids;
-            ids = conn.QueryScalars<long>("SELECT * FROM Albums WHERE name=? AND artist_collection_ID=?", entry, artist_collection_id);
-            if (ids.Count == 0)
-            {
-                conn.Insert(new Album() { Name = entry, ArtistCollectionId = artist_collection_id });
-                long albumID = GetLastInsertRowID(conn);
-                if (!string.IsNullOrEmpty(albumImage))
-                {
-                    conn.Insert(new AlbumThumbnail()
-                    {
-                        AlbumId = albumID,
-                        Key = albumImage
-                    });
-                    conn.Insert(new AlbumImage()
-                    {
-                        AlbumId = albumID,
-                        Key = albumImage,
-                        Source = "Migration",
-                        DateAdded = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
-                    });
-
-                }
-                return albumID;
-            }
-            return ids[0];
-        }
-        private long GetGenreID(SQLiteConnection conn, String entry)
-        {
-            List<long> ids = conn.QueryScalars<long>("SELECT * FROM Genres WHERE name=?", entry);
-            if (ids.Count == 0)
-            {
-                conn.Insert(new Genre() { Name = entry });
-                return GetLastInsertRowID(conn);
-            }
-            return ids[0];
-        }
-
-        private long GetLastInsertRowID(SQLiteConnection conn)
+         private long GetLastInsertRowID(SQLiteConnection conn)
         {
             SQLiteCommand cmdLastRow = conn.CreateCommand(@"select last_insert_rowid()");
             return cmdLastRow.ExecuteScalar<long>();
@@ -1546,7 +1488,15 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
         [DatabaseVersion(27)]
         private void Migrate27()
         {
-            CreateTablesAndIndexes_v2();
+            try
+            {
+                CreateTablesAndIndexes_v2();
+            }
+            catch (Exception ex)
+            {
+                Debug.Print("EXCEPTION {0}", ex.Message);
+            }
+
             /*
             using (var conn = this.factory.GetConnection())
             {

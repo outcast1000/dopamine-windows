@@ -233,6 +233,7 @@ namespace Dopamine
                 containerRegistry.RegisterSingleton<IAlbumVRepository, SQLiteAlbumVRepository>();
                 containerRegistry.RegisterSingleton<IGenreVRepository, SQLiteGenreVRepository>();
                 containerRegistry.RegisterSingleton<IFolderVRepository, SQLiteFolderVRepository>();
+                containerRegistry.RegisterSingleton<IAlbumImageRepository, SQLiteAlbumImageRepository>();
                 //containerRegistry.RegisterSingleton<IArtistVRepository, MockArtistVRepository>();
                 //containerRegistry.RegisterSingleton<IAlbumVRepository, MockAlbumVRepository>();
             }

@@ -10,8 +10,8 @@ namespace Dopamine.Data.Entities
         [Column("album_id"), Unique()]
         public long AlbumId { get; set; }
 
-        [Column("key"), NotNull()]
-        public string Key { get; set; }
+        [Column("album_image_id"), Indexed(), NotNull()]
+        public long AlbumIndexId { get; set; }
 
     }
 }
