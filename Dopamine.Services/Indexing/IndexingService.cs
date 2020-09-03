@@ -179,9 +179,8 @@ namespace Dopamine.Services.Indexing
 
                     //=== STEP 2. Add OR Update the files that on disk
                     //=== TODO Use a factory HERE
-                    //using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
-                    {
-                        FileOperations.GetFiles(folder.Path,
+
+                    FileOperations.GetFiles(folder.Path,
                         async (path) =>
                         {
                             //=== Check the extension
@@ -192,7 +191,7 @@ namespace Dopamine.Services.Indexing
                             TrackV trackV = trackVRepository.GetTrackWithPath(path);
                             //TrackV trackV = uc.GetTrackWithPath(path);
                             long DateFileModified = FileUtils.DateModifiedTicks(path);
-                            if (trackV != null && DateFileModified <= trackV.DateFileModified && !bReReadTags)
+                            if (trackV != null && DateFileModified == trackV.DateFileModified && !bReReadTags)
                             {
                                 //LogClientA.Info(String.Format("No need to reprocess the file {0}", path));
                                 return;
@@ -241,7 +240,7 @@ namespace Dopamine.Services.Indexing
 
                             using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
                             {
-                                    if (trackV == null)
+                                if (trackV == null)
                                 {
                                     LogClientA.Info(String.Format("Adding file: {0}", path));
                                     AddMediaFileResult result = uc.AddMediaFile(mediaFileData, folder.Id);
@@ -271,7 +270,7 @@ namespace Dopamine.Services.Indexing
                                         updatedFiles++;
                                         //=== Add Image (if needed)
                                         if (fileMetadata != null && result.AlbumId != null)
-                                            await addAlbumImageAsync(fileMetadata, (long) result.AlbumId, uc);
+                                            await addAlbumImageAsync(fileMetadata, (long)result.AlbumId, uc);
 
                                     }
                                     else
@@ -281,18 +280,51 @@ namespace Dopamine.Services.Indexing
                             }
 
                         },
-                            () =>
-                            {
-                                return bContinue;
-                            },
-                            (ex) =>
-                            {
-                                LogClientA.Info(String.Format("Exception: {0}", ex.Message));
-                            });
-                    }
-                    //=== STEP 3
-                    bool isArtworkCleanedUp = await CleanupArtworkAsync();
+                        () =>
+                        {
+                            return bContinue;
+                        },
+                        (ex) =>
+                        {
+                            LogClientA.Info(String.Format("Exception: {0}", ex.Message));
+                        }
+                        );
                     bool isTracksChanged = (addedFiles + updatedFiles + removedFiles) > 0;
+                    bool isArtworkCleanedUp = false;
+                    //=== STEP 3
+                    //=== CLEAN UP AlbumImages
+                    using (ICleanUpAlbumImagesUnitOfWork cleanUpAlbumImagesUnitOfWork = unitOfWorksFactory.getCleanUpAlbumImages())
+                    {
+                        isArtworkCleanedUp = cleanUpAlbumImagesUnitOfWork.CleanUp() > 0;
+                    }
+                    IList<AlbumImage> images = albumImageRepository.GetAlbumImages();
+                    long imageDeletions = 0;
+                    HashSet<string> imagePaths = new HashSet<string>(images.Select(x => Path.GetFileNameWithoutExtension(cacheService.GetCachedArtworkPath(x.Path))).ToList());
+                    FileOperations.GetFiles(cacheService.CoverArtCacheFolderPath,
+                        (path) =>
+                        {
+                            path = path.ToLower();
+                            string ext = Path.GetExtension(path);
+                            string name = Path.GetFileNameWithoutExtension(path);
+
+                            if (!ext.Equals(".jpg"))
+                                return;
+                            if (!imagePaths.Contains(name))
+                            {
+                                imageDeletions++;
+                                Debug.Print("Delete unused image?; {0}", path);
+                                System.IO.File.Delete(path);
+                            }
+                        },
+                        () =>
+                        {
+                            return bContinue;
+                        },
+                        (ex) =>
+                        {
+                            LogClientA.Info(String.Format("Exception: {0}", ex.Message));
+                        });
+
                     // Refresh lists
                     // -------------
                     if (isTracksChanged || isArtworkCleanedUp)
@@ -354,67 +386,6 @@ namespace Dopamine.Services.Indexing
         private async void WatcherManager_FoldersChanged(object sender, EventArgs e)
         {
             await RefreshCollectionAsync(false, false);
-        }
-
-        private async Task<long> DeleteUnusedArtworkFromCacheAsync()
-        {
-            long numberDeleted = 0;
-
-            await Task.Run(async () =>
-            {
-                string[] artworkFiles = Directory.GetFiles(cacheService.CoverArtCacheFolderPath, "album-*.jpg");
-
-                using (SQLiteConnection conn = factory.GetConnection())
-                {
-                    IList<string> artworkIds = await albumArtworkRepository.GetArtworkIdsAsync();
-
-                    foreach (string artworkFile in artworkFiles)
-                    {
-                        if (!artworkIds.Contains(Path.GetFileNameWithoutExtension(artworkFile)))
-                        {
-                            try
-                            {
-                                System.IO.File.Delete(artworkFile);
-                                numberDeleted += 1;
-                            }
-                            catch (Exception ex)
-                            {
-                                LogClient.Error("There was a problem while deleting cached artwork {0}. Exception: {1}", artworkFile, ex.Message);
-                            }
-                        }
-                    }
-                }
-            });
-
-            return numberDeleted;
-        }
-
-        private async Task<bool> CleanupArtworkAsync()
-        {
-            LogClient.Info("+++ STARTED CLEANING UP ARTWORK +++");
-
-            DateTime startTime = DateTime.Now;
-            long numberDeletedFromDatabase = 0;
-            long numberDeletedFromDisk = 0;
-
-            try
-            {
-                // Step 1: delete unused AlbumArtwork from the database (Which isn't mapped to a Track's AlbumKey)
-                // -----------------------------------------------------------------------------------------------
-                numberDeletedFromDatabase = await albumArtworkRepository.DeleteUnusedAlbumArtworkAsync();
-
-                // Step 2: delete unused artwork from the cache
-                // --------------------------------------------
-                numberDeletedFromDisk = await DeleteUnusedArtworkFromCacheAsync();
-            }
-            catch (Exception ex)
-            {
-                LogClient.Info("There was a problem while updating the artwork. Exception: {0}", ex.Message);
-            }
-
-            LogClient.Info("+++ FINISHED CLEANING UP ARTWORK: Covers deleted from database: {0}. Covers deleted from disk: {1}. Time required: {3} ms +++", numberDeletedFromDatabase, numberDeletedFromDisk, Convert.ToInt64(DateTime.Now.Subtract(startTime).TotalMilliseconds));
-
-            return numberDeletedFromDatabase + numberDeletedFromDisk > 0;
         }
 
         private async Task<string> GetArtworkFromFile(long albumId)

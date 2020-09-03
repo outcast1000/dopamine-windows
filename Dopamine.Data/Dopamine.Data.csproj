@@ -158,6 +158,8 @@
     <Compile Include="Repositories\AlbumArtworkRepository.cs" />
     <Compile Include="Repositories\FolderRepository.cs" />
     <Compile Include="Repositories\IAlbumArtworkRepository.cs" />
+    <Compile Include="UnitOfWorks\SQLiteCleanUpAlbumImages.cs" />
+    <Compile Include="UnitOfWorks\ICleanUpAlbumImagesUnitOfWork.cs" />
     <Compile Include="UnitOfWorks\SQLiteUpdateFolderUnitOfWork.cs" />
     <Compile Include="UnitOfWorks\SQLiteRemoveFolderUnitOfWork.cs" />
     <Compile Include="UnitOfWorks\SQLiteAddFolderUnitOfWork.cs" />
