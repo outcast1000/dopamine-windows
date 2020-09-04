@@ -31,7 +31,7 @@ namespace Dopamine.Data.Repositories
                 {
                     try
                     {
-                        string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), null, null);
+                        string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), "", "", "", null);
                         return conn.Query<FolderV>(sql);
                     }
                     catch (Exception ex)

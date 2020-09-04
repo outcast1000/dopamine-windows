@@ -29,6 +29,11 @@ namespace Dopamine.Data.Repositories
             throw new System.NotImplementedException();
         }
 
+        public List<AlbumV> GetAlbumsToIndexByProvider(string provider, bool includeFailed)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public List<AlbumV> GetAlbumsWithArtists(List<long> artistIds)
         {
             return GetAlbums();

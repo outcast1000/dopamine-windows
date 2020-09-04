@@ -38,6 +38,8 @@ namespace Dopamine.Services.InfoDownload
                 return null;
             }
 
+            artists = artists.Distinct<string>().ToList();
+
             foreach (string artist in artists)
             {
                 LastFmAlbum lfmAlbum = await LastfmApi.AlbumGetInfo(artist, title, false, "EN");

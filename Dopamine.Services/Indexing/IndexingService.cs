@@ -20,6 +20,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Animation;
 
@@ -120,7 +121,7 @@ namespace Dopamine.Services.Indexing
             Debug.Print("ENTERING PrivateRefreshCollectionAsync");
             if (IsIndexing)
             {
-                Debug.Print("EXITING PrivateRefreshCollectionAsync (It already works)");
+                Debug.Print("EXITING PrivateRefreshCollectionAsync (ALREADY IN");
                 return;
             }
             isIndexing = true;
@@ -404,21 +405,15 @@ namespace Dopamine.Services.Indexing
             return await cacheService.CacheArtworkAsync(artworkUriString);
         }
 
-        private async void AddArtworkInBackgroundAsync(bool rescanFailed, bool rescanAll)
+        private async Task AddArtworkInBackgroundAsync(bool rescanFailed, bool rescanAll)
         {
-            // First, add artwork from file.
-            await AddArtworkInBackgroundAsync(1, rescanFailed, rescanAll);
-
-            // Next, add artwork from the Internet, if the user has chosen to do so.
-            if (SettingsClient.Get<bool>("Covers", "DownloadMissingAlbumCovers"))
+            if (!SettingsClient.Get<bool>("Covers", "DownloadMissingAlbumCovers"))
+                Debug.Print("DownloadMissingAlbumCovers is false.");
+            if (isIndexingArtwork)
             {
-                // Add artwork from the Internet.
-                await AddArtworkInBackgroundAsync(2, rescanFailed, rescanAll);
+                Debug.Print("AddArtworkInBackgroundAsync [ALREADY IN]. Exiting...");
+                return;
             }
-        }
-
-        private async Task AddArtworkInBackgroundAsync(int passNumber, bool rescanFailed, bool rescanAll)
-        {
             LogClient.Info("+++ STARTED ADDING ARTWORK IN THE BACKGROUND +++");
             canIndexArtwork = true;
             isIndexingArtwork = true;
@@ -427,92 +422,92 @@ namespace Dopamine.Services.Indexing
 
             await Task.Run(async () =>
             {
-                using (SQLiteConnection conn = factory.GetConnection())
+                try
                 {
-                    try
+                    IList<string> albumKeysWithArtwork = new List<string>();
+                    string providerName = "lastfm_album_images";
+                    IList<AlbumV> albumDatasToIndex = rescanAll ? albumVRepository.GetAlbums() : albumVRepository.GetAlbumsToIndexByProvider(providerName, rescanFailed);
+
+                    foreach (AlbumV albumDataToIndex in albumDatasToIndex)
                     {
-                        IList<string> albumKeysWithArtwork = new List<string>();
-
-                        IList<AlbumV> albumDatasToIndex = rescanAll ? albumVRepository.GetAlbums() : albumVRepository.GetAlbumsToIndex(rescanFailed);
-
-                        foreach (AlbumV albumDataToIndex in albumDatasToIndex)
+                        if (string.IsNullOrEmpty(albumDataToIndex.Name))
+                            continue;
+                        // Check if we must cancel artwork indexing
+                        if (!canIndexArtwork)
                         {
-                            // Check if we must cancel artwork indexing
-                            if (!canIndexArtwork)
-                            {
-                                try
-                                {
-                                    LogClient.Info("+++ ABORTED ADDING ARTWORK IN THE BACKGROUND. Time required: {0} ms +++", Convert.ToInt64(DateTime.Now.Subtract(startTime).TotalMilliseconds));
-                                    AlbumArtworkAdded(this, new AlbumArtworkAddedEventArgs() { AlbumKeys = albumKeysWithArtwork }); // Update UI
-                                }
-                                catch (Exception ex)
-                                {
-                                    LogClient.Error("Failed to commit changes while aborting adding artwork in background. Exception: {0}", ex.Message);
-                                }
-
-                                isIndexingArtwork = false;
-
-                                return;
-                            }
-
-                            // Start indexing artwork
                             try
                             {
-                                // Delete existing AlbumArtwork
-                                albumVRepository.DeleteImage(albumDataToIndex);
-                                string ArtworkID = null;
-
-                                if (passNumber.Equals(1))
-                                {
-                                    // During the 1st pass, look for artwork in file(s).
-                                    // Only set NeedsAlbumArtworkIndexing = 0 if artwork was found. So when no artwork was found, 
-                                    // this gives the 2nd pass a chance to look for artwork on the Internet.
-                                    ArtworkID = await GetArtworkFromFile(albumDataToIndex.Id);
-                                }
-                                else if (passNumber.Equals(2))
-                                {
-                                    // During the 2nd pass, look for artwork on the Internet and set NeedsAlbumArtworkIndexing = 0.
-                                    // We don't want future passes to index for this AlbumKey anymore.
-                                    ArtworkID = await GetArtworkFromInternet(
-                                        albumDataToIndex.AlbumArtists,
-                                        DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToList(),
-                                        null, //albumDataToIndex.TrackTitle,
-                                        DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.Artists).ToList()
-                                        );
-                                }
-
-                                if (!string.IsNullOrEmpty(ArtworkID))
-                                {
-                                    albumVRepository.AddImage(albumDataToIndex, ArtworkID, true);
-                                }
-
-                                // If artwork was found for 20 albums, trigger a refresh of the UI.
-                                if (albumKeysWithArtwork.Count >= 20)
-                                {
-                                    var eventAlbumKeys = new List<string>(albumKeysWithArtwork);
-                                    albumKeysWithArtwork.Clear();
-                                    AlbumArtworkAdded(this, new AlbumArtworkAddedEventArgs() { AlbumKeys = eventAlbumKeys }); // Update UI
-                                }
+                                LogClient.Info("+++ ABORTED ADDING ARTWORK IN THE BACKGROUND. Time required: {0} ms +++", Convert.ToInt64(DateTime.Now.Subtract(startTime).TotalMilliseconds));
+                                AlbumArtworkAdded(this, new AlbumArtworkAddedEventArgs() { AlbumKeys = albumKeysWithArtwork }); // Update UI
                             }
                             catch (Exception ex)
                             {
-                                LogClient.Error("There was a problem while updating the cover art for Album {0}/{1}. Exception: {2}", albumDataToIndex.Name, albumDataToIndex.AlbumArtists, ex.Message);
+                                LogClient.Error("Failed to commit changes while aborting adding artwork in background. Exception: {0}", ex.Message);
+                            }
+
+                            isIndexingArtwork = false;
+
+                            return;
+                        }
+
+
+                        using (var conn = this.factory.GetConnection())
+                        {
+                            conn.Execute("DELETE FROM AlbumDownloadFailed WHERE album_id=? AND provider=?", albumDataToIndex.Id, providerName);
+                        }
+
+                        // During the 2nd pass, look for artwork on the Internet and set NeedsAlbumArtworkIndexing = 0.
+                        // We don't want future passes to index for this AlbumKey anymore.
+
+                        //GetArtworkFromInternet(string albumTitle, IList<string> albumArtists, string trackTitle, IList<string> artists)
+                        string albumImageName = await GetArtworkFromInternet(
+                            albumDataToIndex.Name,
+                            DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToList(),
+                            null, //albumDataToIndex.TrackTitle,
+                            DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.Artists).ToList()
+                            );
+
+                        if (!string.IsNullOrEmpty(albumImageName))
+                        {
+                            StringBuilder input = new StringBuilder();
+                            input.Append(albumDataToIndex.Name);
+                            input.Append(albumDataToIndex.AlbumArtists);
+                            input.Append(albumDataToIndex.Artists);
+                            input.Append(providerName);
+                            string sourceHash = System.Convert.ToBase64String(new System.Security.Cryptography.SHA1Cng().ComputeHash(Encoding.UTF8.GetBytes(input.ToString())));
+                            using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
+                            {
+                                string realPath = cacheService.GetCachedArtworkPath("cache://" + albumImageName);
+                                long len = (new FileInfo(realPath)).Length;
+                                uc.AddAlbumImage(albumDataToIndex.Id, "cache://" + albumImageName, len, sourceHash, providerName, false);
+                            }
+                        }
+                        else
+                        {
+                            using (var conn = this.factory.GetConnection())
+                            {
+                                conn.Insert(new AlbumDownloadFailed()
+                                {
+                                    AlbumId = albumDataToIndex.Id,
+                                    DateAdded = DateTime.Now.Ticks,
+                                    Provider = providerName
+                                });
                             }
                         }
 
-                        try
+                        // If artwork was found for 20 albums, trigger a refresh of the UI.
+                        if (albumKeysWithArtwork.Count >= 20)
                         {
-                            AlbumArtworkAdded(this, new AlbumArtworkAddedEventArgs() { AlbumKeys = albumKeysWithArtwork }); // Update UI
-                        }
-                        catch (Exception ex)
-                        {
-                            LogClient.Error("Failed to commit changes while finishing adding artwork in background. Exception: {0}", ex.Message);
+                            IList<string> eventAlbumKeys = albumKeysWithArtwork.Select(item => item).ToList();
+                            albumKeysWithArtwork.Clear();
+                            AlbumArtworkAdded(this, new AlbumArtworkAddedEventArgs() { AlbumKeys = eventAlbumKeys }); // Update UI
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        LogClient.Error("Unexpected error occurred while updating artwork in the background. Exception: {0}", ex.Message);
-                    }
+
+                }
+                catch (Exception ex)
+                {
+                    LogClient.Error("Unexpected error occurred while updating artwork in the background. Exception: {0}", ex.Message);
                 }
             });
 

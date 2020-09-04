@@ -60,7 +60,7 @@ namespace Dopamine.Data.Repositories
         {
             try
             {
-                string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), whereClause, queryOptions);
+                string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), "", whereClause, "", queryOptions);
                 return connection.Query<TrackV>(sql);
             }
             catch (Exception ex)
@@ -92,7 +92,7 @@ namespace Dopamine.Data.Repositories
         {
             try
             {
-                string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), whereClause, queryOptions);
+                string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), "", whereClause, "", queryOptions);
                 return connection.FindWithQuery<TrackV>(sql);
             }
             catch (Exception ex)

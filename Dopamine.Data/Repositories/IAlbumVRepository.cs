@@ -12,11 +12,7 @@ namespace Dopamine.Data.Repositories
 
         List<AlbumV> GetAlbumsWithGenres(List<long> genreIds);
 
-        List<AlbumV> GetAlbumsToIndex(bool includeFailed);
-
-        bool AddImage(AlbumV album, string path, bool asThumbnail);
-
-        bool DeleteImage(AlbumV album);
+        List<AlbumV> GetAlbumsToIndexByProvider(string provider, bool includeFailed);
 
     }
 }

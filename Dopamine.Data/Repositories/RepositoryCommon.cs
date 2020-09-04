@@ -24,7 +24,7 @@ namespace Dopamine.Data.Repositories
     }
     class RepositoryCommon
     {
-        public static string CreateSQL(string template, string additionalWhere, QueryOptions queryOptions)
+        public static string CreateSQL(string template, string joinClause, string whereClause, string orderClause, QueryOptions queryOptions)
         {
             QueryOptions usedOptions = queryOptions != null ? queryOptions : new QueryOptions();
             string where = "";
@@ -51,8 +51,8 @@ namespace Dopamine.Data.Repositories
             else if (usedOptions.WhereIgnored == QueryOptionsBool.False)
                 where += "AND t.date_file_deleted is null ";
             //=== AdditionalWhere
-            if (!string.IsNullOrEmpty(additionalWhere))
-                where += "AND " + additionalWhere;
+            if (!string.IsNullOrEmpty(whereClause))
+                where += "AND " + whereClause;
             if (where != "")
                 where = "WHERE" + where.Substring(3);
 
@@ -63,6 +63,8 @@ namespace Dopamine.Data.Repositories
             }
 
             string sql = template.Replace("#WHERE#", where);
+            sql = sql.Replace("#JOIN#", joinClause);
+            sql = sql.Replace("#ORDER#", orderClause);
             sql = sql.Replace("#LIMIT#", limit);
 
             return sql;

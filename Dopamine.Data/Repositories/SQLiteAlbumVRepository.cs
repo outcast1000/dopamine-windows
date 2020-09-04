@@ -15,37 +15,33 @@ namespace Dopamine.Data.Repositories
             this.factory = factory;
         }
 
-        public bool AddImage(AlbumV album, string path, bool asThumbnail)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool DeleteImage(AlbumV album)
-        {
-            throw new NotImplementedException();
-        }
-
         public List<AlbumV> GetAlbums()
         {
-            return GetAlbumsInternal();
+            return GetAlbumsInternal("", "", "");
         }
 
-        public List<AlbumV> GetAlbumsToIndex(bool includeFailed)
+        public List<AlbumV> GetAlbumsToIndexByProvider(string provider, bool includeFailed)
         {
-            throw new NotImplementedException();
-        }
+            if (includeFailed)
+                return GetAlbumsInternal("", "Thumbnail is null ", "");
+            else
+                return GetAlbumsInternal(
+                    String.Format("LEFT JOIN AlbumDownloadFailed ON AlbumDownloadFailed.album_id=Albums.id AND AlbumDownloadFailed.provider='{0}'", provider), 
+                    String.Format("Thumbnail is null AND AlbumDownloadFailed.album_id is null"), 
+                    "");
+            }
 
-        public List<AlbumV> GetAlbumsWithArtists(List<long> artistIds)
+    public List<AlbumV> GetAlbumsWithArtists(List<long> artistIds)
         {
-            return GetAlbumsInternal("Artists.id in (" + string.Join(",", artistIds) + ")");
+            return GetAlbumsInternal("", "Artists.id in (" + string.Join(",", artistIds) + ")", "");
         }
 
         public List<AlbumV> GetAlbumsWithGenres(List<long> genreIds)
         {
-            return GetAlbumsInternal("Genres.id in (" + string.Join(",", genreIds) + ")");
+            return GetAlbumsInternal("", "Genres.id in (" + string.Join(",", genreIds) + ")", "");
         }
 
-        private List<AlbumV> GetAlbumsInternal(string whereClause = "", QueryOptions queryOptions = null)
+        private List<AlbumV> GetAlbumsInternal(string joinClause, string whereClause, string orderClause, QueryOptions queryOptions = null)
         {
             try
             {
@@ -53,7 +49,7 @@ namespace Dopamine.Data.Repositories
                 {
                     try
                     {
-                        string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), whereClause, queryOptions);
+                        string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), joinClause, whereClause, orderClause, queryOptions);
                         return conn.Query<AlbumV>(sql);
                     }
                     catch (Exception ex)
@@ -99,6 +95,7 @@ LEFT JOIN Genres ON TrackGenres.genre_id = Genres.id
 LEFT JOIN TrackArtists ON TrackArtists.track_id = t.id
 LEFT JOIN Artists ON Artists.id = TrackArtists.artist_id
 LEFT JOIN Folders ON Folders.id = t.folder_id
+#JOIN#
 #WHERE#
 GROUP BY Albums.id
 ORDER BY Albums.name

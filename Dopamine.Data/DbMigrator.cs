@@ -170,7 +170,7 @@ namespace Dopamine.Data
                 conn.Execute("DROP TABLE IF EXISTS AlbumReviews;");
                 conn.Execute("DROP TABLE IF EXISTS AlbumThumbnail;");
                 conn.Execute("DROP TABLE IF EXISTS AlbumImages;");
-                conn.Execute("DROP TABLE IF EXISTS AlbumFailedIndexing;");
+                conn.Execute("DROP TABLE IF EXISTS AlbumDownloadFailed;");
                 conn.Execute("DROP TABLE IF EXISTS Albums;");
 
                 conn.Execute("DROP TABLE IF EXISTS ArtistCollectionsArtists;");
@@ -280,12 +280,15 @@ namespace Dopamine.Data
                 conn.Execute("CREATE UNIQUE INDEX AlbumThumbnailAlbumΙDIndex ON AlbumThumbnail(album_id);");
 
                 //=== AlbumFailedIndexing: (One 2 One) Each Album may have only one failed indexing record
-                conn.Execute("CREATE TABLE AlbumFailedIndexing (" +
-                            "album_id          INTEGER," +
+                conn.Execute("CREATE TABLE AlbumDownloadFailed (" +
+                            "album_id          INTEGER NOT NULL," +
+                            "provider          TEXT NOT NULL," +
                             "date_added        INTEGER NOT NULL," +
                             "FOREIGN KEY (album_id) REFERENCES Albums(id));");
 
-                conn.Execute("CREATE UNIQUE INDEX AlbumFailedIndexingAlbumIDIndex ON AlbumFailedIndexing(album_id);");
+                conn.Execute("CREATE INDEX AlbumDownloadFailedAlbumIDIndex ON AlbumDownloadFailed(album_id);");
+                conn.Execute("CREATE INDEX AlbumDownloadFailedProviderIndex ON AlbumDownloadFailed(provider);");
+                conn.Execute("CREATE UNIQUE INDEX AlbumDownloadUniqueIndex ON AlbumDownloadFailed(album_id, provider);");
 
                 //=== Genres:
                 conn.Execute("CREATE TABLE Genres (" +
