@@ -32,9 +32,7 @@ namespace Dopamine.Data.UnitOfWorks
                 HAVING Count(t.id)=0
                 ORDER BY Albums.name
                 ";
-            int ret = conn.Execute(String.Format("DELETE FROM AlbumThumbnail WHERE album_id in ({0});", selectAlbumIdWithoutTracks));
-            Debug.Print("SQLiteCleanUpAlbumImagesUnitOfWork: DELETING {0} Thumbnails", ret);
-            ret = conn.Execute(String.Format("DELETE FROM AlbumThumbnail WHERE album_id in ({0});", selectAlbumIdWithoutTracks));
+            long ret = conn.Execute(String.Format("DELETE FROM AlbumImages WHERE album_id in ({0});", selectAlbumIdWithoutTracks));
             Debug.Print("SQLiteCleanUpAlbumImagesUnitOfWork: DELETING {0} Album Images", ret);
             return ret;
         }

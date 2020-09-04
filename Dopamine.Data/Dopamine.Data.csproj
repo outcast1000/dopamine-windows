@@ -103,7 +103,6 @@
     <Compile Include="DataUtils.cs" />
     <Compile Include="DbMigrator.cs" />
     <Compile Include="Entities\AlbumDownloadFailed.cs" />
-    <Compile Include="Entities\AlbumThumbnail.cs" />
     <Compile Include="Entities\AlbumImages.cs" />
     <Compile Include="Entities\FolderV.cs" />
     <Compile Include="Entities\AlbumV.cs" />

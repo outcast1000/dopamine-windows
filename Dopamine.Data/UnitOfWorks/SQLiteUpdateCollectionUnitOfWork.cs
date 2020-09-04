@@ -298,62 +298,38 @@ namespace Dopamine.Data.UnitOfWorks
         }
 
 
-        public bool AddAlbumImage(long album_id, string path, long file_size, string source_hash, string source, bool bUseAsThumbnail)
+        public bool AddAlbumImage(long album_id, string path, long file_size, string source_hash, string source, bool isPrimary)
         {
             Debug.Assert(album_id > 0);
             Debug.Assert(path.Length > 10);
             Debug.Print("AddAlbumImage {0} - {1}", album_id, path);
-            long albumImageId = GetAlbumImageID(album_id, path, file_size, source_hash, source);
+            long albumImageId = GetAlbumImageID(album_id, path, file_size, source_hash, source, isPrimary);
             Debug.Print("AddAlbumImage albumImageId: {0} albumId: {1} path: {2}", albumImageId, album_id, path);
-            if (bUseAsThumbnail)
-                SetAlbumThumbail(album_id, albumImageId);
-            else
-                FixAlbumThumbnail(album_id);
             return true;
         }
+
         public bool RemoveAlbumImage(long album_id, string path)
         {
             int deletions = conn.Execute("DELETE FROM AlbumImages WHERE album_id=? AND path=?", album_id, path);
             if (deletions == 0)
                 return false;
-            conn.Execute("DELETE FROM AlbumThumbnail WHERE album_id=?", album_id);
-            FixAlbumThumbnail(album_id);
             return true;
         }
         public bool RemoveAllAlbumImages(long album_id)
         {
-            conn.Execute("DELETE FROM AlbumThumbnail WHERE album_id = ?", album_id);
             conn.Execute("DELETE FROM AlbumImages WHERE album_id = ?", album_id);
             return true;
         }
 
-        private bool SetAlbumThumbail(long album_id, long album_image_id)
+        public bool SetAlbumImageAsPrimary(long album_image_id, bool bSetAsPrimary)
         {
-            Debug.Print("SetAlbumThumbail album_id: {0} album_image_id: {1}", album_id, album_image_id);
-            conn.Execute("DELETE FROM AlbumThumbnail WHERE album_id=?", album_id);
-            conn.Execute("INSERT INTO AlbumThumbnail (album_id, album_image_id) VALUES (?,?)", album_id, album_image_id);
+            Debug.Print("SetAlbumImageAsPrimary album_image_id: {0}", album_image_id);
+            if (bSetAsPrimary)
+                conn.Execute("UPDATE AlbumImages SET is_primary = 1 WHERE album_image_id = ?", album_image_id);
+            else 
+                conn.Execute("UPDATE AlbumImages SET is_primary = NULL WHERE album_image_id = ?", album_image_id);
             return true;
         }
-
-
-        private bool FixAlbumThumbnail(long album_id)
-        {
-            long? album_image_id = conn.ExecuteScalar<long?>("SELECT album_image_id FROM AlbumThumbnail WHERE album_id=?", album_id);
-            if (!album_image_id.HasValue)
-            {
-                //=== ADD ANY IMAGE LEFT
-                album_image_id = conn.ExecuteScalar<long?>("SELECT id FROM AlbumImages WHERE album_id = ? LIMIT 0,1", album_id);
-                if (album_image_id.HasValue)
-                {
-                    Debug.Print("FixAlbumThumbnail album_id: {0} album_image_id: {1}", album_id, album_image_id);
-                    conn.Execute("INSERT INTO AlbumThumbnail (album_id, album_image_id) VALUES (?, ?)", album_id, (long)album_image_id);
-                }
-            }
-            return true;
-        }
-
-
-
 
 
         private long GetArtistID(String entry)
@@ -415,7 +391,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
 
         }
 
-        private long GetAlbumImageID(long album_id, string path, long file_size, string source_hash, string source)
+        private long GetAlbumImageID(long album_id, string path, long file_size, string source_hash, string source, bool is_primary)
         {
             long? id = conn.ExecuteScalar<long?>("SELECT id FROM AlbumImages WHERE album_id=? AND path=?", album_id, path);
             //long? id = conn.ExecuteScalar<long?>("SELECT id FROM AlbumImages WHERE path=?", image.Path);
@@ -430,6 +406,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                     FileSize = file_size,
                     SourceHash = source_hash,
                     Source = source,
+                    IsPrimary = is_primary ? (bool?) true : null,
                     DateAdded = DateTime.Now.Ticks
                 });
                 return GetLastInsertRowID();

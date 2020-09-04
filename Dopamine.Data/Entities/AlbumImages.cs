@@ -25,6 +25,9 @@ namespace Dopamine.Data.Entities
         [Column("source")]
         public string Source { get; set; }
 
+        [Column("is_primary")]
+        public bool? IsPrimary { get; set; }
+
         [Column("date_added")]
         public long DateAdded { get; set; }
 

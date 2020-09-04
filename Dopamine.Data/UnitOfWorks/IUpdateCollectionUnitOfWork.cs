@@ -75,5 +75,6 @@ namespace Dopamine.Data.UnitOfWorks
         bool AddAlbumImage(long album_id, string path, long file_size, string source_hash, string source, bool bUseAsThumbnail);
         bool RemoveAlbumImage(long album_id, string path);
         bool RemoveAllAlbumImages(long album_id);
+        bool SetAlbumImageAsPrimary(long album_image_id, bool bSetAsPrimary);
     }
 }

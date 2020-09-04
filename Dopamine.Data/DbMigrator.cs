@@ -168,7 +168,7 @@ namespace Dopamine.Data
                 conn.Execute("DROP TABLE IF EXISTS Genres;");
 
                 conn.Execute("DROP TABLE IF EXISTS AlbumReviews;");
-                conn.Execute("DROP TABLE IF EXISTS AlbumThumbnail;");
+                conn.Execute("DROP TABLE IF EXISTS AlbumThumbnail;");//=== DEPRECATED
                 conn.Execute("DROP TABLE IF EXISTS AlbumImages;");
                 conn.Execute("DROP TABLE IF EXISTS AlbumDownloadFailed;");
                 conn.Execute("DROP TABLE IF EXISTS Albums;");
@@ -261,6 +261,7 @@ namespace Dopamine.Data
                             "album_id           INTEGER NOT NULL," +
                             "path               TEXT NOT NULL," + //=== May be cache://
                             "file_size          INTEGER NOT NULL," +
+                            "is_primary         INTEGER," + 
                             "source_hash        TEXT," +
                             "source             TEXT," +
                             "date_added         INTEGER NOT NULL," +
@@ -268,18 +269,10 @@ namespace Dopamine.Data
 
                 conn.Execute("CREATE INDEX AlbumImagesAlbumIDIndex ON AlbumImages(album_id);");
                 conn.Execute("CREATE INDEX AlbumImagesPathIndex ON AlbumImages(path);");
+                conn.Execute("CREATE INDEX AlbumImagesIsPrimaryIndex ON AlbumImages(is_primary);");
                 conn.Execute("CREATE UNIQUE INDEX AlbumImagesCompositeIndex ON AlbumImages(album_id, path);");
 
-                //=== AlbumThumbnail: (One 2 One) Each Album may have only one thumbnail
-                conn.Execute("CREATE TABLE AlbumThumbnail (" +
-                            "album_id          INTEGER," +
-                            "album_image_id    INTEGER NOT NULL," +
-                            "FOREIGN KEY (album_image_id) REFERENCES AlbumImages(id)," +
-                            "FOREIGN KEY (album_id) REFERENCES Albums(id));");
-
-                conn.Execute("CREATE UNIQUE INDEX AlbumThumbnailAlbumΙDIndex ON AlbumThumbnail(album_id);");
-
-                //=== AlbumFailedIndexing: (One 2 One) Each Album may have only one failed indexing record
+                //=== AlbumDownloadFailed: (One 2 One) Each Album may have only one failed indexing record
                 conn.Execute("CREATE TABLE AlbumDownloadFailed (" +
                             "album_id          INTEGER NOT NULL," +
                             "provider          TEXT NOT NULL," +
