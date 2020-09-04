@@ -35,7 +35,7 @@ namespace Dopamine.Services.Indexing
         // Repositories
         private ITrackVRepository trackVRepository;
         private IAlbumVRepository albumVRepository;
-        private IAlbumArtworkRepository albumArtworkRepository;
+        //private IAlbumImageRepository albumArtworkRepository;
         private IFolderVRepository folderVRepository;
         private IAlbumImageRepository albumImageRepository;
 
@@ -67,7 +67,7 @@ namespace Dopamine.Services.Indexing
         }
 
         public IndexingService(ISQLiteConnectionFactory factory, ICacheService cacheService, IInfoDownloadService infoDownloadService,
-            ITrackVRepository trackVRepository, IFolderVRepository folderVRepository, IAlbumArtworkRepository albumArtworkRepository, IAlbumVRepository albumVRepository,
+            ITrackVRepository trackVRepository, IFolderVRepository folderVRepository, IAlbumVRepository albumVRepository,
             IUnitOfWorksFactory unitOfWorksFactory, IAlbumImageRepository albumImageRepository)
         {
             this.cacheService = cacheService;
@@ -75,7 +75,6 @@ namespace Dopamine.Services.Indexing
             this.trackVRepository = trackVRepository;
             this.albumVRepository = albumVRepository;
             this.folderVRepository = folderVRepository;
-            this.albumArtworkRepository = albumArtworkRepository;
             this.factory = factory;
             this.unitOfWorksFactory = unitOfWorksFactory;
             this.albumImageRepository = albumImageRepository;

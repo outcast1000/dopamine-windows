@@ -38,7 +38,7 @@ namespace Dopamine.ViewModels.Common.Base
         private IPlaylistService playlistService;
         private ICacheService cacheService;
         private IIndexingService indexingService;
-        private IAlbumArtworkRepository albumArtworkRepository;
+        //private IAlbumArtworkRepository albumArtworkRepository;
         private ObservableCollection<AlbumViewModel> albums;
         private CollectionViewSource albumsCvs;
         private IList<AlbumViewModel> selectedAlbums;
@@ -144,7 +144,7 @@ namespace Dopamine.ViewModels.Common.Base
             this.playlistService = container.Resolve<IPlaylistService>();
             this.cacheService = container.Resolve<ICacheService>();
             this.indexingService = container.Resolve<IIndexingService>();
-            this.albumArtworkRepository = container.Resolve<IAlbumArtworkRepository>();
+            //this.albumArtworkRepository = container.Resolve<IAlbumArtworkRepository>();
 
             // Commands
             this.ToggleAlbumOrderCommand = new DelegateCommand(() => this.ToggleAlbumOrder());
@@ -155,7 +155,7 @@ namespace Dopamine.ViewModels.Common.Base
             this.DelaySelectedAlbumsCommand = new DelegateCommand(() => this.delaySelectedAlbums = true);
 
             // Events
-            this.indexingService.AlbumArtworkAdded += async (_, e) => await this.RefreshAlbumArtworkAsync(e.AlbumKeys);
+            //this.indexingService.AlbumArtworkAdded += async (_, e) => await this.RefreshAlbumArtworkAsync(e.AlbumKeys);
 
             this.SelectedAlbumsCommand = new DelegateCommand<object>(async (parameter) =>
             {
@@ -177,22 +177,26 @@ namespace Dopamine.ViewModels.Common.Base
             });
         }
 
+        /*
         public async Task LoadAlbumArtworkAsync(int delayMilliSeconds)
         {
             await Task.Delay(delayMilliSeconds);
 
-            IList<AlbumArtwork> allAlbumArtwork = await this.albumArtworkRepository.GetAlbumArtworkAsync();
+            IList<Αλβ> allAlbumArtwork = await this.albumArtworkRepository.GetAlbumArtworkAsync();
 
             await this.SetAlbumArtwork(allAlbumArtwork);
         }
-
+        */
+        /*
         public async Task RefreshAlbumArtworkAsync(IList<string> albumsKeys = null)
         {
             IList<AlbumArtwork> allAlbumArtwork = await this.albumArtworkRepository.GetAlbumArtworkAsync();
 
             await this.SetAlbumArtwork(allAlbumArtwork, albumsKeys);
         }
+        */
 
+        /*
         private async Task SetAlbumArtwork(IList<AlbumArtwork> allAlbumArtwork, IList<string> albumsKeys = null)
         {
             if (this.albums != null && this.albums.Count > 0)
@@ -223,7 +227,7 @@ namespace Dopamine.ViewModels.Common.Base
                 });
             }
         }
-
+        */
         private void EditSelectedAlbum()
         {
             if (this.SelectedAlbums == null || this.SelectedAlbums.Count == 0)
@@ -369,7 +373,7 @@ namespace Dopamine.ViewModels.Common.Base
             });
 
             // Set Album artwork
-            this.LoadAlbumArtworkAsync(Constants.ArtworkLoadDelay);
+            //this.LoadAlbumArtworkAsync(Constants.ArtworkLoadDelay);
         }
 
         protected async Task AddAlbumsToPlaylistAsync(IList<AlbumViewModel> albumViewModels, string playlistName)

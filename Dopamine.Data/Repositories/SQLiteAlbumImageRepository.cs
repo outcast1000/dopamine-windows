@@ -80,6 +80,34 @@ WHERE album_id=?
             return null;
         }
 
+        public IList<AlbumImage> GetAlbumImageForTrackWithPath(string path)
+        {
+            using (var conn = factory.GetConnection())
+            {
+                try
+                {
+                    return conn.Query<AlbumImage>(@" 
+SELECT
+AlbumImages.id, 
+AlbumImages.album_id, 
+AlbumImages.path, 
+AlbumImages.source, 
+AlbumImages.date_added, 
+AlbumImages.file_size,
+AlbumImages.source_hash
+from AlbumImages
+LEFT JOIN TrackAlbums ON TrackAlbums.album_id = AlbumImages.album_id
+LEFT JOIN Tracks ON tracks.id = TrackAlbums.track_id
+WHERE Tracks.path = ?", path);
+                }
+                catch (Exception ex)
+                {
+                    LogClient.Error("Query Failed. Exception: {0}", ex.Message);
+                }
+            }
+            return null;
+        }
+
         //AlbumImage GetAlbumArtworkForPath(string path);
         /*
         Task DeleteAlbumArtworkAsync(string albumKey);

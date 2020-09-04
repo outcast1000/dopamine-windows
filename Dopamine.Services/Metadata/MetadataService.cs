@@ -17,6 +17,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Caching;
 using System.Threading.Tasks;
+using Dopamine.Data.UnitOfWorks;
+using System.Diagnostics;
 
 namespace Dopamine.Services.Metadata
 {
@@ -25,7 +27,8 @@ namespace Dopamine.Services.Metadata
         private IPlaybackService playbackService;
         private ICacheService cacheService;
         private ITrackVRepository trackRepository;
-        private IAlbumArtworkRepository albumArtworkRepository;
+        private IAlbumImageRepository albumImageRepository;
+        private IUnitOfWorksFactory unitOfWorksFactory;
         private FileMetadataUpdater updater;
         ObjectCache artworkCache = MemoryCache.Default;
         object artworkCacheLock = new object();
@@ -34,13 +37,13 @@ namespace Dopamine.Services.Metadata
         public event Action<RatingChangedEventArgs> RatingChanged = delegate { };
         public event Action<LoveChangedEventArgs> LoveChanged = delegate { };
 
-        public MetadataService(IPlaybackService playbackService, ICacheService cacheService, ITrackVRepository trackRepository,
-            IAlbumArtworkRepository albumArtworkRepository)
+        public MetadataService(IPlaybackService playbackService, ICacheService cacheService, ITrackVRepository trackRepository, IAlbumImageRepository albumImageRepository, IUnitOfWorksFactory unitOfWorksFactory)
         {
             this.playbackService = playbackService;
             this.cacheService = cacheService;
             this.trackRepository = trackRepository;
-            this.albumArtworkRepository = albumArtworkRepository;
+            this.albumImageRepository = albumImageRepository;
+            this.unitOfWorksFactory = unitOfWorksFactory;
 
             this.updater = new FileMetadataUpdater(this.playbackService, this.trackRepository);
         }
@@ -123,12 +126,11 @@ namespace Dopamine.Services.Metadata
         {
             byte[] artwork = null;
 
-            Task<AlbumArtwork> task = this.albumArtworkRepository.GetAlbumArtworkForPathAsync(filename);
-            AlbumArtwork albumArtwork = task.Result;
-
-            if (albumArtwork != null)
+            IList<AlbumImage> albumImages = albumImageRepository.GetAlbumImageForTrackWithPath(filename);
+            if (ListExtensions.IsNullOrEmpty<AlbumImage>(albumImages))
             {
-                string artworkPath = this.cacheService.GetCachedArtworkPath(albumArtwork.ArtworkID);
+                albumImages = albumImages.OrderBy(x => x.IsPrimary).ToList();
+                string artworkPath = this.cacheService.GetCachedArtworkPath(albumImages[0].Path);
 
                 if (!string.IsNullOrEmpty(artworkPath))
                 {
@@ -209,8 +211,9 @@ namespace Dopamine.Services.Metadata
                 // Cache the new artwork
                 string artworkID = await this.cacheService.CacheArtworkAsync(fileMetadata.ArtworkData.Value);
 
+                Debug.Assert(false, "ALEX TODO");
                 // Add or update AlbumArtwork in the database
-                await this.albumArtworkRepository.UpdateAlbumArtworkAsync(track.AlbumTitle, artworkID);
+                //albumImageRepository.UpdateAlbumArtworkAsync(track.AlbumTitle, artworkID);
             }
         }
 
@@ -250,7 +253,12 @@ namespace Dopamine.Services.Metadata
             string artworkID = await this.cacheService.CacheArtworkAsync(artwork.Value);
 
             // Add or update AlbumArtwork in the database
-            await this.albumArtworkRepository.UpdateAlbumArtworkAsync(albumViewModel.Thumbnail, artworkID);
+            using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
+            {
+                String realImagePath = cacheService.GetCachedArtworkPath("cache://" + artworkID);
+                long len = new FileInfo(realImagePath).Length;
+                uc.AddAlbumImage(albumViewModel.Id, "cache://" + artworkID, len, null, "[file]", true);
+            }
 
             if (updateFileArtwork)
             {

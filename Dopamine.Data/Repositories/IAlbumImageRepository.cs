@@ -10,6 +10,8 @@ namespace Dopamine.Data.Repositories
 
         IList<AlbumImage> GetAlbumImages(long albumId);
 
+        IList<AlbumImage> GetAlbumImageForTrackWithPath(string path);
+
         //AlbumImage GetAlbumArtworkForPath(string path);
         /*
         Task DeleteAlbumArtworkAsync(string albumKey);
