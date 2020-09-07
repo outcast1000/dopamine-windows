@@ -8,16 +8,14 @@ namespace Dopamine.ViewModels.Common
     public class BackgroundCoverArtControlViewModel : CoverArtControlViewModel
     {
         private IAppearanceService appearanceService;
-        private ICacheService cacheService;
         private IMetadataService metadataService;
         
         public BackgroundCoverArtControlViewModel(IPlaybackService playbackService,
-            ICacheService cacheService, IAppearanceService appearanceService, 
-            IMetadataService metadataService) : base(playbackService, cacheService, metadataService)
+            IAppearanceService appearanceService, 
+            IMetadataService metadataService) : base(playbackService, metadataService)
         {
             this.playbackService = playbackService;
             this.appearanceService = appearanceService;
-            this.cacheService = cacheService;
             this.metadataService = metadataService;
         }
     }

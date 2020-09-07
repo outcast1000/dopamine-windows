@@ -37,12 +37,10 @@ namespace Dopamine.Services.ExternalControl
         private readonly object clientsLock = new object();
 
         private readonly IPlaybackService playbackService;
-        private readonly ICacheService cacheService;
    
-        public ExternalControlServer(IPlaybackService playbackService, ICacheService cacheService)
+        public ExternalControlServer(IPlaybackService playbackService)
         {
             this.playbackService = playbackService;
-            this.cacheService = cacheService;
 
             this.fftProviderDataTimer = new DispatcherTimer() { Interval = TimeSpan.FromSeconds(2) };
             this.fftProviderDataTimer.Tick += FftProviderDataTimerElapsed;
@@ -138,8 +136,8 @@ namespace Dopamine.Services.ExternalControl
         [OperationBehavior]
         public ExternalTrack GetCurrenTrack() => new ExternalTrack(this.playbackService.CurrentTrack);
 
-        [OperationBehavior]
-        public string GetCurrentTrackArtworkPath(string artworkId) => this.cacheService.GetCachedArtworkPath(artworkId);
+        //[OperationBehavior]
+        //public string GetCurrentTrackArtworkPath(string artworkId) => this.cacheService.GetCachedArtworkPath(artworkId);
      
         [OperationBehavior]
         public int GetFftDataSize() => FftDataLength;

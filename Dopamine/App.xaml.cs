@@ -240,7 +240,6 @@ namespace Dopamine
 
             void RegisterServices()
             {
-                containerRegistry.RegisterSingleton<ICacheService, CacheService>();
                 containerRegistry.RegisterSingleton<IUpdateService, UpdateService>();
                 containerRegistry.RegisterSingleton<IAppearanceService, AppearanceService>();
                 containerRegistry.RegisterSingleton<II18nService, I18nService>();

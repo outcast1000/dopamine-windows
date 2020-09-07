@@ -25,7 +25,6 @@ namespace Dopamine.Services.Metadata
     public class MetadataService : IMetadataService
     {
         private IPlaybackService playbackService;
-        private ICacheService cacheService;
         private ITrackVRepository trackRepository;
         private IAlbumImageRepository albumImageRepository;
         private IUnitOfWorksFactory unitOfWorksFactory;
@@ -37,10 +36,9 @@ namespace Dopamine.Services.Metadata
         public event Action<RatingChangedEventArgs> RatingChanged = delegate { };
         public event Action<LoveChangedEventArgs> LoveChanged = delegate { };
 
-        public MetadataService(IPlaybackService playbackService, ICacheService cacheService, ITrackVRepository trackRepository, IAlbumImageRepository albumImageRepository, IUnitOfWorksFactory unitOfWorksFactory)
+        public MetadataService(IPlaybackService playbackService, ITrackVRepository trackRepository, IAlbumImageRepository albumImageRepository, IUnitOfWorksFactory unitOfWorksFactory)
         {
             this.playbackService = playbackService;
-            this.cacheService = cacheService;
             this.trackRepository = trackRepository;
             this.albumImageRepository = albumImageRepository;
             this.unitOfWorksFactory = unitOfWorksFactory;
@@ -130,7 +128,7 @@ namespace Dopamine.Services.Metadata
             if (ListExtensions.IsNullOrEmpty<AlbumImage>(albumImages))
             {
                 albumImages = albumImages.OrderBy(x => x.IsPrimary).ToList();
-                string artworkPath = this.cacheService.GetCachedArtworkPath(albumImages[0].Location);
+                string artworkPath = (new FileStorage()).GetRealPath(albumImages[0].Location);
 
                 if (!string.IsNullOrEmpty(artworkPath))
                 {
@@ -209,7 +207,7 @@ namespace Dopamine.Services.Metadata
             if (updateAlbumArtwork)
             {
                 // Cache the new artwork
-                string artworkID = await this.cacheService.CacheArtworkAsync(fileMetadata.ArtworkData.Value);
+                //string artworkID = await this.cacheService.CacheArtworkAsync(fileMetadata.ArtworkData.Value);
 
                 Debug.Assert(false, "ALEX TODO");
                 // Add or update AlbumArtwork in the database
@@ -251,7 +249,7 @@ namespace Dopamine.Services.Metadata
         {
             Debug.Assert(false, "ALEX TODO");
             // Cache the new artwork
-            string artworkID = await this.cacheService.CacheArtworkAsync(artwork.Value);
+            //string artworkID = await this.cacheService.CacheArtworkAsync(artwork.Value);
 
             // Add or update AlbumArtwork in the database
             using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
@@ -261,7 +259,7 @@ namespace Dopamine.Services.Metadata
                 uc.AddAlbumImage(new AlbumImage()
                 {
                     AlbumId = albumViewModel.Id,
-                    Location = "cache://" + artworkID,
+                    //Location = "cache://" + artworkID,
                     IsPrimary = true,
                     Source = "[EDIT]"
                 });

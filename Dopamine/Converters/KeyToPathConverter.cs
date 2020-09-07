@@ -14,7 +14,6 @@ namespace Dopamine.Converters
         private IFileStorage fileStorage = new FileStorage();
         public KeyToPathConverter()
         {
-            //this.cacheService = ((Dopamine.App)Application.Current).Container.Resolve<ICacheService>();
         }
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {

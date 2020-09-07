@@ -47,7 +47,7 @@ namespace Dopamine.ViewModels.Common
         public DelegateCommand RemoveArtworkCommand { get; set; }
 
         public EditAlbumViewModel(AlbumViewModel albumViewModel, IMetadataService metadataService,
-            IDialogService dialogService, ICacheService cacheService, IInfoDownloadService infoDownloadService) : base(cacheService, infoDownloadService)
+            IDialogService dialogService, IInfoDownloadService infoDownloadService) : base(infoDownloadService)
         {
             this.albumViewModel = albumViewModel;
             this.metadataService = metadataService;

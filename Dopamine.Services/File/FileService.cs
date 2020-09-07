@@ -12,6 +12,7 @@ using Dopamine.Services.Extensions;
 using Prism.Ioc;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.ServiceModel;
@@ -25,7 +26,6 @@ namespace Dopamine.Services.File
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
     public class FileService : IFileService
     {
-        private ICacheService cacheService;
         private ITrackVRepository trackRepository;
         private IContainerProvider container;
         private IList<string> files;
@@ -34,9 +34,8 @@ namespace Dopamine.Services.File
         private int addFilesMilliseconds = 250;
         private string instanceGuid;
 
-        public FileService(ICacheService cacheService, ITrackVRepository trackRepository, IContainerProvider container)
+        public FileService(ITrackVRepository trackRepository, IContainerProvider container)
         {
-            this.cacheService = cacheService;
             this.trackRepository = trackRepository;
             this.container = container;
 
@@ -49,7 +48,8 @@ namespace Dopamine.Services.File
             this.addFilesTimer.Interval = this.addFilesMilliseconds;
             this.addFilesTimer.Elapsed += AddFilesTimerElapsedHandler;
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-            this.DeleteFileArtworkFromCacheAsync(this.instanceGuid);
+            //Debug.Assert(false, "ALEX TODO");
+            //this.DeleteFileArtworkFromCacheAsync(this.instanceGuid);
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
         }
 
@@ -281,6 +281,7 @@ namespace Dopamine.Services.File
             return folderPaths != null && folderPaths.Count > 0 ? folderPaths.OrderByAlphaNumeric(f => f.Path).Select(f => f.Path).ToList() : new List<string>();
         }
 
+        /*
         private async Task DeleteFileArtworkFromCacheAsync(string exclude)
         {
             await Task.Run(() =>
@@ -320,5 +321,6 @@ namespace Dopamine.Services.File
                 }
             });
         }
+        */
     }
 }

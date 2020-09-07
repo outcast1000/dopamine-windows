@@ -13,11 +13,9 @@ namespace Dopamine.Services.Entities
     {
         private ArtistV data;
         private bool isHeader;
-        private ICacheService cacheService;
-        public ArtistViewModel(ArtistV data, ICacheService cacheService)
+        public ArtistViewModel(ArtistV data)
         {
             this.data = data;
-            this.cacheService = cacheService;
             this.isHeader = false;
 
         }

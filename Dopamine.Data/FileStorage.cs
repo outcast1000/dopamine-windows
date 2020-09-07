@@ -45,5 +45,8 @@ namespace Dopamine.Data
             }
         }
 
+
+        public string StorageImagePath { get { return _cacheFolderPath; } }
+
     }
 }

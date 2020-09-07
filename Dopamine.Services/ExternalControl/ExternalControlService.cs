@@ -13,12 +13,10 @@ namespace Dopamine.Services.ExternalControl
         private ServiceHost svcHost;
         private ExternalControlServer svcExternalControlInstance;
         private readonly IPlaybackService playbackService;
-        private readonly ICacheService cacheService;
      
-        public ExternalControlService(IPlaybackService playbackService, ICacheService cacheService)
+        public ExternalControlService(IPlaybackService playbackService)
         {
             this.playbackService = playbackService;
-            this.cacheService = cacheService;
 
             if(SettingsClient.Get<bool>("Playback", "EnableExternalControl"))
             {
@@ -30,7 +28,7 @@ namespace Dopamine.Services.ExternalControl
         {
             if (this.svcExternalControlInstance == null)
             {
-                this.svcExternalControlInstance = new ExternalControlServer(this.playbackService, this.cacheService);
+                this.svcExternalControlInstance = new ExternalControlServer(this.playbackService);
             }
             this.svcExternalControlInstance.Open();
 

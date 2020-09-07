@@ -8,6 +8,7 @@ using Prism.Commands;
 using Prism.Mvvm;
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -17,7 +18,6 @@ namespace Dopamine.ViewModels
     {
         private LastFmArtist lfmArtist;
         private ObservableCollection<SimilarArtistViewModel> similarArtists;
-        private ICacheService cacheService;
         private string image;
 
         public DelegateCommand<string> OpenLinkCommand { get; set; }
@@ -131,10 +131,8 @@ namespace Dopamine.ViewModels
             }
         }
 
-        public ArtistInfoViewModel(ICacheService cacheService)
+        public ArtistInfoViewModel()
         {
-            this.cacheService = cacheService;
-
             this.OpenLinkCommand = new DelegateCommand<string>((url) =>
             {
                 try
@@ -184,7 +182,8 @@ namespace Dopamine.ViewModels
 
         private async Task FillImageAsync(string artistImageUrl)
         {
-            this.image = await this.cacheService.DownloadFileToTemporaryCacheAsync(artistImageUrl);
+            Debug.Assert(false, "ALEX TODO");
+            //this.image = await this.cacheService.DownloadFileToTemporaryCacheAsync(artistImageUrl);
 
             RaisePropertyChanged(nameof(this.Image));
             RaisePropertyChanged(nameof(this.HasImage));

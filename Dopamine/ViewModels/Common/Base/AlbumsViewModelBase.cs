@@ -36,9 +36,7 @@ namespace Dopamine.ViewModels.Common.Base
         private IDialogService dialogService;
         private ISearchService searchService;
         private IPlaylistService playlistService;
-        private ICacheService cacheService;
         private IIndexingService indexingService;
-        //private IAlbumArtworkRepository albumArtworkRepository;
         private ObservableCollection<AlbumViewModel> albums;
         private CollectionViewSource albumsCvs;
         private IList<AlbumViewModel> selectedAlbums;
@@ -142,7 +140,6 @@ namespace Dopamine.ViewModels.Common.Base
             this.dialogService = container.Resolve<IDialogService>();
             this.searchService = container.Resolve<ISearchService>();
             this.playlistService = container.Resolve<IPlaylistService>();
-            this.cacheService = container.Resolve<ICacheService>();
             this.indexingService = container.Resolve<IIndexingService>();
             //this.albumArtworkRepository = container.Resolve<IAlbumArtworkRepository>();
 

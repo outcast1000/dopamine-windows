@@ -52,8 +52,8 @@ namespace Dopamine.Services.ExternalControl
         [OperationContract]
         ExternalTrack GetCurrenTrack();
 
-        [OperationContract]
-        string GetCurrentTrackArtworkPath(string artworkId);
+        //[OperationContract]
+        //string GetCurrentTrackArtworkPath(string artworkId);
     }
 
     [ServiceContract(Namespace = nameof(ExternalControl))]

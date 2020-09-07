@@ -13,5 +13,7 @@ namespace Dopamine.Data
         // Saves the byte array and returns the "location"
         string SaveImage(byte[] bytes);
 
+        string StorageImagePath { get; }
+
     }
 }

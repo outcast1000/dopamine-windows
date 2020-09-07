@@ -18,7 +18,6 @@ namespace Dopamine.Services.Collection
 {
     public class CollectionService : ICollectionService
     {
-        private ICacheService cacheService;
         private IPlaybackService playbackService;
         private IContainerProvider container;
 
@@ -30,11 +29,10 @@ namespace Dopamine.Services.Collection
         private IFolderVRepository folderVRepository;
 
 
-        public CollectionService(ITrackVRepository trackVRepository, IFolderVRepository folderVRepository, ICacheService cacheService, IPlaybackService playbackService, IContainerProvider container,
+        public CollectionService(ITrackVRepository trackVRepository, IFolderVRepository folderVRepository, IPlaybackService playbackService, IContainerProvider container,
             IArtistVRepository artistVRepository, IAlbumVRepository albumVRepository, IGenreVRepository genreVRepository)
         {
             this.folderVRepository = folderVRepository;
-            this.cacheService = cacheService;
             this.playbackService = playbackService;
             this.container = container;
             this.trackVRepository = trackVRepository;
@@ -226,7 +224,7 @@ namespace Dopamine.Services.Collection
 
                //IList<ArtistViewModel> orderedArtists = (await this.GetUniqueArtistsAsync(artists)).OrderBy(a => FormatUtils.GetSortableString(a.ArtistName, true)).ToList();
 
-               IList<ArtistViewModel> orderedArtists = artistsV.Select(x => new ArtistViewModel(x, cacheService)).ToList();
+               IList<ArtistViewModel> orderedArtists = artistsV.Select(x => new ArtistViewModel(x)).ToList();
 
                // Workaround to make sure the "#" GroupHeader is shown at the top of the list
                tempArtistViewModels.AddRange(orderedArtists.Where((avm) => avm.Header.Equals("#")));

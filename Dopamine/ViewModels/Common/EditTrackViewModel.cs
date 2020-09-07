@@ -198,7 +198,7 @@ namespace Dopamine.ViewModels.Common
         }
 
         public EditTrackViewModel(IList<string> paths, IMetadataService metadataService,
-            IDialogService dialogService, ICacheService cacheService, IInfoDownloadService infoDownloadService) : base(cacheService, infoDownloadService)
+            IDialogService dialogService, IInfoDownloadService infoDownloadService) : base(infoDownloadService)
         {
             this.multipleValuesText = "<" + ResourceUtils.GetString("Language_Multiple_Values") + ">";
 

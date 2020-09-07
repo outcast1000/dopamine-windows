@@ -23,13 +23,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Animation;
+using Dopamine.Services.File;
 
 namespace Dopamine.Services.Indexing
 {
     public class IndexingService : IIndexingService
     {
         // Services
-        private ICacheService cacheService;
         private IInfoDownloadService infoDownloadService;
 
         // Repositories
@@ -66,11 +66,10 @@ namespace Dopamine.Services.Indexing
             get { return isIndexing; }
         }
 
-        public IndexingService(ISQLiteConnectionFactory factory, ICacheService cacheService, IInfoDownloadService infoDownloadService,
+        public IndexingService(ISQLiteConnectionFactory factory, IInfoDownloadService infoDownloadService,
             ITrackVRepository trackVRepository, IFolderVRepository folderVRepository, IAlbumVRepository albumVRepository,
             IUnitOfWorksFactory unitOfWorksFactory, IAlbumImageRepository albumImageRepository)
         {
-            this.cacheService = cacheService;
             this.infoDownloadService = infoDownloadService;
             this.trackVRepository = trackVRepository;
             this.albumVRepository = albumVRepository;
@@ -298,32 +297,37 @@ namespace Dopamine.Services.Indexing
                         isArtworkCleanedUp = cleanUpAlbumImagesUnitOfWork.CleanUp() > 0;
                     }
                     IList<AlbumImage> images = albumImageRepository.GetAlbumImages();
-                    long imageDeletions = 0;
-                    HashSet<string> imagePaths = new HashSet<string>(images.Select(x => Path.GetFileNameWithoutExtension(cacheService.GetCachedArtworkPath(x.Location))).ToList());
-                    FileOperations.GetFiles(cacheService.CoverArtCacheFolderPath,
-                        (path) =>
-                        {
-                            path = path.ToLower();
-                            string ext = Path.GetExtension(path);
-                            string name = Path.GetFileNameWithoutExtension(path);
-
-                            if (!ext.Equals(".jpg"))
-                                return;
-                            if (!imagePaths.Contains(name))
+                    if (!ListExtensions.IsNullOrEmpty(images))
+                    {
+                        long imageDeletions = 0;
+                        IFileStorage fileService = new FileStorage();
+                        HashSet<string> imagePaths = new HashSet<string>(images.Select(x => Path.GetFileNameWithoutExtension(fileService.GetRealPath(x.Location))).ToList());
+                        FileOperations.GetFiles(fileService.StorageImagePath,
+                            (path) =>
                             {
-                                imageDeletions++;
-                                Debug.Print("Delete unused image?; {0}", path);
-                                System.IO.File.Delete(path);
-                            }
-                        },
-                        () =>
-                        {
-                            return bContinue;
-                        },
-                        (ex) =>
-                        {
-                            LogClientA.Info(String.Format("Exception: {0}", ex.Message));
-                        });
+                                path = path.ToLower();
+                                string ext = Path.GetExtension(path);
+                                string name = Path.GetFileNameWithoutExtension(path);
+
+                                if (!ext.Equals(".jpg"))
+                                    return;
+                                if (!imagePaths.Contains(name))
+                                {
+                                    imageDeletions++;
+                                    Debug.Print("Delete unused image?; {0}", path);
+                                    System.IO.File.Delete(path);
+                                }
+                            },
+                            () =>
+                            {
+                                return bContinue;
+                            },
+                            (ex) =>
+                            {
+                                LogClientA.Info(String.Format("Exception: {0}", ex.Message));
+                            });
+                    }
+
 
                     // Refresh lists
                     // -------------
@@ -370,14 +374,14 @@ namespace Dopamine.Services.Indexing
                 return;
             }
             Debug.Print("addAlbumImageFromTagAsync Adding image");
-
-            string cacheId = await cacheService.CacheArtworkAsync(tag.AlbumImage);
+            IFileStorage fileStorage = new FileStorage();
+            string location = fileStorage.SaveImage(tag.AlbumImage);
             uc.AddAlbumImage(new AlbumImage()
             {
                 AlbumId = AlbumId,
                 DateAdded = DateTime.Now.Ticks,
                 Source = tag.ProviderName,
-                Location = "cache://" + cacheId,
+                Location = location,
                 IsPrimary = true
             });
         }
@@ -386,22 +390,6 @@ namespace Dopamine.Services.Indexing
         private async void WatcherManager_FoldersChanged(object sender, EventArgs e)
         {
             await RefreshCollectionAsync(false, false);
-        }
-
-        private async Task<string> GetArtworkFromFile(long albumId)
-        {
-            List<TrackV> tracks = trackVRepository.GetTracksOfAlbums(new List<long>() { albumId });
-            if (tracks.Count == 0)
-                return null;
-            //tracks = tracks.OrderBy(t => t.DateFileModified).ToList();
-            tracks.Sort((x, y) => x.DateFileModified.CompareTo(y.DateFileModified));
-            return await cacheService.CacheArtworkAsync(IndexerUtils.GetArtwork(albumId, new FileMetadata(tracks.First().Path)));
-        }
-
-        private async Task<string> GetArtworkFromInternet(string albumTitle, IList<string> albumArtists, string trackTitle, IList<string> artists)
-        {
-            string artworkUriString = await infoDownloadService.GetAlbumImageAsync(albumTitle, albumArtists, trackTitle, artists);
-            return await cacheService.CacheArtworkAsync(artworkUriString);
         }
 
         private async Task AddArtworkInBackgroundAsync(bool rescanFailed, bool rescanAll)
@@ -426,6 +414,7 @@ namespace Dopamine.Services.Indexing
                     IList<string> albumKeysWithArtwork = new List<string>();
                     string providerName = "lastfm_album_images";
                     IList<AlbumV> albumDatasToIndex = rescanAll ? albumVRepository.GetAlbums() : albumVRepository.GetAlbumsToIndexByProvider(providerName, rescanFailed);
+                    IFileStorage fileStorage = new FileStorage();
 
                     foreach (AlbumV albumDataToIndex in albumDatasToIndex)
                     {
@@ -467,9 +456,7 @@ namespace Dopamine.Services.Indexing
                         {
                             using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
                             {
-                                string cacheId = await cacheService.CacheArtworkAsync(lf.AlbumImage);
-                                //string realPath = cacheService.GetCachedArtworkPath("cache://" + albumImageName);
-                                //long len = (new FileInfo(realPath)).Length;
+                                string cacheId = fileStorage.SaveImage(lf.AlbumImage);
                                 uc.AddAlbumImage(new AlbumImage()
                                 {
                                     AlbumId = albumDataToIndex.Id,

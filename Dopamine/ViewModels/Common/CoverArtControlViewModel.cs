@@ -17,7 +17,6 @@ namespace Dopamine.ViewModels.Common
     {
         protected CoverArtViewModel coverArtViewModel;
         protected IPlaybackService playbackService;
-        private ICacheService cacheService;
         private IMetadataService metadataService;
         private SlideDirection slideDirection;
         private byte[] previousArtwork;
@@ -41,10 +40,9 @@ namespace Dopamine.ViewModels.Common
             this.artwork = null;
         }
 
-        public CoverArtControlViewModel(IPlaybackService playbackService, ICacheService cacheService, IMetadataService metadataService)
+        public CoverArtControlViewModel(IPlaybackService playbackService, IMetadataService metadataService)
         {
             this.playbackService = playbackService;
-            this.cacheService = cacheService;
             this.metadataService = metadataService;
 
             this.playbackService.PlaybackSuccess += (_, e) =>

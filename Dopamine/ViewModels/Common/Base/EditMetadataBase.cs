@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using System.Collections.Generic;
 using Dopamine.Services.InfoDownload;
+using System.Diagnostics;
 
 namespace Dopamine.ViewModels.Common.Base
 {
@@ -22,7 +23,6 @@ namespace Dopamine.ViewModels.Common.Base
         private MetadataArtworkValue artwork;
         private string artworkSize;
         private BitmapImage artworkThumbnail;
-        private ICacheService cacheService;
         private IInfoDownloadService infoDownloadService;
 
         public DelegateCommand DownloadArtworkCommand { get; set; }
@@ -57,9 +57,8 @@ namespace Dopamine.ViewModels.Common.Base
             set { SetProperty<MetadataArtworkValue>(ref this.artwork, value); }
         }
 
-        public EditMetadataBase(ICacheService cacheService, IInfoDownloadService infoDownloadService)
+        public EditMetadataBase(IInfoDownloadService infoDownloadService)
         {
-            this.cacheService = cacheService;
             this.infoDownloadService = infoDownloadService;
 
             this.artwork = new MetadataArtworkValue();
@@ -123,8 +122,9 @@ namespace Dopamine.ViewModels.Common.Base
 
                 if(!string.IsNullOrEmpty(artworkUriString))
                 {
-                    string temporaryFile = await this.cacheService.DownloadFileToTemporaryCacheAsync(artworkUriString);
-                    this.UpdateArtwork(ImageUtils.Image2ByteArray(temporaryFile, 0, 0));
+                    Debug.Assert(false, "ALEX TODO");
+                    //string temporaryFile = await this.cacheService.DownloadFileToTemporaryCacheAsync(artworkUriString);
+                    //this.UpdateArtwork(ImageUtils.Image2ByteArray(temporaryFile, 0, 0));
                 }
             }
             catch (Exception ex)
