@@ -128,6 +128,8 @@
     <Compile Include="Entities\Track2.cs" />
     <Compile Include="Entities\TrackStatistic.cs" />
     <Compile Include="Enums.cs" />
+    <Compile Include="FileStorage.cs" />
+    <Compile Include="IFileStorage.cs" />
     <Compile Include="Providers\LastFMlbumImageProvider.cs" />
     <Compile Include="Providers\TagAlbumImageProvider.cs" />
     <Compile Include="Providers\IAlbumImageProvider.cs" />

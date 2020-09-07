@@ -17,7 +17,6 @@ namespace Dopamine.Services.Notification
     {
         private NotificationWindow notification;
         private IPlaybackService playbackService;
-        private ICacheService cacheService;
         private IMetadataService metadataService;
         private Windows10BorderlessWindow mainWindow;
         private Windows10BorderlessWindow playlistWindow;
@@ -80,10 +79,9 @@ namespace Dopamine.Services.Notification
             }
         }
 
-        public LegacyNotificationService(IPlaybackService playbackService, ICacheService cacheService, IMetadataService metadataService)
+        public LegacyNotificationService(IPlaybackService playbackService, IMetadataService metadataService)
         {
             this.playbackService = playbackService;
-            this.cacheService = cacheService;
             this.metadataService = metadataService;
 
             this.showNotificationControls = SettingsClient.Get<bool>("Behaviour", "ShowNotificationControls");

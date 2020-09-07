@@ -130,7 +130,7 @@ namespace Dopamine.Services.Metadata
             if (ListExtensions.IsNullOrEmpty<AlbumImage>(albumImages))
             {
                 albumImages = albumImages.OrderBy(x => x.IsPrimary).ToList();
-                string artworkPath = this.cacheService.GetCachedArtworkPath(albumImages[0].Path);
+                string artworkPath = this.cacheService.GetCachedArtworkPath(albumImages[0].Location);
 
                 if (!string.IsNullOrEmpty(artworkPath))
                 {
@@ -261,7 +261,7 @@ namespace Dopamine.Services.Metadata
                 uc.AddAlbumImage(new AlbumImage()
                 {
                     AlbumId = albumViewModel.Id,
-                    Path = "cache://" + artworkID,
+                    Location = "cache://" + artworkID,
                     IsPrimary = true,
                     Source = "[EDIT]"
                 });

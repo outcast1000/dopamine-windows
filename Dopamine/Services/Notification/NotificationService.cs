@@ -34,7 +34,7 @@ namespace Dopamine.Services.Notification
             }
         }
 
-        public NotificationService(IPlaybackService playbackService, ICacheService cacheService, IMetadataService metadataService) : base(playbackService, cacheService, metadataService)
+        public NotificationService(IPlaybackService playbackService, IMetadataService metadataService) : base(playbackService, metadataService)
         {
             // Pay attention to UPPERCASE property
             this.SystemNotificationIsEnabled = SettingsClient.Get<bool>("Behaviour", "EnableSystemNotification");

@@ -279,7 +279,6 @@ namespace Dopamine
                     {
                         notificationService = new NotificationService(
                         Container.Resolve<IPlaybackService>(),
-                        Container.Resolve<ICacheService>(),
                         Container.Resolve<IMetadataService>());
                     }
                     catch (Exception ex)
@@ -287,7 +286,6 @@ namespace Dopamine
                         LogClient.Error("Constructing NotificationService failed. Falling back to LegacyNotificationService. Exception: {0}", ex.Message);
                         notificationService = new LegacyNotificationService(
                         Container.Resolve<IPlaybackService>(),
-                        Container.Resolve<ICacheService>(),
                         Container.Resolve<IMetadataService>());
                     }
                 }
@@ -295,7 +293,6 @@ namespace Dopamine
                 {
                     notificationService = new LegacyNotificationService(
                         Container.Resolve<IPlaybackService>(),
-                        Container.Resolve<ICacheService>(),
                         Container.Resolve<IMetadataService>());
                 }
 

@@ -1,4 +1,5 @@
-﻿using Dopamine.Services.Cache;
+﻿using Dopamine.Data;
+using Dopamine.Services.Cache;
 using DryIoc;
 using Prism.Ioc;
 using System;
@@ -10,10 +11,10 @@ namespace Dopamine.Converters
 {
     public class KeyToPathConverter : IValueConverter
     {
-        private ICacheService cacheService;
+        private IFileStorage fileStorage = new FileStorage();
         public KeyToPathConverter()
         {
-            this.cacheService = ((Dopamine.App)Application.Current).Container.Resolve<ICacheService>();
+            //this.cacheService = ((Dopamine.App)Application.Current).Container.Resolve<ICacheService>();
         }
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -22,7 +23,7 @@ namespace Dopamine.Converters
                 return Binding.DoNothing;
             }
 
-            return cacheService.GetCachedArtworkPath(value.ToString());
+            return fileStorage.GetRealPath(value.ToString());
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

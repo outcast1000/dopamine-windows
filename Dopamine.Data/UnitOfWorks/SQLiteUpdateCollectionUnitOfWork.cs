@@ -305,8 +305,8 @@ namespace Dopamine.Data.UnitOfWorks
         {
             Debug.Assert(image.Id == 0);
             Debug.Assert(image.AlbumId > 0);
-            Debug.Assert(image.Path.Length > 10);
-            Debug.Print("AddAlbumImage {0} - {1}", image.Id, image.Path);
+            Debug.Assert(image.Location.Length > 10);
+            Debug.Print("AddAlbumImage {0} - {1}", image.Id, image.Location);
             if (image.IsPrimary == true)
             {
                 int ret = conn.Execute("DELETE FROM AlbumImages WHERE album_id=? AND is_primary=1", image.AlbumId);
@@ -314,13 +314,13 @@ namespace Dopamine.Data.UnitOfWorks
 
             }
             long albumImageId = GetAlbumImageID(image);
-            Debug.Print("AddAlbumImage albumImageId: {0} albumId: {1} path: {2}", albumImageId, image.AlbumId, image.Path);
+            Debug.Print("AddAlbumImage albumImageId: {0} albumId: {1} location: {2}", albumImageId, image.AlbumId, image.Location);
             return true;
         }
 
-        public bool RemoveAlbumImage(long album_id, string path)
+        public bool RemoveAlbumImage(long album_id, string location)
         {
-            int deletions = conn.Execute("DELETE FROM AlbumImages WHERE album_id=? AND path=?", album_id, path);
+            int deletions = conn.Execute("DELETE FROM AlbumImages WHERE album_id=? AND location=?", album_id, location);
             if (deletions == 0)
                 return false;
             return true;
@@ -403,7 +403,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
 
         private long GetAlbumImageID(AlbumImage image)
         {
-            long? id = conn.ExecuteScalar<long?>("SELECT id FROM AlbumImages WHERE album_id=? AND path=?", image.AlbumId, image.Path);
+            long? id = conn.ExecuteScalar<long?>("SELECT id FROM AlbumImages WHERE album_id=? AND location=?", image.AlbumId, image.Location);
             //long? id = conn.ExecuteScalar<long?>("SELECT id FROM AlbumImages WHERE path=?", image.Path);
             if (id != null)
                 return (long) id;
@@ -415,7 +415,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
             }
             catch (SQLite.SQLiteException ex)
             {
-                string err = String.Format("SQLiteException (GetAlbumImageID) '{0}' ex:{1}", image.Path, ex.Message);
+                string err = String.Format("SQLiteException (GetAlbumImageID) '{0}' ex:{1}", image.Location, ex.Message);
                 Debug.WriteLine(err);
                 throw new Exception(err);
             }

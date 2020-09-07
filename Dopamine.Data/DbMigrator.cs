@@ -168,7 +168,6 @@ namespace Dopamine.Data
                 conn.Execute("DROP TABLE IF EXISTS Genres;");
 
                 conn.Execute("DROP TABLE IF EXISTS AlbumReviews;");
-                conn.Execute("DROP TABLE IF EXISTS AlbumThumbnail;");//=== DEPRECATED
                 conn.Execute("DROP TABLE IF EXISTS AlbumImages;");
                 conn.Execute("DROP TABLE IF EXISTS AlbumDownloadFailed;");
                 conn.Execute("DROP TABLE IF EXISTS Albums;");
@@ -259,18 +258,16 @@ namespace Dopamine.Data
                 conn.Execute("CREATE TABLE AlbumImages (" +
                             "id                 INTEGER PRIMARY KEY AUTOINCREMENT," +
                             "album_id           INTEGER NOT NULL," +
-                            "path               TEXT NOT NULL," + //=== May be cache://
-                            //"file_size          INTEGER NOT NULL," +
+                            "location           TEXT NOT NULL," + //=== May be cache://
                             "is_primary         INTEGER," + 
-                            //"source_hash        TEXT," +
                             "source             TEXT," +
                             "date_added         INTEGER NOT NULL," +
                             "FOREIGN KEY(album_id) REFERENCES Albums(id));");
 
                 conn.Execute("CREATE INDEX AlbumImagesAlbumIDIndex ON AlbumImages(album_id);");
-                conn.Execute("CREATE INDEX AlbumImagesPathIndex ON AlbumImages(path);");
-                conn.Execute("CREATE INDEX AlbumImagesIsPrimaryIndex ON AlbumImages(is_primary);");
-                conn.Execute("CREATE UNIQUE INDEX AlbumImagesCompositeIndex ON AlbumImages(album_id, path);");
+                conn.Execute("CREATE INDEX AlbumImagesLocationIndex ON AlbumImages(location);");
+                //conn.Execute("CREATE INDEX AlbumImagesIsPrimaryIndex ON AlbumImages(is_primary);"); ALEX=== FOR SOME REASON WHEN THIS IS ENABLED many queries that have is_primary=1 becomes 1000 times more slow
+                conn.Execute("CREATE UNIQUE INDEX AlbumImagesCompositeIndex ON AlbumImages(album_id, location);");
 
                 //=== AlbumDownloadFailed: (One 2 One) Each Album may have only one failed indexing record
                 conn.Execute("CREATE TABLE AlbumDownloadFailed (" +
@@ -466,9 +463,10 @@ namespace Dopamine.Data
                     INNER JOIN FolderTrack ft ON ft.TrackID = t.TrackID
                     INNER JOIN Folder f ON ft.FolderID = f.FolderID
                     LEFT JOIN AlbumArtwork ON AlbumArtwork.AlbumKey=t.AlbumKey";
-                    //WHERE f.ShowInCollection = 1 AND t.IndexingSuccess = 1 AND t.NeedsIndexing = 0";
+                //WHERE f.ShowInCollection = 1 AND t.IndexingSuccess = 1 AND t.NeedsIndexing = 0";
 
                 //var tracks = new List<Track>();
+                IFileStorage fileStorage = new FileStorage();
                 List<Track> tracks = conn.Query<Track>(query);
                 int tracksMigrated = 0;
                 int timeStarted = Environment.TickCount;
@@ -479,7 +477,7 @@ namespace Dopamine.Data
                     Debug.Print("Migrating File {0}", track.Path);
 
                     if (track.TrackTitle == null)
-                        Trace.WriteLine("TrackTitle is null");
+                        Debug.Print("*** TrackTitle is null");
 
                     long folderTrackID = conn.ExecuteScalar<long>(@"SELECT FolderID FROM FolderTrack WHERE TrackID=?", track.TrackID);
                     Debug.Print("folderTrackID: {0} {1}", folderTrackID, track.TrackID);
@@ -506,7 +504,6 @@ namespace Dopamine.Data
                         DateIgnored = null,
                         DiscCount = track.DiscCount,
                         DiscNumber = track.DiscNumber,
-                        //Lyrics = track.l
                         TrackCount = track.TrackCount,
                         TrackNumber = track.TrackNumber
                     }, folderMapID[folderTrackID]);
@@ -519,12 +516,14 @@ namespace Dopamine.Data
                         FileInfo fi = new System.IO.FileInfo(realPath);
                         if (fi.Exists)
                         {
+                            byte[] bytes = File.ReadAllBytes(realPath);
+                            string location = fileStorage.SaveImage(bytes);
                             AlbumImage albumImage = new AlbumImage()
                             {
                                 AlbumId = (long)addMediaFileResult.AlbumId,
                                 DateAdded = DateTime.Now.Ticks,
                                 IsPrimary = true,
-                                Path = String.Format("cache://{0}", track.AlbumImage),
+                                Location = location,
                                 Source = "[MIGRATION]"
                             };
                             uc.AddAlbumImage(albumImage);
@@ -1574,7 +1573,7 @@ namespace Dopamine.Data
                 {
                     this.userDatabaseVersion = Convert.ToInt32(conn.ExecuteScalar<string>("SELECT Value FROM Configuration WHERE Key = 'DatabaseVersion'"));
                     //=== ALEX DEBUG. USE "26" to force the update. "27" to avoid it. Reenable the Execute scalar
-                    userDatabaseVersion = 26;
+                    userDatabaseVersion = 27;
                 }
                 catch (Exception)
                 {

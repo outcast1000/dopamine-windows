@@ -13,16 +13,9 @@ namespace Dopamine.Data.Entities
         [Column("album_id"), NotNull()]
         public long AlbumId { get; set; }
 
-        [Column("path"), Unique(), NotNull()]
-        public string Path { get; set; }
+        [Column("location"), Unique(), NotNull()]
+        public string Location { get; set; }
 
-        /*
-        [Column("file_size"), NotNull()]
-        public long FileSize { get; set; }
-
-        [Column("unique_id"), NotNull()]
-        public string UniqueId { get; set; }
-        */
         [Column("source")]
         public string Source { get; set; }
 

@@ -299,7 +299,7 @@ namespace Dopamine.Services.Indexing
                     }
                     IList<AlbumImage> images = albumImageRepository.GetAlbumImages();
                     long imageDeletions = 0;
-                    HashSet<string> imagePaths = new HashSet<string>(images.Select(x => Path.GetFileNameWithoutExtension(cacheService.GetCachedArtworkPath(x.Path))).ToList());
+                    HashSet<string> imagePaths = new HashSet<string>(images.Select(x => Path.GetFileNameWithoutExtension(cacheService.GetCachedArtworkPath(x.Location))).ToList());
                     FileOperations.GetFiles(cacheService.CoverArtCacheFolderPath,
                         (path) =>
                         {
@@ -377,7 +377,7 @@ namespace Dopamine.Services.Indexing
                 AlbumId = AlbumId,
                 DateAdded = DateTime.Now.Ticks,
                 Source = tag.ProviderName,
-                Path = "cache://" + cacheId,
+                Location = "cache://" + cacheId,
                 IsPrimary = true
             });
         }
@@ -474,7 +474,7 @@ namespace Dopamine.Services.Indexing
                                 {
                                     AlbumId = albumDataToIndex.Id,
                                     DateAdded = DateTime.Now.Ticks,
-                                    Path = "cache://" + cacheId,
+                                    Location = "cache://" + cacheId,
                                     IsPrimary = true,
                                     Source = lf.ProviderName
                                 });// albumDataToIndex.Id, "cache://" + albumImageName, len, sourceHash, providerName, false);

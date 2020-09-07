@@ -80,7 +80,7 @@ COUNT(DISTINCT Genres.id) as GenreCount,
 GROUP_CONCAT(DISTINCT Genres.name ) as Genres, 
 MIN(t.year) as MinYear,
 MAX(t.year) as MaxYear,
-COALESCE(AlbumImagesPrimary.Path,AlbumImagesSecondary.Path) as Thumbnail,
+COALESCE(AlbumImagesPrimary.Location,AlbumImagesSecondary.Location) as Thumbnail,
 MIN(t.date_added) as DateAdded,
 MIN(t.date_file_created) as DateFileCreated
 from Tracks t

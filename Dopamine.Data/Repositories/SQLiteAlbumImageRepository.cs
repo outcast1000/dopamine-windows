@@ -34,7 +34,7 @@ namespace Dopamine.Data.Repositories
                         return conn.Query<AlbumImage>(@"SELECT 
                             id, 
                             album_id, 
-                            path, 
+                            location, 
                             source, 
                             date_added
                             from AlbumImages
@@ -66,7 +66,7 @@ namespace Dopamine.Data.Repositories
                             return conn.Query<AlbumImage>(@"SELECT 
                             id, 
                             album_id, 
-                            path, 
+                            location, 
                             source, 
                             date_added
                             from AlbumImages
@@ -78,7 +78,7 @@ namespace Dopamine.Data.Repositories
                             return conn.Query<AlbumImage>(@"SELECT 
                             id, 
                             album_id, 
-                            path, 
+                            location, 
                             source, 
                             date_added
                             from AlbumImages
@@ -99,23 +99,23 @@ namespace Dopamine.Data.Repositories
             return null;
         }
 
-        public IList<AlbumImage> GetAlbumImageForTrackWithPath(string path)
+        public IList<AlbumImage> GetAlbumImageForTrackWithPath(string location)
         {
             using (var conn = factory.GetConnection())
             {
                 try
                 {
                     return conn.Query<AlbumImage>(@" 
-SELECT
-AlbumImages.id, 
-AlbumImages.album_id, 
-AlbumImages.path, 
-AlbumImages.source, 
-AlbumImages.date_added
-from AlbumImages
-LEFT JOIN TrackAlbums ON TrackAlbums.album_id = AlbumImages.album_id
-LEFT JOIN Tracks ON tracks.id = TrackAlbums.track_id
-WHERE Tracks.path = ?", path);
+                        SELECT
+                        AlbumImages.id, 
+                        AlbumImages.album_id, 
+                        AlbumImages.location, 
+                        AlbumImages.source, 
+                        AlbumImages.date_added
+                        from AlbumImages
+                        LEFT JOIN TrackAlbums ON TrackAlbums.album_id = AlbumImages.album_id
+                        LEFT JOIN Tracks ON tracks.id = TrackAlbums.track_id
+                        WHERE Tracks.location = ?", location);
                 }
                 catch (Exception ex)
                 {
@@ -135,7 +135,7 @@ WHERE Tracks.path = ?", path);
                         SELECT
                         AlbumImages.id, 
                         AlbumImages.album_id, 
-                        AlbumImages.path, 
+                        AlbumImages.location, 
                         AlbumImages.source, 
                         AlbumImages.date_added
                         from AlbumImages
