@@ -12,7 +12,7 @@ using Dopamine.Data.Repositories;
 using Dopamine.Data.UnitOfWorks;
 using Dopamine.Services.Cache;
 using Dopamine.Services.InfoDownload;
-using Dopamine.Services.Utils;
+using Dopamine.Data.Providers;
 using SQLite;
 using System;
 using System.Collections.Generic;
@@ -248,7 +248,7 @@ namespace Dopamine.Services.Indexing
                                     {
                                         addedFiles++;
                                         if (fileMetadata != null && result.AlbumId != null)
-                                            await addAlbumImageAsync(fileMetadata, (long)result.AlbumId, uc);
+                                            await addAlbumImageFromTagAsync(fileMetadata, (long)result.AlbumId, uc);
                                     }
                                     else
                                         failedFiles++;
@@ -270,7 +270,7 @@ namespace Dopamine.Services.Indexing
                                         updatedFiles++;
                                         //=== Add Image (if needed)
                                         if (fileMetadata != null && result.AlbumId != null)
-                                            await addAlbumImageAsync(fileMetadata, (long)result.AlbumId, uc);
+                                            await addAlbumImageFromTagAsync(fileMetadata, (long)result.AlbumId, uc);
 
                                     }
                                     else
@@ -351,35 +351,35 @@ namespace Dopamine.Services.Indexing
             Debug.Print("EXITING PrivateRefreshCollectionAsync");
         }
 
-
-        private async Task addAlbumImageAsync(FileMetadata fileMetadata, long AlbumId, IUpdateCollectionUnitOfWork uc)
+        // This function saves the Image that is stored inside the Tags of the file
+        // We should only keep one of these photos for each album (always overwrite the old one)
+        private async Task addAlbumImageFromTagAsync(FileMetadata fileMetadata, long AlbumId, IUpdateCollectionUnitOfWork uc)
         {
-            Debug.Print("addAlbumImageAsync for: {0}", fileMetadata.Path);
-            byte[] b = IndexerUtils.GetEmbeddedArtwork(fileMetadata);
-            if (b != null)
+            
+            //=== If there is already a primary image then do not try to replace it
+            AlbumImage existingAlbumImage = albumImageRepository.GetPrimaryAlbumImage(AlbumId);
+            if (existingAlbumImage != null)
             {
-                IList<AlbumImage> images = albumImageRepository.GetAlbumImages(AlbumId);
-                string sourceHash = System.Convert.ToBase64String(new System.Security.Cryptography.SHA1Cng().ComputeHash(b));
-                bool bAddImage = false;
-                if (ListExtensions.IsNullOrEmpty(images))
-                    bAddImage = true;
-                else
-                {
-                    AlbumImage imageWithTheSameSourcePath = images.SingleOrDefault(x => x.SourceHash == sourceHash);
-                    bAddImage = imageWithTheSameSourcePath == null;
-                }
-                if (bAddImage)
-                {
-                    string imagePath = await cacheService.CacheArtworkAsync(b);
-                    if (!string.IsNullOrEmpty(imagePath))
-                    {
-                        string realPath = cacheService.GetCachedArtworkPath("cache://" + imagePath);
-                        long len = (new FileInfo(realPath)).Length;
-                        uc.AddAlbumImage(AlbumId, "cache://" + imagePath, len, sourceHash, "[tag]", false);//=== ALEX TODO. Is the fileSize Correct?
-                    }
-                }
-
+                Debug.Print("addAlbumImageFromTagAsync Album image already exists. Exit");
+                return;
             }
+            TagAlbumImageProvider tag = new TagAlbumImageProvider(fileMetadata);
+            if (tag.AlbumImage == null)
+            {
+                Debug.Print("addAlbumImageFromTagAsync No image available in this file. Exit");
+                return;
+            }
+            Debug.Print("addAlbumImageFromTagAsync Adding image");
+
+            string cacheId = await cacheService.CacheArtworkAsync(tag.AlbumImage);
+            uc.AddAlbumImage(new AlbumImage()
+            {
+                AlbumId = AlbumId,
+                DateAdded = DateTime.Now.Ticks,
+                Source = tag.ProviderName,
+                Path = "cache://" + cacheId,
+                IsPrimary = true
+            });
         }
 
 
@@ -459,26 +459,25 @@ namespace Dopamine.Services.Indexing
                         // We don't want future passes to index for this AlbumKey anymore.
 
                         //GetArtworkFromInternet(string albumTitle, IList<string> albumArtists, string trackTitle, IList<string> artists)
-                        string albumImageName = await GetArtworkFromInternet(
-                            albumDataToIndex.Name,
-                            DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToList(),
-                            null, //albumDataToIndex.TrackTitle,
-                            DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.Artists).ToList()
-                            );
 
-                        if (!string.IsNullOrEmpty(albumImageName))
+                        LastFmAlbumImageProvider lf = new LastFmAlbumImageProvider(albumDataToIndex.Name, DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToArray());
+                       
+
+                        if (lf.AlbumImage != null)
                         {
-                            StringBuilder input = new StringBuilder();
-                            input.Append(albumDataToIndex.Name);
-                            input.Append(albumDataToIndex.AlbumArtists);
-                            input.Append(albumDataToIndex.Artists);
-                            input.Append(providerName);
-                            string sourceHash = System.Convert.ToBase64String(new System.Security.Cryptography.SHA1Cng().ComputeHash(Encoding.UTF8.GetBytes(input.ToString())));
                             using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
                             {
-                                string realPath = cacheService.GetCachedArtworkPath("cache://" + albumImageName);
-                                long len = (new FileInfo(realPath)).Length;
-                                uc.AddAlbumImage(albumDataToIndex.Id, "cache://" + albumImageName, len, sourceHash, providerName, false);
+                                string cacheId = await cacheService.CacheArtworkAsync(lf.AlbumImage);
+                                //string realPath = cacheService.GetCachedArtworkPath("cache://" + albumImageName);
+                                //long len = (new FileInfo(realPath)).Length;
+                                uc.AddAlbumImage(new AlbumImage()
+                                {
+                                    AlbumId = albumDataToIndex.Id,
+                                    DateAdded = DateTime.Now.Ticks,
+                                    Path = "cache://" + cacheId,
+                                    IsPrimary = true,
+                                    Source = lf.ProviderName
+                                });// albumDataToIndex.Id, "cache://" + albumImageName, len, sourceHash, providerName, false);
                             }
                         }
                         else

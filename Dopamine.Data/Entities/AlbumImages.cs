@@ -16,12 +16,13 @@ namespace Dopamine.Data.Entities
         [Column("path"), Unique(), NotNull()]
         public string Path { get; set; }
 
+        /*
         [Column("file_size"), NotNull()]
         public long FileSize { get; set; }
 
-        [Column("source_hash"), NotNull()]
-        public string SourceHash { get; set; }
-
+        [Column("unique_id"), NotNull()]
+        public string UniqueId { get; set; }
+        */
         [Column("source")]
         public string Source { get; set; }
 

@@ -249,15 +249,23 @@ namespace Dopamine.Services.Metadata
 
         public async Task UpdateAlbumAsync(AlbumViewModel albumViewModel, MetadataArtworkValue artwork, bool updateFileArtwork)
         {
+            Debug.Assert(false, "ALEX TODO");
             // Cache the new artwork
             string artworkID = await this.cacheService.CacheArtworkAsync(artwork.Value);
 
             // Add or update AlbumArtwork in the database
             using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
             {
-                String realImagePath = cacheService.GetCachedArtworkPath("cache://" + artworkID);
-                long len = new FileInfo(realImagePath).Length;
-                uc.AddAlbumImage(albumViewModel.Id, "cache://" + artworkID, len, null, "[file]", true);
+                //String realImagePath = cacheService.GetCachedArtworkPath("cache://" + artworkID);
+                //long len = new FileInfo(realImagePath).Length;
+                uc.AddAlbumImage(new AlbumImage()
+                {
+                    AlbumId = albumViewModel.Id,
+                    Path = "cache://" + artworkID,
+                    IsPrimary = true,
+                    Source = "[EDIT]"
+                });
+                //albumViewModel.Id, "cache://" + artworkID, len, null, "[file]", true);
             }
 
             if (updateFileArtwork)

@@ -260,9 +260,9 @@ namespace Dopamine.Data
                             "id                 INTEGER PRIMARY KEY AUTOINCREMENT," +
                             "album_id           INTEGER NOT NULL," +
                             "path               TEXT NOT NULL," + //=== May be cache://
-                            "file_size          INTEGER NOT NULL," +
+                            //"file_size          INTEGER NOT NULL," +
                             "is_primary         INTEGER," + 
-                            "source_hash        TEXT," +
+                            //"source_hash        TEXT," +
                             "source             TEXT," +
                             "date_added         INTEGER NOT NULL," +
                             "FOREIGN KEY(album_id) REFERENCES Albums(id));");
@@ -519,7 +519,15 @@ namespace Dopamine.Data
                         FileInfo fi = new System.IO.FileInfo(realPath);
                         if (fi.Exists)
                         {
-                            uc.AddAlbumImage((long)addMediaFileResult.AlbumId, String.Format("cache://{0}", track.AlbumImage), fi.Length, null, "[migration]", true);
+                            AlbumImage albumImage = new AlbumImage()
+                            {
+                                AlbumId = (long)addMediaFileResult.AlbumId,
+                                DateAdded = DateTime.Now.Ticks,
+                                IsPrimary = true,
+                                Path = String.Format("cache://{0}", track.AlbumImage),
+                                Source = "[MIGRATION]"
+                            };
+                            uc.AddAlbumImage(albumImage);
                         }
                         else
                         {
@@ -1566,7 +1574,7 @@ namespace Dopamine.Data
                 {
                     this.userDatabaseVersion = Convert.ToInt32(conn.ExecuteScalar<string>("SELECT Value FROM Configuration WHERE Key = 'DatabaseVersion'"));
                     //=== ALEX DEBUG. USE "26" to force the update. "27" to avoid it. Reenable the Execute scalar
-                    userDatabaseVersion = 27;
+                    userDatabaseVersion = 26;
                 }
                 catch (Exception)
                 {

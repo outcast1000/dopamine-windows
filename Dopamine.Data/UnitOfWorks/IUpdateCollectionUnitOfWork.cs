@@ -64,17 +64,24 @@ namespace Dopamine.Data.UnitOfWorks
         public long? AlbumId { get; set; }
     }
 
+
     public interface IUpdateCollectionUnitOfWork: IDisposable
     {
-
 
         AddMediaFileResult AddMediaFile(MediaFileData mediaFileData, long folderId);
         UpdateMediaFileResult UpdateMediaFile(TrackV trackV, MediaFileData mediaFileData);
         TrackV GetTrackWithPath(string path);
 
-        bool AddAlbumImage(long album_id, string path, long file_size, string source_hash, string source, bool bUseAsThumbnail);
+        // Adds an album images
+        // params
+        //      album_id
+        //      images
+        //      bIsPrimary: If another images is primary it will be deleted. There should be only one primary image
+        // return false on error
+        bool AddAlbumImage(AlbumImage image);
+
         bool RemoveAlbumImage(long album_id, string path);
         bool RemoveAllAlbumImages(long album_id);
-        bool SetAlbumImageAsPrimary(long album_image_id, bool bSetAsPrimary);
+        bool SetAlbumImageAsPrimary(long album_image_id, bool bIsPrimary);
     }
 }

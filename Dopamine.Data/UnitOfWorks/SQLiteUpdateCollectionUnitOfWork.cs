@@ -17,6 +17,7 @@ namespace Dopamine.Data.UnitOfWorks
     {
         private SQLiteConnection conn;
         private SQLiteTrackVRepository sQLiteTrackVRepository;
+        private SQLiteAlbumImageRepository sQLiteAlbumImageRepository;
         private bool bDisposeConnection;
         public SQLiteUpdateCollectionUnitOfWork(SQLiteConnection conn, bool bDisposeConnection)
         {
@@ -24,7 +25,9 @@ namespace Dopamine.Data.UnitOfWorks
             this.conn = conn;
             this.conn.BeginTransaction();
             sQLiteTrackVRepository = new SQLiteTrackVRepository(null);
+            sQLiteAlbumImageRepository = new SQLiteAlbumImageRepository(null);
             sQLiteTrackVRepository.SetSQLiteConnection(conn);
+            sQLiteAlbumImageRepository.SetSQLiteConnection(conn);
 
         }
 
@@ -298,13 +301,20 @@ namespace Dopamine.Data.UnitOfWorks
         }
 
 
-        public bool AddAlbumImage(long album_id, string path, long file_size, string source_hash, string source, bool isPrimary)
+        public bool AddAlbumImage(AlbumImage image)
         {
-            Debug.Assert(album_id > 0);
-            Debug.Assert(path.Length > 10);
-            Debug.Print("AddAlbumImage {0} - {1}", album_id, path);
-            long albumImageId = GetAlbumImageID(album_id, path, file_size, source_hash, source, isPrimary);
-            Debug.Print("AddAlbumImage albumImageId: {0} albumId: {1} path: {2}", albumImageId, album_id, path);
+            Debug.Assert(image.Id == 0);
+            Debug.Assert(image.AlbumId > 0);
+            Debug.Assert(image.Path.Length > 10);
+            Debug.Print("AddAlbumImage {0} - {1}", image.Id, image.Path);
+            if (image.IsPrimary == true)
+            {
+                int ret = conn.Execute("DELETE FROM AlbumImages WHERE album_id=? AND is_primary=1", image.AlbumId);
+                Debug.Print("AddAlbumImage albumImageId: Deleted preivous primary: {0} records", ret);
+
+            }
+            long albumImageId = GetAlbumImageID(image);
+            Debug.Print("AddAlbumImage albumImageId: {0} albumId: {1} path: {2}", albumImageId, image.AlbumId, image.Path);
             return true;
         }
 
@@ -391,29 +401,21 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
 
         }
 
-        private long GetAlbumImageID(long album_id, string path, long file_size, string source_hash, string source, bool is_primary)
+        private long GetAlbumImageID(AlbumImage image)
         {
-            long? id = conn.ExecuteScalar<long?>("SELECT id FROM AlbumImages WHERE album_id=? AND path=?", album_id, path);
+            long? id = conn.ExecuteScalar<long?>("SELECT id FROM AlbumImages WHERE album_id=? AND path=?", image.AlbumId, image.Path);
             //long? id = conn.ExecuteScalar<long?>("SELECT id FROM AlbumImages WHERE path=?", image.Path);
             if (id != null)
                 return (long) id;
             try
             {
-                conn.Insert(new AlbumImage()
-                {
-                    AlbumId = album_id,
-                    Path = path,
-                    FileSize = file_size,
-                    SourceHash = source_hash,
-                    Source = source,
-                    IsPrimary = is_primary ? (bool?) true : null,
-                    DateAdded = DateTime.Now.Ticks
-                });
+                image.DateAdded = DateTime.Now.Ticks;
+                conn.Insert(image);
                 return GetLastInsertRowID();
             }
             catch (SQLite.SQLiteException ex)
             {
-                string err = String.Format("SQLiteException (GetAlbumImageID) '{0}' ex:{1}", path, ex.Message);
+                string err = String.Format("SQLiteException (GetAlbumImageID) '{0}' ex:{1}", image.Path, ex.Message);
                 Debug.WriteLine(err);
                 throw new Exception(err);
             }
