@@ -421,6 +421,26 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
             }
         }
 
+        private long GetArtistImageID(ArtistImage image)
+        {
+            long? id = conn.ExecuteScalar<long?>("SELECT id FROM ArtistImages WHERE artist_id=? AND location=?", image.ArtistId, image.Location);
+            //long? id = conn.ExecuteScalar<long?>("SELECT id FROM AlbumImages WHERE path=?", image.Path);
+            if (id != null)
+                return (long)id;
+            try
+            {
+                image.DateAdded = DateTime.Now.Ticks;
+                conn.Insert(image);
+                return GetLastInsertRowID();
+            }
+            catch (SQLite.SQLiteException ex)
+            {
+                string err = String.Format("SQLiteException (GetArtistImageID) '{0}' ex:{1}", image.Location, ex.Message);
+                Debug.WriteLine(err);
+                throw new Exception(err);
+            }
+        }
+
         private long GetGenreID(String entry)
         {
             long? id = conn.ExecuteScalar<long?>("SELECT id FROM Genres WHERE name=?", entry);
@@ -445,6 +465,47 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
             return cmdLastRow.ExecuteScalar<long>();
         }
 
+
+        public bool AddArtistImage(ArtistImage image)
+        {
+            Debug.Assert(image.Id == 0);
+            Debug.Assert(image.ArtistId > 0);
+            Debug.Assert(image.Location.Length > 10);
+            Debug.Print("AddArtistImage {0} - {1}", image.Id, image.Location);
+            if (image.IsPrimary == true)
+            {
+                int ret = conn.Execute("DELETE FROM ArtistImages WHERE artist_id=? AND is_primary=1", image.ArtistId);
+                Debug.Print("AddArtistImage Deleted previous primary: {0} records", ret);
+
+            }
+            long imageId = GetArtistImageID(image);
+            Debug.Print("AddAlbumImage imageId: {0} artistId: {1} location: {2}", imageId, image.ArtistId, image.Location);
+            return true;
+        }
+
+        public bool RemoveArtistImage(long artist_id, string location)
+        {
+            int deletions = conn.Execute("DELETE FROM ArtistImages WHERE artist_id=? AND location=?", artist_id, location);
+            if (deletions == 0)
+                return false;
+            return true;
+        }
+
+        public bool RemoveAllArtistImages(long artist_id)
+        {
+            conn.Execute("DELETE FROM ArtistImages WHERE artist_id = ?", artist_id);
+            return true;
+        }
+
+        public bool SetArtistImageAsPrimary(long image_id, bool bIsPrimary)
+        {
+            Debug.Print("SetArtistImageAsPrimary image_id: {0}", image_id);
+            if (bIsPrimary)
+                conn.Execute("UPDATE ArtistImages SET is_primary = 1 WHERE artist_image_id = ?", image_id);
+            else
+                conn.Execute("UPDATE ArtistImages SET is_primary = NULL WHERE artist_image_id = ?", image_id);
+            return true;
+        }
     }
 
 

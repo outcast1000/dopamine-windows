@@ -132,13 +132,17 @@
                                         </Viewbox>
                                     </pc:Tile.Content>
                                 </pc:Tile>
-                                <pc:SourceChangedImage Panel.ZIndex="1" RenderOptions.BitmapScalingMode="HighQuality">
+                                <pc:SourceChangedImage
+                                    Width="{Binding Path=DataContext.CoverSize, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                    Height="{Binding Path=DataContext.CoverSize, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                    Panel.ZIndex="1"
+                                    RenderOptions.BitmapScalingMode="HighQuality">
                                     <pc:SourceChangedImage.Source>
                                         <MultiBinding Converter="{StaticResource PathToImageConverter}">
-                                        <Binding
-                                            Converter="{StaticResource KeyToPathConverter}"
-                                            IsAsync="True"
-                                            Path="Thumbnail" />
+                                            <Binding
+                                                Converter="{StaticResource KeyToPathConverter}"
+                                                IsAsync="True"
+                                                Path="Thumbnail" />
                                             <Binding Path="DataContext.UpscaledCoverSize" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type UserControl}}" />
                                         </MultiBinding>
                                     </pc:SourceChangedImage.Source>

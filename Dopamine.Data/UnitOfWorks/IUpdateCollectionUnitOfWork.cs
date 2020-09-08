@@ -80,8 +80,15 @@ namespace Dopamine.Data.UnitOfWorks
         // return false on error
         bool AddAlbumImage(AlbumImage image);
 
-        bool RemoveAlbumImage(long album_id, string path);
+        bool RemoveAlbumImage(long album_id, string location);
         bool RemoveAllAlbumImages(long album_id);
         bool SetAlbumImageAsPrimary(long album_image_id, bool bIsPrimary);
+
+
+        bool AddArtistImage(ArtistImage image);
+
+        bool RemoveArtistImage(long artist_id, string location);
+        bool RemoveAllArtistImages(long artist_id);
+        bool SetArtistImageAsPrimary(long artist_image_id, bool bIsPrimary);
     }
 }

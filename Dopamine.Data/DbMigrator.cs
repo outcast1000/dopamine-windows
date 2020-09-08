@@ -163,8 +163,9 @@ namespace Dopamine.Data
                 conn.Execute("DROP TABLE IF EXISTS TrackGenres;");
                 conn.Execute("DROP TABLE IF EXISTS Tracks;");
 
+                conn.Execute("DROP TABLE IF EXISTS GenreThumbnail;"); //=== DEPRECATED
                 conn.Execute("DROP TABLE IF EXISTS GenreImages;");
-                conn.Execute("DROP TABLE IF EXISTS GenreThumbnail;");
+                conn.Execute("DROP TABLE IF EXISTS GenreDownloadFailed;");
                 conn.Execute("DROP TABLE IF EXISTS Genres;");
 
                 conn.Execute("DROP TABLE IF EXISTS AlbumReviews;");
@@ -175,8 +176,9 @@ namespace Dopamine.Data
                 conn.Execute("DROP TABLE IF EXISTS ArtistCollectionsArtists;");
                 conn.Execute("DROP TABLE IF EXISTS ArtistCollections;");
                 conn.Execute("DROP TABLE IF EXISTS ArtistBiographies;");
+                conn.Execute("DROP TABLE IF EXISTS ArtistThumbnail;"); //=== DEPRECATED
                 conn.Execute("DROP TABLE IF EXISTS ArtistImages;");
-                conn.Execute("DROP TABLE IF EXISTS ArtistThumbnail;");
+                conn.Execute("DROP TABLE IF EXISTS ArtistDownloadFailed;");
                 conn.Execute("DROP TABLE IF EXISTS Artists;");
                 conn.Execute("DROP TABLE IF EXISTS ArtistRoles;");
 
@@ -203,23 +205,31 @@ namespace Dopamine.Data
 
                 conn.Execute("CREATE UNIQUE INDEX ArtistBiographiesArtistIDIndex ON ArtistBiographies(artist_id);");
 
-                //=== ArtistImages: (One 2 Many) Each Artist may have multiple images
+                //=== ArtistImages: (One 2 many) Each artist may have multiple images (but only one primary)
                 conn.Execute("CREATE TABLE ArtistImages (" +
-                            "artist_id          INTEGER," +
-                            "key                TEXT NOT NULL," +
+                            "id                 INTEGER PRIMARY KEY AUTOINCREMENT," +
+                            "artist_id          INTEGER NOT NULL," +
+                            "location           TEXT NOT NULL," + //=== May be cache://
+                            "is_primary         INTEGER," +
                             "source             TEXT," +
                             "date_added         INTEGER NOT NULL," +
+                            "FOREIGN KEY(artist_id) REFERENCES Artists(id));");
+
+                conn.Execute("CREATE INDEX ArtistImagesAlbumIDIndex ON ArtistImages(artist_id);");
+                conn.Execute("CREATE INDEX ArtistImagesLocationIndex ON ArtistImages(location);");
+                //conn.Execute("CREATE INDEX AlbumImagesIsPrimaryIndex ON AlbumImages(is_primary);"); //=== ALEX: FOR SOME REASON WHEN THIS IS ENABLED many queries that have is_primary=1 becomes 1000 times more slow
+                conn.Execute("CREATE UNIQUE INDEX ArtistImagesCompositeIndex ON ArtistImages(artist_id, location);");
+
+                //=== AlbumDownloadFailed: (One 2 One) Each Album may have only one failed indexing record
+                conn.Execute("CREATE TABLE ArtistDownloadFailed (" +
+                            "artist_id          INTEGER NOT NULL," +
+                            "provider          TEXT NOT NULL," +
+                            "date_added        INTEGER NOT NULL," +
                             "FOREIGN KEY (artist_id) REFERENCES Artists(id));");
 
-                conn.Execute("CREATE INDEX ArtistImagesArtistIDIndex ON ArtistImages(artist_id);");
-
-                //=== ArtistThumbnail: (One 2 One) Each Artist may have only one thumbnail
-                conn.Execute("CREATE TABLE ArtistThumbnail (" +
-                            "artist_id          INTEGER," +
-                            "key                TEXT NOT NULL," +
-                            "FOREIGN KEY (artist_id) REFERENCES Artists(id));");
-
-                conn.Execute("CREATE UNIQUE INDEX ArtistThumbnailArtistIDIndex ON ArtistThumbnail(artist_id);");
+                conn.Execute("CREATE INDEX ArtistDownloadFailedArtistIDIndex ON ArtistDownloadFailed(artist_id);");
+                conn.Execute("CREATE INDEX ArtistDownloadFailedProviderIndex ON ArtistDownloadFailed(provider);");
+                conn.Execute("CREATE UNIQUE INDEX ArtistDownloadFailedUniqueIndex ON ArtistDownloadFailed(artist_id, provider);");
 
 
                 //=== ArtistCollections: 
@@ -266,7 +276,7 @@ namespace Dopamine.Data
 
                 conn.Execute("CREATE INDEX AlbumImagesAlbumIDIndex ON AlbumImages(album_id);");
                 conn.Execute("CREATE INDEX AlbumImagesLocationIndex ON AlbumImages(location);");
-                //conn.Execute("CREATE INDEX AlbumImagesIsPrimaryIndex ON AlbumImages(is_primary);"); ALEX=== FOR SOME REASON WHEN THIS IS ENABLED many queries that have is_primary=1 becomes 1000 times more slow
+                //conn.Execute("CREATE INDEX AlbumImagesIsPrimaryIndex ON AlbumImages(is_primary);"); //=== ALEX: FOR SOME REASON WHEN THIS IS ENABLED many queries that have is_primary=1 becomes 1000 times more slow
                 conn.Execute("CREATE UNIQUE INDEX AlbumImagesCompositeIndex ON AlbumImages(album_id, location);");
 
                 //=== AlbumDownloadFailed: (One 2 One) Each Album may have only one failed indexing record

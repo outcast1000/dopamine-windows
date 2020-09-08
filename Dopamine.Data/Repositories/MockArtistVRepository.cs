@@ -14,5 +14,10 @@ namespace Dopamine.Data.Repositories
                 new ArtistV() { Id = 2, Name = "Test 2", TrackCount = 3, Genres = "Genre 1, Genre 3"  } 
             };
         }
+
+        public List<ArtistV> GetArtistToIndexByProvider(string provider, bool includeFailed)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

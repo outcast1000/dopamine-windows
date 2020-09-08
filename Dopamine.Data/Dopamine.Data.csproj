@@ -102,8 +102,10 @@
     <Compile Include="AlbumData.cs" />
     <Compile Include="DataUtils.cs" />
     <Compile Include="DbMigrator.cs" />
+    <Compile Include="Entities\ArtistDownloadFailed.cs" />
     <Compile Include="Entities\AlbumDownloadFailed.cs" />
-    <Compile Include="Entities\AlbumImages.cs" />
+    <Compile Include="Entities\ArtistImage.cs" />
+    <Compile Include="Entities\AlbumImage.cs" />
     <Compile Include="Entities\FolderV.cs" />
     <Compile Include="Entities\AlbumV.cs" />
     <Compile Include="Entities\ArtistCollectionsArtist.cs" />
@@ -130,7 +132,9 @@
     <Compile Include="Enums.cs" />
     <Compile Include="FileStorage.cs" />
     <Compile Include="IFileStorage.cs" />
-    <Compile Include="Providers\LastFMlbumImageProvider.cs" />
+    <Compile Include="Providers\IArtistImageProvider.cs" />
+    <Compile Include="Providers\LastFMArtistImageProvider.cs" />
+    <Compile Include="Providers\LastFMAlbumImageProvider.cs" />
     <Compile Include="Providers\TagAlbumImageProvider.cs" />
     <Compile Include="Providers\IAlbumImageProvider.cs" />
     <Compile Include="Repositories\SQLiteAlbumImageRepository.cs" />

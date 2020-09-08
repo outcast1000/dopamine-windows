@@ -72,7 +72,7 @@ namespace Dopamine.Data.Providers
         }
         public string ProviderName
         {
-            get { return "TAG"; }
+            get { return "LAST_FM_ALBUMS"; }
         }
     }
 }
