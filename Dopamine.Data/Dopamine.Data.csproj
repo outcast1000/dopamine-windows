@@ -133,6 +133,7 @@
     <Compile Include="FileStorage.cs" />
     <Compile Include="IFileStorage.cs" />
     <Compile Include="Providers\IArtistImageProvider.cs" />
+    <Compile Include="Providers\GoogleArtistImageProvider.cs" />
     <Compile Include="Providers\LastFMArtistImageProvider.cs" />
     <Compile Include="Providers\LastFMAlbumImageProvider.cs" />
     <Compile Include="Providers\TagAlbumImageProvider.cs" />

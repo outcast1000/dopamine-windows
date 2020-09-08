@@ -531,7 +531,7 @@ namespace Dopamine.Services.Indexing
                 try
                 {
                     IList<ArtistV> artistsAdded = new List<ArtistV>();
-                    string providerName = new LastFMArtistImageProvider(null).ProviderName;
+                    string providerName = new GoogleArtistImageProvider(null).ProviderName;
                     IList<ArtistV> artistsToIndex = rescanAll ? artistVRepository.GetArtists() : artistVRepository.GetArtistToIndexByProvider(providerName, rescanFailed);
                     IFileStorage fileStorage = new FileStorage();
 
@@ -568,21 +568,21 @@ namespace Dopamine.Services.Indexing
 
                         //GetArtworkFromInternet(string albumTitle, IList<string> albumArtists, string trackTitle, IList<string> artists)
 
-                        LastFMArtistImageProvider lf = new LastFMArtistImageProvider(artist.Name);
+                        GoogleArtistImageProvider ip = new GoogleArtistImageProvider(artist.Name);
 
 
-                        if (lf.Image != null)
+                        if (ip.Image != null)
                         {
                             using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
                             {
-                                string cacheId = fileStorage.SaveImage(lf.Image);
+                                string cacheId = fileStorage.SaveImage(ip.Image);
                                 uc.AddArtistImage(new ArtistImage()
                                 {
                                     ArtistId = artist.Id,
                                     DateAdded = DateTime.Now.Ticks,
                                     Location = cacheId,
                                     IsPrimary = true,
-                                    Source = lf.ProviderName
+                                    Source = ip.ProviderName
                                 });// albumDataToIndex.Id, "cache://" + albumImageName, len, sourceHash, providerName, false);
                                 artistsAdded.Add(artist);
                             }
