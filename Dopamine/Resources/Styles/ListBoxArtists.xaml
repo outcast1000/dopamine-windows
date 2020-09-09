@@ -119,7 +119,10 @@
                             <Grid
                                 Grid.Row="0"
                                 Grid.Column="0"
-                                HorizontalAlignment="Left">
+                                Width="64"
+                                Margin="4"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top">
                                 <pc:Tile
                                     Width="64"
                                     Height="64"
@@ -133,8 +136,6 @@
                                     </pc:Tile.Content>
                                 </pc:Tile>
                                 <pc:SourceChangedImage
-                                    Width="{Binding Path=DataContext.CoverSize, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
-                                    Height="{Binding Path=DataContext.CoverSize, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
                                     Panel.ZIndex="1"
                                     RenderOptions.BitmapScalingMode="HighQuality"
                                     Stretch="Uniform">
@@ -166,30 +167,29 @@
                                 Grid.Row="0"
                                 Grid.Column="1"
                                 Margin="6"
-                                HorizontalAlignment="Stretch"
-                                VerticalAlignment="Stretch">
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="*" />
-                                    </Grid.RowDefinitions>
-                                    <TextBlock
-                                        Grid.Row="0"
-                                        Grid.Column="0"
-                                        HorizontalAlignment="Left"
-                                        FontSize="20"
-                                        Foreground="{DynamicResource Brush_PrimaryText}"
-                                        Text="{Binding Name}"
-                                        TextTrimming="CharacterEllipsis" />
-                                    <TextBlock
-                                        Grid.Row="1"
-                                        Grid.Column="0"
-                                        HorizontalAlignment="Left"
-                                        VerticalAlignment="Top"
-                                        Foreground="{DynamicResource Brush_SecondaryText}"
-                                        Text="{Binding ArtistItemInfo}"
-                                        TextTrimming=" CharacterEllipsis" />
-                                </Grid>
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <TextBlock
+                                    Grid.Row="0"
+                                    Grid.Column="0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Top"
+                                    FontSize="20"
+                                    Foreground="{DynamicResource Brush_PrimaryText}"
+                                    Text="{Binding Name}"
+                                    TextTrimming="CharacterEllipsis" />
+                                <TextBlock
+                                    Grid.Row="1"
+                                    Grid.Column="0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Top"
+                                    Foreground="{DynamicResource Brush_SecondaryText}"
+                                    Text="{Binding ArtistItemInfo}"
+                                    TextTrimming=" CharacterEllipsis" />
                             </Grid>
                         </Grid>
                     </DockPanel>

@@ -21,7 +21,7 @@ namespace Dopamine.Converters
 
                     if (info.Exists && info.Length > 0)
                     {
-                        return ImageUtils.PathToBitmapImage(info.FullName, size, size);
+                        return ImageUtils.PathToBitmapImage(info.FullName, size, 0);
                     }
                 }
             }

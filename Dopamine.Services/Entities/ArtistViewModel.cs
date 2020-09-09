@@ -57,7 +57,7 @@ namespace Dopamine.Services.Entities
                     info += string.Format("\nYear: {0}", data.MinYear);
                 else
                     info += string.Format("\nYears: {0} - {1}", data.MinYear, data.MaxYear);
-                return info;
+                return info.Trim();
             }
         }
 

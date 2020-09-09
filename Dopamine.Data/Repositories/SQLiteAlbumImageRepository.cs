@@ -99,7 +99,7 @@ namespace Dopamine.Data.Repositories
             return null;
         }
 
-        public IList<AlbumImage> GetAlbumImageForTrackWithPath(string location)
+        public IList<AlbumImage> GetAlbumImageForTrackWithPath(string path)
         {
             using (var conn = factory.GetConnection())
             {
@@ -115,7 +115,7 @@ namespace Dopamine.Data.Repositories
                         from AlbumImages
                         LEFT JOIN TrackAlbums ON TrackAlbums.album_id = AlbumImages.album_id
                         LEFT JOIN Tracks ON tracks.id = TrackAlbums.track_id
-                        WHERE Tracks.location = ?", location);
+                        WHERE Tracks.path = ?", path);
                 }
                 catch (Exception ex)
                 {
