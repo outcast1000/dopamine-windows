@@ -17,16 +17,21 @@ namespace Dopamine.Data.Repositories
 
         public List<ArtistV> GetArtists()
         {
-            return GetArtistsInternal();
+            return GetArtistsInternal("", "", "");
         }
 
         public List<ArtistV> GetArtistToIndexByProvider(string provider, bool includeFailed)
         {
-            //=== ALEX TODO (like Albums)
-            return GetArtistsInternal();
+            if (includeFailed)
+                return GetArtistsInternal("", "COALESCE(ArtistImagesPrimary.location,ArtistImagesSecondary.location) is null ", "");
+            else
+                return GetArtistsInternal(
+                    String.Format("LEFT JOIN ArtistDownloadFailed ON ArtistDownloadFailed.artist_id=Artists.id AND ArtistDownloadFailed.provider='{0}'", provider),
+                    String.Format("COALESCE(ArtistImagesPrimary.location,ArtistImagesSecondary.location) is null  AND ArtistDownloadFailed.artist_id is null"),
+                    "");
         }
 
-        private List<ArtistV> GetArtistsInternal(string whereClause = "", QueryOptions queryOptions = null)
+        private List<ArtistV> GetArtistsInternal(string joinClause, string whereClause, string orderClause, QueryOptions queryOptions = null)
         {
             try
             {
@@ -34,7 +39,7 @@ namespace Dopamine.Data.Repositories
                 {
                     try
                     {
-                        string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), "", whereClause, "", queryOptions);
+                        string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), joinClause, whereClause, orderClause, queryOptions);
                         return conn.Query<ArtistV>(sql);
                     }
                     catch (Exception ex)
@@ -77,6 +82,7 @@ LEFT JOIN Albums ON Albums.id = TrackAlbums.album_id
 LEFT JOIN AlbumImages ON Albums.id = AlbumImages.album_id
 LEFT JOIN TrackGenres ON TrackGenres.track_id = t.id
 LEFT JOIN Genres ON TrackGenres.genre_id = Genres.id
+#JOIN#
 INNER JOIN Folders ON Folders.id = t.folder_id
 #WHERE#
 GROUP BY Artists.id
