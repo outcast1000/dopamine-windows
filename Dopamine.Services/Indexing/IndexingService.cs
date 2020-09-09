@@ -531,7 +531,7 @@ namespace Dopamine.Services.Indexing
                 try
                 {
                     IList<ArtistV> artistsAdded = new List<ArtistV>();
-                    string providerName = new GoogleArtistImageProvider(null).ProviderName;
+                    string providerName = new GoogleArtistInfoProvider(null).ProviderName;
                     IList<ArtistV> artistsToIndex = rescanAll ? artistVRepository.GetArtists() : artistVRepository.GetArtistToIndexByProvider(providerName, rescanFailed);
                     IFileStorage fileStorage = new FileStorage();
 
@@ -568,14 +568,15 @@ namespace Dopamine.Services.Indexing
 
                         //GetArtworkFromInternet(string albumTitle, IList<string> albumArtists, string trackTitle, IList<string> artists)
 
-                        GoogleArtistImageProvider ip = new GoogleArtistImageProvider(artist.Name);
+                        //IArtistInfoProvider ip = new GoogleArtistInfoProvider(artist.Name);
+                        IArtistInfoProvider ip = new YoutubeArtistInfoProvider(artist.Name);
 
 
-                        if (ip.Image != null)
+                        if (ip.Success && ip.Images != null && ip.Images.Length >= 1)
                         {
                             using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
                             {
-                                string cacheId = fileStorage.SaveImage(ip.Image);
+                                string cacheId = fileStorage.SaveImage(ip.Images[0]);
                                 uc.AddArtistImage(new ArtistImage()
                                 {
                                     ArtistId = artist.Id,

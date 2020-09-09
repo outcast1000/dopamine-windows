@@ -1,6 +1,7 @@
 ﻿using Digimezzo.Foundation.Core.Packaging;
 using Dopamine.Core.Base;
 using System;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace Dopamine.Packager
@@ -9,6 +10,7 @@ namespace Dopamine.Packager
     {
         static void Main(string[] args)
         {
+            Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
             Assembly asm = Assembly.GetEntryAssembly();
             AssemblyName an = asm.GetName();
 

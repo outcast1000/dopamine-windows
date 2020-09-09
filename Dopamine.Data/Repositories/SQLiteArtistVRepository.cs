@@ -22,6 +22,7 @@ namespace Dopamine.Data.Repositories
 
         public List<ArtistV> GetArtistToIndexByProvider(string provider, bool includeFailed)
         {
+            //=== ALEX TODO (like Albums)
             return GetArtistsInternal();
         }
 
