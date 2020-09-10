@@ -28,6 +28,7 @@ namespace Dopamine.Data.Providers
                 Debug.Print("GoogleArtistImageProvider. Missing artist name");
                 return;
             }
+            Data = new ArtistInfoProviderData();
             Uri uri = new Uri(string.Format("https://www.google.com/search?q={0}+(band)", System.Uri.EscapeDataString(artist)));
 
             try
@@ -58,7 +59,7 @@ namespace Dopamine.Data.Providers
                         matchCount++;
                     }
                     Success = true;
-                    Images = images.ToArray();
+                    Data.Images = images.ToArray();
                 }
             }
             catch (Exception ex)
@@ -88,18 +89,8 @@ namespace Dopamine.Data.Providers
             get { return "GOOGLE_ARTISTS"; }
         }
 
-        public byte[][] Images { get; private set; }
-
-        public string Bio { get; private set; }
-
-        public string[] Albums { get; private set; }
-
-        public string[] Songs { get; private set; }
-
-        public string[] Members { get; private set; }
-
-        public string[] Genres { get; private set; }
-
         public bool Success { get; private set; }
+
+        public ArtistInfoProviderData Data { get; private set; }
     }
 }

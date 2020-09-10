@@ -572,11 +572,11 @@ namespace Dopamine.Services.Indexing
                         IArtistInfoProvider ip = new YoutubeArtistInfoProvider(artist.Name);
 
 
-                        if (ip.Success && ip.Images != null && ip.Images.Length >= 1)
+                        if (ip.Success && ip.Data.Images != null && ip.Data.Images.Length >= 1)
                         {
                             using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
                             {
-                                string cacheId = fileStorage.SaveImage(ip.Images[0]);
+                                string cacheId = fileStorage.SaveImage(ip.Data.Images[0]);
                                 uc.AddArtistImage(new ArtistImage()
                                 {
                                     ArtistId = artist.Id,

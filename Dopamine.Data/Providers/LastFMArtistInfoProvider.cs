@@ -21,11 +21,11 @@ namespace Dopamine.Data.Providers
                 Debug.Print("LastFMArtistImageProvider. Missing artist name");
                 return;
             }
-
+            Data = new ArtistInfoProviderData();
             LastFmArtist lf = LastfmApi.ArtistGetInfo(artist, false, "EN").Result;
             if (lf.Biography  != null)
             {
-                Bio = lf.Biography.Content;
+                Data.Bio = lf.Biography.Content;
             }
 
             Success = true;
@@ -39,16 +39,6 @@ namespace Dopamine.Data.Providers
 
         public bool Success { get; private set; }
 
-        public byte[][] Images { get; private set; }
-
-        public string Bio { get; private set; }
-
-        public string[] Albums { get; private set; }
-
-        public string[] Songs { get; private set; }
-
-        public string[] Members { get; private set; }
-
-        public string[] Genres { get; private set; }
+        public ArtistInfoProviderData Data { get; private set; }
     }
 }

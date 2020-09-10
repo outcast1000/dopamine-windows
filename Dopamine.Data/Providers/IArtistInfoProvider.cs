@@ -6,15 +6,24 @@ using System.Threading.Tasks;
 
 namespace Dopamine.Data.Providers
 {
+
+    public class ArtistInfoProviderData
+    {
+        public Byte[][] Images { get; set; }
+        public string Bio { get; set; }
+        public string[] Albums { get; set; }
+        public string[] Tracks { get; set; }
+        public string[] Members { get; set; }
+        public string[] Genres { get; set; }
+    }
+
     public interface IArtistInfoProvider
     {
+
         bool Success { get;  }
-        Byte[][] Images { get; }
-        string Bio { get; }
-        string[] Albums { get; }
-        string[] Songs { get; }
-        string[] Members { get; }
-        string[] Genres { get; }
+
+        ArtistInfoProviderData Data { get; }
+
         string ProviderName { get; }
     }
 }

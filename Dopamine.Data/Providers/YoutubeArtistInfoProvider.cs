@@ -1,14 +1,8 @@
-﻿using Dopamine.Core.Api.Lastfm;
-using Dopamine.Data.Metadata;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Dopamine.Data.Providers
 {
@@ -21,7 +15,7 @@ namespace Dopamine.Data.Providers
             Success = Init(artist);
         }
 
-        public int RequestedImages { get; set;}
+        public int RequestedImages { get; set; }
 
         private bool Init(String artist)
         {
@@ -30,6 +24,7 @@ namespace Dopamine.Data.Providers
                 Debug.Print("YoutubeArtistInfoProvider. Missing artist name");
                 return false;
             }
+            Data = new ArtistInfoProviderData();
             Uri uri = new Uri(string.Format("https://music.youtube.com/search?q={0}", System.Uri.EscapeDataString(artist)));
 
             try
@@ -57,7 +52,7 @@ namespace Dopamine.Data.Providers
                     matches = regex.Matches(result);
                     if (matches.Count > 0)
                     {
-                        Bio = matches[0].Groups[1].Value;
+                        Data.Bio = matches[0].Groups[1].Value;
                     }
                     // Find the images
                     List<byte[]> images = new List<byte[]>();
@@ -79,7 +74,19 @@ namespace Dopamine.Data.Providers
                         if (images.Count >= RequestedImages)
                             break;
                     }
-                    Images = images.ToArray();
+                    Data.Images = images.ToArray();
+
+                    //=== Find the tracks (5 most popular?)
+                    // \[{\\"musicResponsiveListItemFlexColumnRenderer\\":{\\"text\\":{\\"runs\\":\[{\\"text\\":\\"(.*?)\\",
+                    List<string> tracks = new List<string>();
+                    regex = new Regex("\\[{\\\\\"musicResponsiveListItemFlexColumnRenderer\\\\\":{\\\\\"text\\\\\":{\\\\\"runs\\\\\":\\[{\\\\\"text\\\\\":\\\\\"(.*?)\\\\\",");
+                    matches = regex.Matches(result);
+                    foreach (Match match in matches)
+                    {
+                        tracks.Add(match.Groups[1].Value);
+                    }
+                    Data.Tracks = tracks.ToArray();
+
                     return true;
 
                     //=== ALEX TODO
@@ -94,8 +101,8 @@ namespace Dopamine.Data.Providers
             return false;
         }
 
-        private void OnException(string message, 
-            Exception ex, 
+        private void OnException(string message,
+            Exception ex,
             [System.Runtime.CompilerServices.CallerMemberName] string memberName = "",
             [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = "",
             [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = 0
@@ -115,17 +122,10 @@ namespace Dopamine.Data.Providers
             get { return "GOOGLE_ARTISTS"; }
         }
 
-        public byte[][] Images { get; private set; }
-
-        public string Bio { get; private set; }
-
-        public string[] Albums { get; private set; }
-
-        public string[] Songs { get; private set; }
-
-        public string[] Members { get; private set; }
-
-        public string[] Genres { get; private set; }
+        public ArtistInfoProviderData Data
+        {
+            get; private set;
+        }
 
         public bool Success { get; private set; }
     }
