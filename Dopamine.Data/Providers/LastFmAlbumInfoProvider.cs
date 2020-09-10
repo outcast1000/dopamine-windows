@@ -10,13 +10,12 @@ using System.Threading.Tasks;
 
 namespace Dopamine.Data.Providers
 {
-    public class LastFmAlbumImageProvider : IAlbumImageProvider
+    public class LastFmAlbumInfoProvider : IAlbumInfoProvider
     {
-        private int _counter = 0;
-        private Byte[] _AlbumImage = null;
 
-        public LastFmAlbumImageProvider(String album, string[] artists)
+        public LastFmAlbumInfoProvider(String album, string[] artists)
         {
+            Success = false;
             if (string.IsNullOrEmpty(album) || artists == null)
             {
                 Debug.Print("LastFmAlbumImageProvider. Missing album info");
@@ -35,44 +34,33 @@ namespace Dopamine.Data.Providers
                         var uri = new Uri(lfmAlbum.LargestImage());
                         using (var client = new WebClient())
                         {
-                            _AlbumImage = client.DownloadData(uri);
+                            Data.Images = new Byte[][] { client.DownloadData(uri)};
+                            Success = true;
                         }
 
                     }
                     catch (Exception ex)
                     {
                         Debug.Print("Could not download file to temporary cache. Exception: {0}", ex.Message);
+                        Success = false;
                     }
-
                     break;
                 }
             }
 
         }
 
-        public Byte[] AlbumImage { get {
-                if (_counter != 0)//== Only one image is supported
-                    return null;
-                return _AlbumImage;
-            } }
-        /*
-        public string AlbumImageUniqueID
-        {
-            get
-            {
-                if (_counter != 0)//== Only one image is supported
-                    return null;
-                return _AlbumImageUniqueID;
-            }
-        }
-        */
-        public void next()
-        {
-            _counter++;
-        }
+
         public string ProviderName
         {
             get { return "LAST_FM_ALBUMS"; }
         }
+
+        public AlbumInfoProviderData Data
+        {
+            get; private set;
+        }
+
+        public bool Success { get; private set; }
     }
 }

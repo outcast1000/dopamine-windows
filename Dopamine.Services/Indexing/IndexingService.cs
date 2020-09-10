@@ -368,7 +368,7 @@ namespace Dopamine.Services.Indexing
         // We should only keep one of these photos for each album (always overwrite the old one)
         private async Task addAlbumImageFromTagAsync(FileMetadata fileMetadata, long AlbumId, IUpdateCollectionUnitOfWork uc)
         {
-            
+
             //=== If there is already a primary image then do not try to replace it
             AlbumImage existingAlbumImage = albumImageRepository.GetPrimaryAlbumImage(AlbumId);
             if (existingAlbumImage != null)
@@ -376,15 +376,15 @@ namespace Dopamine.Services.Indexing
                 Debug.Print("addAlbumImageFromTagAsync Album image already exists. Exit");
                 return;
             }
-            TagAlbumImageProvider tag = new TagAlbumImageProvider(fileMetadata);
-            if (tag.AlbumImage == null)
+            TagAlbumInfoProvider tag = new TagAlbumInfoProvider(fileMetadata);
+            if (tag.Data.Images == null || tag.Data.Images.Length < 1)
             {
                 Debug.Print("addAlbumImageFromTagAsync No image available in this file. Exit");
                 return;
             }
             Debug.Print("addAlbumImageFromTagAsync Adding image");
             IFileStorage fileStorage = new FileStorage();
-            string location = fileStorage.SaveImage(tag.AlbumImage);
+            string location = fileStorage.SaveImage(tag.Data.Images[0]);
             uc.AddAlbumImage(new AlbumImage()
             {
                 AlbumId = AlbumId,
@@ -421,7 +421,7 @@ namespace Dopamine.Services.Indexing
                 try
                 {
                     IList<AlbumV> albumsAdded = new List<AlbumV>();
-                    string providerName = new LastFmAlbumImageProvider(null, null).ProviderName;
+                    string providerName = new LastFmAlbumInfoProvider(null, null).ProviderName;
                     IList<AlbumV> albumDatasToIndex = rescanAll ? albumVRepository.GetAlbums() : albumVRepository.GetAlbumsToIndexByProvider(providerName, rescanFailed);
                     IFileStorage fileStorage = new FileStorage();
 
@@ -458,14 +458,14 @@ namespace Dopamine.Services.Indexing
 
                         //GetArtworkFromInternet(string albumTitle, IList<string> albumArtists, string trackTitle, IList<string> artists)
 
-                        LastFmAlbumImageProvider lf = new LastFmAlbumImageProvider(albumDataToIndex.Name, DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToArray());
+                        LastFmAlbumInfoProvider lf = new LastFmAlbumInfoProvider(albumDataToIndex.Name, DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToArray());
                        
 
-                        if (lf.AlbumImage != null)
+                        if (lf.Success && lf.Data.Images != null && lf.Data.Images.Length > 0)
                         {
                             using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
                             {
-                                string cacheId = fileStorage.SaveImage(lf.AlbumImage);
+                                string cacheId = fileStorage.SaveImage(lf.Data.Images[0]);
                                 uc.AddAlbumImage(new AlbumImage()
                                 {
                                     AlbumId = albumDataToIndex.Id,
