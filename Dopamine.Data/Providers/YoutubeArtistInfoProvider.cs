@@ -9,15 +9,15 @@ namespace Dopamine.Data.Providers
     public class YoutubeArtistInfoProvider : IArtistInfoProvider
     {
 
-        public YoutubeArtistInfoProvider(String artist)
+        public YoutubeArtistInfoProvider(String artist, IInternetDownloaderCreator internetDownloaderCreator = null)
         {
             RequestedImages = 1;
-            Success = Init(artist);
+            Success = Init(artist, internetDownloaderCreator ?? new DefaultInternetDownloaderCreator());
         }
 
         public int RequestedImages { get; set; }
 
-        private bool Init(String artist)
+        private bool Init(String artist, IInternetDownloaderCreator internetDownloaderCreator)
         {
             if (string.IsNullOrEmpty(artist))
             {
@@ -30,13 +30,10 @@ namespace Dopamine.Data.Providers
             try
             {
 
-                using (var client = new HttpClient())
+                using (var client = internetDownloaderCreator.create())
                 {
-                    client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36");
-                    client.DefaultRequestHeaders.ExpectContinue = false;
                     // Get the search page
-                    var response = client.GetAsync(uri).Result;
-                    string result = response.Content.ReadAsStringAsync().Result;
+                    string result = client.DownloadString(uri);
                     // Find the channel page
                     var regex = new Regex("{\\\\\"browseId\\\\\":\\\\\"(.*?)\\\\\",\\\\\"browseEndpointContextSupportedConfigs\\\\\":{\\\\\"browseEndpointContextMusicConfig\\\\\":{\\\\\"pageType\\\\\":\\\\\"MUSIC_PAGE_TYPE_ARTIST");
                     MatchCollection matches = regex.Matches(result);
@@ -45,8 +42,7 @@ namespace Dopamine.Data.Providers
                     string channel = matches[0].Groups[1].Value;
                     // Download the channel page
                     uri = new Uri(string.Format("https://music.youtube.com/channel/{0}", channel));
-                    response = client.GetAsync(uri).Result;
-                    result = response.Content.ReadAsStringAsync().Result;
+                    result = client.DownloadString(uri);
                     // Find the Bio
                     regex = new Regex("description\\\\\\\":{\\\\\\\"runs\\\\\\\":\\[{\\\\\\\"text\\\\\\\":\\\\\\\"(.*?)\\\\\\\"}\\]}");
                     matches = regex.Matches(result);
@@ -68,8 +64,7 @@ namespace Dopamine.Data.Providers
                         }
                         string url = match.Groups[1].Value.Replace("\\/", "/");
                         uri = new Uri(url);
-                        response = client.GetAsync(uri).Result;
-                        byte[] bRes = response.Content.ReadAsByteArrayAsync().Result;
+                        byte[] bRes = client.DownloadData(uri);
                         images.Add(bRes);
                         if (images.Count >= RequestedImages)
                             break;

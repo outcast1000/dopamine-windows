@@ -15,12 +15,12 @@ namespace Dopamine.Data.Providers
     public class GoogleArtistInfoProvider : IArtistInfoProvider
     {
 
-        public GoogleArtistInfoProvider(String artist)
+        public GoogleArtistInfoProvider(String artist, IInternetDownloaderCreator internetDownloaderCreator = null)
         {
-            Init(artist);
+            Init(artist, internetDownloaderCreator ?? new DefaultInternetDownloaderCreator());
         }
 
-        private void Init(String artist)
+        private void Init(String artist, IInternetDownloaderCreator internetDownloaderCreator)
         {
             Success = false;
             if (string.IsNullOrEmpty(artist))
@@ -34,11 +34,9 @@ namespace Dopamine.Data.Providers
             try
             {
 
-                using (var client = new HttpClient())
+                using (var client = internetDownloaderCreator.create())
                 {
-                    client.DefaultRequestHeaders.ExpectContinue = false;
-                    var response = client.GetAsync(uri).Result;
-                    string result = response.Content.ReadAsStringAsync().Result;
+                    string result = client.DownloadString(uri);
                     var regex = new Regex("data:image\\/jpeg;base64,(.*?)';");
                     MatchCollection matches = regex.Matches(result);
                     int matchCount = 0;

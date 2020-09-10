@@ -132,6 +132,7 @@
     <Compile Include="Enums.cs" />
     <Compile Include="FileStorage.cs" />
     <Compile Include="IFileStorage.cs" />
+    <Compile Include="Providers\InfoProviderCommon.cs" />
     <Compile Include="Providers\YoutubeArtistInfoProvider.cs" />
     <Compile Include="Providers\IArtistInfoProvider.cs" />
     <Compile Include="Providers\GoogleArtistInfoProvider.cs" />
