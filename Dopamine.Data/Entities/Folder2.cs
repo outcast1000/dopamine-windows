@@ -11,7 +11,7 @@ namespace Dopamine.Data.Entities
         [Column("path"), Unique(), Collation("NOCASE"), NotNull()]
         public string Path { get; set; }
 
-        [Column("show"), Indexed(), NotNull()]
+        [Column("show"), NotNull()]
         public long Show { get; set; }
 
         [Column("date_added")]

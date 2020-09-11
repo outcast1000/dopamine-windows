@@ -10,10 +10,10 @@ namespace Dopamine.Data.Entities
         [Column("id"), PrimaryKey(), AutoIncrement()]
         public long Id { get; set; }
 
-        [Column("album_id"), NotNull()]
+        [Column("album_id"), NotNull(), Indexed()]
         public long AlbumId { get; set; }
 
-        [Column("location"), Unique(), NotNull()]
+        [Column("location"), NotNull()]
         public string Location { get; set; }
 
         [Column("source")]

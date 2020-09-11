@@ -4,22 +4,22 @@ using System;
 
 namespace Dopamine.Data.Entities
 {
-    [Table("TrackLyrics")]
-    public class TrackLyrics
+    [Table("ArtistBiographies")]
+    public class ArtistBiography
     {
-        [Column("track_id"), PrimaryKey()]
-        public long TrackId { get; set; }
+        [Column("artist_id"), PrimaryKey(), NotNull()]
+        public long ArtistId { get; set; }
 
-        [Column("lyrics"), NotNull()]
-        public string Lyrics { get; set; }
+        [Column("biography"), NotNull()]
+        public string Biography { get; set; }
 
         [Column("source")]
         public string Source { get; set; }
-
+        
         [Column("language")]
         public string Language { get; set; }
 
-        [Column("date_added"), NotNull()]
+        [Column("date_added")]
         public long DateAdded { get; set; }
 
     }

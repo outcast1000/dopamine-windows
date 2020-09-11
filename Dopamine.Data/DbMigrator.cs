@@ -238,10 +238,13 @@ namespace Dopamine.Data
                 //=== ArtistCollectionArtists: (Many to Many) Each Artist may be in many ArtistCollections. Each ArtistCollection may have many artists
                 conn.Execute("CREATE TABLE ArtistCollectionsArtists (" +
                             "id                     INTEGER PRIMARY KEY AUTOINCREMENT," +
-                            "artist_collection_id   INTEGER," +
-                            "artist_id              INTEGER," +
+                            "artist_collection_id   INTEGER NOT NULL," +
+                            "artist_id              INTEGER NOT NULL," +
                             "FOREIGN KEY (artist_collection_id) REFERENCES ArtistCollections(id), " +
                             "FOREIGN KEY (artist_id) REFERENCES Artists(id)); ");
+
+                conn.Execute("CREATE INDEX ArtistCollectionsArtistsArtistCollectionIDIndex ON ArtistCollectionsArtists(artist_collection_id);");
+                conn.Execute("CREATE INDEX ArtistCollectionsArtistsArtistIDIndex ON ArtistCollectionsArtists(artist_id);");
 
 
                 //=== Albums:
@@ -251,6 +254,7 @@ namespace Dopamine.Data
                             "name                   TEXT NOT NULL COLLATE NOCASE," +
                             "FOREIGN KEY (artist_collection_id) REFERENCES ArtistCollections(id)); ");
 
+                conn.Execute("CREATE INDEX AlbumsArtistCollectionIdIndex ON Albums(artist_collection_id);");
                 conn.Execute("CREATE UNIQUE INDEX AlbumsUniqueIndex ON Albums(name, artist_collection_id);");
 
                 //=== AlbumReviews: (One 2 One) Each album may have one review
@@ -298,7 +302,7 @@ namespace Dopamine.Data
                 //=== GenreImages: (Many 2 many) Each genre may have multiple images
                 conn.Execute("CREATE TABLE GenreImages (" +
                             "id                 INTEGER PRIMARY KEY AUTOINCREMENT," +
-                            "genre_id           INTEGER ," +
+                            "genre_id           INTEGER," +
                             "location           TEXT NOT NULL," +
                             "is_primary         INTEGER," +
                             "source             TEXT," +
@@ -1566,7 +1570,7 @@ namespace Dopamine.Data
                 {
                     this.userDatabaseVersion = Convert.ToInt32(conn.ExecuteScalar<string>("SELECT Value FROM Configuration WHERE Key = 'DatabaseVersion'"));
                     //=== ALEX DEBUG. USE "26" to force the update. "27" to avoid it. Reenable the Execute scalar
-                    userDatabaseVersion = 26;
+                    userDatabaseVersion = 27;
                 }
                 catch (Exception)
                 {

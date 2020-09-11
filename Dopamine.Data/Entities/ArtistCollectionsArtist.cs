@@ -9,10 +9,13 @@ namespace Dopamine.Data.Entities
     {
         public ArtistCollectionsArtist() { }
 
-        [Column("artist_collection_id")]
+        [Column("id"), PrimaryKey(), AutoIncrement()]
+        public long Id { get; set; }
+
+        [Column("artist_collection_id"), NotNull(), Indexed()]
         public long ArtistCollectionId { get; set; }
 
-        [Column("artist_id")]
+        [Column("artist_id"), NotNull(), Indexed()]
         public long ArtistId { get; set; }
 
     }

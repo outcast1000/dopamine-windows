@@ -10,10 +10,10 @@ namespace Dopamine.Data.Entities
         [Column("id"), PrimaryKey(), AutoIncrement()]
         public long Id { get; set; }
 
-        [Column("name"), Unique(), Collation("NOCASE"), NotNull()]
+        [Column("name"), Indexed(), Collation("NOCASE"), NotNull()]
         public string Name { get; set; }
 
-        [Column("path"), Indexed()]
+        [Column("path"), Unique(), NotNull()]
         public string Path { get; set; }
 
         [Column("folder_id"), Indexed(), NotNull()]
@@ -40,7 +40,7 @@ namespace Dopamine.Data.Entities
         [Column("date_added")]
         public long DateAdded { get; set; }
 
-        [Column("date_file_deleted")]
+        [Column("date_file_deleted"), Indexed()]
         public long? DateFileDeleted { get; set; }
 
         [Column("date_file_created")]
@@ -55,7 +55,7 @@ namespace Dopamine.Data.Entities
         [Column("love")]
         public long? Love { get; set; }
 
-        [Column("date_ignored")]
+        [Column("date_ignored"), Indexed()]
         public long? DateIgnored { get; set; }
 
         public static Track2 CreateDefault(string path)

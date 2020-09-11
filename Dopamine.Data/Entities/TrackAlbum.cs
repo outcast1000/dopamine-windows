@@ -7,7 +7,7 @@ namespace Dopamine.Data.Entities
     [Table("TrackAlbums")]
     public class TrackAlbum
     {
-        [Column("track_id"), Indexed(), NotNull()]
+        [Column("track_id"), PrimaryKey(), NotNull()]
         public long TrackId { get; set; }
 
         [Column("album_id"), Indexed(), NotNull()]

@@ -4,13 +4,13 @@ using System;
 
 namespace Dopamine.Data.Entities
 {
-    [Table("ArtistImages")]
-    public class ArtistImage
+    [Table("GenreImages")]
+    public class GenreImages
     {
         [Column("id"), PrimaryKey(), AutoIncrement()]
         public long Id { get; set; }
 
-        [Column("artist_id"), NotNull(), Indexed()]
+        [Column("genre_id"), NotNull(), Indexed()]
         public long ArtistId { get; set; }
 
         [Column("location"), NotNull()]
@@ -22,7 +22,7 @@ namespace Dopamine.Data.Entities
         [Column("source")]
         public string Source { get; set; }
 
-        [Column("date_added")]
+        [Column("date_added"), NotNull()]
         public long DateAdded { get; set; }
 
     }

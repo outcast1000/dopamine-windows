@@ -7,6 +7,9 @@ namespace Dopamine.Data.Entities
     [Table("TrackArtists")]
     public class TrackArtist
     {
+        [Column("id"), PrimaryKey(), AutoIncrement()]
+        public long Id { get; set; }
+
         [Column("track_id"), Indexed(), NotNull()]
         public long TrackId { get; set; }
 
