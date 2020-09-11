@@ -196,14 +196,12 @@ namespace Dopamine.Data
 
                 //=== ArtistBiographies: (One 2 One) Each Artist may have only one biographies
                 conn.Execute("CREATE TABLE ArtistBiographies (" +
-                            "artist_id          INTEGER," +
+                            "artist_id          INTEGER PRIMARY KEY," +
                             "biography          TEXT NOT NULL," +
                             "source             TEXT," +
                             "language           TEXT," +
                             "date_added         INTEGER NOT NULL," +
                             "FOREIGN KEY (artist_id) REFERENCES Artists(id));");
-
-                conn.Execute("CREATE UNIQUE INDEX ArtistBiographiesArtistIDIndex ON ArtistBiographies(artist_id);");
 
                 //=== ArtistImages: (One 2 many) Each artist may have multiple images (but only one primary)
                 conn.Execute("CREATE TABLE ArtistImages (" +
@@ -220,9 +218,10 @@ namespace Dopamine.Data
                 //conn.Execute("CREATE INDEX AlbumImagesIsPrimaryIndex ON AlbumImages(is_primary);"); //=== ALEX: FOR SOME REASON WHEN THIS IS ENABLED many queries that have is_primary=1 becomes 1000 times more slow
                 conn.Execute("CREATE UNIQUE INDEX ArtistImagesCompositeIndex ON ArtistImages(artist_id, location);");
 
-                //=== AlbumDownloadFailed: (One 2 One) Each Album may have only one failed indexing record
+                //=== AlbumDownloadFailed: (One 2 Many) Each Album may have only one failed indexing record
                 conn.Execute("CREATE TABLE ArtistDownloadFailed (" +
-                            "artist_id          INTEGER NOT NULL," +
+                            "id                INTEGER PRIMARY KEY AUTOINCREMENT," +
+                            "artist_id         INTEGER NOT NULL," +
                             "provider          TEXT NOT NULL," +
                             "date_added        INTEGER NOT NULL," +
                             "FOREIGN KEY (artist_id) REFERENCES Artists(id));");
@@ -238,6 +237,7 @@ namespace Dopamine.Data
 
                 //=== ArtistCollectionArtists: (Many to Many) Each Artist may be in many ArtistCollections. Each ArtistCollection may have many artists
                 conn.Execute("CREATE TABLE ArtistCollectionsArtists (" +
+                            "id                     INTEGER PRIMARY KEY AUTOINCREMENT," +
                             "artist_collection_id   INTEGER," +
                             "artist_id              INTEGER," +
                             "FOREIGN KEY (artist_collection_id) REFERENCES ArtistCollections(id), " +
@@ -255,14 +255,12 @@ namespace Dopamine.Data
 
                 //=== AlbumReviews: (One 2 One) Each album may have one review
                 conn.Execute("CREATE TABLE AlbumReviews (" +
-                            "album_id           INTEGER NOT NULL," +
+                            "album_id           INTEGER PRIMARY KEY," +
                             "review             TEXT NOT NULL," +
                             "source             TEXT," +
                             "language           TEXT," +
                             "date_added         INTEGER NOT NULL," +
                             "FOREIGN KEY(album_id) REFERENCES Albums(id));");
-
-                conn.Execute("CREATE UNIQUE INDEX AlbumReviewsAlbumIDIndex ON AlbumReviews(album_id);");
 
                 //=== AlbumImages: (One 2 many) Each album may have multiple images
                 conn.Execute("CREATE TABLE AlbumImages (" +
@@ -275,12 +273,12 @@ namespace Dopamine.Data
                             "FOREIGN KEY(album_id) REFERENCES Albums(id));");
 
                 conn.Execute("CREATE INDEX AlbumImagesAlbumIDIndex ON AlbumImages(album_id);");
-                conn.Execute("CREATE INDEX AlbumImagesLocationIndex ON AlbumImages(location);");
                 //conn.Execute("CREATE INDEX AlbumImagesIsPrimaryIndex ON AlbumImages(is_primary);"); //=== ALEX: FOR SOME REASON WHEN THIS IS ENABLED many queries that have is_primary=1 becomes 1000 times more slow
                 conn.Execute("CREATE UNIQUE INDEX AlbumImagesCompositeIndex ON AlbumImages(album_id, location);");
 
-                //=== AlbumDownloadFailed: (One 2 One) Each Album may have only one failed indexing record
+                //=== AlbumDownloadFailed: (One 2 many) Each Album may have mutltipe failed indexing record (one per provider)
                 conn.Execute("CREATE TABLE AlbumDownloadFailed (" +
+                            "id                INTEGER PRIMARY KEY AUTOINCREMENT," +
                             "album_id          INTEGER NOT NULL," +
                             "provider          TEXT NOT NULL," +
                             "date_added        INTEGER NOT NULL," +
@@ -299,21 +297,17 @@ namespace Dopamine.Data
 
                 //=== GenreImages: (Many 2 many) Each genre may have multiple images
                 conn.Execute("CREATE TABLE GenreImages (" +
-                            "genre_id           INTEGER," +
-                            "key                TEXT NOT NULL," +
+                            "id                 INTEGER PRIMARY KEY AUTOINCREMENT," +
+                            "genre_id           INTEGER ," +
+                            "location           TEXT NOT NULL," +
+                            "is_primary         INTEGER," +
                             "source             TEXT," +
                             "date_added         INTEGER NOT NULL," +
                             "FOREIGN KEY (genre_id) REFERENCES Genres(id));");
 
                 conn.Execute("CREATE INDEX GenreImagesArtistIDIndex ON GenreImages(genre_id);");
+                conn.Execute("CREATE UNIQUE INDEX GenreImagesCompositeIndex ON GenreImages(genre_id, location);");
 
-                //=== GenreThumbnail: (One 2 One) Each Genre may have only one thumbnail
-                conn.Execute("CREATE TABLE GenreThumbnail (" +
-                            "genre_id           INTEGER," +
-                            "key                TEXT NOT NULL," +
-                            "FOREIGN KEY (genre_id) REFERENCES Genres(id));");
-
-                conn.Execute("CREATE UNIQUE INDEX GenreThumbnailGenreIDIndex ON GenreThumbnail(genre_id);");
 
                 //=== Folders:
                 conn.Execute("CREATE TABLE Folders (" +
@@ -360,6 +354,7 @@ namespace Dopamine.Data
 
                 //=== TrackArtists: (Many 2 Many) Many Tracks may belong to the same Artist. Many Artists may have collaborate to the same track
                 conn.Execute("CREATE TABLE TrackArtists (" +
+                            "id                 INTEGER PRIMARY KEY AUTOINCREMENT," +
                             "track_id           INTEGER NOT NULL," +
                             "artist_id          INTEGER NOT NULL," +
                             "artist_role_id     INTEGER DEFAULT 1," +
@@ -374,6 +369,7 @@ namespace Dopamine.Data
 
                 //=== TrackArtists: (Many 2 Many) Many Tracks may belong to the same Artist. Many Artists may have collaborate to the same track
                 conn.Execute("CREATE TABLE TrackGenres (" +
+                            "id                 INTEGER PRIMARY KEY AUTOINCREMENT," +
                             "track_id           INTEGER NOT NULL," +
                             "genre_id           INTEGER NOT NULL," +
                             "FOREIGN KEY (track_id) REFERENCES Tracks(id)," +
@@ -383,9 +379,9 @@ namespace Dopamine.Data
                 conn.Execute("CREATE INDEX TrackGenresArtistIDIndex ON TrackGenres(genre_id);");
                 conn.Execute("CREATE UNIQUE INDEX TrackGenresCombinedIndex ON TrackGenres(track_id, genre_id);");
 
-                //=== TrackAlbum: (Many 2 Many) Each Track may have zero or one TrackAlbum record 
+                //=== TrackAlbum: (One 2 One) Each Track may have zero or one TrackAlbum record 
                 conn.Execute("CREATE TABLE TrackAlbums (" +
-                            "track_id           INTEGER NOT NULL," +
+                            "track_id           INTEGER PRIMARY KEY," +
                             "album_id           INTEGER NOT NULL," +
                             "track_number       INTEGER," +
                             "disc_number        INTEGER," +
@@ -399,26 +395,13 @@ namespace Dopamine.Data
 
                 //=== TrackLyrics: (One 2 One) Each Track may have zero or one Lyrics record 
                 conn.Execute("CREATE TABLE TrackLyrics (" +
-                            "track_id           INTEGER," +
+                            "track_id           INTEGER PRIMARY KEY," +
                             "lyrics             TEXT NOT NULL COLLATE NOCASE," +
                             "source             TEXT," +
                             "language           TEXT," +
                             "date_added         INTEGER NOT NULL," +
                             "FOREIGN KEY (track_id) REFERENCES Tracks(id));");
 
-                conn.Execute("CREATE UNIQUE INDEX TrackLyricsTrackIDIndex ON TrackLyrics(track_id);");
-                conn.Execute("CREATE INDEX TrackLyricsLyricsIndex ON TrackLyrics(lyrics);");
-
-                //=== TrackIndexFailed: (One 2 One) Each Track may have zero or one Indexing record 
-                /*
-                conn.Execute("CREATE TABLE TrackIndexFailed (" +
-                            "track_id                       INTEGER," +
-                            "indexing_failure_reason        TEXT," +
-                            "date_happened                  INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP," +
-                            "FOREIGN KEY (track_id) REFERENCES Tracks(id));");
-
-                conn.Execute("CREATE UNIQUE INDEX TrackIndexFailedTrackIDIndex ON TrackIndexFailed(track_id);");
-                */
 
                 //=== HistoryActions: Should include Added, Deleted, Modified, Played, AutoPlayed, Skipped, Rated, Loved
                 conn.Execute("CREATE TABLE HistoryActions (" +
@@ -1583,7 +1566,7 @@ namespace Dopamine.Data
                 {
                     this.userDatabaseVersion = Convert.ToInt32(conn.ExecuteScalar<string>("SELECT Value FROM Configuration WHERE Key = 'DatabaseVersion'"));
                     //=== ALEX DEBUG. USE "26" to force the update. "27" to avoid it. Reenable the Execute scalar
-                    userDatabaseVersion = 27;
+                    userDatabaseVersion = 26;
                 }
                 catch (Exception)
                 {

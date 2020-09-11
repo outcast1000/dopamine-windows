@@ -14,7 +14,7 @@ namespace Dopamine.Data.Providers
         public TagAlbumInfoProvider(FileMetadata fileMetadata)
         {
             Success = false;
-            if (fileMetadata == null)
+            if (fileMetadata == null || fileMetadata.ArtworkData == null || fileMetadata.ArtworkData.Value == null)
                 return;
             Data = new AlbumInfoProviderData();
             try

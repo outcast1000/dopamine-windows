@@ -2,6 +2,7 @@
 using Dopamine.Core.IO;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -30,6 +31,7 @@ namespace Dopamine.Data
 
         public string SaveImage(byte[] bytes)
         {
+            Debug.Assert(bytes != null && bytes.Length > 0);
             string sha1 = CalculateSHA1(bytes);
             string location = "cache://" + sha1 + ".jpg";
             string realPath = GetRealPath(location);
@@ -39,6 +41,7 @@ namespace Dopamine.Data
 
         private string CalculateSHA1(byte[] bytes)
         {
+            Debug.Assert(bytes != null && bytes.Length > 0);
             using (var cryptoProvider = new SHA1CryptoServiceProvider())
             {
                 return BitConverter.ToString(cryptoProvider.ComputeHash(bytes));

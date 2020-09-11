@@ -377,7 +377,7 @@ namespace Dopamine.Services.Indexing
                 return;
             }
             TagAlbumInfoProvider tag = new TagAlbumInfoProvider(fileMetadata);
-            if (tag.Data.Images == null || tag.Data.Images.Length < 1)
+            if (tag.Data == null || tag.Data.Images == null || tag.Data.Images.Length < 1)
             {
                 Debug.Print("addAlbumImageFromTagAsync No image available in this file. Exit");
                 return;
