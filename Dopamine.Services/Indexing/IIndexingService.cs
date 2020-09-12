@@ -12,12 +12,9 @@ namespace Dopamine.Services.Indexing
 
         bool IsIndexing { get; }
 
-        //USED ON WHEN THE User Initially adds the first folder in OOBE)
         Task RefreshCollectionAsync(bool bForce, bool bReadTags);
 
-        //WHEN THE USER CLOSE THE ManageCollections Window Dialog
-
-        void ReScanAlbumArtworkAsync(bool reloadOnlyMissing);
+        Task ReScanAlbumArtworkAsync(bool reloadOnlyMissing);
 
         event EventHandler IndexingStarted;
 

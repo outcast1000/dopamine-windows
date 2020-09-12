@@ -58,6 +58,7 @@ using System.Windows;
 using System.Windows.Shell;
 using System.Windows.Threading;
 using Dopamine.Data.Providers;
+using NLog;
 
 namespace Dopamine
 {
@@ -65,10 +66,26 @@ namespace Dopamine
     {
         private Mutex instanceMutex = null;
         private DateTime lastUnhandledExceptionLoggedTime = DateTime.MinValue;
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            var config = new NLog.Config.LoggingConfiguration();
 
+            // Targets where to log to: File and Console
+            var logfile = new NLog.Targets.FileTarget("logfile") { FileName = "dopamine.nlog.log" };
+            var logdebug = new NLog.Targets.DebuggerTarget();
+
+            // Rules for mapping loggers to targets            
+            config.AddRule(NLog.LogLevel.Info, NLog.LogLevel.Fatal, logfile);
+            config.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Fatal, logdebug);
+
+            // Apply config           
+            NLog.LogManager.Configuration = config;
+            Logger = NLog.LogManager.GetCurrentClassLogger();
+
+
+            Logger.Info("App.OnStartup STARTING");
             // Create a jump-list and assign it to the current application
             JumpList.SetJumpList(Current, new JumpList());
 
@@ -90,7 +107,7 @@ namespace Dopamine
             else
             {
                 // HACK: because shutdown is too fast, some logging might be missing in the log file.
-                LogClient.Warning("{0} is already running. Shutting down.", ProductInformation.ApplicationName);
+                Logger.Warn("{0} is already running. Shutting down.", ProductInformation.ApplicationName);
                 this.Shutdown();
             }
         }
@@ -120,7 +137,7 @@ namespace Dopamine
 
         protected override void InitializeShell(Window shell)
         {
-            LogClient.Info($"### STARTING {ProductInformation.ApplicationName}, version {ProcessExecutable.AssemblyVersion()}, IsPortable = {SettingsClient.BaseGet<bool>("Configuration", "IsPortable")}, Windows version = {EnvironmentUtils.GetFriendlyWindowsVersion()} ({EnvironmentUtils.GetInternalWindowsVersion()}), IsWindows10 = {Core.Base.Constants.IsWindows10} ###");
+            Logger.Info($"App.InitializeShell STARTING {ProductInformation.ApplicationName}, version {ProcessExecutable.AssemblyVersion()}, IsPortable = {SettingsClient.BaseGet<bool>("Configuration", "IsPortable")}, Windows version = {EnvironmentUtils.GetFriendlyWindowsVersion()} ({EnvironmentUtils.GetInternalWindowsVersion()}), IsWindows10 = {Core.Base.Constants.IsWindows10} ###");
 
             // Handler for unhandled AppDomain exceptions
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;

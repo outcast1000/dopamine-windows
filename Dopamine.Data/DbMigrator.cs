@@ -16,6 +16,7 @@ namespace Dopamine.Data
 {
     public class DbMigrator
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         protected sealed class DatabaseVersionAttribute : Attribute
         {
             private int version;
@@ -153,7 +154,7 @@ namespace Dopamine.Data
         {
             using (var conn = this.factory.GetConnection())
             {
-                Debug.Print("CreateTablesAndIndexes_v2: DROPPING TABLES");
+                Logger.Debug("CreateTablesAndIndexes_v2: DROPPING TABLES");
                 conn.Execute("DROP TABLE IF EXISTS History;");
                 conn.Execute("DROP TABLE IF EXISTS HistoryActions;");
 
@@ -184,7 +185,7 @@ namespace Dopamine.Data
 
                 conn.Execute("DROP TABLE IF EXISTS Folders;");
 
-                Debug.Print("CreateTablesAndIndexes_v2: CREATING TABLES");
+                Logger.Debug("CreateTablesAndIndexes_v2: CREATING TABLES");
 
 
                 //=== Artists:
@@ -429,7 +430,7 @@ namespace Dopamine.Data
                 conn.Execute("CREATE INDEX HistoryHistoryActionIDIndex ON History(history_action_id);");
 
 
-                Debug.Print("CreateTablesAndIndexes_v2: START MIGRATION");
+                Logger.Debug("CreateTablesAndIndexes_v2: START MIGRATION");
 
                 // ==== START MIGRATING DATA
 
@@ -471,13 +472,12 @@ namespace Dopamine.Data
                 foreach (Track track in tracks)
                 {
 
-                    Debug.Print("Migrating File {0}", track.Path);
+                    Logger.Info("Migrating File {0}", track.Path);
 
                     if (track.TrackTitle == null)
-                        Debug.Print("*** TrackTitle is null");
+                        Logger.Warn("*** TrackTitle is null");
 
                     long folderTrackID = conn.ExecuteScalar<long>(@"SELECT FolderID FROM FolderTrack WHERE TrackID=?", track.TrackID);
-                    Debug.Print("folderTrackID: {0} {1}", folderTrackID, track.TrackID);
                     AddMediaFileResult addMediaFileResult = uc.AddMediaFile(new MediaFileData()
                     {
                         Name = track.TrackTitle,
@@ -527,10 +527,10 @@ namespace Dopamine.Data
                         }
                         else
                         {
-                            Debug.Print("Image for albumID={0} do not exist {1} ", (long)addMediaFileResult.AlbumId, realPath);
+                            Logger.Debug("Image for albumID={0} do not exist {1} ", (long)addMediaFileResult.AlbumId, realPath);
                         }
                     }
-                    Console.WriteLine("Stats: {0} files/sec", (1000.0 * ++tracksMigrated / (Environment.TickCount - timeStarted)));
+                    Logger.Debug("Stats: {0} files/sec", (1000.0 * ++tracksMigrated / (Environment.TickCount - timeStarted)));
                 }
                 uc.Dispose();
                 conn.Execute("VACUUM;");
@@ -1570,7 +1570,7 @@ namespace Dopamine.Data
                 {
                     this.userDatabaseVersion = Convert.ToInt32(conn.ExecuteScalar<string>("SELECT Value FROM Configuration WHERE Key = 'DatabaseVersion'"));
                     //=== ALEX DEBUG. USE "26" to force the update. "27" to avoid it. Reenable the Execute scalar
-                    userDatabaseVersion = 26;
+                    userDatabaseVersion = 27;
                 }
                 catch (Exception)
                 {

@@ -41,7 +41,7 @@ namespace Dopamine.Services.Indexing
         private IAlbumImageRepository albumImageRepository;
 
         // Factories
-        private ISQLiteConnectionFactory factory;
+        private ISQLiteConnectionFactory sQLiteConnectionFactory;
         private IUnitOfWorksFactory unitOfWorksFactory;
         private IInfoProviderFactory infoProviderFactory;
 
@@ -73,7 +73,7 @@ namespace Dopamine.Services.Indexing
             get { return isIndexing; }
         }
 
-        public IndexingService(ISQLiteConnectionFactory factory, IInfoDownloadService infoDownloadService,
+        public IndexingService(ISQLiteConnectionFactory sQLiteConnectionFactory, IInfoDownloadService infoDownloadService,
             ITrackVRepository trackVRepository, IFolderVRepository folderVRepository, IAlbumVRepository albumVRepository,
             IUnitOfWorksFactory unitOfWorksFactory, IAlbumImageRepository albumImageRepository, IArtistVRepository artistVRepository, 
             IInfoProviderFactory infoProviderFactory)
@@ -83,7 +83,7 @@ namespace Dopamine.Services.Indexing
             this.albumVRepository = albumVRepository;
             this.artistVRepository = artistVRepository;
             this.folderVRepository = folderVRepository;
-            this.factory = factory;
+            this.sQLiteConnectionFactory = sQLiteConnectionFactory;
             this.unitOfWorksFactory = unitOfWorksFactory;
             this.albumImageRepository = albumImageRepository;
             this.infoProviderFactory = infoProviderFactory;
@@ -119,21 +119,17 @@ namespace Dopamine.Services.Indexing
             }
         }
 
-        public async Task RefreshCollectionAsync(bool bForce, bool bReadTags = false)
+        public async Task RefreshCollectionAsync(bool bForce, bool bReReadTags = false)
         {
-            await PrivateRefreshCollectionAsync(bReadTags);
-        }
-
-        private async Task PrivateRefreshCollectionAsync(bool bReReadTags)
-        {
-            Debug.Print("ENTERING PrivateRefreshCollectionAsync");
+            Debug.Print("ENTERING RefreshCollectionAsync");
             if (IsIndexing)
             {
                 Debug.Print("EXITING PrivateRefreshCollectionAsync (ALREADY IN");
                 return;
             }
             isIndexing = true;
-            LogClient.Info("+++ STARTED CHECKING COLLECTION +++");
+            Trace.WriteLine("ENTERING RefreshCollectionAsync");
+            LogClient.Info("ENTERING RefreshCollectionAsync");
 
             canIndexArtwork = false;
 
@@ -485,7 +481,7 @@ namespace Dopamine.Services.Indexing
                         }
 
 
-                        using (var conn = this.factory.GetConnection())
+                        using (var conn = this.sQLiteConnectionFactory.GetConnection())
                         {
                             conn.Execute("DELETE FROM AlbumDownloadFailed WHERE album_id=? AND provider=?", albumDataToIndex.Id, providerName);
                         }
@@ -515,7 +511,7 @@ namespace Dopamine.Services.Indexing
                         }
                         else
                         {
-                            using (var conn = this.factory.GetConnection())
+                            using (var conn = this.sQLiteConnectionFactory.GetConnection())
                             {
                                 conn.Insert(new AlbumDownloadFailed()
                                 {
@@ -595,7 +591,7 @@ namespace Dopamine.Services.Indexing
                         }
 
 
-                        using (var conn = this.factory.GetConnection())
+                        using (var conn = this.sQLiteConnectionFactory.GetConnection())
                         {
                             conn.Execute("DELETE FROM ArtistDownloadFailed WHERE artist_id=? AND provider=?", artist.Id, providerName);
                         }
@@ -627,7 +623,7 @@ namespace Dopamine.Services.Indexing
                         }
                         else
                         {
-                            using (var conn = this.factory.GetConnection())
+                            using (var conn = this.sQLiteConnectionFactory.GetConnection())
                             {
                                 conn.Insert(new ArtistDownloadFailed()
                                 {
@@ -662,7 +658,7 @@ namespace Dopamine.Services.Indexing
 
 
 
-        public async void ReScanAlbumArtworkAsync(bool onlyWhenHasNoCover)
+        public async Task ReScanAlbumArtworkAsync(bool onlyWhenHasNoCover)
         {
             canIndexArtwork = false;
 
