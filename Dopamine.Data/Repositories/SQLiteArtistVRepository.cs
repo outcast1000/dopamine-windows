@@ -8,7 +8,7 @@ namespace Dopamine.Data.Repositories
 {
     public class SQLiteArtistVRepository: IArtistVRepository
     {
-        private ISQLiteConnectionFactory factory;
+        private readonly ISQLiteConnectionFactory factory;
 
         public SQLiteArtistVRepository(ISQLiteConnectionFactory factory)
         {
@@ -17,21 +17,23 @@ namespace Dopamine.Data.Repositories
 
         public List<ArtistV> GetArtists()
         {
-            return GetArtistsInternal("", "", "");
+            return GetArtistsInternal();
         }
 
         public List<ArtistV> GetArtistToIndexByProvider(string provider, bool includeFailed)
         {
-            if (includeFailed)
-                return GetArtistsInternal("", "COALESCE(ArtistImagesPrimary.location,ArtistImagesSecondary.location) is null ", "");
-            else
-                return GetArtistsInternal(
-                    String.Format("LEFT JOIN ArtistDownloadFailed ON ArtistDownloadFailed.artist_id=Artists.id AND ArtistDownloadFailed.provider='{0}'", provider),
-                    String.Format("COALESCE(ArtistImagesPrimary.location,ArtistImagesSecondary.location) is null  AND ArtistDownloadFailed.artist_id is null"),
-                    "");
+            QueryOptions qo = new QueryOptions();
+            qo.extraWhereClause.Add("COALESCE(ArtistImagesPrimary.location,ArtistImagesSecondary.location) is null");
+            if (!includeFailed)
+            {
+                qo.extraJoinClause.Add("LEFT JOIN ArtistDownloadFailed ON ArtistDownloadFailed.artist_id=Artists.id AND ArtistDownloadFailed.provider=?");
+                qo.extraJoinParams.Add(provider);
+                qo.extraWhereClause.Add("ArtistDownloadFailed.artist_id is null");
+            }
+            return GetArtistsInternal(qo);
         }
 
-        private List<ArtistV> GetArtistsInternal(string joinClause, string whereClause, string orderClause, QueryOptions queryOptions = null)
+        private List<ArtistV> GetArtistsInternal(QueryOptions queryOptions = null)
         {
             try
             {
@@ -39,8 +41,7 @@ namespace Dopamine.Data.Repositories
                 {
                     try
                     {
-                        string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), joinClause, whereClause, orderClause, queryOptions);
-                        return conn.Query<ArtistV>(sql);
+                        return RepositoryCommon.Query<ArtistV>(conn, GetSQLTemplate(), queryOptions);
                     }
                     catch (Exception ex)
                     {

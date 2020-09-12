@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SQLite;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,18 +22,24 @@ namespace Dopamine.Data.Repositories
         public QueryOptionsBool WhereVisibleFolders = QueryOptionsBool.True;
         public QueryOptionsBool WhereIgnored = QueryOptionsBool.False;
         public QueryOptionsBool WhereDeleted = QueryOptionsBool.False;
+        public List<string> extraJoinClause = new List<string>();
+        public List<object> extraJoinParams = new List<object>();
+        public List<string> extraWhereClause = new List<string>();
+        public List<object> extraWhereParams = new List<object>();
+        public string OrderClause = String.Empty;
     }
+
     class RepositoryCommon
     {
-        public static string CreateSQL(string template, string joinClause, string whereClause, string orderClause, QueryOptions queryOptions)
+        public static List<T> Query<T>(SQLiteConnection connection, string sqlTemplate, QueryOptions queryOptions = null) where T : new()
         {
-            QueryOptions usedOptions = queryOptions != null ? queryOptions : new QueryOptions();
-            string where = "";
+            if (queryOptions == null)
+                queryOptions = new QueryOptions();
             //=== WhereVisibleFolders
-            if (usedOptions.WhereVisibleFolders == QueryOptionsBool.True)
-                where += "AND Folders.show = 1 ";
-            else if (usedOptions.WhereVisibleFolders == QueryOptionsBool.False)
-                where += "AND Folders.show = 0 ";
+            if (queryOptions.WhereVisibleFolders == QueryOptionsBool.True)
+                queryOptions.extraWhereClause.Add("Folders.show = 1");
+            else if (queryOptions.WhereVisibleFolders == QueryOptionsBool.False)
+                queryOptions.extraWhereClause.Add("Folders.show = 0");
             //=== WhereIndexingFailed
             /*
             if (usedOptions.WhereIndexingFailed == QueryOptionsBool.True)
@@ -41,33 +48,49 @@ namespace Dopamine.Data.Repositories
                 where += "AND TrackIndexFailed.track_id is null ";
             */
             //=== WhereIgnored
-            if (usedOptions.WhereIgnored == QueryOptionsBool.True)
-                where += "AND t.date_ignored is not null ";
-            else if (usedOptions.WhereIgnored == QueryOptionsBool.False)
-                where += "AND t.date_ignored is null ";
+            if (queryOptions.WhereIgnored == QueryOptionsBool.True)
+                queryOptions.extraWhereClause.Add("t.date_ignored is not null");
+            else if (queryOptions.WhereIgnored == QueryOptionsBool.False)
+                queryOptions.extraWhereClause.Add("t.date_ignored is null");
             //=== WhereDeleted
-            if (usedOptions.WhereDeleted == QueryOptionsBool.True)
-                where += "AND t.date_file_deleted is not null ";
-            else if (usedOptions.WhereIgnored == QueryOptionsBool.False)
-                where += "AND t.date_file_deleted is null ";
+            if (queryOptions.WhereDeleted == QueryOptionsBool.True)
+                queryOptions.extraWhereClause.Add("t.date_file_deleted is not null");
+            else if (queryOptions.WhereIgnored == QueryOptionsBool.False)
+                queryOptions.extraWhereClause.Add("t.date_file_deleted is null");
             //=== AdditionalWhere
-            if (!string.IsNullOrEmpty(whereClause))
-                where += "AND " + whereClause;
-            if (where != "")
-                where = "WHERE" + where.Substring(3);
-
-            string limit = "";
-            if (usedOptions.Limit > 0)
+            StringBuilder sbWhere = new StringBuilder();
+            foreach (string condition in queryOptions.extraWhereClause)
             {
-                limit = String.Format("LIMIT {0},{1}", usedOptions.Offset, usedOptions.Limit);
+                sbWhere.Append(sbWhere.Length == 0 ? " WHERE " : " AND ");
+                sbWhere.Append(condition);
             }
 
-            string sql = template.Replace("#WHERE#", where);
-            sql = sql.Replace("#JOIN#", joinClause);
-            sql = sql.Replace("#ORDER#", orderClause);
+            StringBuilder sbJoin = new StringBuilder();
+            foreach (string join in queryOptions.extraJoinClause)
+            {
+                sbJoin.Append(join);
+                sbJoin.Append("\n");
+            }
+
+            string limit = "";
+            if (queryOptions.Limit > 0)
+            {
+                limit = String.Format("LIMIT {0},{1}", queryOptions.Offset, queryOptions.Limit);
+            }
+
+            string sql = sqlTemplate.Replace("#WHERE#", sbWhere.ToString());
+            sql = sql.Replace("#JOIN#", sbJoin.ToString());
+            sql = sql.Replace("#ORDER#", queryOptions.OrderClause);
             sql = sql.Replace("#LIMIT#", limit);
 
-            return sql;
+            List<object> allParams = new List<object>();
+            if (queryOptions.extraJoinParams != null)
+                allParams.AddRange(queryOptions.extraJoinParams);
+            if (queryOptions.extraWhereParams != null)
+                allParams.AddRange(queryOptions.extraWhereParams);
+
+            return connection.Query<T>(sql, allParams.ToArray());
         }
+
     }
 }

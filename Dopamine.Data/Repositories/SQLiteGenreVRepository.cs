@@ -22,15 +22,21 @@ namespace Dopamine.Data.Repositories
 
         public List<GenreV> GetGenresByAlbumId(long albumId)
         {
-            return GetGenresInternal("Albums.Id=" + albumId);
+            QueryOptions qo = new QueryOptions();
+            qo.extraWhereClause.Add("Albums.Id=?");
+            qo.extraWhereParams.Add(albumId);
+            return GetGenresInternal(qo);
         }
 
         public List<GenreV> GetGenresByArtistId(long artistId)
         {
-            throw new NotImplementedException();
+            QueryOptions qo = new QueryOptions();
+            qo.extraWhereClause.Add("Artists.Id=?");
+            qo.extraWhereParams.Add(artistId);
+            return GetGenresInternal(qo);
         }
 
-        private List<GenreV> GetGenresInternal(string whereClause = "", QueryOptions queryOptions = null)
+        private List<GenreV> GetGenresInternal(QueryOptions queryOptions = null)
         {
             try
             {
@@ -38,8 +44,8 @@ namespace Dopamine.Data.Repositories
                 {
                     try
                     {
-                        string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), "", whereClause, "", queryOptions);
-                        return conn.Query<GenreV>(sql);
+                        //string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), "", whereClause, "", queryOptions);
+                        return RepositoryCommon.Query<GenreV>(conn, GetSQLTemplate() ,queryOptions);
                     }
                     catch (Exception ex)
                     {

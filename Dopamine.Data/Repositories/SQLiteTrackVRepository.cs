@@ -15,7 +15,7 @@ namespace Dopamine.Data.Repositories
 {
     public class SQLiteTrackVRepository : ITrackVRepository
     {
-        private ISQLiteConnectionFactory factory;
+        private readonly ISQLiteConnectionFactory factory;
         private SQLiteConnection connection;
 
         public SQLiteTrackVRepository(ISQLiteConnectionFactory factory)
@@ -29,23 +29,26 @@ namespace Dopamine.Data.Repositories
 
         public List<TrackV> GetTracks(QueryOptions options = null)
         {
-            return GetTracksInternal("", options);
+            return GetTracksInternal(options);
         }
 
         public List<TrackV> GetTracksOfFolders(IList<long> folderIds, QueryOptions options = null)
         {
-            return GetTracksInternal("Folders.id in (" + string.Join(",", folderIds) + ")", options);
+            if (options == null)
+                options = new QueryOptions();
+            options.extraWhereClause.Add("Folders.id in (" + string.Join(",", folderIds) + ")");
+            return GetTracksInternal(options);
         }
 
-        private List<TrackV> GetTracksInternal(string whereClause, QueryOptions queryOptions = null)
+        private List<TrackV> GetTracksInternal(QueryOptions queryOptions = null)
         {
             if (connection != null)
-                return GetTracksInternal(connection, whereClause, queryOptions);
+                return GetTracksInternal(connection, queryOptions);
             try
             {
                 using (var conn = factory.GetConnection())
                 {
-                    return GetTracksInternal(conn, whereClause, queryOptions);
+                    return GetTracksInternal(conn, queryOptions);
                 }
             }
             catch (Exception ex)
@@ -56,12 +59,12 @@ namespace Dopamine.Data.Repositories
             return null;
         }
 
-        private List<TrackV> GetTracksInternal(SQLiteConnection connection, string whereClause, QueryOptions queryOptions = null)
+        private List<TrackV> GetTracksInternal(SQLiteConnection connection, QueryOptions queryOptions = null)
         {
             try
             {
-                string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), "", whereClause, "", queryOptions);
-                return connection.Query<TrackV>(sql);
+                //string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), queryOptions);
+                return RepositoryCommon.Query<TrackV>(connection, GetSQLTemplate(), queryOptions);
             }
             catch (Exception ex)
             {
@@ -70,15 +73,15 @@ namespace Dopamine.Data.Repositories
             return null;
         }
 
-        private TrackV GetTrackInternal(string whereClause, QueryOptions queryOptions = null)
+        private TrackV GetTrackInternal(QueryOptions queryOptions = null)
         {
             if (connection != null)
-                return GetTrackInternal(connection, whereClause, queryOptions);
+                return GetTrackInternal(connection, queryOptions);
             try
             {
                 using (var conn = factory.GetConnection())
                 {
-                    return GetTrackInternal(conn, whereClause, queryOptions);
+                    return GetTrackInternal(conn, queryOptions);
                 }
             }
             catch (Exception ex)
@@ -88,12 +91,14 @@ namespace Dopamine.Data.Repositories
             return null;
         }
 
-        private TrackV GetTrackInternal(SQLiteConnection connection, string whereClause, QueryOptions queryOptions = null)
+        private TrackV GetTrackInternal(SQLiteConnection connection, QueryOptions queryOptions = null)
         {
             try
             {
-                string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), "", whereClause, "", queryOptions);
-                return connection.FindWithQuery<TrackV>(sql);
+                IList<TrackV> tracks = RepositoryCommon.Query<TrackV>(connection, GetSQLTemplate(), queryOptions);
+                if (tracks == null || tracks.Count < 1)
+                    return null;
+                return tracks[0];
             }
             catch (Exception ex)
             {
@@ -149,7 +154,9 @@ GROUP BY t.id
 
         public List<TrackV> GetTracksBySearch(string whereClause)
         {
-            return GetTracksInternal(whereClause);
+            QueryOptions qo = new QueryOptions();
+            qo.extraWhereClause.Add(whereClause);
+            return GetTracksInternal(qo);
         }
 
  
@@ -266,222 +273,6 @@ GROUP BY t.id
             return updateSuccess;
         }
   
-        public async Task<TrackV> GetLastModifiedTrackForAlbumKeyAsync(AlbumV album)
-        {
-            TrackV lastModifiedTrack = null;
-
-            await Task.Run(() =>
-            {
-                try
-                {
-                    using (var conn = this.factory.GetConnection())
-                    {
-                        try
-                        {
-                            Debug.Assert(false, "TODO");
-                            //lastModifiedTrack = conn.Table<TrackV>().Where((t) => t.Equals(albumKey)).Select((t) => t).OrderByDescending((t) => t.DateFileModified).FirstOrDefault();
-                        }
-                        catch (Exception ex)
-                        {
-                            LogClient.Error("Could not get the last modified track for the given albumKey. Exception: {0}", ex.Message);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogClient.Error("Could not connect to the database. Exception: {0}", ex.Message);
-                }
-            });
-
-            return lastModifiedTrack;
-        }
-
-        public async Task DisableNeedsAlbumArtworkIndexingAsync(AlbumV album)
-        {
-            await Task.Run(() =>
-            {
-                try
-                {
-                    using (var conn = this.factory.GetConnection())
-                    {
-                        try
-                        {
-                            Debug.Assert(false, "TODO");
-                            //conn.Execute($"UPDATE Track SET NeedsAlbumArtworkIndexing=0 WHERE AlbumKey=?;", albumKey);
-                        }
-                        catch (Exception ex)
-                        {
-                            LogClient.Error("Could not disable NeedsAlbumArtworkIndexing for the given albumKey. Exception: {0}", ex.Message);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogClient.Error("Could not connect to the database. Exception: {0}", ex.Message);
-                }
-            });
-        }
-
-        public async Task DisableNeedsAlbumArtworkIndexingForAllTracksAsync()
-        {
-            await Task.Run(() =>
-            {
-                try
-                {
-                    using (var conn = this.factory.GetConnection())
-                    {
-                        try
-                        {
-                            conn.Execute($"UPDATE Track SET NeedsAlbumArtworkIndexing=0;");
-                        }
-                        catch (Exception ex)
-                        {
-                            LogClient.Error("Could not disable NeedsAlbumArtworkIndexing for all tracks. Exception: {0}", ex.Message);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogClient.Error("Could not connect to the database. Exception: {0}", ex.Message);
-                }
-            });
-        }
-
-        public async Task EnableNeedsAlbumArtworkIndexingForAllTracksAsync(bool onlyWhenHasNoCover)
-        {
-            await Task.Run(() =>
-            {
-                try
-                {
-                    using (var conn = this.factory.GetConnection())
-                    {
-                        try
-                        {
-                            if (onlyWhenHasNoCover)
-                            {
-                                conn.Execute($"UPDATE Track SET NeedsAlbumArtworkIndexing=1 WHERE AlbumKey NOT IN (SELECT AlbumKey FROM AlbumArtwork);");
-                            }
-                            else
-                            {
-                                conn.Execute($"UPDATE Track SET NeedsAlbumArtworkIndexing=1;");
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            LogClient.Error($"Could not disable NeedsAlbumArtworkIndexing for all tracks. {nameof(onlyWhenHasNoCover)}={onlyWhenHasNoCover}. Exception: {ex.Message}");
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogClient.Error("Could not connect to the database. Exception: {0}", ex.Message);
-                }
-            });
-        }
-
-        public async Task UpdateRatingAsync(string path, int rating)
-        {
-            await Task.Run(() =>
-            {
-                try
-                {
-                    using (var conn = this.factory.GetConnection())
-                    {
-                        try
-                        {
-                            conn.Execute("UPDATE Track SET Rating=? WHERE SafePath=?", rating, path.ToSafePath());
-                        }
-                        catch (Exception ex)
-                        {
-                            LogClient.Error("Could not update rating for path='{0}'. Exception: {1}", ex.Message);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogClient.Error("Could not connect to the database. Exception: {0}", ex.Message);
-                }
-            });
-        }
-        public async Task UpdateLoveAsync(string path, int love)
-        {
-            await Task.Run(() =>
-            {
-                try
-                {
-                    using (var conn = this.factory.GetConnection())
-                    {
-                        try
-                        {
-                            conn.Execute("UPDATE Track SET Love=? WHERE SafePath=?", love, path.ToSafePath());
-                        }
-                        catch (Exception ex)
-                        {
-                            LogClient.Error("Could not update love for path='{0}'. Exception: {1}", path, ex.Message);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogClient.Error("Could not connect to the database. Exception: {0}", ex.Message);
-                }
-            });
-        }
-
-        public async Task UpdatePlaybackCountersAsync(PlaybackCounter counters)
-        {
-            await Task.Run(() =>
-            {
-                try
-                {
-                    using (var conn = this.factory.GetConnection())
-                    {
-                        try
-                        {
-                            conn.Execute("UPDATE Track SET PlayCount=?, SkipCount=?, DateLastPlayed=? WHERE SafePath=?", counters.PlayCount, counters.SkipCount, counters.DateLastPlayed, counters.Path.ToSafePath());
-                        }
-                        catch (Exception ex)
-                        {
-                            LogClient.Error("Could not update statistics for path='{0}'. Exception: {1}", counters.Path, ex.Message);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogClient.Error("Could not connect to the database. Exception: {0}", ex.Message);
-                }
-            });
-        }
-
-        public async Task<PlaybackCounter> GetPlaybackCountersAsync(string path)
-        {
-            PlaybackCounter counters = null;
-
-            await Task.Run(() =>
-            {
-                try
-                {
-                    using (var conn = this.factory.GetConnection())
-                    {
-                        try
-                        {
-                            counters = conn.Query<PlaybackCounter>("SELECT Path, SafePath, PlayCount, SkipCount, DateLastPlayed FROM Track WHERE SafePath=?", path.ToSafePath()).FirstOrDefault();
-                        }
-                        catch (Exception ex)
-                        {
-                            LogClient.Error("Could not get PlaybackCounters for path='{0}'. Exception: {1}", path, ex.Message);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogClient.Error("Could not connect to the database. Exception: {0}", ex.Message);
-                }
-            });
-
-            return counters;
-        }
-
         public RemoveTracksResult RemoveTracks(IList<long> tracksIds)
         {
             throw new NotImplementedException();
@@ -509,27 +300,54 @@ GROUP BY t.id
 
         public List<TrackV> GetTracksOfArtists(IList<long> artistIds)
         {
-            return GetTracksInternal("Artists.id in (" + string.Join(",", artistIds) + ")");
+            QueryOptions qo = new QueryOptions();
+            qo.extraWhereClause.Add("Artists.id in (" + string.Join(",", artistIds) + ")");
+            return GetTracksInternal(qo);
         }
 
         public List<TrackV> GetTracksOfAlbums(IList<long> albumIds)
         {
-            return GetTracksInternal("Albums.id in (" + string.Join(",", albumIds) + ")");
+            QueryOptions qo = new QueryOptions();
+            qo.extraWhereClause.Add("Albums.id in (" + string.Join(",", albumIds) + ")");
+            return GetTracksInternal(qo);
         }
 
         public List<TrackV> GetTracksWithGenres(IList<long> genreIds)
         {
-            return GetTracksInternal("Genres.id in (" + string.Join(",", genreIds) + ")");
+            QueryOptions qo = new QueryOptions();
+            qo.extraWhereClause.Add("Genres.id in (" + string.Join(",", genreIds) + ")");
+            return GetTracksInternal(qo);
         }
 
         public List<TrackV> GetTracksWithPaths(IList<string> paths)
         {
-            return GetTracksInternal("t.path in (" + string.Join(",", paths.Select(x => String.Format("\"{0}\"", x))) + ")");
+            if (paths.Count == 0)
+                return new List<TrackV>();
+            QueryOptions qo = new QueryOptions();
+            /*
+            string where = String.Empty;
+            foreach (string path in paths)
+            {
+                if (string.IsNullOrEmpty(where))
+                    where += "t.path in (?";
+                else
+                    where += ",?";
+                qo.extraWhereParams.Add(path);
+            }
+            qo.extraWhereClause.Add(where + ")");
+            */
+            qo.extraWhereClause.Add("t.path in (" + string.Join(",", paths.Select(x => String.Format("\"{0}\"", x))) + ")");
+            return GetTracksInternal(qo);
+            //return GetTracksInternal("t.path in (" + string.Join(",", paths.Select(x => String.Format("\"{0}\"", x))) + ")");
         }
 
         public TrackV GetTrackWithPath(string path, QueryOptions options = null)
         {
-            return GetTrackInternal(String.Format("t.path='{0}'", path.Replace("'", "''")), options);
+            if (options == null) 
+                options = new QueryOptions();
+            options.extraWhereClause.Add("t.path=?");
+            options.extraWhereParams.Add(path);
+            return GetTrackInternal(options);
         }
 
         public bool UpdateTrack(TrackV track)

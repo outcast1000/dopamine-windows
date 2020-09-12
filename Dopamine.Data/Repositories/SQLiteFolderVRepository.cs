@@ -10,7 +10,7 @@ namespace Dopamine.Data.Repositories
 {
     public class SQLiteFolderVRepository : IFolderVRepository
     {
-        private ISQLiteConnectionFactory factory;
+        private readonly ISQLiteConnectionFactory factory;
 
         public SQLiteFolderVRepository(ISQLiteConnectionFactory factory)
         {
@@ -31,8 +31,7 @@ namespace Dopamine.Data.Repositories
                 {
                     try
                     {
-                        string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), "", "", "", null);
-                        return conn.Query<FolderV>(sql);
+                        return RepositoryCommon.Query<FolderV>(conn, GetSQLTemplate());
                     }
                     catch (Exception ex)
                     {
