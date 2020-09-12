@@ -59,7 +59,6 @@ namespace Dopamine.Data.Providers
                         int width = int.Parse(match.Groups[2].Value);
                         if (width < 540)
                         {
-                            Trace.WriteLine("Avoiding Image. Width is less than 540 :" + width.ToString());
                             continue;
                         }
                         string url = match.Groups[1].Value.Replace("\\/", "/");

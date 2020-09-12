@@ -506,6 +506,18 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 conn.Execute("UPDATE ArtistImages SET is_primary = NULL WHERE artist_image_id = ?", image_id);
             return true;
         }
+
+        public void SetLyrics(TrackLyrics trackLyrics)
+        {
+            try
+            {
+                conn.InsertOrReplace(trackLyrics);
+            }
+            catch (SQLite.SQLiteException ex)
+            {
+                Debug.WriteLine(String.Format("SetLyrics {0}", ex.Message));
+            }
+        }
     }
 
 

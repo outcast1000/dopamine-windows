@@ -8,19 +8,26 @@ using System.Threading.Tasks;
 
 namespace Dopamine.Data.Providers
 {
-    public class TagAlbumInfoProvider : IAlbumInfoProvider
+    public class TagTrackInfoProvider : ITrackInfoProvider
     {
         
-        public TagAlbumInfoProvider(FileMetadata fileMetadata)
+        public TagTrackInfoProvider(FileMetadata fileMetadata)
         {
             Success = false;
-            if (fileMetadata == null || fileMetadata.ArtworkData == null || fileMetadata.ArtworkData.Value == null)
+            if (fileMetadata == null)
                 return;
-            Data = new AlbumInfoProviderData();
+            Data = new TrackInfoProviderData();
+            Success = true;
             try
             {
-                Data.Images = new byte[][] { fileMetadata.ArtworkData.Value};
-                Data.Year = fileMetadata.Year.Value;
+                if (fileMetadata.ArtworkData != null && fileMetadata.ArtworkData.Value != null)
+                {
+                    Data.Images = new byte[][] { fileMetadata.ArtworkData.Value };
+                }
+                if (fileMetadata.Lyrics != null && !string.IsNullOrEmpty(fileMetadata.Lyrics.Value))
+                {
+                    Data.Lyrics = new string[] { fileMetadata.Lyrics.Value };
+                }
             }
             catch (Exception ex)
             {
@@ -33,7 +40,7 @@ namespace Dopamine.Data.Providers
             get { return "TAG"; }
         }
 
-        public AlbumInfoProviderData Data
+        public TrackInfoProviderData Data
         {
             get; private set;
         }

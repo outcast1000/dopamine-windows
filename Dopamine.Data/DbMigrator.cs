@@ -1570,7 +1570,7 @@ namespace Dopamine.Data
                 {
                     this.userDatabaseVersion = Convert.ToInt32(conn.ExecuteScalar<string>("SELECT Value FROM Configuration WHERE Key = 'DatabaseVersion'"));
                     //=== ALEX DEBUG. USE "26" to force the update. "27" to avoid it. Reenable the Execute scalar
-                    userDatabaseVersion = 27;
+                    userDatabaseVersion = 26;
                 }
                 catch (Exception)
                 {

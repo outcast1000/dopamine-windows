@@ -113,9 +113,7 @@ namespace Dopamine.Services.Metadata
 
         private byte[] GetExternalArtwork(string filename, int size)
         {
-            byte[] artwork = null;
-
-            artwork = IndexerUtils.GetExternalArtwork(filename, size, size);
+            byte[] artwork = IndexerUtils.GetExternalArtwork(filename, size, size);
 
             return artwork;
         }

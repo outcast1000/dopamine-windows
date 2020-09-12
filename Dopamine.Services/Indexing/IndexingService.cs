@@ -43,6 +43,7 @@ namespace Dopamine.Services.Indexing
         // Factories
         private ISQLiteConnectionFactory factory;
         private IUnitOfWorksFactory unitOfWorksFactory;
+        private IInfoProviderFactory infoProviderFactory;
 
         // Watcher
         private FolderWatcherManager watcherManager;
@@ -74,7 +75,8 @@ namespace Dopamine.Services.Indexing
 
         public IndexingService(ISQLiteConnectionFactory factory, IInfoDownloadService infoDownloadService,
             ITrackVRepository trackVRepository, IFolderVRepository folderVRepository, IAlbumVRepository albumVRepository,
-            IUnitOfWorksFactory unitOfWorksFactory, IAlbumImageRepository albumImageRepository, IArtistVRepository artistVRepository)
+            IUnitOfWorksFactory unitOfWorksFactory, IAlbumImageRepository albumImageRepository, IArtistVRepository artistVRepository, 
+            IInfoProviderFactory infoProviderFactory)
         {
             this.infoDownloadService = infoDownloadService;
             this.trackVRepository = trackVRepository;
@@ -84,6 +86,7 @@ namespace Dopamine.Services.Indexing
             this.factory = factory;
             this.unitOfWorksFactory = unitOfWorksFactory;
             this.albumImageRepository = albumImageRepository;
+            this.infoProviderFactory = infoProviderFactory;
 
             watcherManager = new FolderWatcherManager(folderVRepository);
 
@@ -253,8 +256,13 @@ namespace Dopamine.Services.Indexing
                                     if (result.Success)
                                     {
                                         addedFiles++;
-                                        if (fileMetadata != null && result.AlbumId != null)
-                                            await addAlbumImageFromTagAsync(fileMetadata, (long)result.AlbumId, uc);
+                                        ITrackInfoProvider tag = infoProviderFactory.GetTrackInfoProviderFromTag(fileMetadata);
+                                        if (tag.Success)
+                                        {
+                                            if (result.AlbumId != null)
+                                                addAlbumImageFromTag(tag, (long)result.AlbumId, uc);
+                                            addTrackLyricsFromTag(tag, (long)result.TrackId, uc);
+                                        }
                                     }
                                     else
                                         failedFiles++;
@@ -275,8 +283,14 @@ namespace Dopamine.Services.Indexing
                                     {
                                         updatedFiles++;
                                         //=== Add Image (if needed)
-                                        if (fileMetadata != null && result.AlbumId != null)
-                                            await addAlbumImageFromTagAsync(fileMetadata, (long)result.AlbumId, uc);
+                                        ITrackInfoProvider tag = infoProviderFactory.GetTrackInfoProviderFromTag(fileMetadata);
+                                        if (tag.Success)
+                                        {
+                                            if (tag.Success && result.AlbumId != null)
+                                                addAlbumImageFromTag(tag, (long)result.AlbumId, uc);
+                                            if (tag.Success)
+                                                addTrackLyricsFromTag(tag, trackV.Id, uc);
+                                        }
 
                                     }
                                     else
@@ -366,33 +380,56 @@ namespace Dopamine.Services.Indexing
 
         // This function saves the Image that is stored inside the Tags of the file
         // We should only keep one of these photos for each album (always overwrite the old one)
-        private async Task addAlbumImageFromTagAsync(FileMetadata fileMetadata, long AlbumId, IUpdateCollectionUnitOfWork uc)
+        private void addAlbumImageFromTag(ITrackInfoProvider tag, long albumId, IUpdateCollectionUnitOfWork uc)
         {
 
             //=== If there is already a primary image then do not try to replace it
-            AlbumImage existingAlbumImage = albumImageRepository.GetPrimaryAlbumImage(AlbumId);
+            AlbumImage existingAlbumImage = albumImageRepository.GetPrimaryAlbumImage(albumId);
             if (existingAlbumImage != null)
             {
-                Debug.Print("addAlbumImageFromTagAsync Album image already exists. Exit");
+                Debug.Print("addAlbumImageFromTag Album image already exists. Exit");
                 return;
             }
-            TagAlbumInfoProvider tag = new TagAlbumInfoProvider(fileMetadata);
-            if (tag.Data == null || tag.Data.Images == null || tag.Data.Images.Length < 1)
+            if (tag.Data == null)
             {
-                Debug.Print("addAlbumImageFromTagAsync No image available in this file. Exit");
+                Debug.Print("addAlbumImageFromTag No image available in this file. Exit");
                 return;
             }
-            Debug.Print("addAlbumImageFromTagAsync Adding image");
-            IFileStorage fileStorage = new FileStorage();
-            string location = fileStorage.SaveImage(tag.Data.Images[0]);
-            uc.AddAlbumImage(new AlbumImage()
+            if (tag.Data.Images != null && tag.Data.Images.Length > 0)
             {
-                AlbumId = AlbumId,
-                DateAdded = DateTime.Now.Ticks,
-                Source = tag.ProviderName,
-                Location = location,
-                IsPrimary = true
-            });
+                Debug.Print("addAlbumImageFromTag Adding image");
+                IFileStorage fileStorage = new FileStorage();
+                string location = fileStorage.SaveImage(tag.Data.Images[0]);
+                uc.AddAlbumImage(new AlbumImage()
+                {
+                    AlbumId = albumId,
+                    DateAdded = DateTime.Now.Ticks,
+                    Source = tag.ProviderName,
+                    Location = location,
+                    IsPrimary = true
+                });
+            }
+        }
+
+        private void addTrackLyricsFromTag(ITrackInfoProvider tag, long trackId, IUpdateCollectionUnitOfWork uc)
+        {
+            if (tag.Data == null)
+            {
+                Debug.Print("addTrackLyricsFromTag No image available in this file. Exit");
+                return;
+            }
+            if (tag.Data.Lyrics != null && tag.Data.Lyrics.Length > 0)
+            {
+                Debug.Print("addTrackLyricsFromTag Adding lyrics");
+                uc.SetLyrics(new TrackLyrics()
+                {
+                    TrackId = trackId,
+                    DateAdded = DateTime.Now.Ticks,
+                    Source = tag.ProviderName,
+                    Lyrics = tag.Data.Lyrics[0]
+                });
+            }
+
         }
 
 
@@ -421,7 +458,7 @@ namespace Dopamine.Services.Indexing
                 try
                 {
                     IList<AlbumV> albumsAdded = new List<AlbumV>();
-                    string providerName = new LastFmAlbumInfoProvider(null, null).ProviderName;
+                    string providerName = new LastFMAlbumInfoProvider(null, null).ProviderName;
                     IList<AlbumV> albumDatasToIndex = rescanAll ? albumVRepository.GetAlbums() : albumVRepository.GetAlbumsToIndexByProvider(providerName, rescanFailed);
                     IFileStorage fileStorage = new FileStorage();
 
@@ -458,7 +495,7 @@ namespace Dopamine.Services.Indexing
 
                         //GetArtworkFromInternet(string albumTitle, IList<string> albumArtists, string trackTitle, IList<string> artists)
 
-                        LastFmAlbumInfoProvider lf = new LastFmAlbumInfoProvider(albumDataToIndex.Name, DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToArray());
+                        LastFMAlbumInfoProvider lf = new LastFMAlbumInfoProvider(albumDataToIndex.Name, DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToArray());
                        
 
                         if (lf.Success && lf.Data.Images != null && lf.Data.Images.Length > 0)
@@ -607,6 +644,8 @@ namespace Dopamine.Services.Indexing
                             IList<ArtistV> eventArgs = artistsAdded.Select(item => item).ToList();
                             artistsAdded.Clear();
                             ArtistImagesAdded(this, new ArtistImagesAddedEventArgs() { Artists = eventArgs }); // Update UI
+                            //=== TODO ALEX (REMOVE IT. FOR TESTING)
+                            break;
                         }
                     }
 

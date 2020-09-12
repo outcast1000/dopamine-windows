@@ -57,6 +57,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Shell;
 using System.Windows.Threading;
+using Dopamine.Data.Providers;
 
 namespace Dopamine
 {
@@ -219,6 +220,8 @@ namespace Dopamine
             {
                 containerRegistry.RegisterSingleton<ISQLiteConnectionFactory, SQLiteConnectionFactory>();
                 containerRegistry.RegisterSingleton<IUnitOfWorksFactory, SQLiteUnitOfWorksFactory>();
+                containerRegistry.RegisterSingleton<IInfoProviderFactory, InfoProviderFactory>();
+
             }
 
             void RegisterRepositories()

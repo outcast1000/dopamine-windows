@@ -99,7 +99,7 @@ namespace Dopamine.Services.Utils
                 return "#";
 
             return firstLetter;
-
+            /*
             foreach (string semanticZoomItem in Defaults.SemanticZoomItems)
             {
                 // CompareOptions.IgnoreNonSpace compares by ignoring accents on letters (important for special characters)
@@ -110,6 +110,7 @@ namespace Dopamine.Services.Utils
             }
 
             return "#";
+            */
         }
     }
 }

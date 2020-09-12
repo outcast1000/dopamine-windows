@@ -10,10 +10,10 @@ using System.Threading.Tasks;
 
 namespace Dopamine.Data.Providers
 {
-    public class LastFmAlbumInfoProvider : IAlbumInfoProvider
+    public class LastFMAlbumInfoProvider : IAlbumInfoProvider
     {
 
-        public LastFmAlbumInfoProvider(String album, string[] artists)
+        public LastFMAlbumInfoProvider(String album, string[] artists)
         {
             Success = false;
             if (string.IsNullOrEmpty(album) || artists == null)

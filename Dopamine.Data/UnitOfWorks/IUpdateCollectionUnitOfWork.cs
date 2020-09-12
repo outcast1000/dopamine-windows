@@ -90,5 +90,8 @@ namespace Dopamine.Data.UnitOfWorks
         bool RemoveArtistImage(long artist_id, string location);
         bool RemoveAllArtistImages(long artist_id);
         bool SetArtistImageAsPrimary(long artist_image_id, bool bIsPrimary);
+
+
+        void SetLyrics(TrackLyrics trackLyrics);
     }
 }
