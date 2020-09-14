@@ -41,6 +41,15 @@ namespace Dopamine.Services.Entities
             }
         }
 
+        public string Thumbnail
+        {
+            get { return data.Thumbnail; }
+            set
+            {
+                //SetProperty<string>(ref genre.Name, value);
+            }
+        }
+
         public String GenreItemInfo
         {
             get

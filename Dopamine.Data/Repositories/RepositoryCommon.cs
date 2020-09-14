@@ -98,7 +98,7 @@ namespace Dopamine.Data.Repositories
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Query Failed. {++sQueryCounter} Message:{ex.Message} Type: {typeof(T).ToString()} SQL:\n{sql.Replace("\n","")}");
+                Logger.Error(ex, $"Query Failed. {++sQueryCounter} Message:{ex.Message} Type: {typeof(T).ToString()} SQL:\n{sql.Replace("\n"," ")}");
             }
             return null;
             

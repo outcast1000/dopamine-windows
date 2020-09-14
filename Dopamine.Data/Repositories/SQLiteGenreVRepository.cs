@@ -73,13 +73,14 @@ COUNT(DISTINCT Artists.id) as ArtistCount,
 GROUP_CONCAT(DISTINCT Artists.name ) as Artists,
 MIN(t.year) as YearFrom,
 MAX(t.year) as YearTo,
-GenreThumbnail.key as Thumbnail
+COALESCE(GenreImages.location,AlbumImages.location) as Thumbnail
 from Tracks t
 LEFT JOIN TrackAlbums ON TrackAlbums.track_id = t.id
 LEFT JOIN Albums ON Albums.id = TrackAlbums.album_id
+LEFT JOIN AlbumImages ON AlbumImages.album_id = Albums.id AND AlbumImages.album_id is not null
 LEFT JOIN TrackGenres ON TrackGenres.track_id = t.id
 LEFT JOIN Genres ON TrackGenres.genre_id = Genres.id 
-LEFT JOIN GenreThumbnail ON Genres.id = GenreThumbnail.genre_id 
+LEFT JOIN GenreImages ON Genres.id = GenreImages.genre_id 
 LEFT JOIN TrackArtists ON TrackArtists.track_id = t.id
 LEFT JOIN Artists ON Artists.id = TrackArtists.artist_id
 LEFT JOIN Folders ON Folders.id = t.folder_id

@@ -122,7 +122,10 @@
                             <Grid
                                 Grid.Row="0"
                                 Grid.Column="0"
-                                HorizontalAlignment="Left">
+                                Width="64"
+                                Margin="4"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top">
                                 <pc:Tile
                                     Width="64"
                                     Height="64"
@@ -135,7 +138,10 @@
                                         </Viewbox>
                                     </pc:Tile.Content>
                                 </pc:Tile>
-                                <pc:SourceChangedImage Panel.ZIndex="1" RenderOptions.BitmapScalingMode="HighQuality">
+                                <pc:SourceChangedImage
+                                    Panel.ZIndex="1"
+                                    RenderOptions.BitmapScalingMode="HighQuality"
+                                    Stretch="Uniform">
                                     <pc:SourceChangedImage.Source>
                                         <MultiBinding Converter="{StaticResource PathToImageConverter}">
                                             <Binding
@@ -164,30 +170,29 @@
                                 Grid.Row="0"
                                 Grid.Column="1"
                                 Margin="6"
-                                HorizontalAlignment="Stretch"
-                                VerticalAlignment="Stretch">
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="*" />
-                                    </Grid.RowDefinitions>
-                                    <TextBlock
-                                        Grid.Row="0"
-                                        Grid.Column="0"
-                                        HorizontalAlignment="Left"
-                                        FontSize="20"
-                                        Foreground="{DynamicResource Brush_PrimaryText}"
-                                        Text="{Binding Name}"
-                                        TextTrimming="CharacterEllipsis" />
-                                    <TextBlock
-                                        Grid.Row="1"
-                                        Grid.Column="0"
-                                        HorizontalAlignment="Left"
-                                        VerticalAlignment="Top"
-                                        Foreground="{DynamicResource Brush_SecondaryText}"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <TextBlock
+                                    Grid.Row="0"
+                                    Grid.Column="0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Top"
+                                    FontSize="20"
+                                    Foreground="{DynamicResource Brush_PrimaryText}"
+                                    Text="{Binding Name}"
+                                    TextTrimming="CharacterEllipsis" />
+                                <TextBlock
+                                    Grid.Row="1"
+                                    Grid.Column="0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Top"
+                                    Foreground="{DynamicResource Brush_SecondaryText}"
                                         Text="{Binding GenreItemInfo}"
-                                        TextTrimming=" CharacterEllipsis" />
-                                </Grid>
+                                    TextTrimming=" CharacterEllipsis" />
                             </Grid>
                         </Grid>
                     </DockPanel>
