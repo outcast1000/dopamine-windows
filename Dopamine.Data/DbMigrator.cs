@@ -404,6 +404,18 @@ namespace Dopamine.Data
                 Logger.Debug("CreateTablesAndIndexes_v2: START MIGRATION");
 
                 // ==== START MIGRATING DATA
+                try
+                {
+                    conn.Table<Folder>();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Info("No need for Data Migration");
+                    conn.Execute("VACUUM;");
+                    return;
+                    //=== old tABLES DO not elxst
+                }
+
                 conn.BeginTransaction();
                 SQLiteAlbumImageRepository aiRepo = new SQLiteAlbumImageRepository(null);
                 aiRepo.SetSQLiteConnection(conn);

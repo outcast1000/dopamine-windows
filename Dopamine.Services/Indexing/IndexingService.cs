@@ -353,69 +353,70 @@ namespace Dopamine.Services.Indexing
                             Logger.Error(ex, "Updating Collection");
                         }
                         );
-                    bool isTracksChanged = (addedFiles + updatedFiles + removedFiles) > 0;
-                    bool isArtworkCleanedUp = false;
-                    //=== STEP 3
-                    //=== CLEAN UP AlbumImages
-                    using (ICleanUpAlbumImagesUnitOfWork cleanUpAlbumImagesUnitOfWork = unitOfWorksFactory.getCleanUpAlbumImages())
-                    {
-                        isArtworkCleanedUp = cleanUpAlbumImagesUnitOfWork.CleanUp() > 0;
-                    }
-                    IList<AlbumImage> images = albumImageRepository.GetAlbumImages();
-                    if (!ListExtensions.IsNullOrEmpty(images))
-                    {
-                        long imageDeletions = 0;
-                        IFileStorage fileService = new FileStorage();
-                        HashSet<string> imagePaths = new HashSet<string>(images.Select(x => Path.GetFileNameWithoutExtension(fileService.GetRealPath(x.Location))).ToList());
-                        FileOperations.GetFiles(fileService.StorageImagePath,
-                            (path) =>
-                            {
-                                path = path.ToLower();
-                                string ext = Path.GetExtension(path);
-                                string name = Path.GetFileNameWithoutExtension(path);
 
-                                if (!ext.Equals(".jpg"))
-                                    return;
-                                if (!imagePaths.Contains(name))
-                                {
-                                    imageDeletions++;
-                                    Debug.Print("Delete unused image?; {0}", path);
+
+                }
+                bool isTracksChanged = (addedFiles + updatedFiles + removedFiles) > 0;
+                bool isArtworkCleanedUp = false;
+                //=== STEP 3
+                //=== CLEAN UP AlbumImages
+                using (ICleanUpAlbumImagesUnitOfWork cleanUpAlbumImagesUnitOfWork = unitOfWorksFactory.getCleanUpAlbumImages())
+                {
+                    isArtworkCleanedUp = cleanUpAlbumImagesUnitOfWork.CleanUp() > 0;
+                }
+                IList<AlbumImage> images = albumImageRepository.GetAlbumImages();
+                if (!ListExtensions.IsNullOrEmpty(images))
+                {
+                    long imageDeletions = 0;
+                    IFileStorage fileService = new FileStorage();
+                    HashSet<string> imagePaths = new HashSet<string>(images.Select(x => Path.GetFileNameWithoutExtension(fileService.GetRealPath(x.Location))).ToList());
+                    FileOperations.GetFiles(fileService.StorageImagePath,
+                        (path) =>
+                        {
+                            path = path.ToLower();
+                            string ext = Path.GetExtension(path);
+                            string name = Path.GetFileNameWithoutExtension(path);
+
+                            if (!ext.Equals(".jpg"))
+                                return;
+                            if (!imagePaths.Contains(name))
+                            {
+                                imageDeletions++;
+                                Debug.Print("Delete unused image?; {0}", path);
                                     //== ALEX TODO. Temporary disabled. System.IO.File.Delete(path);
                                 }
-                            },
-                            () =>
-                            {
-                                return bContinue;
-                            },
-                            (ex) =>
-                            {
-                                LogClientA.Info(String.Format("Exception: {0}", ex.Message));
-                            });
-                    }
+                        },
+                        () =>
+                        {
+                            return bContinue;
+                        },
+                        (ex) =>
+                        {
+                            LogClientA.Info(String.Format("Exception: {0}", ex.Message));
+                        });
+                }
 
 
-                    // Refresh lists
-                    // -------------
-                    if (isTracksChanged || isArtworkCleanedUp)
-                    {
-                        LogClient.Info("Sending event to refresh the lists because: isTracksChanged = {0}, isArtworkCleanedUp = {1}", isTracksChanged, isArtworkCleanedUp);
-                        RefreshLists(this, new EventArgs());
-                    }
+                // Refresh lists
+                // -------------
+                if (isTracksChanged || isArtworkCleanedUp)
+                {
+                    LogClient.Info("Sending event to refresh the lists because: isTracksChanged = {0}, isArtworkCleanedUp = {1}", isTracksChanged, isArtworkCleanedUp);
+                    RefreshLists(this, new EventArgs());
+                }
 
-                    // Finalize
-                    // --------
-                    isIndexing = false;
-                    IndexingStopped(this, new EventArgs());
+                // Finalize
+                // --------
+                isIndexing = false;
+                IndexingStopped(this, new EventArgs());
 
-                    await RetrieveAlbumInfoAsync(false, false);
-                    await RetrieveArtistInfoAsync(false, false);
+                await RetrieveAlbumInfoAsync(false, false);
+                await RetrieveArtistInfoAsync(false, false);
 
 
-                    if (SettingsClient.Get<bool>("Indexing", "RefreshCollectionAutomatically"))
-                    {
-                        await watcherManager.StartWatchingAsync();
-                    }
-
+                if (SettingsClient.Get<bool>("Indexing", "RefreshCollectionAutomatically"))
+                {
+                    await watcherManager.StartWatchingAsync();
                 }
                 Debug.Print("EXITING PrivateRefreshCollectionAsync (TASK)");
             });
