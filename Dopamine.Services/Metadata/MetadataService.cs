@@ -28,6 +28,7 @@ namespace Dopamine.Services.Metadata
         private ITrackVRepository trackRepository;
         private IAlbumImageRepository albumImageRepository;
         private IUnitOfWorksFactory unitOfWorksFactory;
+        private IFileStorageFactory fileStorageFactory;
         private FileMetadataUpdater updater;
         ObjectCache artworkCache = MemoryCache.Default;
         object artworkCacheLock = new object();
@@ -36,12 +37,14 @@ namespace Dopamine.Services.Metadata
         public event Action<RatingChangedEventArgs> RatingChanged = delegate { };
         public event Action<LoveChangedEventArgs> LoveChanged = delegate { };
 
-        public MetadataService(IPlaybackService playbackService, ITrackVRepository trackRepository, IAlbumImageRepository albumImageRepository, IUnitOfWorksFactory unitOfWorksFactory)
+        public MetadataService(IPlaybackService playbackService, ITrackVRepository trackRepository, IAlbumImageRepository albumImageRepository, 
+            IUnitOfWorksFactory unitOfWorksFactory, IFileStorageFactory fileStorageFactory)
         {
             this.playbackService = playbackService;
             this.trackRepository = trackRepository;
             this.albumImageRepository = albumImageRepository;
             this.unitOfWorksFactory = unitOfWorksFactory;
+            this.fileStorageFactory = fileStorageFactory;
 
             this.updater = new FileMetadataUpdater(this.playbackService, this.trackRepository);
         }
@@ -125,7 +128,7 @@ namespace Dopamine.Services.Metadata
             AlbumImage albumImage = albumImageRepository.GetAlbumImageForTrackWithPath(filename);
             if (albumImage != null)
             {
-                string artworkPath = (new FileStorage()).GetRealPath(albumImage.Location);
+                string artworkPath = fileStorageFactory.getAlbumFileStorage().GetRealPath(albumImage.Location);
 
                 if (!string.IsNullOrEmpty(artworkPath))
                 {

@@ -11,7 +11,7 @@ namespace Dopamine.Converters
 {
     public class KeyToPathConverter : IValueConverter
     {
-        private IFileStorage fileStorage = new FileStorage();
+        private IFileStorage fileStorage = new FileStorage("");
         public KeyToPathConverter()
         {
         }

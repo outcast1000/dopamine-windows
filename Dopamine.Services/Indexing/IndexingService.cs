@@ -33,7 +33,6 @@ namespace Dopamine.Services.Indexing
         private static Logger Logger = LogManager.GetCurrentClassLogger();
         // Services
         private IInfoDownloadService infoDownloadService;
-        private IFileStorage fileStorage;
 
         // Repositories
         private ITrackVRepository trackVRepository;
@@ -47,6 +46,7 @@ namespace Dopamine.Services.Indexing
         private ISQLiteConnectionFactory sQLiteConnectionFactory;
         private IUnitOfWorksFactory unitOfWorksFactory;
         private IInfoProviderFactory infoProviderFactory;
+        private IFileStorageFactory fileStorageFactory;
 
         // Watcher
         private FolderWatcherManager watcherManager;
@@ -79,7 +79,7 @@ namespace Dopamine.Services.Indexing
         public IndexingService(ISQLiteConnectionFactory sQLiteConnectionFactory, IInfoDownloadService infoDownloadService,
             ITrackVRepository trackVRepository, IFolderVRepository folderVRepository, IAlbumVRepository albumVRepository,
             IUnitOfWorksFactory unitOfWorksFactory, IAlbumImageRepository albumImageRepository, IArtistVRepository artistVRepository, 
-            IInfoProviderFactory infoProviderFactory, IFileStorage fileStorage)
+            IInfoProviderFactory infoProviderFactory, IFileStorageFactory fileStorageFactory)
         {
             this.infoDownloadService = infoDownloadService;
             this.trackVRepository = trackVRepository;
@@ -90,7 +90,7 @@ namespace Dopamine.Services.Indexing
             this.unitOfWorksFactory = unitOfWorksFactory;
             this.albumImageRepository = albumImageRepository;
             this.infoProviderFactory = infoProviderFactory;
-            this.fileStorage = fileStorage;
+            this.fileStorageFactory = fileStorageFactory;
 
             watcherManager = new FolderWatcherManager(folderVRepository);
 
@@ -260,7 +260,7 @@ namespace Dopamine.Services.Indexing
                                             AlbumImage albumImage = albumImageRepository.GetAlbumImage((long)result.AlbumId);
                                             if (albumImage == null)
                                             {
-                                                string location = fileStorage.SaveImageToCache(fileMetadata.ArtworkData.Value);
+                                                string location = fileStorageFactory.getAlbumFileStorage().SaveImageToCache(fileMetadata.ArtworkData.Value);
                                                 uc.SetAlbumImage(new AlbumImage()
                                                 {
                                                     AlbumId = (long)result.AlbumId,
@@ -310,7 +310,7 @@ namespace Dopamine.Services.Indexing
                                             AlbumImage albumImage = albumImageRepository.GetAlbumImage((long)result.AlbumId);
                                             if (albumImage == null || albumImage.Source == "[TAG]")
                                             {
-                                                string location = fileStorage.SaveImageToCache(fileMetadata.ArtworkData.Value);
+                                                string location = fileStorageFactory.getAlbumFileStorage().SaveImageToCache(fileMetadata.ArtworkData.Value);
                                                 if (albumImage != null && !albumImage.Location.Equals(location))
                                                 {
                                                     uc.SetAlbumImage(new AlbumImage()
@@ -368,7 +368,7 @@ namespace Dopamine.Services.Indexing
                 if (!ListExtensions.IsNullOrEmpty(images))
                 {
                     long imageDeletions = 0;
-                    IFileStorage fileService = new FileStorage();
+                    IFileStorage fileService = fileStorageFactory.getAlbumFileStorage();
                     HashSet<string> imagePaths = new HashSet<string>(images.Select(x => Path.GetFileNameWithoutExtension(fileService.GetRealPath(x.Location))).ToList());
                     FileOperations.GetFiles(fileService.StorageImagePath,
                         (path) =>
@@ -453,7 +453,7 @@ namespace Dopamine.Services.Indexing
                 {
                     IList<AlbumV> albumsAdded = new List<AlbumV>();
                     IList<AlbumV> albumDatasToIndex = rescanAll ? albumVRepository.GetAlbums() : albumVRepository.GetAlbumsWithoutImages(rescanFailed);
-                    IFileStorage fileStorage = new FileStorage();
+                    IFileStorage fileStorage = fileStorageFactory.getAlbumFileStorage();
 
                     foreach (AlbumV albumDataToIndex in albumDatasToIndex)
                     {
@@ -562,7 +562,7 @@ namespace Dopamine.Services.Indexing
                 {
                     IList<ArtistV> artistsAdded = new List<ArtistV>();
                     IList<ArtistV> artistsToIndex = rescanAll ? artistVRepository.GetArtists() : artistVRepository.GetArtistsWithoutImages(rescanFailed);
-                    IFileStorage fileStorage = new FileStorage();
+                    IFileStorage fileStorage = fileStorageFactory.getArtistFileStorage();
 
                     foreach (ArtistV artist in artistsToIndex)
                     {

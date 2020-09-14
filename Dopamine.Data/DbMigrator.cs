@@ -347,7 +347,7 @@ namespace Dopamine.Data
                     //WHERE f.ShowInCollection = 1 AND t.IndexingSuccess = 1 AND t.NeedsIndexing = 0";
 
                     //var tracks = new List<Track>();
-                    IFileStorage fileStorage = new FileStorage();
+                    IFileStorage fileStorage = new FileStorageFactory().getAlbumFileStorage();
                     List<Track> tracks = conn.Query<Track>(query);
                     int tracksMigrated = 0;
                     int timeStarted = Environment.TickCount;

@@ -15,13 +15,16 @@ namespace Dopamine.Data
     {
 
         private string _cacheFolderPath;
+        private string _type;
 
-        public FileStorage()
+        public FileStorage(string type)
         {
+            _type = type;
             _cacheFolderPath = Path.Combine(SettingsClient.ApplicationFolder(), ApplicationPaths.CacheFolder);
-            if (!Directory.Exists(_cacheFolderPath))
+            string typeFolderPath = Path.Combine(SettingsClient.ApplicationFolder(), ApplicationPaths.CacheFolder, type);
+            if (!Directory.Exists(typeFolderPath))
             {
-                Directory.CreateDirectory(_cacheFolderPath);
+                Directory.CreateDirectory(typeFolderPath);
             }
         }
 
@@ -37,7 +40,7 @@ namespace Dopamine.Data
         {
             Debug.Assert(bytes != null && bytes.Length > 0);
             string sha1 = CalculateSHA1(bytes);
-            string location = "cache://" + sha1;
+            string location = Path.Combine("cache://", _type, sha1);// "cache://" + type + "//" + sha1;
             string realPath = GetRealPath(location);
             File.WriteAllBytes(realPath, bytes);
             return location;

@@ -143,6 +143,8 @@
     <Compile Include="Entities\TrackStatistic.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="FileStorage.cs" />
+    <Compile Include="FileStorageFactory.cs" />
+    <Compile Include="IFileStorageFactory.cs" />
     <Compile Include="IFileStorage.cs" />
     <Compile Include="Providers\InfoProviderFactory.cs" />
     <Compile Include="Providers\ITracktInfoProvider.cs" />

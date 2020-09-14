@@ -13,7 +13,8 @@ namespace Dopamine.Converters
             try
             {
                 string path = values[0] as string;
-                int size = Int32.Parse(values[1].ToString());
+                int width = Int32.Parse(values[1].ToString());
+                int height = 0;// Int32.Parse(values[2].ToString());
 
                 if (!string.IsNullOrEmpty(path) & System.IO.File.Exists(path))
                 {
@@ -21,7 +22,7 @@ namespace Dopamine.Converters
 
                     if (info.Exists && info.Length > 0)
                     {
-                        return ImageUtils.PathToBitmapImage(info.FullName, size, 0);
+                        return ImageUtils.PathToBitmapImage(info.FullName, width, 0);
                     }
                 }
             }
