@@ -9,6 +9,7 @@ namespace Dopamine.Data.Repositories
 {
     public class SQLiteAlbumVRepository: IAlbumVRepository
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private ISQLiteConnectionFactory factory;
 
         public SQLiteAlbumVRepository(ISQLiteConnectionFactory factory)
@@ -21,18 +22,14 @@ namespace Dopamine.Data.Repositories
             return GetAlbumsInternal();
         }
 
-        public List<AlbumV> GetAlbumsToIndexByProvider(string provider, bool includeFailed)
+        public List<AlbumV> GetAlbumsWithoutImages(bool incudeFailedDownloads)
         {
             QueryOptions qo = new QueryOptions();
-            if (includeFailed)
+            qo.extraWhereParams.Add("Thumbnail is null");
+            if (incudeFailedDownloads == false)
             {
-                qo.extraWhereParams.Add("Thumbnail is null");
-            }
-            else
-            {
-                qo.extraJoinClause.Add("LEFT JOIN AlbumDownloadFailed ON AlbumDownloadFailed.album_id=Albums.id AND AlbumDownloadFailed.provider=?");
-                qo.extraJoinParams.Add(provider);
-                qo.extraWhereClause.Add("Thumbnail is null AND AlbumDownloadFailed.album_id is null");
+                qo.extraJoinClause.Add("LEFT JOIN AlbumImageFailed ON AlbumImageFailed.album_id=Albums.id");
+                qo.extraWhereClause.Add("AlbumImageFailed.album_id is null");
             }
             return GetAlbumsInternal(qo);
         }
@@ -63,7 +60,7 @@ namespace Dopamine.Data.Repositories
                     }
                     catch (Exception ex)
                     {
-                        LogClient.Error("Query Failed. Exception: {0}", ex.Message);
+                        Logger.Error(ex, "Query Failed");
                     }
                 }
             }

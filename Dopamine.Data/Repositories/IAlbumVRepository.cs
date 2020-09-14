@@ -12,7 +12,7 @@ namespace Dopamine.Data.Repositories
 
         List<AlbumV> GetAlbumsWithGenres(List<long> genreIds);
 
-        List<AlbumV> GetAlbumsToIndexByProvider(string provider, bool includeFailed);
+        List<AlbumV> GetAlbumsWithoutImages(bool incudeFailedDownloads);
 
     }
 }

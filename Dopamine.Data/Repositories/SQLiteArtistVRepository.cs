@@ -20,14 +20,13 @@ namespace Dopamine.Data.Repositories
             return GetArtistsInternal();
         }
 
-        public List<ArtistV> GetArtistToIndexByProvider(string provider, bool includeFailed)
+        public List<ArtistV> GetArtistsWithoutImages(bool incudeFailedDownloads)
         {
             QueryOptions qo = new QueryOptions();
             qo.extraWhereClause.Add("ArtistImages.artist_id is null");
-            if (!includeFailed)
+            if (!incudeFailedDownloads)
             {
                 qo.extraJoinClause.Add("LEFT JOIN ArtistImageFailed ON ArtistImageFailed.artist_id=Artists.id");
-                qo.extraJoinParams.Add(provider);
                 qo.extraWhereClause.Add("ArtistImageFailed.artist_id is null");
             }
             return GetArtistsInternal(qo);

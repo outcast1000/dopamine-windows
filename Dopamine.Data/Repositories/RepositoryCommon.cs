@@ -31,6 +31,8 @@ namespace Dopamine.Data.Repositories
 
     class RepositoryCommon
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+        private static long sQueryCounter = 0;
         public static List<T> Query<T>(SQLiteConnection connection, string sqlTemplate, QueryOptions queryOptions = null) where T : new()
         {
             if (queryOptions == null)
@@ -84,12 +86,24 @@ namespace Dopamine.Data.Repositories
             sql = sql.Replace("#LIMIT#", limit);
 
             List<object> allParams = new List<object>();
-            if (queryOptions.extraJoinParams != null)
+            if (queryOptions?.extraJoinParams?.Count > 0)
                 allParams.AddRange(queryOptions.extraJoinParams);
-            if (queryOptions.extraWhereParams != null)
+            if (queryOptions?.extraWhereParams?.Count > 0)
                 allParams.AddRange(queryOptions.extraWhereParams);
+            try
+            {
+                List<T> list = connection.Query<T>(sql, allParams.ToArray());
+                Logger.Trace($"Query ({++sQueryCounter}) {typeof(T).ToString()} {list.Count} records");
+                return list;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, $"Query Failed. {++sQueryCounter} Message:{ex.Message} Type: {typeof(T).ToString()} SQL:\n{sql.Replace("\n","")}");
+            }
+            return null;
+            
+                
 
-            return connection.Query<T>(sql, allParams.ToArray());
         }
 
     }

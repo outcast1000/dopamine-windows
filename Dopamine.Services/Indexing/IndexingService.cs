@@ -54,11 +54,11 @@ namespace Dopamine.Services.Indexing
         // Paths
 
         // Flags
-        private bool isIndexing;
-        private bool canIndexArtwork;
-        private bool isIndexingArtwork;
+        private bool isIndexingFiles;
+        private bool canIndexAlbumImages;
+        private bool isIndexingAlbumImages = false;
         private bool canIndexArtistImages;
-        private bool isIndexingArtistImages;
+        private bool isIndexingArtistImages = false;
 
         // Events
         public event EventHandler IndexingStopped = delegate { };
@@ -73,7 +73,7 @@ namespace Dopamine.Services.Indexing
 
         public bool IsIndexing
         {
-            get { return isIndexing; }
+            get { return isIndexingFiles; }
         }
 
         public IndexingService(ISQLiteConnectionFactory sQLiteConnectionFactory, IInfoDownloadService infoDownloadService,
@@ -97,7 +97,7 @@ namespace Dopamine.Services.Indexing
             Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += SettingsClient_SettingChanged;
             watcherManager.FoldersChanged += WatcherManager_FoldersChanged;
 
-            isIndexing = false;
+            isIndexingFiles = false;
         }
 
         private async void SettingsClient_SettingChanged(object sender, Digimezzo.Foundation.Core.Settings.SettingChangedEventArgs e)
@@ -131,10 +131,10 @@ namespace Dopamine.Services.Indexing
                 Logger.Debug("RefreshCollectionAsync EXIT (Already Indexing)");
                 return;
             }
-            isIndexing = true;
-            canIndexArtwork = false;
+            isIndexingFiles = true;
+            canIndexAlbumImages = false;
             // Wait until artwork indexing is stopped
-            while (isIndexingArtwork)
+            while (isIndexingAlbumImages)
             {
                 await Task.Delay(100);
             }
@@ -407,7 +407,7 @@ namespace Dopamine.Services.Indexing
 
                 // Finalize
                 // --------
-                isIndexing = false;
+                isIndexingFiles = false;
                 IndexingStopped(this, new EventArgs());
 
                 await RetrieveAlbumInfoAsync(false, false);
@@ -437,13 +437,13 @@ namespace Dopamine.Services.Indexing
                 Logger.Debug("EXITING: DownloadMissingAlbumCovers is false.");
                 return;
             }
-            if (isIndexingArtwork)
+            if (isIndexingAlbumImages)
             {
                 Logger.Debug("EXITING: AddArtworkInBackgroundAsync [ALREADY IN]");
                 return;
             }
-            canIndexArtwork = true;
-            isIndexingArtwork = true;
+            canIndexAlbumImages = true;
+            isIndexingAlbumImages = true;
 
             DateTime startTime = DateTime.Now;
 
@@ -452,8 +452,7 @@ namespace Dopamine.Services.Indexing
                 try
                 {
                     IList<AlbumV> albumsAdded = new List<AlbumV>();
-                    string providerName = infoProviderFactory.GetAlbumInfoProvider(null, null).ProviderName;
-                    IList<AlbumV> albumDatasToIndex = rescanAll ? albumVRepository.GetAlbums() : albumVRepository.GetAlbumsToIndexByProvider(providerName, rescanFailed);
+                    IList<AlbumV> albumDatasToIndex = rescanAll ? albumVRepository.GetAlbums() : albumVRepository.GetAlbumsWithoutImages(rescanFailed);
                     IFileStorage fileStorage = new FileStorage();
 
                     foreach (AlbumV albumDataToIndex in albumDatasToIndex)
@@ -461,7 +460,7 @@ namespace Dopamine.Services.Indexing
                         if (string.IsNullOrEmpty(albumDataToIndex.Name))
                             continue;
                         // Check if we must cancel artwork indexing
-                        if (!canIndexArtwork)
+                        if (!canIndexAlbumImages)
                         {
                             try
                             {
@@ -473,7 +472,7 @@ namespace Dopamine.Services.Indexing
                                 Logger.Error(ex, "Failed to commit changes while aborting adding artwork in background.");
                             }
 
-                            isIndexingArtwork = false;
+                            isIndexingAlbumImages = false;
 
                             return;
                         }
@@ -536,7 +535,7 @@ namespace Dopamine.Services.Indexing
                 }
             });
 
-            isIndexingArtwork = false;
+            isIndexingAlbumImages = false;
             LogClient.Error("+++ FINISHED ADDING ARTWORK IN THE BACKGROUND. Time required: {0} ms +++", Convert.ToInt64(DateTime.Now.Subtract(startTime).TotalMilliseconds));
         }
 
@@ -551,7 +550,7 @@ namespace Dopamine.Services.Indexing
                 Debug.Print("AddArtistImagesInBackgroundAsync [ALREADY IN]. Exiting...");
                 return;
             }
-            LogClient.Info("+++ STARTED ADDING ARTWORK IN THE BACKGROUND +++");
+            Logger.Info("RetrieveArtistInfoAsync starting");
             canIndexArtistImages = true;
             isIndexingArtistImages = true;
 
@@ -562,8 +561,7 @@ namespace Dopamine.Services.Indexing
                 try
                 {
                     IList<ArtistV> artistsAdded = new List<ArtistV>();
-                    string providerName = new GoogleArtistInfoProvider(null).ProviderName;
-                    IList<ArtistV> artistsToIndex = rescanAll ? artistVRepository.GetArtists() : artistVRepository.GetArtistToIndexByProvider(providerName, rescanFailed);
+                    IList<ArtistV> artistsToIndex = rescanAll ? artistVRepository.GetArtists() : artistVRepository.GetArtistsWithoutImages(rescanFailed);
                     IFileStorage fileStorage = new FileStorage();
 
                     foreach (ArtistV artist in artistsToIndex)
@@ -584,7 +582,7 @@ namespace Dopamine.Services.Indexing
                                 Logger.Error(ex, "Failed to commit changes while aborting adding artwork in background.");
                             }
 
-                            isIndexingArtwork = false;
+                            isIndexingAlbumImages = false;
 
                             return;
                         }
@@ -592,7 +590,7 @@ namespace Dopamine.Services.Indexing
 
                         using (var conn = this.sQLiteConnectionFactory.GetConnection())
                         {
-                            conn.Execute("DELETE FROM ArtistDownloadFailed WHERE artist_id=? AND provider=?", artist.Id, providerName);
+                            conn.Execute("DELETE FROM ArtistImageFailed WHERE artist_id=?", artist.Id);
                         }
 
                         // During the 2nd pass, look for artwork on the Internet and set NeedsAlbumArtworkIndexing = 0.
@@ -651,7 +649,7 @@ namespace Dopamine.Services.Indexing
                 }
             });
 
-            isIndexingArtwork = false;
+            isIndexingArtistImages = false;
             LogClient.Error("+++ FINISHED ADDING ARTWORK IN THE BACKGROUND. Time required: {0} ms +++", Convert.ToInt64(DateTime.Now.Subtract(startTime).TotalMilliseconds));
         }
 
@@ -659,10 +657,10 @@ namespace Dopamine.Services.Indexing
 
         public async Task RetrieveInfoAsync(bool onlyWhenHasNoCover)
         {
-            canIndexArtwork = false;
+            canIndexAlbumImages = false;
 
             // Wait until artwork indexing is stopped
-            while (isIndexingArtwork)
+            while (isIndexingAlbumImages)
             {
                 await Task.Delay(100);
             }

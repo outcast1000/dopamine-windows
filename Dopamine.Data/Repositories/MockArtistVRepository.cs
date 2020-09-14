@@ -15,7 +15,7 @@ namespace Dopamine.Data.Repositories
             };
         }
 
-        public List<ArtistV> GetArtistToIndexByProvider(string provider, bool includeFailed)
+        public List<ArtistV> GetArtistsWithoutImages(bool incudeFailedDownloads)
         {
             throw new System.NotImplementedException();
         }

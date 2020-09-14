@@ -215,7 +215,7 @@ namespace Dopamine.Data
 
                 //conn.Execute("CREATE INDEX AlbumImagesIsPrimaryIndex ON AlbumImages(is_primary);"); //=== ALEX: FOR SOME REASON WHEN THIS IS ENABLED many queries that have is_primary=1 becomes 1000 times more slow
 
-                //=== AlbumDownloadFailed: (One 2 Many) Each Album may have only one failed indexing record
+                //=== ArtistImageFailed: (One 2 Many) Each Album may have only one failed indexing record
                 conn.Execute("CREATE TABLE ArtistImageFailed (" +
                             "artist_id         INTEGER NOT NULL PRIMARY KEY," +
                             "date_added        INTEGER NOT NULL," +
@@ -264,7 +264,7 @@ namespace Dopamine.Data
                             "date_added         INTEGER NOT NULL," +
                             "FOREIGN KEY(album_id) REFERENCES Albums(id));");
 
-                //=== AlbumImageDownloadFailed: (One 2 many) Each Album may have mutltipe failed indexing record (one per provider)
+                //=== AlbumImageFailed: (One 2 many) Each Album may have mutltipe failed indexing record (one per provider)
                 conn.Execute("CREATE TABLE AlbumImageFailed (" +
                             "album_id          INTEGER PRIMARY KEY," +
                             "date_added        INTEGER NOT NULL," +

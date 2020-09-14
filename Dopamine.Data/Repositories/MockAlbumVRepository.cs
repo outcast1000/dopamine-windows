@@ -29,7 +29,7 @@ namespace Dopamine.Data.Repositories
             throw new System.NotImplementedException();
         }
 
-        public List<AlbumV> GetAlbumsToIndexByProvider(string provider, bool includeFailed)
+        public List<AlbumV> GetAlbumsWithoutImages(bool incudeFailedDownloads)
         {
             throw new System.NotImplementedException();
         }

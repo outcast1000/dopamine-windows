@@ -8,7 +8,7 @@ namespace Dopamine.Data.Repositories
     {
         List<ArtistV> GetArtists();
 
-        List<ArtistV> GetArtistToIndexByProvider(string provider, bool includeFailed);
+        List<ArtistV> GetArtistsWithoutImages(bool incudeFailedDownloads);
 
     }
 }
