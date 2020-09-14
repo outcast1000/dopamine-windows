@@ -4,19 +4,13 @@ using System;
 
 namespace Dopamine.Data.Entities
 {
-    [Table("AlbumImages")]
-    public class AlbumImage
+    [Table("AlbumImageFailed")]
+    public class AlbumImageFailed
     {
         [Column("album_id"), PrimaryKey()]
         public long AlbumId { get; set; }
 
-        [Column("location"), NotNull()]
-        public string Location { get; set; }
-
-        [Column("source")]
-        public string Source { get; set; }
-
-        [Column("date_added")]
+        [Column("date_added"), NotNull()]
         public long DateAdded { get; set; }
 
     }

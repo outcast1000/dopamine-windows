@@ -7,6 +7,7 @@ using SQLite;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,15 +16,18 @@ namespace Dopamine.Data.UnitOfWorks
 {
     public class SQLiteUpdateCollectionUnitOfWork: IUpdateCollectionUnitOfWork
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
         private SQLiteConnection conn;
         private SQLiteTrackVRepository sQLiteTrackVRepository;
         private SQLiteAlbumImageRepository sQLiteAlbumImageRepository;
-        private bool bDisposeConnection;
-        public SQLiteUpdateCollectionUnitOfWork(SQLiteConnection conn, bool bDisposeConnection)
+        private bool bSharedConnection;
+        public SQLiteUpdateCollectionUnitOfWork(SQLiteConnection conn, bool bSharedConnection)
         {
-            this.bDisposeConnection = bDisposeConnection;
+            this.bSharedConnection = bSharedConnection;
             this.conn = conn;
-            this.conn.BeginTransaction();
+            if (!bSharedConnection)
+                this.conn.BeginTransaction();
             sQLiteTrackVRepository = new SQLiteTrackVRepository(null);
             sQLiteAlbumImageRepository = new SQLiteAlbumImageRepository(null);
             sQLiteTrackVRepository.SetSQLiteConnection(conn);
@@ -33,9 +37,11 @@ namespace Dopamine.Data.UnitOfWorks
 
         public void Dispose()
         {
-            conn.Commit();
-            if (bDisposeConnection)
+            if (!bSharedConnection)
+            {
+                conn.Commit();
                 conn.Dispose();
+            }
         }
 
         public AddMediaFileResult AddMediaFile(MediaFileData mediaFileData, long folderId)
@@ -145,7 +151,7 @@ namespace Dopamine.Data.UnitOfWorks
                 }
             }
 
-            if (mediaFileData.Lyrics != null)
+            if (mediaFileData.Lyrics != null && mediaFileData.Lyrics.Text != null && mediaFileData.Lyrics.Text.Length > 0)
             {
                 try
                 {
@@ -158,7 +164,7 @@ namespace Dopamine.Data.UnitOfWorks
                         Language = mediaFileData.Lyrics.Language
                     }); ;
                 }
-                catch (SQLite.SQLiteException ex)
+                catch (SQLiteException ex)
                 {
                     Debug.WriteLine(String.Format("SQLiteException (TrackLyrics) {0}", ex.Message));
                 }
@@ -301,46 +307,36 @@ namespace Dopamine.Data.UnitOfWorks
         }
 
 
-        public bool AddAlbumImage(AlbumImage image)
+        public bool SetAlbumImage(AlbumImage image, bool replaceIfExists)
         {
-            Debug.Assert(image.Id == 0);
             Debug.Assert(image.AlbumId > 0);
             Debug.Assert(image.Location.Length > 10);
-            Debug.Print("AddAlbumImage {0} - {1}", image.Id, image.Location);
-            if (image.IsPrimary == true)
-            {
-                int ret = conn.Execute("DELETE FROM AlbumImages WHERE album_id=? AND is_primary=1", image.AlbumId);
-                Debug.Print("AddAlbumImage albumImageId: Deleted preivous primary: {0} records", ret);
+            Logger.Debug("SetAlbumImage {0}", image.Location);
 
+            try
+            {
+                //image.DateAdded = DateTime.Now.Ticks;
+                if (replaceIfExists)
+                    conn.InsertOrReplace(image);
+                else
+                    conn.Insert(image);
+                return true;
+                //return GetLastInsertRowID();
             }
-            long albumImageId = GetAlbumImageID(image);
-            Debug.Print("AddAlbumImage albumImageId: {0} albumId: {1} location: {2}", albumImageId, image.AlbumId, image.Location);
-            return true;
+            catch (SQLite.SQLiteException ex)
+            {
+                Logger.Error(ex, "SetAlbumImage");
+            }
+            return false;
         }
 
-        public bool RemoveAlbumImage(long album_id, string location)
+        public bool RemoveAlbumImage(long album_id)
         {
-            int deletions = conn.Execute("DELETE FROM AlbumImages WHERE album_id=? AND location=?", album_id, location);
+            int deletions = conn.Execute("DELETE FROM AlbumImages WHERE album_id=?", album_id);
             if (deletions == 0)
                 return false;
             return true;
         }
-        public bool RemoveAllAlbumImages(long album_id)
-        {
-            conn.Execute("DELETE FROM AlbumImages WHERE album_id = ?", album_id);
-            return true;
-        }
-
-        public bool SetAlbumImageAsPrimary(long album_image_id, bool bSetAsPrimary)
-        {
-            Debug.Print("SetAlbumImageAsPrimary album_image_id: {0}", album_image_id);
-            if (bSetAsPrimary)
-                conn.Execute("UPDATE AlbumImages SET is_primary = 1 WHERE album_image_id = ?", album_image_id);
-            else 
-                conn.Execute("UPDATE AlbumImages SET is_primary = NULL WHERE album_image_id = ?", album_image_id);
-            return true;
-        }
-
 
         private long GetArtistID(String entry)
         {
@@ -401,6 +397,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
 
         }
 
+        /*
         private long GetAlbumImageID(AlbumImage image)
         {
             long? id = conn.ExecuteScalar<long?>("SELECT id FROM AlbumImages WHERE album_id=? AND location=?", image.AlbumId, image.Location);
@@ -409,7 +406,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 return (long) id;
             try
             {
-                image.DateAdded = DateTime.Now.Ticks;
+                //image.DateAdded = DateTime.Now.Ticks;
                 conn.Insert(image);
                 return GetLastInsertRowID();
             }
@@ -420,7 +417,8 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 throw new Exception(err);
             }
         }
-
+        */
+        /*
         private long GetArtistImageID(ArtistImage image)
         {
             long? id = conn.ExecuteScalar<long?>("SELECT id FROM ArtistImages WHERE artist_id=? AND location=?", image.ArtistId, image.Location);
@@ -440,7 +438,7 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 throw new Exception(err);
             }
         }
-
+        */
         private long GetGenreID(String entry)
         {
             long? id = conn.ExecuteScalar<long?>("SELECT id FROM Genres WHERE name=?", entry);
@@ -466,58 +464,77 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
         }
 
 
-        public bool AddArtistImage(ArtistImage image)
+        public bool SetArtistImage(ArtistImage image, bool replaceIfExists)
         {
-            Debug.Assert(image.Id == 0);
             Debug.Assert(image.ArtistId > 0);
             Debug.Assert(image.Location.Length > 10);
-            Debug.Print("AddArtistImage {0} - {1}", image.Id, image.Location);
-            if (image.IsPrimary == true)
-            {
-                int ret = conn.Execute("DELETE FROM ArtistImages WHERE artist_id=? AND is_primary=1", image.ArtistId);
-                Debug.Print("AddArtistImage Deleted previous primary: {0} records", ret);
+            Logger.Debug("SetArtistImage {0}", image.Location);
 
+            try
+            {
+                //image.DateAdded = DateTime.Now.Ticks;
+                if (replaceIfExists)
+                    conn.InsertOrReplace(image);
+                else
+                    conn.Insert(image);
+                return true;
+                //return GetLastInsertRowID();
             }
-            long imageId = GetArtistImageID(image);
-            Debug.Print("AddAlbumImage imageId: {0} artistId: {1} location: {2}", imageId, image.ArtistId, image.Location);
-            return true;
+            catch (SQLite.SQLiteException ex)
+            {
+                Logger.Error(ex, "SetArtistImage");
+            }
+            return false;
         }
 
-        public bool RemoveArtistImage(long artist_id, string location)
+
+        public bool RemoveArtistImage(long artist_id)
         {
-            int deletions = conn.Execute("DELETE FROM ArtistImages WHERE artist_id=? AND location=?", artist_id, location);
+            int deletions = conn.Execute("DELETE FROM ArtistImages WHERE artist_id=?", artist_id);
             if (deletions == 0)
                 return false;
             return true;
         }
 
-        public bool RemoveAllArtistImages(long artist_id)
+        public bool SetLyrics(TrackLyrics trackLyrics, bool replaceIfExists)
         {
-            conn.Execute("DELETE FROM ArtistImages WHERE artist_id = ?", artist_id);
-            return true;
-        }
+            Debug.Assert(trackLyrics.TrackId > 0);
+            Debug.Assert(trackLyrics.Lyrics.Length > 0);
+            Logger.Debug("SetLyrics");
 
-        public bool SetArtistImageAsPrimary(long image_id, bool bIsPrimary)
-        {
-            Debug.Print("SetArtistImageAsPrimary image_id: {0}", image_id);
-            if (bIsPrimary)
-                conn.Execute("UPDATE ArtistImages SET is_primary = 1 WHERE artist_image_id = ?", image_id);
-            else
-                conn.Execute("UPDATE ArtistImages SET is_primary = NULL WHERE artist_image_id = ?", image_id);
-            return true;
-        }
-
-        public void SetLyrics(TrackLyrics trackLyrics)
-        {
             try
             {
-                conn.InsertOrReplace(trackLyrics);
+                //image.DateAdded = DateTime.Now.Ticks;
+                if (replaceIfExists)
+                    conn.InsertOrReplace(trackLyrics);
+                else
+                    conn.Insert(trackLyrics);
+                return true;
+                //return GetLastInsertRowID();
             }
-            catch (SQLite.SQLiteException ex)
+            catch (SQLiteException ex)
             {
-                Debug.WriteLine(String.Format("SetLyrics {0}", ex.Message));
+                if (ex.Message.Equals("UNIQUE constraint failed: TrackLyrics.track_id"))
+                {
+                    //=== Already Exists
+                    Debug.Assert(replaceIfExists == false);
+                }
+                else
+                    Logger.Error(ex, "SetLyrics");
             }
+            return false;
         }
+
+
+        public bool RemoveLyrics(long track_id)
+        {
+            int deletions = conn.Execute("DELETE FROM TrackLyrics WHERE track_id=?", track_id);
+            if (deletions == 0)
+                return false;
+            return true;
+        }
+
+
     }
 
 

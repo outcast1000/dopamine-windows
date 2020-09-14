@@ -112,8 +112,8 @@
     <Compile Include="DbMigrator.cs" />
     <Compile Include="Entities\AlbumReview.cs" />
     <Compile Include="Entities\ArtistRole.cs" />
-    <Compile Include="Entities\ArtistDownloadFailed.cs" />
-    <Compile Include="Entities\AlbumDownloadFailed.cs" />
+    <Compile Include="Entities\ArtistImageFailed.cs" />
+    <Compile Include="Entities\AlbumImageFailed.cs" />
     <Compile Include="Entities\ArtistBiography.cs" />
     <Compile Include="Entities\GenreImage.cs" />
     <Compile Include="Entities\ArtistImage.cs" />

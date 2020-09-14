@@ -8,11 +8,10 @@ namespace Dopamine.Data.Repositories
     {
         IList<AlbumImage> GetAlbumImages();
 
-        IList<AlbumImage> GetAlbumImages(long albumId, string provider = null);
+        AlbumImage GetAlbumImage(long albumId);
 
-        IList<AlbumImage> GetAlbumImageForTrackWithPath(string path);
+        AlbumImage GetAlbumImageForTrackWithPath(string path);
 
-        AlbumImage GetPrimaryAlbumImage(long albumId);
 
         //AlbumImage GetAlbumArtworkForPath(string path);
         /*

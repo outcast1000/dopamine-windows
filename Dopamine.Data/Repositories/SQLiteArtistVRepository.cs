@@ -23,12 +23,12 @@ namespace Dopamine.Data.Repositories
         public List<ArtistV> GetArtistToIndexByProvider(string provider, bool includeFailed)
         {
             QueryOptions qo = new QueryOptions();
-            qo.extraWhereClause.Add("COALESCE(ArtistImagesPrimary.location,ArtistImagesSecondary.location) is null");
+            qo.extraWhereClause.Add("ArtistImages.artist_id is null");
             if (!includeFailed)
             {
-                qo.extraJoinClause.Add("LEFT JOIN ArtistDownloadFailed ON ArtistDownloadFailed.artist_id=Artists.id AND ArtistDownloadFailed.provider=?");
+                qo.extraJoinClause.Add("LEFT JOIN ArtistImageFailed ON ArtistImageFailed.artist_id=Artists.id");
                 qo.extraJoinParams.Add(provider);
-                qo.extraWhereClause.Add("ArtistDownloadFailed.artist_id is null");
+                qo.extraWhereClause.Add("ArtistImageFailed.artist_id is null");
             }
             return GetArtistsInternal(qo);
         }
@@ -70,14 +70,13 @@ COUNT(DISTINCT Albums.id ) as AlbumCount,
 GROUP_CONCAT(DISTINCT Albums.name ) as Albums,
 MIN(t.year) as MinYear,
 MAX(t.year) as MaxYear,
-COALESCE(ArtistImagesPrimary.location,ArtistImagesSecondary.location, AlbumImages.location) as Thumbnail,
+COALESCE(ArtistImages.location, AlbumImages.location) as Thumbnail,
 MIN(t.date_added) as DateAdded,
 MIN(t.date_file_created) as DateFileCreated
 from Tracks t
 LEFT JOIN TrackArtists  ON TrackArtists.track_id = t.id
 LEFT JOIN Artists ON Artists.id = TrackArtists.artist_id
-LEFT JOIN ArtistImages ArtistImagesPrimary ON Artists.id = ArtistImagesPrimary.artist_id AND ArtistImagesPrimary.is_primary = 1
-LEFT JOIN ArtistImages ArtistImagesSecondary ON Artists.id = ArtistImagesSecondary.artist_id AND ArtistImagesSecondary.is_primary <> 1
+LEFT JOIN ArtistImages ON Artists.id = ArtistImages.artist_id
 LEFT JOIN TrackAlbums ON TrackAlbums.track_id = t.id
 LEFT JOIN Albums ON Albums.id = TrackAlbums.album_id
 LEFT JOIN AlbumImages ON Albums.id = AlbumImages.album_id

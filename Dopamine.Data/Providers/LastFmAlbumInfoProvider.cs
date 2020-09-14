@@ -21,6 +21,7 @@ namespace Dopamine.Data.Providers
                 Debug.Print("LastFmAlbumImageProvider. Missing album info");
                 return;
             }
+            Data = new AlbumInfoProviderData();
 
             foreach (string artist in artists)
             {

@@ -122,11 +122,10 @@ namespace Dopamine.Services.Metadata
         {
             byte[] artwork = null;
 
-            IList<AlbumImage> albumImages = albumImageRepository.GetAlbumImageForTrackWithPath(filename);
-            if (ListExtensions.IsNullOrEmpty<AlbumImage>(albumImages))
+            AlbumImage albumImage = albumImageRepository.GetAlbumImageForTrackWithPath(filename);
+            if (albumImage != null)
             {
-                albumImages = albumImages.OrderBy(x => x.IsPrimary).ToList();
-                string artworkPath = (new FileStorage()).GetRealPath(albumImages[0].Location);
+                string artworkPath = (new FileStorage()).GetRealPath(albumImage.Location);
 
                 if (!string.IsNullOrEmpty(artworkPath))
                 {
@@ -254,13 +253,13 @@ namespace Dopamine.Services.Metadata
             {
                 //String realImagePath = cacheService.GetCachedArtworkPath("cache://" + artworkID);
                 //long len = new FileInfo(realImagePath).Length;
-                uc.AddAlbumImage(new AlbumImage()
+                uc.SetAlbumImage(new AlbumImage()
                 {
                     AlbumId = albumViewModel.Id,
                     //Location = "cache://" + artworkID,
-                    IsPrimary = true,
+                    DateAdded = DateTime.Now.Ticks,
                     Source = "[EDIT]"
-                });
+                }, true);
                 //albumViewModel.Id, "cache://" + artworkID, len, null, "[file]", true);
             }
 

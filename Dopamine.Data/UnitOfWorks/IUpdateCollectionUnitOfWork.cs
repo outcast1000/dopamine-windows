@@ -46,6 +46,8 @@ namespace Dopamine.Data.UnitOfWorks
         public long? TrackCount { get; set; }
         public long? DiscNumber { get; set; }
         public long? DiscCount { get; set; }
+
+        public MediaFileDataImage AlbumImage { get; set; }
         //public IList<MediaFileDataImage> AlbumImages { get; set; }
         public MediaFileDataText Lyrics { get; set; }
 
@@ -78,20 +80,17 @@ namespace Dopamine.Data.UnitOfWorks
         //      images
         //      bIsPrimary: If another images is primary it will be deleted. There should be only one primary image
         // return false on error
-        bool AddAlbumImage(AlbumImage image);
+        bool SetAlbumImage(AlbumImage image, bool replaceIfExists);
 
-        bool RemoveAlbumImage(long album_id, string location);
-        bool RemoveAllAlbumImages(long album_id);
-        bool SetAlbumImageAsPrimary(long album_image_id, bool bIsPrimary);
+        bool RemoveAlbumImage(long album_id);
 
 
-        bool AddArtistImage(ArtistImage image);
+        bool SetArtistImage(ArtistImage image, bool replaceIfExists);
 
-        bool RemoveArtistImage(long artist_id, string location);
-        bool RemoveAllArtistImages(long artist_id);
-        bool SetArtistImageAsPrimary(long artist_image_id, bool bIsPrimary);
+        bool RemoveArtistImage(long artist_id);
 
+        bool SetLyrics(TrackLyrics trackLyrics, bool replaceIfExists);
+        bool RemoveLyrics(long track_id);
 
-        void SetLyrics(TrackLyrics trackLyrics);
     }
 }

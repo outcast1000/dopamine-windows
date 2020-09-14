@@ -29,7 +29,7 @@ namespace Dopamine.Data
             return location;
         }
 
-        public string SaveImage(byte[] bytes)
+        public string SaveImageToCache(byte[] bytes)
         {
             Debug.Assert(bytes != null && bytes.Length > 0);
             string sha1 = CalculateSHA1(bytes);

@@ -11,9 +11,12 @@ namespace Dopamine.Data
         string GetRealPath(string location);
 
         // Saves the byte array and returns the "location"
-        string SaveImage(byte[] bytes);
+        string SaveImageToCache(byte[] bytes);
 
         string StorageImagePath { get; }
 
+        //List<string> GetAllICachePaths();
+        //FileExists
+        //DeleteFile
     }
 }

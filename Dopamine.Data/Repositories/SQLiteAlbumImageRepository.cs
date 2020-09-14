@@ -10,146 +10,97 @@ namespace Dopamine.Data.Repositories
 {
     public class SQLiteAlbumImageRepository:IAlbumImageRepository
     {
-        private ISQLiteConnectionFactory factory;
-        private SQLiteConnection connection;
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
-        public SQLiteAlbumImageRepository(ISQLiteConnectionFactory factory)
+        private ISQLiteConnectionFactory _sQLiteConnectionFactory;
+        private SQLiteConnection _SQLiteConnection;
+
+        public SQLiteAlbumImageRepository(ISQLiteConnectionFactory sQLiteConnectionFactory)
         {
-            this.factory = factory;
+            this._sQLiteConnectionFactory = sQLiteConnectionFactory;
         }
 
-        public void SetSQLiteConnection(SQLiteConnection connection)
+        public void SetSQLiteConnection(SQLiteConnection sQLiteConnection)
         {
-            this.connection = connection;
+            this._SQLiteConnection = sQLiteConnection;
         }
 
         public IList<AlbumImage> GetAlbumImages()
         {
-            try
-            {
-                using (var conn = factory.GetConnection())
-                {
-                    try
-                    {
-                        return conn.Query<AlbumImage>(@"SELECT 
-                            id, 
-                            album_id, 
-                            location, 
-                            source, 
-                            date_added
-                            from AlbumImages
-                            ");
-                    }
-                    catch (Exception ex)
-                    {
-                        LogClient.Error("Query Failed. Exception: {0}", ex.Message);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                LogClient.Error("Could not connect to the database. Exception: {0}", ex.Message);
-            }
+            return GetInternal(@"SELECT 
+                album_id, 
+                location, 
+                source, 
+                date_added
+                from AlbumImages
+                ");
+
+        }
+
+        public AlbumImage GetAlbumImage(long albumId)
+        {
+            IList<AlbumImage> images = GetInternal(@"SELECT 
+                album_id, 
+                location, 
+                source, 
+                date_added
+                from AlbumImages
+                WHERE album_id=?
+                ", albumId);
+            Debug.Assert(images.Count <= 1);
+            if (images.Count > 0)
+                return images[0];
             return null;
         }
 
-        public IList<AlbumImage> GetAlbumImages(long albumId, string provider = null)
+        public AlbumImage GetAlbumImageForTrackWithPath(string path)
         {
-            try
-            {
-                using (var conn = factory.GetConnection())
-                {
-                    try
-                    {
-                        if (string.IsNullOrEmpty(provider))
-                        {
-                            return conn.Query<AlbumImage>(@"SELECT 
-                            id, 
-                            album_id, 
-                            location, 
-                            source, 
-                            date_added
-                            from AlbumImages
-                            WHERE album_id=?
-                            ", albumId);
-                        }
-                        else
-                        {
-                            return conn.Query<AlbumImage>(@"SELECT 
-                            id, 
-                            album_id, 
-                            location, 
-                            source, 
-                            date_added
-                            from AlbumImages
-                            WHERE album_id=? AND provider=?
-                            ", albumId, provider);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        LogClient.Error("Query Failed. Exception: {0}", ex.Message);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                LogClient.Error("Could not connect to the database. Exception: {0}", ex.Message);
-            }
-            return null;
-        }
-
-        public IList<AlbumImage> GetAlbumImageForTrackWithPath(string path)
-        {
-            using (var conn = factory.GetConnection())
-            {
-                try
-                {
-                    return conn.Query<AlbumImage>(@" 
+            IList<AlbumImage> images = GetInternal(@" 
                         SELECT
-                        AlbumImages.id, 
                         AlbumImages.album_id, 
                         AlbumImages.location, 
                         AlbumImages.source, 
                         AlbumImages.date_added
-                        from AlbumImages
-                        LEFT JOIN TrackAlbums ON TrackAlbums.album_id = AlbumImages.album_id
-                        LEFT JOIN Tracks ON tracks.id = TrackAlbums.track_id
-                        WHERE Tracks.path = ?", path);
-                }
-                catch (Exception ex)
-                {
-                    LogClient.Error("Query Failed. Exception: {0}", ex.Message);
-                }
-            }
+                        FROM AlbumImages
+                        INNER JOIN TrackAlbums ON TrackAlbums.album_id = AlbumImages.album_id
+                        INNER JOIN Tracks ON TrackAlbums.track_id = Tracks.id
+                        WHERE Tracks.path =?", path);
+            Debug.Assert(images.Count <= 1);
+            if (images.Count > 0)
+                return images[0];
             return null;
         }
 
         public AlbumImage GetPrimaryAlbumImage(long albumId)
         {
-            using (var conn = factory.GetConnection())
+            IList<AlbumImage> images = GetInternal(@" 
+                        SELECT
+                        album_id, 
+                        location, 
+                        source, 
+                        date_added
+                        from AlbumImages
+                        WHERE album_id = ?", albumId);
+            Debug.Assert(images.Count < 2);
+            return images.Count > 0 ? images[0] : null;
+        }
+
+        private IList<AlbumImage> GetInternal(string sql, params object[] sqlParams)
+        {
+            if (_SQLiteConnection != null)
+            {
+                return _SQLiteConnection.Query<AlbumImage>(sql, sqlParams);
+            }
+            Debug.Assert(_sQLiteConnectionFactory != null);
+            using (var conn = _sQLiteConnectionFactory.GetConnection())
             {
                 try
                 {
-                    IList<AlbumImage> images = conn.Query<AlbumImage>(@" 
-                        SELECT
-                        AlbumImages.id, 
-                        AlbumImages.album_id, 
-                        AlbumImages.location, 
-                        AlbumImages.source, 
-                        AlbumImages.date_added
-                        from AlbumImages
-                        LEFT JOIN TrackAlbums ON TrackAlbums.album_id = AlbumImages.album_id
-                        LEFT JOIN Tracks ON tracks.id = TrackAlbums.track_id
-                        WHERE AlbumImages.album_id = ? AND is_primary=1", albumId);
-                    if (images.Count > 0)
-                    {
-                        return images[0];
-                    }
+                    return conn.Query<AlbumImage>(sql, sqlParams);
                 }
                 catch (Exception ex)
                 {
-                    LogClient.Error("Query Failed. Exception: {0}", ex.Message);
+                    Logger.Error(ex, $"Query Failed {sql}");
                 }
             }
             return null;
