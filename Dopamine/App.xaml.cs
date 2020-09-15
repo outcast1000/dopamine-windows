@@ -286,7 +286,7 @@ namespace Dopamine
                 containerRegistry.RegisterSingleton<IShellService, ShellService>();
                 containerRegistry.RegisterSingleton<ILifetimeService, LifetimeService>();
                 containerRegistry.RegisterSingleton<IInfoDownloadService, InfoDownloadService>();
-                containerRegistry.RegisterSingleton<IFileStorageFactory, FileStorageFactory>();
+                containerRegistry.RegisterSingleton<IFileStorage, FileStorage>();
 
                 INotificationService notificationService;
 

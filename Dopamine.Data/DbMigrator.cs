@@ -347,7 +347,7 @@ namespace Dopamine.Data
                     //WHERE f.ShowInCollection = 1 AND t.IndexingSuccess = 1 AND t.NeedsIndexing = 0";
 
                     //var tracks = new List<Track>();
-                    IFileStorage fileStorage = new FileStorageFactory().getAlbumFileStorage();
+                    IFileStorage fileStorage = new FileStorage();
                     List<Track> tracks = conn.Query<Track>(query);
                     int tracksMigrated = 0;
                     int timeStarted = Environment.TickCount;
@@ -401,7 +401,7 @@ namespace Dopamine.Data
                                 {
                                     Logger.Info($" --> Adding AlbumImage {realPath}");
                                     byte[] bytes = File.ReadAllBytes(realPath);
-                                    string location = fileStorage.SaveImageToCache(bytes);
+                                    string location = fileStorage.SaveImageToCache(bytes, FileStorageItemType.Album);
                                     AlbumImage albumImage = new AlbumImage()
                                     {
                                         AlbumId = (long)addMediaFileResult.AlbumId,

@@ -13,15 +13,10 @@ namespace Dopamine.Data
 {
     public class FileStorage : IFileStorage
     {
-
-        private string _cacheFolderPath;
-        private string _type;
-
-        public FileStorage(string type)
+        public FileStorage()
         {
-            _type = type;
-            _cacheFolderPath = Path.Combine(SettingsClient.ApplicationFolder(), ApplicationPaths.CacheFolder);
-            string typeFolderPath = Path.Combine(SettingsClient.ApplicationFolder(), ApplicationPaths.CacheFolder, type);
+            StorageImagePath = Path.Combine(SettingsClient.ApplicationFolder(), ApplicationPaths.CacheFolder);
+            string typeFolderPath = Path.Combine(SettingsClient.ApplicationFolder(), ApplicationPaths.CacheFolder);
             if (!Directory.Exists(typeFolderPath))
             {
                 Directory.CreateDirectory(typeFolderPath);
@@ -31,16 +26,16 @@ namespace Dopamine.Data
         public string GetRealPath(string location)
         {
             if (location.ToLower().StartsWith("cache://")){
-                return Path.Combine(_cacheFolderPath, location.Substring(8) + ".jpg");
+                return Path.Combine(StorageImagePath, location.Substring(8) + ".jpg");
             }
             return location;
         }
 
-        public string SaveImageToCache(byte[] bytes)
+        public string SaveImageToCache(byte[] bytes, FileStorageItemType fileStorageItemType = FileStorageItemType.Unknown)
         {
             Debug.Assert(bytes != null && bytes.Length > 0);
             string sha1 = CalculateSHA1(bytes);
-            string location = Path.Combine("cache://", _type, sha1);// "cache://" + type + "//" + sha1;
+            string location = Path.Combine("cache://", fileStorageItemType.ToString().ToLower() + "-" + sha1);// "cache://" + type + "//" + sha1;
             string realPath = GetRealPath(location);
             File.WriteAllBytes(realPath, bytes);
             return location;
@@ -56,7 +51,7 @@ namespace Dopamine.Data
         }
 
 
-        public string StorageImagePath { get { return _cacheFolderPath; } }
+        public string StorageImagePath { get; }
 
     }
 }
