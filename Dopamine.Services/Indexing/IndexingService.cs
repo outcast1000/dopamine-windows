@@ -24,13 +24,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Animation;
 using Dopamine.Services.File;
-using NLog;
 
 namespace Dopamine.Services.Indexing
 {
     public class IndexingService : IIndexingService
     {
-        private static Logger Logger = LogManager.GetCurrentClassLogger();
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         // Services
         private IInfoDownloadService infoDownloadService;
 

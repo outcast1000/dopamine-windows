@@ -8,6 +8,7 @@ namespace Dopamine.Data.Providers
 {
     public class YoutubeArtistInfoProvider : IArtistInfoProvider
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
         public YoutubeArtistInfoProvider(String artist, IInternetDownloaderCreator internetDownloaderCreator = null)
         {
@@ -34,21 +35,39 @@ namespace Dopamine.Data.Providers
                 {
                     // Get the search page
                     string result = client.DownloadString(uri);
+                    if (result?.Length <= 0)
+                    {
+                        Logger.Warn($"Download search page failed. Artist: '{artist}' URL: {uri.AbsolutePath}. Exiting...");
+                        return false;
+                    }
                     // Find the channel page
                     var regex = new Regex("{\\\\\"browseId\\\\\":\\\\\"(.*?)\\\\\",\\\\\"browseEndpointContextSupportedConfigs\\\\\":{\\\\\"browseEndpointContextMusicConfig\\\\\":{\\\\\"pageType\\\\\":\\\\\"MUSIC_PAGE_TYPE_ARTIST");
                     MatchCollection matches = regex.Matches(result);
                     if (matches.Count == 0)
+                    {
+                        Logger.Warn($"Find search page failed for channel page. Artist: '{artist}'. URL: {uri.AbsolutePath}. Exiting...");
                         return false;
+                    }
                     string channel = matches[0].Groups[1].Value;
                     // Download the channel page
                     uri = new Uri(string.Format("https://music.youtube.com/channel/{0}", channel));
                     result = client.DownloadString(uri);
+                    if (result?.Length <= 0)
+                    {
+                        Logger.Warn($"Download channel page failed. Artist: '{artist}' URL: {uri.AbsolutePath}. Exiting...");
+                        return false;
+                    }
+
                     // Find the Bio
                     regex = new Regex("description\\\\\\\":{\\\\\\\"runs\\\\\\\":\\[{\\\\\\\"text\\\\\\\":\\\\\\\"(.*?)\\\\\\\"}\\]}");
                     matches = regex.Matches(result);
                     if (matches.Count > 0)
                     {
                         Data.Bio = matches[0].Groups[1].Value;
+                    }
+                    else
+                    {
+                        Logger.Info($"Bio not found. Artist: '{artist}'. URL: {uri.AbsolutePath}");
                     }
                     // Find the images
                     List<byte[]> images = new List<byte[]>();
@@ -64,11 +83,20 @@ namespace Dopamine.Data.Providers
                         string url = match.Groups[1].Value.Replace("\\/", "/");
                         uri = new Uri(url);
                         byte[] bRes = client.DownloadData(uri);
+                        if (bRes?.Length == 0)
+                        {
+                            Logger.Info($"Artist Image Download failed. Artist: '{artist}'. URL: {uri.AbsolutePath}");
+                            continue;
+                        }
                         images.Add(bRes);
                         if (images.Count >= RequestedImages)
                             break;
                     }
                     Data.Images = images.ToArray();
+                    if (Data.Images.Length == 0)
+                    {
+                        Logger.Info($"Artist Image not found. Artist: '{artist}'. Matches: {matches.Count}. URL: {uri.AbsolutePath}");
+                    }
 
                     //=== Find the tracks (5 most popular?)
                     // \[{\\"musicResponsiveListItemFlexColumnRenderer\\":{\\"text\\":{\\"runs\\":\[{\\"text\\":\\"(.*?)\\",
@@ -80,6 +108,10 @@ namespace Dopamine.Data.Providers
                         tracks.Add(match.Groups[1].Value);
                     }
                     Data.Tracks = tracks.ToArray();
+                    if (Data.Images.Length == 0)
+                    {
+                        Logger.Info($"Artist Tracks not found. Artist: '{artist}'. URL: {uri.AbsolutePath}");
+                    }
 
                     return true;
 
