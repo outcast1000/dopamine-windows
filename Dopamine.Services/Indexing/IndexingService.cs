@@ -429,7 +429,7 @@ namespace Dopamine.Services.Indexing
 
         private async Task RetrieveAlbumInfoAsync(bool rescanFailed, bool rescanAll)
         {
-            Logger.Debug($"AddArtworkInBackgroundAsync rescanFailed:{rescanFailed} rescanAll:{rescanAll}");
+            Logger.Debug($"RetrieveAlbumInfoAsync rescanFailed:{rescanFailed} rescanAll:{rescanAll}");
             if (!SettingsClient.Get<bool>("Covers", "DownloadMissingAlbumCovers"))
             {
                 Logger.Debug("EXITING: DownloadMissingAlbumCovers is false.");
@@ -437,7 +437,7 @@ namespace Dopamine.Services.Indexing
             }
             if (isIndexingAlbumImages)
             {
-                Logger.Debug("EXITING: AddArtworkInBackgroundAsync [ALREADY IN]");
+                Logger.Debug("EXITING: RetrieveAlbumInfoAsync [ALREADY IN]");
                 return;
             }
             canIndexAlbumImages = true;
@@ -483,7 +483,7 @@ namespace Dopamine.Services.Indexing
 
                         }
 
-                        Logger.Debug($"AddArtworkInBackgroundAsync: Downloading Album Image for {albumDataToIndex.Name} - {albumDataToIndex.AlbumArtists}");
+                        Logger.Debug($"RetrieveAlbumInfoAsync: Downloading Album Image for {albumDataToIndex.Name} - {albumDataToIndex.AlbumArtists}");
                         //LastFMAlbumInfoProvider lf = new LastFMAlbumInfoProvider(albumDataToIndex.Name, DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToArray());
                         IAlbumInfoProvider aip = infoProviderFactory.GetAlbumInfoProvider(albumDataToIndex.Name, DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToArray());
 

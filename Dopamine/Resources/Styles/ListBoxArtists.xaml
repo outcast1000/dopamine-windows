@@ -119,7 +119,8 @@
                             <Grid
                                 Grid.Row="0"
                                 Grid.Column="0"
-                                Width="64"
+                                Width="96"
+                                Height="96"
                                 Margin="4"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Top">
@@ -136,10 +137,17 @@
                                     </pc:Tile.Content>
                                 </pc:Tile>
                                 <pc:SourceChangedImage
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
                                     Panel.ZIndex="1"
                                     RenderOptions.BitmapScalingMode="HighQuality"
-                                    Stretch="Uniform">
+                                    Stretch="UniformToFill">
                                     <pc:SourceChangedImage.Source>
+                                        <Binding
+                                            Converter="{StaticResource KeyToPathConverter}"
+                                            IsAsync="True"
+                                            Path="Thumbnail" />
+                                        <!-- Maybe i will need later this code for image manipulation (and / or caching)
                                         <MultiBinding Converter="{StaticResource PathToImageConverter}">
                                             <Binding
                                                 Converter="{StaticResource KeyToPathConverter}"
@@ -147,6 +155,7 @@
                                                 Path="Thumbnail" />
                                             <Binding Path="DataContext.UpscaledCoverSize" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type UserControl}}" />
                                         </MultiBinding>
+                                        -->
                                     </pc:SourceChangedImage.Source>
                                     <pc:SourceChangedImage.Triggers>
                                         <EventTrigger RoutedEvent="pc:SourceChangedImage.SourceChanged">
