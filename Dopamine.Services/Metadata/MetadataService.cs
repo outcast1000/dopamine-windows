@@ -26,7 +26,7 @@ namespace Dopamine.Services.Metadata
     {
         private IPlaybackService playbackService;
         private ITrackVRepository trackRepository;
-        private IAlbumImageRepository albumImageRepository;
+        private IImageRepository imageRepository;
         private IUnitOfWorksFactory unitOfWorksFactory;
         IFileStorage fileStorage;
         private FileMetadataUpdater updater;
@@ -37,12 +37,12 @@ namespace Dopamine.Services.Metadata
         public event Action<RatingChangedEventArgs> RatingChanged = delegate { };
         public event Action<LoveChangedEventArgs> LoveChanged = delegate { };
 
-        public MetadataService(IPlaybackService playbackService, ITrackVRepository trackRepository, IAlbumImageRepository albumImageRepository, 
+        public MetadataService(IPlaybackService playbackService, ITrackVRepository trackRepository, IImageRepository imageRepository, 
             IUnitOfWorksFactory unitOfWorksFactory, IFileStorage fileStorage)
         {
             this.playbackService = playbackService;
             this.trackRepository = trackRepository;
-            this.albumImageRepository = albumImageRepository;
+            this.imageRepository = imageRepository;
             this.unitOfWorksFactory = unitOfWorksFactory;
             this.fileStorage = fileStorage;
 
@@ -125,7 +125,7 @@ namespace Dopamine.Services.Metadata
         {
             byte[] artwork = null;
 
-            AlbumImage albumImage = albumImageRepository.GetAlbumImageForTrackWithPath(filename);
+            AlbumImage albumImage = imageRepository.GetAlbumImageForTrackWithPath(filename);
             if (albumImage != null)
             {
                 string artworkPath = fileStorage.GetRealPath(albumImage.Location);

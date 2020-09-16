@@ -16,9 +16,9 @@ namespace Dopamine.Data
             return new SQLiteAddFolderUnitOfWork(sQLiteConnectionFactory.GetConnection());
         }
 
-        public ICleanUpAlbumImagesUnitOfWork getCleanUpAlbumImages()
+        public ICleanUpImagesUnitOfWork getCleanUpAlbumImages()
         {
-            return new SQLiteCleanUpAlbumImagesUnitOfWork(sQLiteConnectionFactory.GetConnection());
+            return new SQLiteCleanUpImagesUnitOfWork(sQLiteConnectionFactory.GetConnection());
         }
 
         public IDeleteMediaFileUnitOfWork getDeleteMediaFileUnitOfWork()

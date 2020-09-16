@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Dopamine.Data.UnitOfWorks
 {
-    public interface ICleanUpAlbumImagesUnitOfWork : IDisposable
+    public interface ICleanUpImagesUnitOfWork : IDisposable
     {
         //
         // Summary:

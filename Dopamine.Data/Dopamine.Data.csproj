@@ -155,8 +155,10 @@
     <Compile Include="Providers\LastFMAlbumInfoProvider.cs" />
     <Compile Include="Providers\TagTrackInfoProvider.cs" />
     <Compile Include="Providers\IAlbumInfoProvider.cs" />
-    <Compile Include="Repositories\SQLiteAlbumImageRepository.cs" />
-    <Compile Include="Repositories\IAlbumImageRepository.cs" />
+    <Compile Include="Repositories\IImageRepository.cs" />
+    <Compile Include="Repositories\IGenreImageRepository.cs" />
+    <Compile Include="Repositories\IArtistImageRepository.cs" />
+    <Compile Include="Repositories\SQLiteImageRepository.cs" />
     <Compile Include="Repositories\SQLiteFolderVRepository.cs" />
     <Compile Include="Repositories\IFolderVRepository.cs" />
     <Compile Include="SQLiteUnitOfWorksFactory.cs" />
@@ -183,7 +185,7 @@
     </Compile>
     <Compile Include="Repositories\FolderRepository.cs" />
     <Compile Include="UnitOfWorks\SQLiteCleanUpAlbumImages.cs" />
-    <Compile Include="UnitOfWorks\ICleanUpAlbumImagesUnitOfWork.cs" />
+    <Compile Include="UnitOfWorks\ICleanUpImagesUnitOfWork.cs" />
     <Compile Include="UnitOfWorks\SQLiteUpdateFolderUnitOfWork.cs" />
     <Compile Include="UnitOfWorks\SQLiteRemoveFolderUnitOfWork.cs" />
     <Compile Include="UnitOfWorks\SQLiteAddFolderUnitOfWork.cs" />
