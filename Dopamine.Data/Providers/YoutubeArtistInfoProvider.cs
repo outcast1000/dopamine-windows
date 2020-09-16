@@ -63,7 +63,8 @@ namespace Dopamine.Data.Providers
                     matches = regex.Matches(result);
                     if (matches.Count > 0)
                     {
-                        Data.Biography = matches[0].Groups[1].Value;
+                        // May have escape chars like  \\\"futuristic \/
+                        Data.Biography = matches[0].Groups[1].Value.Replace("\\\\\\\"", "\"").Replace("\\/", "/");
                     }
                     else
                     {

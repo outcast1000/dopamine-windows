@@ -70,6 +70,7 @@ namespace Dopamine
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            /*
             var config = new NLog.Config.LoggingConfiguration();
 
             // Targets where to log to: File and Console
@@ -82,8 +83,7 @@ namespace Dopamine
 
             // Apply config           
             NLog.LogManager.Configuration = config;
-            Logger = NLog.LogManager.GetCurrentClassLogger();
-
+            */
 
             Logger.Info("App.OnStartup STARTING");
             // Create a jump-list and assign it to the current application
