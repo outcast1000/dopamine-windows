@@ -20,7 +20,7 @@ namespace Dopamine.Data.UnitOfWorks
 
         private SQLiteConnection conn;
         private SQLiteTrackVRepository sQLiteTrackVRepository;
-        private SQLiteAlbumImageRepository sQLiteAlbumImageRepository;
+        private SQLiteImageRepository sQLiteImageRepository;
         private bool bSharedConnection;
         public SQLiteUpdateCollectionUnitOfWork(SQLiteConnection conn, bool bSharedConnection)
         {
@@ -29,9 +29,9 @@ namespace Dopamine.Data.UnitOfWorks
             if (!bSharedConnection)
                 this.conn.BeginTransaction();
             sQLiteTrackVRepository = new SQLiteTrackVRepository(null);
-            sQLiteAlbumImageRepository = new SQLiteAlbumImageRepository(null);
+            sQLiteImageRepository = new SQLiteImageRepository(null);
             sQLiteTrackVRepository.SetSQLiteConnection(conn);
-            sQLiteAlbumImageRepository.SetSQLiteConnection(conn);
+            sQLiteImageRepository.SetSQLiteConnection(conn);
 
         }
 

@@ -8,14 +8,14 @@ using System.Threading.Tasks;
 
 namespace Dopamine.Data.Repositories
 {
-    public class SQLiteAlbumImageRepository:IAlbumImageRepository
+    public class SQLiteImageRepository:IImageRepository
     {
         private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
         private ISQLiteConnectionFactory _sQLiteConnectionFactory;
         private SQLiteConnection _SQLiteConnection;
 
-        public SQLiteAlbumImageRepository(ISQLiteConnectionFactory sQLiteConnectionFactory)
+        public SQLiteImageRepository(ISQLiteConnectionFactory sQLiteConnectionFactory)
         {
             this._sQLiteConnectionFactory = sQLiteConnectionFactory;
         }
@@ -27,19 +27,18 @@ namespace Dopamine.Data.Repositories
 
         public IList<AlbumImage> GetAlbumImages()
         {
-            return GetInternal(@"SELECT 
+            return GetInternal<AlbumImage>(@"SELECT 
                 album_id, 
                 location, 
                 source, 
                 date_added
                 from AlbumImages
                 ");
-
         }
 
         public AlbumImage GetAlbumImage(long albumId)
         {
-            IList<AlbumImage> images = GetInternal(@"SELECT 
+            IList<AlbumImage> images = GetInternal<AlbumImage>(@"SELECT 
                 album_id, 
                 location, 
                 source, 
@@ -55,7 +54,7 @@ namespace Dopamine.Data.Repositories
 
         public AlbumImage GetAlbumImageForTrackWithPath(string path)
         {
-            IList<AlbumImage> images = GetInternal(@" 
+            IList<AlbumImage> images = GetInternal<AlbumImage>(@" 
                         SELECT
                         AlbumImages.album_id, 
                         AlbumImages.location, 
@@ -71,32 +70,63 @@ namespace Dopamine.Data.Repositories
             return null;
         }
 
-        public AlbumImage GetPrimaryAlbumImage(long albumId)
-        {
-            IList<AlbumImage> images = GetInternal(@" 
-                        SELECT
-                        album_id, 
-                        location, 
-                        source, 
-                        date_added
-                        from AlbumImages
-                        WHERE album_id = ?", albumId);
-            Debug.Assert(images.Count < 2);
-            return images.Count > 0 ? images[0] : null;
-        }
-
-        private IList<AlbumImage> GetInternal(string sql, params object[] sqlParams)
+        private IList<T> GetInternal<T>(string sql, params object[] sqlParams) where T : new()
         {
             if (_SQLiteConnection != null)
             {
-                return _SQLiteConnection.Query<AlbumImage>(sql, sqlParams);
+                return _SQLiteConnection.Query<T>(sql, sqlParams);
             }
             Debug.Assert(_sQLiteConnectionFactory != null);
             using (var conn = _sQLiteConnectionFactory.GetConnection())
             {
                 try
                 {
-                    return conn.Query<AlbumImage>(sql, sqlParams);
+                    return conn.Query<T>(sql, sqlParams);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex, $"Query Failed {sql}");
+                }
+            }
+            return null;
+        }
+
+        public IList<ArtistImage> GetArtistImages()
+        {
+            return GetInternal<ArtistImage>(@"SELECT 
+                artist_id, 
+                location, 
+                source, 
+                date_added
+                from ArtistImages
+                ");
+        }
+
+        public IList<GenreImage> GetGenreImages()
+        {
+            return GetInternal<GenreImage>(@"SELECT 
+                genre_id, 
+                location, 
+                source, 
+                date_added
+                from GenreImages
+                ");
+        }
+
+        public IList<string> GetAllImagePaths()
+        {
+            string sql = @"SELECT location FROM GenreImages UNION SELECT location FROM AlbumImages UNION SELECT location FROM ArtistImages";
+
+            if (_SQLiteConnection != null)
+            {
+                return _SQLiteConnection.QueryScalars<string>(sql);
+            }
+            Debug.Assert(_sQLiteConnectionFactory != null);
+            using (var conn = _sQLiteConnectionFactory.GetConnection())
+            {
+                try
+                {
+                    return conn.QueryScalars<string>(sql);
                 }
                 catch (Exception ex)
                 {

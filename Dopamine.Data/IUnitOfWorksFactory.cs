@@ -11,6 +11,6 @@ namespace Dopamine.Data
         IAddFolderUnitOfWork getAddFolderUnitOfWork();
         IUpdateFolderUnitOfWork getUpdateFolderUnitOfWork();
         IRemoveFolderUnitOfWork getRemoveFolderUnitOfWork();
-        ICleanUpAlbumImagesUnitOfWork getCleanUpAlbumImages();
+        ICleanUpImagesUnitOfWork getCleanUpAlbumImages();
     }
 }

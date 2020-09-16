@@ -39,7 +39,8 @@ namespace Dopamine.Services.Indexing
         private IArtistVRepository artistVRepository;
         //private IAlbumImageRepository albumArtworkRepository;
         private IFolderVRepository folderVRepository;
-        private IAlbumImageRepository albumImageRepository;
+        //private IAlbumImageRepository albumImageRepository;
+        private IImageRepository imageRepository;
 
         // Factories
         private ISQLiteConnectionFactory sQLiteConnectionFactory;
@@ -77,7 +78,7 @@ namespace Dopamine.Services.Indexing
 
         public IndexingService(ISQLiteConnectionFactory sQLiteConnectionFactory, IInfoDownloadService infoDownloadService,
             ITrackVRepository trackVRepository, IFolderVRepository folderVRepository, IAlbumVRepository albumVRepository,
-            IUnitOfWorksFactory unitOfWorksFactory, IAlbumImageRepository albumImageRepository, IArtistVRepository artistVRepository, 
+            IUnitOfWorksFactory unitOfWorksFactory, IImageRepository imageRepository, IArtistVRepository artistVRepository, 
             IInfoProviderFactory infoProviderFactory, IFileStorage fileStorage)
         {
             this.infoDownloadService = infoDownloadService;
@@ -87,7 +88,7 @@ namespace Dopamine.Services.Indexing
             this.folderVRepository = folderVRepository;
             this.sQLiteConnectionFactory = sQLiteConnectionFactory;
             this.unitOfWorksFactory = unitOfWorksFactory;
-            this.albumImageRepository = albumImageRepository;
+            this.imageRepository = imageRepository;
             this.infoProviderFactory = infoProviderFactory;
             this.fileStorage = fileStorage;
 
@@ -256,7 +257,7 @@ namespace Dopamine.Services.Indexing
                                         if (result.AlbumId.HasValue && fileMetadata?.ArtworkData?.Value?.Length > 0)
                                         {
                                             //=== If Album do not have an image
-                                            AlbumImage albumImage = albumImageRepository.GetAlbumImage((long)result.AlbumId);
+                                            AlbumImage albumImage = imageRepository.GetAlbumImage((long)result.AlbumId);
                                             if (albumImage == null)
                                             {
                                                 string location = fileStorage.SaveImageToCache(fileMetadata.ArtworkData.Value, FileStorageItemType.Album);
@@ -306,7 +307,7 @@ namespace Dopamine.Services.Indexing
                                         if (fileMetadata?.ArtworkData?.Value?.Length > 0 && result.AlbumId.HasValue)
                                         {
                                             //=== If Album do not have an image
-                                            AlbumImage albumImage = albumImageRepository.GetAlbumImage((long)result.AlbumId);
+                                            AlbumImage albumImage = imageRepository.GetAlbumImage((long)result.AlbumId);
                                             if (albumImage == null || albumImage.Source == "[TAG]")
                                             {
                                                 string location = fileStorage.SaveImageToCache(fileMetadata.ArtworkData.Value, FileStorageItemType.Album);
@@ -358,31 +359,34 @@ namespace Dopamine.Services.Indexing
                 bool isTracksChanged = (addedFiles + updatedFiles + removedFiles) > 0;
                 bool isArtworkCleanedUp = false;
                 //=== STEP 3
-                //=== CLEAN UP AlbumImages
-                using (ICleanUpAlbumImagesUnitOfWork cleanUpAlbumImagesUnitOfWork = unitOfWorksFactory.getCleanUpAlbumImages())
+                //=== CLEAN UP Images
+                Logger.Debug($">> STEP3: CLEAN UP Images");
+                using (ICleanUpImagesUnitOfWork cleanUpAlbumImagesUnitOfWork = unitOfWorksFactory.getCleanUpAlbumImages())
                 {
                     isArtworkCleanedUp = cleanUpAlbumImagesUnitOfWork.CleanUp() > 0;
                 }
-                IList<AlbumImage> images = albumImageRepository.GetAlbumImages();
+                Logger.Debug($">> STEP4: CLEAN UP Images from cache that is not included in the DB");
+                //=== STEP 4
+                //=== CLEAN UP Images from cache that is not included in the DB
+                IList<string> images = imageRepository.GetAllImagePaths();
                 if (!ListExtensions.IsNullOrEmpty(images))
                 {
                     long imageDeletions = 0;
-                    HashSet<string> imagePaths = new HashSet<string>(images.Select(x => Path.GetFileNameWithoutExtension(fileStorage.GetRealPath(x.Location))).ToList());
+                    HashSet<string> imagePaths = new HashSet<string>(images.Select(x => Path.GetFileNameWithoutExtension(fileStorage.GetRealPath(x))).ToList());
                     FileOperations.GetFiles(fileStorage.StorageImagePath,
                         (path) =>
                         {
-                            path = path.ToLower();
                             string ext = Path.GetExtension(path);
                             string name = Path.GetFileNameWithoutExtension(path);
 
                             if (!ext.Equals(".jpg"))
                                 return;
-                            if (!imagePaths.Contains(name))
+                            if (imagePaths.Contains(name) == false)
                             {
                                 imageDeletions++;
-                                Debug.Print("Delete unused image?; {0}", path);
-                                    //== ALEX TODO. Temporary disabled. System.IO.File.Delete(path);
-                                }
+                                Logger.Debug($">> Deleting unused image: {name}");
+                                System.IO.File.Delete(path);
+                             }
                         },
                         () =>
                         {
