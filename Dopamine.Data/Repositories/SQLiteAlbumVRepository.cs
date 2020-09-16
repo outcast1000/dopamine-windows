@@ -25,7 +25,7 @@ namespace Dopamine.Data.Repositories
         public List<AlbumV> GetAlbumsWithoutImages(bool incudeFailedDownloads)
         {
             QueryOptions qo = new QueryOptions();
-            qo.extraWhereParams.Add("Thumbnail is null");
+            qo.extraWhereClause.Add("Thumbnail is null");
             if (incudeFailedDownloads == false)
             {
                 qo.extraJoinClause.Add("LEFT JOIN AlbumImageFailed ON AlbumImageFailed.album_id=Albums.id");
