@@ -20,6 +20,7 @@ namespace Dopamine.Data.Providers
         {
             HttpClient = new HttpClient();
             HttpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36");
+            HttpClient.DefaultRequestHeaders.Add("Accept-Language", "en-US, en;q=0.9, *;q=0.1");
             HttpClient.DefaultRequestHeaders.ExpectContinue = false;
         }
 

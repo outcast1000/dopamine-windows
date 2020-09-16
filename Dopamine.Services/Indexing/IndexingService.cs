@@ -360,7 +360,7 @@ namespace Dopamine.Services.Indexing
                 bool isArtworkCleanedUp = false;
                 //=== STEP 3
                 //=== CLEAN UP Images
-                Logger.Debug($">> STEP3: CLEAN UP Images");
+                Logger.Debug($">> STEP3: CLEAN UP Database from entities without tracks (Artists, albums, genres)");
                 using (ICleanUpImagesUnitOfWork cleanUpAlbumImagesUnitOfWork = unitOfWorksFactory.getCleanUpAlbumImages())
                 {
                     isArtworkCleanedUp = cleanUpAlbumImagesUnitOfWork.CleanUp() > 0;
@@ -490,23 +490,40 @@ namespace Dopamine.Services.Indexing
                         Logger.Debug($"RetrieveAlbumInfoAsync: Downloading Album Image for {albumDataToIndex.Name} - {albumDataToIndex.AlbumArtists}");
                         //LastFMAlbumInfoProvider lf = new LastFMAlbumInfoProvider(albumDataToIndex.Name, DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToArray());
                         IAlbumInfoProvider aip = infoProviderFactory.GetAlbumInfoProvider(albumDataToIndex.Name, DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToArray());
-
-                        if (aip.Success && aip.Data?.Images?.Length > 0)
+                        bool bImageAdded = false;
+                        if (aip.Success)
                         {
                             using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
                             {
-                                string cacheId = fileStorage.SaveImageToCache(aip.Data.Images[0], FileStorageItemType.Album);
-                                uc.SetAlbumImage(new AlbumImage()
+                                if (aip.Data?.Images?.Length > 0)
                                 {
-                                    AlbumId = albumDataToIndex.Id,
-                                    DateAdded = DateTime.Now.Ticks,
-                                    Location = cacheId,
-                                    Source = aip.ProviderName
-                                }, true);// albumDataToIndex.Id, "cache://" + albumImageName, len, sourceHash, providerName, false);
-                                albumsAdded.Add(albumDataToIndex);
+
+                                    string cacheId = fileStorage.SaveImageToCache(aip.Data.Images[0], FileStorageItemType.Album);
+                                    uc.SetAlbumImage(new AlbumImage()
+                                    {
+                                        AlbumId = albumDataToIndex.Id,
+                                        DateAdded = DateTime.Now.Ticks,
+                                        Location = cacheId,
+                                        Source = aip.ProviderName
+                                    }, true);
+                                    albumsAdded.Add(albumDataToIndex);
+                                    bImageAdded = true;
+                                }
+                                if (aip.Data?.Review?.Length > 0)
+                                {
+                                    uc.SetAlbumReview(new AlbumReview()
+                                    {
+                                        AlbumId = albumDataToIndex.Id,
+                                        DateAdded = DateTime.Now.Ticks,
+                                        Review = aip.Data.Review,
+                                        Source = aip.ProviderName
+                                    });
+                                }
                             }
+
                         }
-                        else
+                        
+                        if (!bImageAdded)
                         {
                             using (var conn = this.sQLiteConnectionFactory.GetConnection())
                             {
@@ -601,32 +618,40 @@ namespace Dopamine.Services.Indexing
                             conn.Execute("DELETE FROM ArtistImageFailed WHERE artist_id=?", artist.Id);
                         }
 
-                        // During the 2nd pass, look for artwork on the Internet and set NeedsAlbumArtworkIndexing = 0.
-                        // We don't want future passes to index for this AlbumKey anymore.
-
-                        //GetArtworkFromInternet(string albumTitle, IList<string> albumArtists, string trackTitle, IList<string> artists)
-
-                        //IArtistInfoProvider ip = new GoogleArtistInfoProvider(artist.Name);
-                        //IArtistInfoProvider ip = new YoutubeArtistInfoProvider(artist.Name);
                         IArtistInfoProvider ip = infoProviderFactory.GetArtistInfoProvider(artist.Name);
-
-
-                        if (ip.Success && ip.Data.Images != null && ip.Data.Images.Length >= 1)
+                        bool bImageAdded = false;
+                        if (ip.Success)
                         {
                             using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
                             {
-                                string cacheId = fileStorage.SaveImageToCache(ip.Data.Images[0], FileStorageItemType.Artist);
-                                uc.SetArtistImage(new ArtistImage()
+                                if (ip.Data?.Images?.Length > 0)
                                 {
-                                    ArtistId = artist.Id,
-                                    DateAdded = DateTime.Now.Ticks,
-                                    Location = cacheId,
-                                    Source = ip.ProviderName
-                                }, true);// albumDataToIndex.Id, "cache://" + albumImageName, len, sourceHash, providerName, false);
-                                artistsAdded.Add(artist);
+                                    string cacheId = fileStorage.SaveImageToCache(ip.Data.Images[0], FileStorageItemType.Artist);
+                                    uc.SetArtistImage(new ArtistImage()
+                                    {
+                                        ArtistId = artist.Id,
+                                        DateAdded = DateTime.Now.Ticks,
+                                        Location = cacheId,
+                                        Source = ip.ProviderName
+                                    }, true);// albumDataToIndex.Id, "cache://" + albumImageName, len, sourceHash, providerName, false);
+                                    artistsAdded.Add(artist);
+                                    bImageAdded = true;
+                                }
+                                if (ip.Data?.Biography?.Length > 0)
+                                {
+                                    uc.SetArtistBiography(new ArtistBiography()
+                                    {
+                                        ArtistId = artist.Id,
+                                        DateAdded = DateTime.Now.Ticks,
+                                        Biography = ip.Data.Biography,
+                                        Source = ip.ProviderName
+                                    });// albumDataToIndex.Id, "cache://" + albumImageName, len, sourceHash, providerName, false);
+                                }
+
                             }
                         }
-                        else
+
+                        if (!bImageAdded)
                         {
                             using (var conn = this.sQLiteConnectionFactory.GetConnection())
                             {

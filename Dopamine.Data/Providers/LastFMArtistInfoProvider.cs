@@ -25,7 +25,7 @@ namespace Dopamine.Data.Providers
             LastFmArtist lf = LastfmApi.ArtistGetInfo(artist, false, "EN").Result;
             if (lf.Biography  != null)
             {
-                Data.Bio = lf.Biography.Content;
+                Data.Biography = lf.Biography.Content;
             }
 
             Success = true;

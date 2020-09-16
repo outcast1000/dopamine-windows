@@ -535,6 +535,42 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
         }
 
 
+        public bool SetArtistBiography(ArtistBiography artistBiography)
+        {
+            Logger.Debug("SetArtistBiography");
+            Debug.Assert(artistBiography != null);
+            Debug.Assert(artistBiography.ArtistId > 0);
+            Debug.Assert(artistBiography.Biography.Length > 0);
+            try
+            {
+                int ret = conn.InsertOrReplace(artistBiography);
+                return true;
+            }
+            catch (SQLiteException ex)
+            {
+                Logger.Error(ex, "SetArtistBiography");
+            }
+            return false;
+        }
+        public bool SetAlbumReview(AlbumReview albumReview)
+        {
+            Logger.Debug("SetAlbumReview");
+            Debug.Assert(albumReview != null);
+            Debug.Assert(albumReview.AlbumId > 0);
+            Debug.Assert(albumReview.Review.Length > 0);
+            try
+            {
+                int ret = conn.InsertOrReplace(albumReview);
+                return true;
+            }
+            catch (SQLiteException ex)
+            {
+                Logger.Error(ex, "SetAlbumReview");
+            }
+            return false;
+        }
+
+
     }
 
 

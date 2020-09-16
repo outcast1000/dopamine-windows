@@ -10,7 +10,7 @@ namespace Dopamine.Data.Providers
     public class ArtistInfoProviderData
     {
         public Byte[][] Images { get; set; }
-        public string Bio { get; set; }
+        public string Biography { get; set; }
         public string[] Albums { get; set; }
         public string[] Tracks { get; set; }
         public string[] Members { get; set; }

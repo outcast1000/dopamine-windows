@@ -58,12 +58,12 @@ namespace Dopamine.Data.Providers
                         return false;
                     }
 
-                    // Find the Bio
+                    // Find the Bio: description\\\":{\\\"runs\\\":\[{\\\"text\\\":\\\"(.*?)\\\"}\]}
                     regex = new Regex("description\\\\\\\":{\\\\\\\"runs\\\\\\\":\\[{\\\\\\\"text\\\\\\\":\\\\\\\"(.*?)\\\\\\\"}\\]}");
                     matches = regex.Matches(result);
                     if (matches.Count > 0)
                     {
-                        Data.Bio = matches[0].Groups[1].Value;
+                        Data.Biography = matches[0].Groups[1].Value;
                     }
                     else
                     {

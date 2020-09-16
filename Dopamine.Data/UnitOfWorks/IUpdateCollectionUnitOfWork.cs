@@ -92,5 +92,11 @@ namespace Dopamine.Data.UnitOfWorks
         bool SetLyrics(TrackLyrics trackLyrics, bool replaceIfExists);
         bool RemoveLyrics(long track_id);
 
+        bool SetArtistBiography(ArtistBiography artistBiography);
+        bool SetAlbumReview(AlbumReview albumReview);
+
+
+
+
     }
 }
