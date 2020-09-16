@@ -134,6 +134,9 @@ namespace Dopamine.ViewModels.Common.Base
             this.searchService.DoSearch += (searchText) => this.FilterLists();
             this.metadataService.RatingChanged += MetadataService_RatingChangedAsync;
             this.metadataService.LoveChanged += MetadataService_LoveChangedAsync;
+            this.indexingService.AlbumImagesAdded += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when the indexer has finished indexing
+            this.indexingService.ArtistImagesAdded += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when the indexer has finished indexing
+
 
             // Flags
             this.EnableRating = SettingsClient.Get<bool>("Behaviour", "EnableRating");
@@ -259,6 +262,7 @@ namespace Dopamine.ViewModels.Common.Base
 
         protected virtual void SetEditCommands()
         {
+           
             this.IsIndexing = this.indexingService.IsIndexing;
 
             if (this.EditTracksCommand != null) this.EditTracksCommand.RaiseCanExecuteChanged();

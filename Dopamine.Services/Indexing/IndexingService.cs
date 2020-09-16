@@ -65,7 +65,7 @@ namespace Dopamine.Services.Indexing
         public event Action<IndexingStatusEventArgs> IndexingStatusChanged = delegate { };
         public event EventHandler RefreshLists = delegate { };
         public event EventHandler RefreshArtwork = delegate { };
-        public event AlbumArtworkAddedEventHandler AlbumArtworkAdded = delegate { };
+        public event AlbumImagesAddedEventHandler AlbumImagesAdded = delegate { };
         public event ArtistImagesAddedEventHandler ArtistImagesAdded = delegate { };
 
         
@@ -462,7 +462,7 @@ namespace Dopamine.Services.Indexing
                             try
                             {
                                 Logger.Warn("+++ ABORTED ADDING ARTWORK IN THE BACKGROUND. Time required: {0} ms +++", Convert.ToInt64(DateTime.Now.Subtract(startTime).TotalMilliseconds));
-                                AlbumArtworkAdded(this, new AlbumArtworkAddedEventArgs() { Albums = albumsAdded }); // Update UI
+                                AlbumImagesAdded(this, new AlbumArtworkAddedEventArgs() { Albums = albumsAdded }); // Update UI
                             }
                             catch (Exception ex)
                             {
@@ -499,6 +499,7 @@ namespace Dopamine.Services.Indexing
                                     Location = cacheId,
                                     Source = aip.ProviderName
                                 }, true);// albumDataToIndex.Id, "cache://" + albumImageName, len, sourceHash, providerName, false);
+                                albumsAdded.Add(albumDataToIndex);
                             }
                         }
                         else
@@ -519,10 +520,17 @@ namespace Dopamine.Services.Indexing
 
                             IList<AlbumV> eventArgs = albumsAdded.Select(item => item).ToList();
                             albumsAdded.Clear();
-                            AlbumArtworkAdded(this, new AlbumArtworkAddedEventArgs() { Albums = eventArgs }); // Update UI
+                            AlbumImagesAdded(this, new AlbumArtworkAddedEventArgs() { Albums = eventArgs }); // Update UI
                             Logger.Debug($"RetrieveAlbumInfoAsync. Stopping to MAX LIMIT OF 20 (DEBUG)");
                             break;//=== TODO ALEX. Remove It. Here for Test Purposes
                         }
+                    }
+                    if (albumsAdded.Count > 0)
+                    {
+
+                        IList<AlbumV> eventArgs = albumsAdded.Select(item => item).ToList();
+                        albumsAdded.Clear();
+                        AlbumImagesAdded(this, new AlbumArtworkAddedEventArgs() { Albums = eventArgs }); // Update UI
                     }
 
                 }
@@ -636,6 +644,11 @@ namespace Dopamine.Services.Indexing
                             Logger.Debug($"RetrieveArtistInfoAsync. Stopping to MAX LIMIT OF 20 (DEBUG)");
                             break;
                         }
+                    }
+                    if (artistsAdded.Count > 0)
+                    {
+                        IList<ArtistV> eventArgs = artistsAdded.Select(item => item).ToList();
+                        ArtistImagesAdded(this, new ArtistImagesAddedEventArgs() { Artists = eventArgs }); // Update UI
                     }
 
                 }

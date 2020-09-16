@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Dopamine.Services.Indexing
 {
-    public delegate void AlbumArtworkAddedEventHandler(object sender, AlbumArtworkAddedEventArgs e);
+    public delegate void AlbumImagesAddedEventHandler(object sender, AlbumArtworkAddedEventArgs e);
     public delegate void ArtistImagesAddedEventHandler(object sender, ArtistImagesAddedEventArgs e);
 
     public interface IIndexingService
@@ -24,7 +24,7 @@ namespace Dopamine.Services.Indexing
 
         event EventHandler RefreshLists;
 
-        event AlbumArtworkAddedEventHandler AlbumArtworkAdded;
+        event AlbumImagesAddedEventHandler AlbumImagesAdded;
 
         event ArtistImagesAddedEventHandler ArtistImagesAdded;
     }
