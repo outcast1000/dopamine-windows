@@ -420,9 +420,7 @@ namespace Dopamine.Services.Indexing
                 {
                     await watcherManager.StartWatchingAsync();
                 }
-                Debug.Print("EXITING PrivateRefreshCollectionAsync (TASK)");
             });
-            Debug.Print("EXITING PrivateRefreshCollectionAsync");
         }
 
         
