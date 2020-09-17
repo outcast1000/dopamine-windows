@@ -12,7 +12,7 @@ namespace Dopamine.Data.UnitOfWorks
     {
         //
         // Summary:
-        //     Clean up all Album Images from albums who have zero tracks (deleted or ignored are not counted)
+        //     Clean up all Images from albums who have zero tracks (deleted or ignored are not counted)
         //
         // Parameters:
         //   none

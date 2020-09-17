@@ -143,7 +143,8 @@ namespace Dopamine.Services.Indexing
             await Task.Run(async () =>
             {
                 Logger.Debug("RefreshCollectionAsync ENTER Task");
-
+                int timeStarted = Environment.TickCount;
+                long totalFiles = 0;
                 long addedFiles = 0;
                 long updatedFiles = 0;
                 long removedFiles = 0;
@@ -193,6 +194,8 @@ namespace Dopamine.Services.Indexing
                             //=== Check the extension
                             if (!FileFormats.SupportedMediaExtensions.Contains(Path.GetExtension(path.ToLower())))
                                 return;
+                            Logger.Trace($"Total: {totalFiles} Added: {addedFiles} Updated: {updatedFiles} Removed: {removedFiles} Failed: {failedFiles} ElapsedMS: {Environment.TickCount - timeStarted} Total: {totalFiles} ");
+                            totalFiles++;
                             //=== Check the DB for the path
                             TrackV trackV = trackVRepository.GetTrackWithPath(path);
                             long DateFileModified = FileUtils.DateModifiedTicks(path);
