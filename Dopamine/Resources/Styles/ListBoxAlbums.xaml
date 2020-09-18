@@ -106,7 +106,8 @@
                         </Grid.ColumnDefinitions>
                         <Border
                             x:Name="MouseHoverHelper"
-                            Background="{DynamicResource Brush_ItemHovered}"
+                            Background= "{DynamicResource Brush_ItemHovered}"
+                            
                             Opacity="0" />
                         <Border
                             x:Name="SelectionBorder"
@@ -171,7 +172,7 @@
                                 <TextBlock
                                     Grid.Row="0"
                                     Grid.Column="0"
-                                    HorizontalAlignment="Left"
+                                    HorizontalAlignment="Stretch"
                                     FontSize="20"
                                     Foreground="{DynamicResource Brush_PrimaryText}"
                                     Text="{Binding Name}"
@@ -179,8 +180,8 @@
                                 <TextBlock
                                     Grid.Row="1"
                                     Grid.Column="0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Top"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Stretch"
                                     Foreground="{DynamicResource Brush_SecondaryText}"
                                     Text="{Binding AlbumItemInfo}"
                                     TextTrimming=" CharacterEllipsis" />
@@ -189,7 +190,7 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="True">
-                            <!--<Setter Property="Background" Value="{DynamicResource Brush_ItemSelected}"/>-->
+                            <Setter Property="Background" Value="{DynamicResource Brush_ItemSelected}" />
                             <Setter TargetName="SelectionBorder" Property="Background" Value="{DynamicResource Brush_Accent}" />
                         </Trigger>
                         <EventTrigger RoutedEvent="MouseEnter">
