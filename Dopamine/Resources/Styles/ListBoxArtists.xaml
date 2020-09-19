@@ -100,62 +100,17 @@
                             </Grid>
                         </Button>
                         <!--  Artist  -->
-                        <Grid
-                            Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}"
-                            HorizontalAlignment="Stretch"
-                            Background="{TemplateBinding Background}">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Border
-                                x:Name="MouseHoverHelper"
-                                Background="{DynamicResource Brush_ItemHovered}"
-                                Opacity="0" />
-                            <Border
-                                x:Name="SelectionBorder"
-                                Height="{x:Static base:Constants.AlbumSelectionBorderSize}"
-                                HorizontalAlignment="Stretch" />
-                            <Grid
-                                Grid.Row="0"
-                                Grid.Column="0"
-                                Width="96"
-                                Height="96"
-                                Margin="4"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Top">
-                                <pc:Tile
-                                    Width="64"
-                                    Height="64"
-                                    Panel.ZIndex="0"
-                                    Background="{DynamicResource Brush_CoverTileBackground}"
-                                    IconSizePercent="{x:Static base:Constants.HeadPhoneSmallSize}">
-                                    <pc:Tile.Content>
-                                        <Viewbox>
-                                            <Path Data="{DynamicResource HeadPhone}" Fill="{DynamicResource Brush_CoverTileIcon}" />
-                                        </Viewbox>
-                                    </pc:Tile.Content>
-                                </pc:Tile>
+                        <Grid Margin="0,0">
+                            <Grid Height="{Binding ActualHeight, ElementName=MainListItem}">
                                 <pc:SourceChangedImage
-                                    HorizontalAlignment="Center"
+                                    HorizontalAlignment="Stretch"
                                     VerticalAlignment="Center"
-                                    Panel.ZIndex="1"
-                                    RenderOptions.BitmapScalingMode="HighQuality"
                                     Stretch="UniformToFill">
                                     <pc:SourceChangedImage.Source>
                                         <Binding
                                             Converter="{StaticResource KeyToPathConverter}"
                                             IsAsync="True"
                                             Path="Thumbnail" />
-                                        <!-- Maybe i will need later this code for image manipulation (and / or caching)
-                                        <MultiBinding Converter="{StaticResource PathToImageConverter}">
-                                            <Binding
-                                                Converter="{StaticResource KeyToPathConverter}"
-                                                IsAsync="True"
-                                                Path="Thumbnail" />
-                                            <Binding Path="DataContext.UpscaledCoverSize" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type UserControl}}" />
-                                        </MultiBinding>
-                                        -->
                                     </pc:SourceChangedImage.Source>
                                     <pc:SourceChangedImage.Triggers>
                                         <EventTrigger RoutedEvent="pc:SourceChangedImage.SourceChanged">
@@ -172,51 +127,84 @@
                                     </pc:SourceChangedImage.Triggers>
                                 </pc:SourceChangedImage>
                             </Grid>
-                            <Grid
-                                Grid.Row="0"
-                                Grid.Column="1"
-                                Margin="6"
-                                HorizontalAlignment="Left"
+                            <Border Name="OverlayBorder">
+                                <Border.Background>
+                                    <SolidColorBrush Color="#8000" />
+                                </Border.Background>
+                            </Border>
+                            <Border
+                                Name="SelectionBorder"
+                                BorderThickness="15,0,0,0"
+                                Opacity="0">
+                                <Border.BorderBrush>
+                                    <SolidColorBrush Color="#00F" />
+                                </Border.BorderBrush>
+                            </Border>
+                            <StackPanel
+                                Name="MainListItem"
+                                MinHeight="96"
                                 VerticalAlignment="Top">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="*" />
-                                </Grid.RowDefinitions>
                                 <TextBlock
-                                    Grid.Row="0"
-                                    Grid.Column="0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Top"
                                     FontSize="20"
                                     Foreground="{DynamicResource Brush_PrimaryText}"
                                     Text="{Binding Name}"
-                                    TextTrimming="CharacterEllipsis" />
+                                    TextTrimming="CharacterEllipsis"
+                                    TextWrapping="WrapWithOverflow" />
                                 <TextBlock
-                                    Grid.Row="1"
-                                    Grid.Column="0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Top"
                                     Foreground="{DynamicResource Brush_SecondaryText}"
                                     Text="{Binding ArtistItemInfo}"
-                                    TextTrimming=" CharacterEllipsis" />
-                            </Grid>
+                                    TextTrimming="CharacterEllipsis"
+                                    TextWrapping="WrapWithOverflow" />
+                            </StackPanel>
                         </Grid>
+
                     </DockPanel>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource Brush_ItemSelected}" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="SelectionBorder"
+                                            Storyboard.TargetProperty="Opacity"
+                                            From="0"
+                                            To="1"
+                                            Duration="0:0:0.15" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="SelectionBorder"
+                                            Storyboard.TargetProperty="Opacity"
+                                            From="1"
+                                            To="0"
+                                            Duration="0:0:0.3" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <EventTrigger RoutedEvent="MouseEnter">
                             <BeginStoryboard>
-                                <Storyboard TargetProperty="Opacity" Storyboard.TargetName="MouseHoverHelper">
-                                    <DoubleAnimation To="1" Duration="{x:Static base:Constants.MouseEnterDuration}" />
+                                <Storyboard TargetProperty="Opacity" Storyboard.TargetName="OverlayBorder">
+                                    <ColorAnimation
+                                        Storyboard.TargetName="OverlayBorder"
+                                        Storyboard.TargetProperty="Background.Color"
+                                        To="#8fff"
+                                        Duration="0:0:0.15" />
                                 </Storyboard>
                             </BeginStoryboard>
                         </EventTrigger>
                         <EventTrigger RoutedEvent="MouseLeave">
                             <BeginStoryboard>
-                                <Storyboard TargetProperty="Opacity" Storyboard.TargetName="MouseHoverHelper">
-                                    <DoubleAnimation To="0" Duration="{x:Static base:Constants.MouseLeaveDuration}" />
+                                <Storyboard TargetProperty="Opacity" Storyboard.TargetName="OverlayBorder">
+                                    <ColorAnimation
+                                        Storyboard.TargetName="OverlayBorder"
+                                        Storyboard.TargetProperty="Background.Color"
+                                        To="#8000"
+                                        Duration="0:0:0.3" />
                                 </Storyboard>
                             </BeginStoryboard>
                         </EventTrigger>
