@@ -100,9 +100,10 @@
                             </Grid>
                         </Button>
                         <!--  Artist  -->
-                        <Grid Margin="0,0">
+                        <Grid Margin="0,0,0,0">
                             <Grid Height="{Binding ActualHeight, ElementName=MainListItem}">
                                 <pc:SourceChangedImage
+                                    Margin="0,0,0,1"
                                     HorizontalAlignment="Stretch"
                                     VerticalAlignment="Center"
                                     Stretch="UniformToFill">
@@ -126,15 +127,16 @@
                                         </EventTrigger>
                                     </pc:SourceChangedImage.Triggers>
                                 </pc:SourceChangedImage>
+                                <Border Name="OverlayBorder">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="#0000" />
+                                    </Border.Background>
+                                </Border>
                             </Grid>
-                            <Border Name="OverlayBorder">
-                                <Border.Background>
-                                    <SolidColorBrush Color="#8000" />
-                                </Border.Background>
-                            </Border>
+
                             <Border
                                 Name="SelectionBorder"
-                                BorderThickness="15,0,0,0"
+                                BorderThickness="3,0,0,0"
                                 Opacity="0">
                                 <Border.BorderBrush>
                                     <SolidColorBrush Color="#00F" />
@@ -144,17 +146,33 @@
                                 Name="MainListItem"
                                 MinHeight="96"
                                 VerticalAlignment="Top">
-                                <TextBlock
+                                <pc:OutlinedTextBlock
+                                    Margin="10,0,0,4"
+                                    HorizontalAlignment="Left"
+                                    Fill="{DynamicResource Brush_PrimaryText}"
                                     FontSize="20"
-                                    Foreground="{DynamicResource Brush_PrimaryText}"
+                                    FontWeight="Bold"
+                                    Stroke="#d000"
+                                    StrokeThickness="3"
                                     Text="{Binding Name}"
                                     TextTrimming="CharacterEllipsis"
                                     TextWrapping="WrapWithOverflow" />
                                 <TextBlock
-                                    Foreground="{DynamicResource Brush_SecondaryText}"
+                                    Name="ExtraInfo"
+                                    Padding="10,0,20,2"
+                                    HorizontalAlignment="Left"
+                                    Foreground="{DynamicResource Brush_PrimaryText}"
+                                    Opacity="0"
                                     Text="{Binding ArtistItemInfo}"
                                     TextTrimming="CharacterEllipsis"
-                                    TextWrapping="WrapWithOverflow" />
+                                    TextWrapping="WrapWithOverflow">
+                                    <TextBlock.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Offset="0.0" Color="#a000" />
+                                            <GradientStop Offset="1" Color="#0000" />
+                                        </LinearGradientBrush>
+                                    </TextBlock.Background>
+                                </TextBlock>
                             </StackPanel>
                         </Grid>
 
@@ -192,8 +210,14 @@
                                     <ColorAnimation
                                         Storyboard.TargetName="OverlayBorder"
                                         Storyboard.TargetProperty="Background.Color"
-                                        To="#8fff"
+                                        To="#2aaf"
                                         Duration="0:0:0.15" />
+                                    <DoubleAnimation
+                                        Storyboard.TargetName="ExtraInfo"
+                                        Storyboard.TargetProperty="Opacity"
+                                        From="0"
+                                        To="1"
+                                        Duration="0:0:0.3" />
                                 </Storyboard>
                             </BeginStoryboard>
                         </EventTrigger>
@@ -203,7 +227,13 @@
                                     <ColorAnimation
                                         Storyboard.TargetName="OverlayBorder"
                                         Storyboard.TargetProperty="Background.Color"
-                                        To="#8000"
+                                        To="#0000"
+                                        Duration="0:0:0.3" />
+                                    <DoubleAnimation
+                                        Storyboard.TargetName="ExtraInfo"
+                                        Storyboard.TargetProperty="Opacity"
+                                        From="1"
+                                        To="0"
                                         Duration="0:0:0.3" />
                                 </Storyboard>
                             </BeginStoryboard>
