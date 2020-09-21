@@ -47,8 +47,6 @@ namespace Dopamine.Services.Entities
 
                 if (!string.IsNullOrEmpty(data.Genres))
                     info += string.Format("\n{0}", data.Genres);
-                info += string.Format("\n{0} tracks", data.TrackCount);
-                info += string.Format("\n{0} albums", data.AlbumCount);
                 if (!data.MinYear.HasValue)
                 {
 
@@ -57,6 +55,8 @@ namespace Dopamine.Services.Entities
                     info += string.Format("\nYear: {0}", data.MinYear);
                 else
                     info += string.Format("\nYears: {0} - {1}", data.MinYear, data.MaxYear);
+                info += string.Format("\n{0} tracks", data.TrackCount);
+                info += string.Format("\n{0} albums", data.AlbumCount);
                 return info.Trim();
             }
         }

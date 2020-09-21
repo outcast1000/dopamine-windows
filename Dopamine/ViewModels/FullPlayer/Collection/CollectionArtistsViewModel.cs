@@ -61,6 +61,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         public DelegateCommand ShuffleSelectedArtistsCommand { get; set; }
 
+        public DelegateCommand<ArtistViewModel> PlayArtistCommand { get; set; }
+
         public ArtistType ArtistType
         {
             get { return this.artistType; }
@@ -151,6 +153,11 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
         }
 
+        private async void PlayCommandFunc(ArtistViewModel avm)
+        {
+            await this.playbackService.EnqueueArtistsAsync(new List<ArtistViewModel>() { avm }, true, false);
+        }
+
         public CollectionArtistsViewModel(IContainerProvider container) : base(container)
         {
             // Dependency injection
@@ -171,6 +178,10 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             this.ShowArtistsZoomCommand = new DelegateCommand(async () => await this.ShowSemanticZoomAsync());
             this.AddArtistsToNowPlayingCommand = new DelegateCommand(async () => await this.AddArtistsToNowPlayingAsync(this.SelectedArtists));
             this.ShuffleSelectedArtistsCommand = new DelegateCommand(async () => await this.playbackService.EnqueueArtistsAsync(this.SelectedArtists, true, false));
+
+            this.PlayArtistCommand = new DelegateCommand<ArtistViewModel>(PlayCommandFunc);
+
+
 
             this.SemanticJumpCommand = new DelegateCommand<string>((header) =>
             {

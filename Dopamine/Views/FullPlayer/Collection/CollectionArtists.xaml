@@ -115,6 +115,8 @@
                                 PreviewKeyDown="ListBoxArtists_PreviewKeyDown"
                                 SelectionMode="Extended"
                                 Style="{StaticResource ListBoxArtists}"
+                                HorizontalContentAlignment="Stretch"
+                                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                 VirtualizingPanel.IsVirtualizingWhenGrouping="True"
                                 VirtualizingStackPanel.IsVirtualizing="True"
                                 VirtualizingStackPanel.VirtualizationMode="Recycling">

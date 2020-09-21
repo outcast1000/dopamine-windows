@@ -4,6 +4,7 @@ using Dopamine.Services.Utils;
 using Dopamine.Views.Common.Base;
 using Prism.Commands;
 using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
 
@@ -41,6 +42,14 @@ namespace Dopamine.Views.FullPlayer.Collection
         private async void ListBoxArtists_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             await this.ActionHandler(sender, e.OriginalSource as DependencyObject, true);
+        }
+
+
+        private async void ListBoxArtists_ItemPlayClick(object sender, MouseButtonEventArgs e)
+        {
+            //await this.ActionHandler(sender, e.OriginalSource as DependencyObject, true);
+            Debug.Print("Test");
+            //await this.playbackService.EnqueueArtistsAsync(new List<ArtistViewModel> { ((ArtistViewModel)lb.SelectedItem) }, false, false);
         }
 
         private async void ListBoxArtists_PreviewKeyDown(object sender, KeyEventArgs e)
