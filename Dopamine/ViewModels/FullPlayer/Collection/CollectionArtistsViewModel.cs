@@ -25,6 +25,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using Dopamine.Data.Entities;
+using System.Diagnostics;
 
 namespace Dopamine.ViewModels.FullPlayer.Collection
 {
@@ -62,6 +63,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         public DelegateCommand ShuffleSelectedArtistsCommand { get; set; }
 
         public DelegateCommand<ArtistViewModel> PlayArtistCommand { get; set; }
+        public DelegateCommand<ArtistViewModel> EnqueueArtistCommand { get; set; }
+        public DelegateCommand<ArtistViewModel> LoveArtistCommand { get; set; }
 
         public ArtistType ArtistType
         {
@@ -153,11 +156,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
         }
 
-        private async void PlayCommandFunc(ArtistViewModel avm)
-        {
-            await this.playbackService.EnqueueArtistsAsync(new List<ArtistViewModel>() { avm }, true, false);
-        }
-
         public CollectionArtistsViewModel(IContainerProvider container) : base(container)
         {
             // Dependency injection
@@ -179,7 +177,9 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             this.AddArtistsToNowPlayingCommand = new DelegateCommand(async () => await this.AddArtistsToNowPlayingAsync(this.SelectedArtists));
             this.ShuffleSelectedArtistsCommand = new DelegateCommand(async () => await this.playbackService.EnqueueArtistsAsync(this.SelectedArtists, true, false));
 
-            this.PlayArtistCommand = new DelegateCommand<ArtistViewModel>(PlayCommandFunc);
+            this.PlayArtistCommand = new DelegateCommand<ArtistViewModel>(async (avm) => await this.playbackService.EnqueueArtistsAsync(new List<ArtistViewModel>() { avm }, false, false));
+            this.EnqueueArtistCommand = new DelegateCommand<ArtistViewModel>(async (avm) => await this.playbackService.AddArtistsToQueueAsync(new List<ArtistViewModel>() { avm }));
+            this.LoveArtistCommand = new DelegateCommand<ArtistViewModel>((avm) => Debug.Assert(false, "ALEX TODO"));
 
 
 

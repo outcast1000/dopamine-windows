@@ -205,7 +205,9 @@
                                         Margin="4,4,4,4"
                                         HorizontalContentAlignment="Center"
                                         VerticalContentAlignment="Center"
-                                        ToolTip="{DynamicResource Language_Add_To_Playlist}">
+                                        Command="{Binding DataContext.LoveArtistCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                        CommandParameter="{Binding .}"
+                                        ToolTip="{DynamicResource Language_Love}">
                                         <TextBlock
                                             FontSize="16"
                                             Foreground="{DynamicResource Brush_PrimaryText}"
@@ -220,6 +222,8 @@
                                         Margin="4,4,4,4"
                                         HorizontalContentAlignment="Center"
                                         VerticalContentAlignment="Center"
+                                        Command="{Binding DataContext.EnqueueArtistCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                        CommandParameter="{Binding .}"
                                         ToolTip="{DynamicResource Language_Add_To_Playlist}">
                                         <TextBlock
                                             FontSize="16"
@@ -236,6 +240,8 @@
                                     Margin="4,4,4,4"
                                     HorizontalContentAlignment="Center"
                                     VerticalContentAlignment="Center"
+                                    Command="{Binding DataContext.PlayArtistCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                    CommandParameter="{Binding .}"
                                     ToolTip="{DynamicResource Language_Play}">
                                     <TextBlock
                                         FontSize="16"
