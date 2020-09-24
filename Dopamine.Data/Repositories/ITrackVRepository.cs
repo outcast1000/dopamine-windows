@@ -39,5 +39,13 @@ namespace Dopamine.Data.Repositories
 
         void UpdatePlaybackCounters(PlaybackCounter counters);
 
+
+        //=== PLAYLIST
+        List<TrackV> GetPlaylistTracks();
+        void SavePlaylistTracks(IList<TrackV> tracks);
+        TrackV GetPlaylistCurrentTrack();
+
+        //=== PLAYLIST END
+
     }
 }

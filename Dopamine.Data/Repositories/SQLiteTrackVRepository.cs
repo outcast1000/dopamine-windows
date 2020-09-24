@@ -10,11 +10,13 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using Dopamine.Core.Alex;
 using SQLite;
+using Dopamine.Data.UnitOfWorks;
 
 namespace Dopamine.Data.Repositories
 {
     public class SQLiteTrackVRepository : ITrackVRepository
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private readonly ISQLiteConnectionFactory factory;
         private SQLiteConnection connection;
 
@@ -408,5 +410,46 @@ GROUP BY t.id
             track.DateIgnored = DateTime.UtcNow.Ticks;
             return UpdateTrack(track);
         }
+
+
+        //=== PLAYLIST
+        public List<TrackV> GetPlaylistTracks()
+        {
+            QueryOptions qo = new QueryOptions();
+            qo.extraWhereClause.Add("t.id in (SELECT track_id from PlaylistTracks)");
+            qo.WhereVisibleFolders = QueryOptionsBool.Ignore;
+            qo.WhereDeleted = QueryOptionsBool.Ignore;
+            qo.WhereIgnored = QueryOptionsBool.Ignore;
+            return GetTracksInternal(qo);
+        }
+        public void SavePlaylistTracks(IList<TrackV> tracks)
+        {
+            try
+            {
+                using (var conn = factory.GetConnection())
+                {
+                    SQLiteSavePlaylistUnitOfWork uow = new SQLiteSavePlaylistUnitOfWork(conn);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Could not connect to the database. Exception: {0}", ex.Message);
+            }
+        }
+        public TrackV GetPlaylistCurrentTrack()
+        {
+            QueryOptions qo = new QueryOptions();
+            qo.extraWhereClause.Add("t.id in (SELECT value from General WHERE key=?)");
+            qo.extraWhereParams.Add(GeneralRepositoryKeys.PlayListPosition);
+            qo.WhereVisibleFolders = QueryOptionsBool.Ignore;
+            qo.WhereDeleted = QueryOptionsBool.Ignore;
+            qo.WhereIgnored = QueryOptionsBool.Ignore;
+            IList<TrackV> tracks = GetTracksInternal(qo);
+            if (tracks.Count > 0)
+                return tracks[0];
+            return null;
+        }
+
+        //=== PLAYLIST END
     }
 }

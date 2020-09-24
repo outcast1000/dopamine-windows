@@ -7,6 +7,7 @@ using Dopamine.Data.Repositories;
 using Dopamine.Services.Entities;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -14,8 +15,9 @@ namespace Dopamine.Services.Playback
 {
     internal class QueueManager
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private ITrackVRepository trackRepository;
-        private TrackViewModel currentTrack;
+        private int currentPosition = -1;
         private object queueLock = new object();
         private List<TrackViewModel> queue = new List<TrackViewModel>(); // Queued tracks in original order
         private List<int> playbackOrder = new List<int>(); // Playback order of queued tracks (Contains the indexes of list the queued tracks)
@@ -40,27 +42,6 @@ namespace Dopamine.Services.Playback
             return new List<int>();
         }
 
-        private int FindQueueIndex(TrackViewModel track)
-        {
-            if (this.queue != null)
-            {
-                return this.queue.IndexOf(track);
-            }
-
-            return 0;
-        }
-
-        private int FindPlaybackOrderIndex(TrackViewModel track)
-        {
-            if (this.queue != null && this.playbackOrder != null)
-            {
-                int queueIndex = this.queue.IndexOf(track);
-                return this.playbackOrder.IndexOf(queueIndex);
-            }
-
-            return 0;
-        }
-
         public async Task ShuffleAsync()
         {
             await Task.Run(() =>
@@ -69,7 +50,30 @@ namespace Dopamine.Services.Playback
                 {
                     if (this.queue.Count > 0)
                     {
-                        if (this.currentTrack != null || !this.queue.Contains(this.currentTrack))
+                        int currentTrackIndex = -1;
+                        // We should lock the current track before randomize
+                        if (currentPosition >= 0)
+                        {
+                            currentTrackIndex = playbackOrder[currentPosition];
+                        }
+
+                        playbackOrder = GetQueueIndices().Randomize();
+                        if (currentTrackIndex != -1)
+                        {
+                            currentPosition = playbackOrder.FindIndex(x => x == currentTrackIndex);
+                        }
+                        /* 
+                        if (currentTrackIndex >= 0)
+                        {
+                            int idx = playbackOrder.FindIndex(x => (x == currentTrackIndex));
+                            playbackOrder[idx] = playbackOrder[0];
+                            playbackOrder[0] = currentTrackIndex;
+                        }
+                        */
+
+                        /*
+
+                        if (currentTrackIndex >= 0)
                         {
                             // We're not playing a track from the queue: just shuffle.
                             this.playbackOrder = this.GetQueueIndices().Randomize();
@@ -84,6 +88,7 @@ namespace Dopamine.Services.Playback
                             tempPlaybackOrder.Remove(currentTrackIndex);
                             this.playbackOrder.AddRange(tempPlaybackOrder.Randomize());
                         }
+                        */
                     }
                 }
             });
@@ -97,7 +102,18 @@ namespace Dopamine.Services.Playback
                 {
                     if (this.queue.Count > 0)
                     {
-                        this.playbackOrder = this.GetQueueIndices();
+                        int currentTrackIndex = -1;
+                        // We should lock the current track before randomize
+                        if (currentPosition >= 0)
+                        {
+                            currentTrackIndex = playbackOrder[currentPosition];
+                        }
+
+                        playbackOrder = GetQueueIndices();
+                        if (currentTrackIndex != -1)
+                        {
+                            currentPosition = playbackOrder.FindIndex(x => x == currentTrackIndex);
+                        }
                     }
                 }
             });
@@ -107,13 +123,13 @@ namespace Dopamine.Services.Playback
         {
             try
             {
-                if (this.currentTrack != null)
+                if (currentPosition >= 0)
                 {
-                    return this.currentTrack;
+                    return this.queue[playbackOrder[currentPosition]];
                 }
                 else
                 {
-                    return this.FirstTrack();
+                    return null;
                 }
             }
             catch (Exception ex)
@@ -126,21 +142,9 @@ namespace Dopamine.Services.Playback
 
         public TrackViewModel FirstTrack()
         {
-            TrackViewModel firstTrack = null;
-
-            try
-            {
-                if (this.playbackOrder != null && this.playbackOrder.Count > 0)
-                {
-                    firstTrack = this.queue[this.playbackOrder.First()];
-                }
-            }
-            catch (Exception ex)
-            {
-                LogClient.Error("Could not get first track. Exception: {0}", ex.Message);
-            }
-
-            return firstTrack;
+            if (queue.IsNullOrEmpty())
+                return null;
+            return queue[playbackOrder[0]];
         }
 
         public async Task<TrackViewModel> PreviousTrackAsync(LoopMode loopMode)
@@ -155,6 +159,24 @@ namespace Dopamine.Services.Playback
                     {
                         if (this.playbackOrder != null && this.playbackOrder.Count > 0)
                         {
+                            if (loopMode != LoopMode.One)
+                            {
+                                currentPosition--;
+                                if (currentPosition < 0)
+                                {
+                                    if (loopMode == LoopMode.None)
+                                    {
+                                        currentPosition = 0;
+                                    }
+                                    else
+                                    {
+                                        currentPosition = playbackOrder.Count - 1;
+                                    }
+                                }
+                            }
+                            previousTrack = queue[playbackOrder[currentPosition]];
+
+                            /*
                             int currentTrackIndex = this.FindPlaybackOrderIndex(this.currentTrack);
 
                             if (loopMode == LoopMode.One)
@@ -175,6 +197,7 @@ namespace Dopamine.Services.Playback
                                     previousTrack = this.queue[this.playbackOrder.Last()];
                                 }
                             }
+                            */
                         }
                     }
                 }
@@ -199,6 +222,26 @@ namespace Dopamine.Services.Playback
                     {
                         if (this.playbackOrder != null && this.playbackOrder.Count > 0)
                         {
+
+                            if (loopMode != LoopMode.One)
+                            {
+                                currentPosition++;
+                                if (currentPosition >= playbackOrder.Count)
+                                {
+                                    if (loopMode == LoopMode.None)
+                                    {
+                                        currentPosition = playbackOrder.Count - 1;
+                                    }
+                                    else
+                                    {
+                                        currentPosition = 0;
+                                    }
+                                }
+                            }
+                            nextTrack = queue[playbackOrder[currentPosition]];
+
+
+                            /*
                             int currentTrackIndex = this.FindPlaybackOrderIndex(this.currentTrack);
 
                             if (loopMode.Equals(LoopMode.One))
@@ -228,6 +271,7 @@ namespace Dopamine.Services.Playback
                                     nextTrack = this.queue[this.playbackOrder.First()];
                                 }
                             }
+                            */
                         }
                     }
                 }
@@ -250,11 +294,7 @@ namespace Dopamine.Services.Playback
                 {
                     lock (this.queueLock)
                     {
-                        foreach (TrackViewModel track in tracks)
-                        {
-                            this.queue.Add(track.DeepCopy());
-                        }
-
+                        queue.AddRange(tracks);
                         result.EnqueuedTracks = tracks;
                     }
                 });
@@ -267,11 +307,13 @@ namespace Dopamine.Services.Playback
                 {
                     await this.UnShuffleAsync();
                 }
+                if (currentPosition < 0)
+                    currentPosition = 0;
             }
             catch (Exception ex)
             {
                 result.IsSuccess = false;
-                LogClient.Error("Error while enqueuing tracks. Exception: {0}", ex.Message);
+                Logger.Error(ex, "Error while enqueuing tracks. Exception: {0}", ex.Message);
             }
 
             return result;
@@ -287,15 +329,16 @@ namespace Dopamine.Services.Playback
                 {
                     lock (this.queueLock)
                     {
+                        queue.AddRange(tracks);
+                        if (currentPosition < 0)
+                            currentPosition = 0;
+                        /*
+
                         int queueIndex = 0;
                         int playbackOrderIndex = 0;
                         int playbackOrderCount = this.playbackOrder.Count;
 
-                        if (this.currentTrack != null)
-                        {
-                            queueIndex = this.FindQueueIndex(this.currentTrack);
-                            playbackOrderIndex = this.FindPlaybackOrderIndex(this.currentTrack);
-                        }
+                        queue.AddRange(tracks);
 
                         var tracksToAdd = new List<TrackViewModel>();
 
@@ -315,6 +358,7 @@ namespace Dopamine.Services.Playback
                         }
 
                         this.playbackOrder.InsertRange(playbackOrderIndex + 1, Enumerable.Range(queueIndex + 1, tracksToAdd.Count));
+                        */
 
                         result.EnqueuedTracks = tracks;
                     }
@@ -340,9 +384,14 @@ namespace Dopamine.Services.Playback
                 {
                     lock (this.queueLock)
                     {
+                        currentPosition = -1;
+                        queue.Clear();
+                        playbackOrder.Clear();
+                        /*
                         this.currentTrack = null;
                         this.queue.Clear();
                         this.playbackOrder.Clear();
+                        */
                     }
                 }
                 catch (Exception ex)
@@ -366,6 +415,24 @@ namespace Dopamine.Services.Playback
             {
                 lock (this.queueLock)
                 {
+                    if (this.queue.Count > 0)
+                    {
+                        int currentTrackIndex = -1;
+                        // We should lock the current track before randomize
+                        if (currentPosition >= 0)
+                        {
+                            currentTrackIndex = playbackOrder[currentPosition];
+                        }
+                        queue.RemoveAll(x => tracks.Select(y => y.Id == x.Id).Count() > 0);
+                        playbackOrder = GetQueueIndices();
+                        if (currentTrackIndex != -1)
+                        {
+                            currentPosition = playbackOrder.FindIndex(x => x == currentTrackIndex);
+                        }
+                    }
+                    // ALEX TODO
+                    
+                    /*
                     try
                     {
                         // First, get the tracks to dequeue and which are in the queue (normally it's all of them. But we're just making sure.)
@@ -419,6 +486,7 @@ namespace Dopamine.Services.Playback
                         LogClient.Error($"Error while removing tracks from the queue. Queue will be cleared. Exception: {ex.Message}");
                         isSuccess = false;
                     }
+                    */
                 }
             });
 
@@ -442,7 +510,11 @@ namespace Dopamine.Services.Playback
 
         public void SetCurrentTrack(string path)
         {
-            this.currentTrack = this.queue.Where(x=> x.SafePath.Equals(path.ToSafePath())).FirstOrDefault();
+            int idx = queue.FindIndex(x => x.Path.Equals(path));
+            if (idx < 0)
+                return;
+
+            this.currentPosition = playbackOrder.FindIndex(x => x == idx);
         }
 
         public async Task<bool> UpdateQueueOrderAsync(IList<TrackViewModel> tracks, bool isShuffled)
@@ -482,7 +554,9 @@ namespace Dopamine.Services.Playback
         public async Task<UpdateQueueMetadataResult> UpdateMetadataAsync(IList<FileMetadata> fileMetadatas)
         {
             var result = new UpdateQueueMetadataResult();
+            Debug.Assert(false, "ALEX TODO");
 
+            /*
             IList<TrackV> tracks = trackRepository.GetTracksWithPaths(fileMetadatas.Select(x => x.Path).ToList());
 
             await Task.Run(() =>
@@ -493,6 +567,7 @@ namespace Dopamine.Services.Playback
                     {
                         // Queue
                         result.IsQueueChanged = true;
+
 
                         foreach (TrackViewModel trackViewModel in this.queue)
                         {
@@ -510,12 +585,15 @@ namespace Dopamine.Services.Playback
                     }
                 }
             });
+            */
 
             return result;
         }
 
         public async Task UpdateQueueLanguageAsync()
         {
+            Debug.Assert(false, "ALEX TODO");
+            /*
             await Task.Run(() =>
             {
                 lock (this.queueLock)
@@ -534,6 +612,7 @@ namespace Dopamine.Services.Playback
                     }
                 }
             });
+            */
         }
     }
 }

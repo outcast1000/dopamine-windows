@@ -111,6 +111,7 @@
     <Compile Include="DataUtils.cs" />
     <Compile Include="DbMigrator.cs" />
     <Compile Include="Entities\AlbumReview.cs" />
+    <Compile Include="Entities\General.cs" />
     <Compile Include="Entities\ArtistRole.cs" />
     <Compile Include="Entities\ArtistImageFailed.cs" />
     <Compile Include="Entities\AlbumImageFailed.cs" />
@@ -131,6 +132,7 @@
     <Compile Include="Entities\Configuration.cs" />
     <Compile Include="Entities\Folder.cs" />
     <Compile Include="Entities\FolderTrack.cs" />
+    <Compile Include="Entities\PlaylistTrack.cs" />
     <Compile Include="Entities\QueuedTrack.cs" />
     <Compile Include="Entities\RemovedTrack.cs" />
     <Compile Include="Entities\TrackLyrics.cs" />
@@ -155,6 +157,8 @@
     <Compile Include="Providers\LastFMAlbumInfoProvider.cs" />
     <Compile Include="Providers\TagTrackInfoProvider.cs" />
     <Compile Include="Providers\IAlbumInfoProvider.cs" />
+    <Compile Include="Repositories\SQLiteGeneralRepository.cs" />
+    <Compile Include="Repositories\IGeneralRepository.cs" />
     <Compile Include="Repositories\IImageRepository.cs" />
     <Compile Include="Repositories\IGenreImageRepository.cs" />
     <Compile Include="Repositories\IArtistImageRepository.cs" />
@@ -184,8 +188,10 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="Repositories\FolderRepository.cs" />
+    <Compile Include="UnitOfWorks\ISavePlaylistUnitOfWork.cs" />
     <Compile Include="UnitOfWorks\SQLiteCleanUpAlbumImages.cs" />
     <Compile Include="UnitOfWorks\ICleanUpImagesUnitOfWork.cs" />
+    <Compile Include="UnitOfWorks\SQLiteSavePlaylistUnitOfWork.cs" />
     <Compile Include="UnitOfWorks\SQLiteUpdateFolderUnitOfWork.cs" />
     <Compile Include="UnitOfWorks\SQLiteRemoveFolderUnitOfWork.cs" />
     <Compile Include="UnitOfWorks\SQLiteAddFolderUnitOfWork.cs" />
@@ -207,10 +213,8 @@
     <Compile Include="Repositories\IGenreVRepository.cs" />
     <Compile Include="Repositories\IAlbumVRepository.cs" />
     <Compile Include="Repositories\IFolderRepository.cs" />
-    <Compile Include="Repositories\IQueuedTrackRepository.cs" />
     <Compile Include="Repositories\IArtistVRepository.cs" />
     <Compile Include="Repositories\ITrackVRepository.cs" />
-    <Compile Include="Repositories\QueuedTrackRepository.cs" />
     <Compile Include="Repositories\SQLiteTrackVRepository.cs" />
     <Compile Include="SQLiteConnectionFactory.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">

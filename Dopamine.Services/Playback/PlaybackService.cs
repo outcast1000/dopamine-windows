@@ -24,11 +24,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
+using System.Diagnostics;
 
 namespace Dopamine.Services.Playback
 {
     public class PlaybackService : IPlaybackService
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private QueueManager queueManager;
         private System.Timers.Timer progressTimer = new System.Timers.Timer();
         private double progressTimeoutSeconds = 0.5;
@@ -55,7 +57,6 @@ namespace Dopamine.Services.Playback
         private EqualizerPreset activePreset;
         private bool isEqualizerEnabled;
 
-        private IQueuedTrackRepository queuedTrackRepository;
         private System.Timers.Timer saveQueuedTracksTimer = new System.Timers.Timer();
         private int saveQueuedTracksTimeoutSeconds = 5;
 
@@ -64,6 +65,7 @@ namespace Dopamine.Services.Playback
         private IPlayerFactory playerFactory;
 
         private ITrackVRepository trackRepository;
+        private IGeneralRepository generalRepository;
 
         private System.Timers.Timer savePlaybackCountersTimer = new System.Timers.Timer();
         private int savePlaybackCountersTimeoutSeconds = 2;
@@ -261,7 +263,7 @@ namespace Dopamine.Services.Playback
                 }
                 catch (Exception ex)
                 {
-                    LogClient.Error("Failed to get total time. Returning 00:00. Exception: {0}", ex.Message);
+                    Logger.Error(ex, "Failed to get total time. Returning 00:00. Exception: {0}", ex.Message);
                     return new TimeSpan(0);
                 }
 
@@ -274,12 +276,12 @@ namespace Dopamine.Services.Playback
         }
 
         public PlaybackService(IFileService fileService, II18nService i18nService, ITrackVRepository trackRepository,
-            IEqualizerService equalizerService, IQueuedTrackRepository queuedTrackRepository, IContainerProvider container, IPlaylistService playlistService)
+            IEqualizerService equalizerService, IGeneralRepository generalRepository, IContainerProvider container, IPlaylistService playlistService)
         {
             this.fileService = fileService;
             this.i18nService = i18nService;
             this.trackRepository = trackRepository;
-            this.queuedTrackRepository = queuedTrackRepository;
+            this.generalRepository = generalRepository;
             this.equalizerService = equalizerService;
             this.playlistService = playlistService;
             this.container = container;
@@ -310,9 +312,9 @@ namespace Dopamine.Services.Playback
         {
             this.canGetSavedQueuedTracks = false;
 
-            LogClient.Info("Start enqueuing {0} track(s) from files", tracks.Count);
+            Logger.Info("Start enqueuing {0} track(s) from files", tracks.Count);
             await this.EnqueueAsync(tracks, track);
-            LogClient.Info("Finished enqueuing {0} track(s) from files", tracks.Count);
+            Logger.Info("Finished enqueuing {0} track(s) from files", tracks.Count);
         }
 
         public event PlaybackSuccessEventHandler PlaybackSuccess = delegate { };
@@ -471,40 +473,20 @@ namespace Dopamine.Services.Playback
 
             try
             {
-                var queuedTracks = new List<QueuedTrack>();
-                IList<string> tracksPaths = this.Queue.Select(x => x.Path).ToList();
-                string currentTrackPath = this.CurrentTrack?.Path;
+                IList<TrackV> tracksPaths = this.Queue.Select(x => x.Data).ToList();
+                TrackV currentTrackPath = this.CurrentTrack.Data;
                 long progressSeconds = Convert.ToInt64(this.GetCurrentTime.TotalSeconds);
+                trackRepository.SavePlaylistTracks(tracksPaths);
+                Logger.Info("ALEX TODO store position in playlist");
+                //Debug.Assert(false, "ALEX TODO store position in playlist");
+                //generalRepository.SetValue(GeneralRepositoryKeys.PlaylistCurrentID, queueManager.);
+                generalRepository.SetValue(GeneralRepositoryKeys.PlayListPositionInTrack, progressSeconds.ToString());
 
-                int orderID = 0;
-
-                foreach (string trackPath in tracksPaths)
-                {
-                    var queuedTrack = new QueuedTrack();
-                    queuedTrack.Path = trackPath;
-                    queuedTrack.SafePath = trackPath.ToSafePath();
-                    queuedTrack.OrderID = orderID;
-                    queuedTrack.IsPlaying = 0;
-                    queuedTrack.ProgressSeconds = 0;
-
-                    if (!string.IsNullOrEmpty(currentTrackPath) && trackPath.Equals(currentTrackPath))
-                    {
-                        queuedTrack.IsPlaying = 1;
-                        queuedTrack.ProgressSeconds = progressSeconds;
-                    }
-
-                    queuedTracks.Add(queuedTrack);
-
-                    orderID++;
-                }
-
-                await this.queuedTrackRepository.SaveQueuedTracksAsync(queuedTracks);
-
-                LogClient.Info("Saved {0} queued tracks", queuedTracks.Count.ToString());
+                Logger.Info("Saved {0} queued tracks", tracksPaths.Count.ToString());
             }
             catch (Exception ex)
             {
-                LogClient.Info("Could not save queued tracks. Exception: {0}", ex.Message);
+                Logger.Error(ex, "Could not save queued tracks. Exception: {0}", ex.Message);
             }
 
             this.isSavingQueuedTracks = false;
@@ -1295,10 +1277,9 @@ namespace Dopamine.Services.Playback
 
             try
             {
-                LogClient.Info("Getting saved queued tracks");
-                IList<QueuedTrack> savedQueuedTracks = await this.queuedTrackRepository.GetSavedQueuedTracksAsync();
-                QueuedTrack playingSavedQueuedTrack = savedQueuedTracks.Where(x => x.IsPlaying == 1).FirstOrDefault();
-                IList<TrackV> existingTracks = await this.ConvertQueuedTracksToTracks(savedQueuedTracks);
+                Logger.Info("Getting saved queued tracks");
+                IList<TrackV> existingTracks = trackRepository.GetPlaylistTracks();// SavedQueuedTracksAsync();
+                int playListPosition = int.Parse(generalRepository.GetValue(GeneralRepositoryKeys.PlayListPosition));// ALEX TODO (check for null)
                 IList<TrackViewModel> existingTrackViewModels = await this.container.ResolveTrackViewModelsAsync(existingTracks);
 
                 await this.EnqueueAlwaysAsync(existingTrackViewModels);
@@ -1314,28 +1295,24 @@ namespace Dopamine.Services.Playback
                     return;
                 }
 
-                if (playingSavedQueuedTrack == null)
-                {
-                    return;
-                }
 
-                TrackViewModel playingTrackViewModel = existingTrackViewModels.Where(x => x.SafePath.Equals(playingSavedQueuedTrack.SafePath)).FirstOrDefault();
+                TrackViewModel playingTrackViewModel = existingTrackViewModels[playListPosition];
 
                 if (playingTrackViewModel == null)
                 {
                     return;
                 }
 
-                int progressSeconds = Convert.ToInt32(playingSavedQueuedTrack.ProgressSeconds);
+                int progressSeconds = int.Parse(generalRepository.GetValue(GeneralRepositoryKeys.PlayListPositionInTrack));
 
                 try
                 {
-                    LogClient.Info("Starting track {0} paused", playingTrackViewModel.Path);
+                    Logger.Info("Starting track {0} paused", playingTrackViewModel.Path);
                     await this.StartTrackPausedAsync(playingTrackViewModel, progressSeconds);
                 }
                 catch (Exception ex)
                 {
-                    LogClient.Error("Could not set the playing track. Exception: {0}", ex.Message);
+                    Logger.Error("Could not set the playing track. Exception: {0}", ex.Message);
                     this.Stop(); // Should not be required, but just in case.
                 }
             }

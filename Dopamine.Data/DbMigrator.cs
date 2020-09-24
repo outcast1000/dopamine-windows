@@ -49,7 +49,9 @@ namespace Dopamine.Data
                 Logger.Debug("CreateTablesAndIndexes_v2: DROPPING TABLES");
 
                 conn.Execute("DROP TABLE IF EXISTS General;");
-                
+
+                conn.Execute("DROP TABLE IF EXISTS PlaylistTracks;");
+
                 conn.Execute("DROP TABLE IF EXISTS History;");
                 conn.Execute("DROP TABLE IF EXISTS HistoryActions;");
 
@@ -82,11 +84,10 @@ namespace Dopamine.Data
 
                 //=== Configuration:
                 conn.Execute("CREATE TABLE General (" +
-                    "id                 INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    "key                TEXT," +
+                    "key                TEXT PRIMARY KEY," +
                     "value              TEXT)");
 
-                conn.Execute(String.Format("INSERT INTO General (key, value) VALUES ('DatabaseVersion', {0});", CURRENT_VERSION));
+                conn.Execute("INSERT INTO General (key, value) VALUES (?, ?);", GeneralRepositoryKeys.DBVersion.ToString(), CURRENT_VERSION.ToString());
 
                 //=== Artists:
                 conn.Execute("CREATE TABLE Artists (" +
@@ -299,6 +300,13 @@ namespace Dopamine.Data
                 conn.Execute("CREATE INDEX HistoryTrackIDIndex ON History(track_id);");
                 conn.Execute("CREATE INDEX HistoryHistoryActionIDIndex ON History(history_action_id);");
 
+                conn.Execute("CREATE TABLE PlaylistTracks (" +
+                            "id                 INTEGER PRIMARY KEY AUTOINCREMENT," +
+                            "track_id           INTEGER," +
+                            "FOREIGN KEY (track_id) REFERENCES Tracks(id));");
+
+
+
 
 
                 // ==== START MIGRATING DATA
@@ -502,9 +510,9 @@ namespace Dopamine.Data
             {
                 try
                 {
-                    this.userDatabaseVersion = Convert.ToInt32(conn.ExecuteScalar<string>("SELECT Value FROM General WHERE key = 'DatabaseVersion'"));
+                    this.userDatabaseVersion = Convert.ToInt32(conn.ExecuteScalar<string>("SELECT Value FROM General WHERE key = ?", GeneralRepositoryKeys.DBVersion.ToString()));
                     //=== ALEX DEBUG. USE "26" to force the update. "27" to avoid it. Reenable the Execute scalar
-                    //userDatabaseVersion = 27;
+                    //userDatabaseVersion = 26;
                 }
                 catch (Exception)
                 {
@@ -525,7 +533,7 @@ namespace Dopamine.Data
 
             using (var conn = this.factory.GetConnection())
             {
-                conn.Execute("UPDATE Configuration SET Value = ? WHERE Key = 'DatabaseVersion'", CURRENT_VERSION);
+                conn.Execute("INSERT OR REPLACE INTO General (key, value) VALUES (?,?)", GeneralRepositoryKeys.DBVersion.ToString(), CURRENT_VERSION.ToString());
             }
 
             Logger.Info("Upgraded from database version {0} to {1}", this.userDatabaseVersion.ToString(), CURRENT_VERSION.ToString());
