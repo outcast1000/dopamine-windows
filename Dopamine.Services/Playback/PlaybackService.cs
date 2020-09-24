@@ -288,7 +288,7 @@ namespace Dopamine.Services.Playback
 
             this.context = SynchronizationContext.Current;
 
-            this.queueManager = new QueueManager(this.trackRepository);
+            this.queueManager = new QueueManager();
 
             // Event handlers
             this.fileService.ImportingTracks += (_, __) => this.canGetSavedQueuedTracks = false;

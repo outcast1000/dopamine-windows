@@ -1,9 +1,7 @@
 ﻿using Digimezzo.Foundation.Core.Logging;
 using Dopamine.Core.Base;
 using Dopamine.Core.Extensions;
-using Dopamine.Data.Entities;
 using Dopamine.Data.Metadata;
-using Dopamine.Data.Repositories;
 using Dopamine.Services.Entities;
 using System;
 using System.Collections.Generic;
@@ -16,15 +14,13 @@ namespace Dopamine.Services.Playback
     internal class QueueManager
     {
         private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-        private ITrackVRepository trackRepository;
         private int currentPosition = -1;
         private object queueLock = new object();
         private List<TrackViewModel> queue = new List<TrackViewModel>(); // Queued tracks in original order
         private List<int> playbackOrder = new List<int>(); // Playback order of queued tracks (Contains the indexes of list the queued tracks)
 
-        public QueueManager(ITrackVRepository trackRepository)
+        public QueueManager()
         {
-            this.trackRepository = trackRepository;
         }
 
         public IList<TrackViewModel> Queue
@@ -554,7 +550,7 @@ namespace Dopamine.Services.Playback
         public async Task<UpdateQueueMetadataResult> UpdateMetadataAsync(IList<FileMetadata> fileMetadatas)
         {
             var result = new UpdateQueueMetadataResult();
-            Debug.Assert(false, "ALEX TODO");
+            Debug.Assert(false, "ALEX TODO. You could replace it with a refresh");
 
             /*
             IList<TrackV> tracks = trackRepository.GetTracksWithPaths(fileMetadatas.Select(x => x.Path).ToList());
