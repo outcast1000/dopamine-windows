@@ -37,7 +37,6 @@ namespace Dopamine.Services.Playback
         private double progress = 0.0;
         private float volume = 0.0f;
         private LoopMode loopMode;
-        private bool shuffle;
         private bool mute;
         private bool isPlayingPreviousTrack;
         private IPlayer player;
@@ -116,13 +115,13 @@ namespace Dopamine.Services.Playback
             }
         }
 
-        public IList<TrackViewModel> Queue => this.queueManager.Queue;
+        public IList<TrackViewModel> Queue => this.queueManager.Playlist;
 
-        public TrackViewModel CurrentTrack => this.queueManager.CurrentTrack();
+        public TrackViewModel CurrentTrack => this.queueManager.CurrentTrack;
 
-        public bool HasQueue => this.queueManager.Queue != null && this.queueManager.Queue.Count > 0;
+        public bool HasQueue => !this.queueManager.Playlist.IsNullOrEmpty();
 
-        public bool HasCurrentTrack => this.queueManager.CurrentTrack() != null;
+        public bool HasCurrentTrack => this.queueManager.CurrentTrack != null;
 
         public double Progress
         {
@@ -167,7 +166,7 @@ namespace Dopamine.Services.Playback
 
         public bool Shuffle
         {
-            get { return this.shuffle; }
+            get { return queueManager.Shuffle; }
         }
 
         public bool Mute
@@ -177,17 +176,7 @@ namespace Dopamine.Services.Playback
 
         public async Task SetShuffleAsync(bool isShuffled)
         {
-            this.shuffle = isShuffled;
-
-            if (isShuffled)
-            {
-                await this.queueManager.ShuffleAsync();
-            }
-            else
-            {
-                await this.queueManager.UnShuffleAsync();
-
-            }
+            queueManager.Shuffle = isShuffled;
 
             this.PlaybackShuffleChanged(this, new EventArgs());
             this.QueueChanged(this, new EventArgs());
@@ -401,15 +390,23 @@ namespace Dopamine.Services.Playback
 
         public async Task UpdateQueueOrderAsync(IList<TrackViewModel> tracks)
         {
+            //=== Need to refresh
+            Debug.Assert(false, "ALEX TODO a refresh");
+            /*
             if (await this.queueManager.UpdateQueueOrderAsync(tracks, this.shuffle))
             {
                 // Required to update other Now Playing screens
                 this.QueueChanged(this, new EventArgs());
             }
+            */
         }
 
         public async Task UpdateQueueMetadataAsync(IList<FileMetadata> fileMetadatas)
         {
+            //=== Need to refresh
+            Debug.Assert(false, "ALEX TODO a refresh");
+
+            /*
             UpdateQueueMetadataResult result = await this.queueManager.UpdateMetadataAsync(fileMetadatas);
 
             // Raise events
@@ -422,15 +419,19 @@ namespace Dopamine.Services.Playback
             {
                 this.QueueChanged(this, new EventArgs());
             }
+            */
         }
 
         private async void UpdateQueueLanguageAsync()
         {
+            Debug.Assert(false, "ALEX TODO a refresh");
+            /*
             await this.queueManager.UpdateQueueLanguageAsync();
 
             // Raise events
             this.PlayingTrackChanged(this, new EventArgs());
             this.QueueChanged(this, new EventArgs());
+            */
         }
 
         public async Task SetIsEqualizerEnabledAsync(bool isEnabled)
@@ -725,7 +726,7 @@ namespace Dopamine.Services.Playback
             // Use the current shuffle mode
             if (!shuffle && !unshuffle)
             {
-                await this.EnqueueAsync(tracks, this.shuffle);
+                await this.EnqueueAsync(tracks, queueManager.Shuffle);
             }
 
             // Start playing
@@ -751,7 +752,7 @@ namespace Dopamine.Services.Playback
                 return;
             }
 
-            await this.EnqueueAsync(tracks, this.shuffle);
+            await this.EnqueueAsync(tracks, queueManager.Shuffle);
             await this.PlaySelectedAsync(track);
         }
 
@@ -809,6 +810,10 @@ namespace Dopamine.Services.Playback
 
         public async Task<bool> PlaySelectedAsync(IList<TrackViewModel> tracks)
         {
+            queueManager.Play(tracks);
+            await PlayNextAsync();
+            return true;
+            /*
             var result = await this.queueManager.ClearQueueAsync();
             if (result)
             {
@@ -816,12 +821,15 @@ namespace Dopamine.Services.Playback
                 if (result)
                     await this.PlayNextAsync();
             }
-
             return result;
+            */
         }
 
         public async Task<DequeueResult> DequeueAsync(IList<TrackViewModel> tracks)
         {
+            Debug.Assert(false, "ALEX TODO. Maybe replace that with an int list");
+            return new DequeueResult() { DequeuedTracks = tracks, IsPlayingTrackDequeued = false, IsSuccess = false, NextAvailableTrack = null };
+            /*
             DequeueResult dequeueResult = await this.queueManager.DequeueAsync(tracks);
 
             if (dequeueResult.IsSuccess & dequeueResult.IsPlayingTrackDequeued)
@@ -841,10 +849,18 @@ namespace Dopamine.Services.Playback
             this.ResetSaveQueuedTracksTimer(); // Save queued tracks to the database
 
             return dequeueResult;
+            */
         }
 
         public async Task<EnqueueResult> AddToQueueAsync(IList<TrackViewModel> tracks)
         {
+            queueManager.Enqueue(tracks);
+            QueueChanged(this, new EventArgs());
+            AddedTracksToQueue(tracks.Count);
+            ResetSaveQueuedTracksTimer();
+            return new EnqueueResult() { EnqueuedTracks = tracks, IsSuccess = true };
+            /*
+
             EnqueueResult result = await this.queueManager.EnqueueAsync(tracks, this.shuffle);
 
             this.QueueChanged(this, new EventArgs());
@@ -857,10 +873,17 @@ namespace Dopamine.Services.Playback
             this.ResetSaveQueuedTracksTimer(); // Save queued tracks to the database
 
             return result;
+            */
         }
 
         public async Task<EnqueueResult> AddToQueueNextAsync(IList<TrackViewModel> tracks)
         {
+            queueManager.EnqueueNext(tracks);
+            QueueChanged(this, new EventArgs());
+            AddedTracksToQueue(tracks.Count);
+            ResetSaveQueuedTracksTimer();
+            return new EnqueueResult() { EnqueuedTracks = tracks, IsSuccess = true };
+            /*
             EnqueueResult result = await this.queueManager.EnqueueNextAsync(tracks);
 
             this.QueueChanged(this, new EventArgs());
@@ -873,6 +896,7 @@ namespace Dopamine.Services.Playback
             this.ResetSaveQueuedTracksTimer(); // Save queued tracks to the database
 
             return result;
+            */
         }
 
         public async Task<EnqueueResult> AddArtistsToQueueAsync(IList<ArtistViewModel> artists)
@@ -1017,7 +1041,8 @@ namespace Dopamine.Services.Playback
         {
             if (this.Queue.Count > 0)
             {
-                await this.TryPlayAsync(this.queueManager.FirstTrack());
+                queueManager.Position = 0;
+                await this.TryPlayAsync(this.queueManager.CurrentTrack);
             }
         }
 
@@ -1054,7 +1079,8 @@ namespace Dopamine.Services.Playback
             // So if we go into the Catch when trying to play the Track,
             // at least, the next time TryPlayNext is called, it will know that 
             // we already tried to play this track and it can find the next Track.
-            this.queueManager.SetCurrentTrack(track.Path);
+            //this.queueManager.SetCurrentTrack(track.Path);
+            queueManager.Play(new List<TrackViewModel>() { track });
 
             // Play the Track
             await Task.Run(() => this.player.Play(track.Path, this.audioDevice));
@@ -1109,7 +1135,7 @@ namespace Dopamine.Services.Playback
                 // Set this to false again after raising the event. It is important to have a correct slide 
                 // direction for cover art when the next Track is a file from double click in Windows.
                 this.isPlayingPreviousTrack = false;
-                LogClient.Info("Playing the file {0}. EventMode={1}, ExclusiveMode={2}, LoopMode={3}, Shuffle={4}", track.Path, this.EventMode, this.ExclusiveMode, this.LoopMode, this.shuffle);
+                LogClient.Info("Playing the file {0}. EventMode={1}, ExclusiveMode={2}, LoopMode={3}, Shuffle={4}", track.Path, this.EventMode, this.ExclusiveMode, this.LoopMode, queueManager.Shuffle);
             }
             catch (FileNotFoundException fnfex)
             {
@@ -1136,7 +1162,7 @@ namespace Dopamine.Services.Playback
                     LogClient.Error("Could not stop the Player");
                 }
 
-                LogClient.Error("Could not play the file {0}. EventMode={1}, ExclusiveMode={2}, LoopMode={3}, Shuffle={4}. Exception: {5}. StackTrace: {6}", track.Path, this.EventMode, this.ExclusiveMode, this.LoopMode, this.shuffle, playbackFailedEventArgs.Message, playbackFailedEventArgs.StackTrace);
+                LogClient.Error("Could not play the file {0}. EventMode={1}, ExclusiveMode={2}, LoopMode={3}, Shuffle={4}. Exception: {5}. StackTrace: {6}", track.Path, this.EventMode, this.ExclusiveMode, this.LoopMode, this.Shuffle, playbackFailedEventArgs.Message, playbackFailedEventArgs.StackTrace);
 
                 this.PlaybackFailed(this, playbackFailedEventArgs);
             }
@@ -1167,15 +1193,12 @@ namespace Dopamine.Services.Playback
             // When "loop one" is enabled and ignoreLoopOne is true, act like "loop all".
             LoopMode loopMode = this.LoopMode == LoopMode.One && ignoreLoopOne ? LoopMode.All : this.LoopMode;
 
-            TrackViewModel previousTrack = await this.queueManager.PreviousTrackAsync(loopMode);
-
-            if (previousTrack == null)
+            if (!queueManager.Prev())
             {
                 this.Stop();
                 return true;
             }
-
-            return await this.TryPlayAsync(previousTrack);
+            return await this.TryPlayAsync(queueManager.CurrentTrack);
         }
 
         private async Task<bool> TryPlayNextAsync(bool ignoreLoopOne)
@@ -1185,16 +1208,16 @@ namespace Dopamine.Services.Playback
             LoopMode loopMode = this.LoopMode == LoopMode.One && ignoreLoopOne ? LoopMode.All : this.LoopMode;
 
             // When "loop one" is enabled and ignoreLoopOne is true, act like "loop all".
-            bool returnToStart = SettingsClient.Get<bool>("Playback", "LoopWhenShuffle") & this.shuffle;
-            TrackViewModel nextTrack = await this.queueManager.NextTrackAsync(loopMode, returnToStart);
+            bool returnToStart = SettingsClient.Get<bool>("Playback", "LoopWhenShuffle") & queueManager.Shuffle;
+            //TrackViewModel nextTrack = await this.queueManager.NextTrackAsync(loopMode, returnToStart);
 
-            if (nextTrack == null)
+            if (!queueManager.Next())
             {
                 this.Stop();
                 return true;
             }
 
-            return await this.TryPlayAsync(nextTrack);
+            return await this.TryPlayAsync(queueManager.CurrentTrack);
         }
 
         private void ProgressTimeoutHandler(object sender, ElapsedEventArgs e)
@@ -1282,7 +1305,7 @@ namespace Dopamine.Services.Playback
                 int playListPosition = int.Parse(generalRepository.GetValue(GeneralRepositoryKeys.PlayListPosition));// ALEX TODO (check for null)
                 IList<TrackViewModel> existingTrackViewModels = await this.container.ResolveTrackViewModelsAsync(existingTracks);
 
-                await this.EnqueueAlwaysAsync(existingTrackViewModels);
+                await this.EnqueueAsync(existingTrackViewModels, queueManager.Shuffle);
 
                 if (!SettingsClient.Get<bool>("Startup", "RememberLastPlayedTrack"))
                 {
@@ -1356,30 +1379,14 @@ namespace Dopamine.Services.Playback
             PlaybackProgressChanged(this, new EventArgs());
         }
 
-        private async Task EnqueueAlwaysAsync(IList<TrackViewModel> tracks)
-        {
-            if (await this.queueManager.ClearQueueAsync())
-            {
-                await this.queueManager.EnqueueAsync(tracks, this.shuffle);
-
-                this.QueueChanged(this, new EventArgs());
-                this.ResetSaveQueuedTracksTimer(); // Save queued tracks to the database
-            }
-        }
-
         private async Task EnqueueAsync(IList<TrackViewModel> tracks, bool shuffle)
         {
-            if (await this.queueManager.ClearQueueAsync())
+            if (queueManager.Shuffle != shuffle)
             {
-                await this.queueManager.EnqueueAsync(tracks, shuffle);
-
-                if (shuffle != this.shuffle)
-                {
-                    this.shuffle = shuffle;
-                    this.PlaybackShuffleChanged(this, new EventArgs());
-                }
+                queueManager.Shuffle = shuffle;
+                PlaybackShuffleChanged(this, new EventArgs());
             }
-
+            queueManager.Enqueue(tracks);
             this.QueueChanged(this, new EventArgs());
             this.ResetSaveQueuedTracksTimer(); // Save queued tracks to the database
         }
@@ -1405,7 +1412,7 @@ namespace Dopamine.Services.Playback
             this.Latency = SettingsClient.Get<int>("Playback", "AudioLatency");
             this.Volume = SettingsClient.Get<float>("Playback", "Volume");
             this.mute = SettingsClient.Get<bool>("Playback", "Mute");
-            this.shuffle = SettingsClient.Get<bool>("Playback", "Shuffle");
+            queueManager.Shuffle = SettingsClient.Get<bool>("Playback", "Shuffle");
             this.EventMode = false;
             //this.EventMode = SettingsClient.Get<bool>("Playback", "WasapiEventMode");
             //this.ExclusiveMode = false;
