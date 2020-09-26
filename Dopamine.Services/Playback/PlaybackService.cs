@@ -1392,7 +1392,7 @@ namespace Dopamine.Services.Playback
                 queueManager.Shuffle = shuffle;
                 PlaybackShuffleChanged(this, new EventArgs());
             }
-            queueManager.Enqueue(tracks);
+            queueManager.Play(tracks);
             this.QueueChanged(this, new EventArgs());
             this.ResetSaveQueuedTracksTimer(); // Save queued tracks to the database
         }

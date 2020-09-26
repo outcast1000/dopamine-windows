@@ -126,7 +126,7 @@ namespace Dopamine.Services.Playback
 
             if (Loop || bHasMoreToPlay)
             {
-                if (_position >= _playList.Count - 1)
+                if (playlistOrderIndex >= _playList.Count - 1)
                     playlistOrderIndex = 0;
                 else
                     playlistOrderIndex++;
@@ -144,7 +144,7 @@ namespace Dopamine.Services.Playback
             bool bHasMoreToPlay = Shuffle ? _nextCounter > 0 : _position > 0;
             if (Loop || bHasMoreToPlay)
             {
-                if (_position <= 0)
+                if (playlistOrderIndex <= 0)
                     playlistOrderIndex = _playList.Count - 1;
                 else
                     playlistOrderIndex--;
