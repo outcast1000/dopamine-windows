@@ -83,6 +83,7 @@ namespace Dopamine.Services.Playback
                     int temp = _playlistOrder[0];// Swap it with the first one
                     _playlistOrder[0] = _playlistOrder[idx];
                     _playlistOrder[idx] = temp;
+                    _position = _playlistOrder[0];
                 }
                 else 
                     _position = _playlistOrder[startAtIndex];
