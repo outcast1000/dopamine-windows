@@ -160,6 +160,7 @@ namespace Dopamine.Services.Playback
             set
             {
                 this.loopMode = value;
+                queueManager.Loop = (value == LoopMode.All);
                 this.PlaybackLoopChanged(this, new EventArgs());
             }
         }
@@ -751,9 +752,12 @@ namespace Dopamine.Services.Playback
             {
                 return;
             }
+            int idx  = tracks.IndexOf(track);
+            queueManager.Play(tracks, idx);
+            await TryPlayAsync(track);
 
-            await this.EnqueueAsync(tracks, queueManager.Shuffle);
-            await this.PlaySelectedAsync(track);
+            //await this.EnqueueAsync(tracks, queueManager.Shuffle);
+            //await this.PlaySelectedAsync(track);
         }
 
         public async Task EnqueueArtistsAsync(IList<ArtistViewModel> artists, bool shuffle, bool unshuffle)
@@ -1080,7 +1084,7 @@ namespace Dopamine.Services.Playback
             // at least, the next time TryPlayNext is called, it will know that 
             // we already tried to play this track and it can find the next Track.
             //this.queueManager.SetCurrentTrack(track.Path);
-            queueManager.Play(new List<TrackViewModel>() { track });
+            //queueManager.Play(new List<TrackViewModel>() { track });
 
             // Play the Track
             await Task.Run(() => this.player.Play(track.Path, this.audioDevice));
@@ -1186,6 +1190,7 @@ namespace Dopamine.Services.Playback
             {
                 // If we're more than 3 seconds into the Track, try to
                 // jump to the beginning of the current Track.
+                Logger.Info("TryPlayPreviousAsync. We're more than 3 seconds into the Track. We will jump to the beginning of the current Track.");
                 this.player.Skip(0);
                 return true;
             }
@@ -1195,7 +1200,7 @@ namespace Dopamine.Services.Playback
 
             if (!queueManager.Prev())
             {
-                this.Stop();
+                //this.Stop();
                 return true;
             }
             return await this.TryPlayAsync(queueManager.CurrentTrack);
@@ -1213,7 +1218,8 @@ namespace Dopamine.Services.Playback
 
             if (!queueManager.Next())
             {
-                this.Stop();
+                //this.Stop();
+                Logger.Warn("ALEX TODO. Make it send an event that we found the end of the playlist");
                 return true;
             }
 

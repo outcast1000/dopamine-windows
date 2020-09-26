@@ -70,16 +70,25 @@ namespace Dopamine.Services.Playback
             if (startAtIndex != -1)
             {
                 // Modify PlayList and set it as first track
+                /*
                 int idx = _playlistOrder.Find(x => x == startAtIndex);
                 TrackViewModel temp = _playList[idx];
                 _playList.RemoveAt(idx);
                 _playList.Insert(0, temp);
-                // Modify PlayOrder to start at 0 track (even in Shuffle)
-                idx = _playlistOrder.FindIndex(x => x == 0);// Find where is the 0 item
-                _playlistOrder[idx] = _playlistOrder[0]; // Swap it
-                _playlistOrder[0] = 0;
+                */
+                if (Shuffle)
+                {
+                    // Modify PlayOrder to start at startAtIndex track as the first one
+                    int idx = _playlistOrder.FindIndex(x => x == startAtIndex);// Find where is the startAtIndex item
+                    int temp = _playlistOrder[0];// Swap it with the first one
+                    _playlistOrder[0] = _playlistOrder[idx];
+                    _playlistOrder[idx] = temp;
+                }
+                else 
+                    _position = _playlistOrder[startAtIndex];
             }
-            _position = _playlistOrder[0];
+            else 
+                _position = _playlistOrder[0];
             
         }
 
@@ -112,15 +121,18 @@ namespace Dopamine.Services.Playback
         public bool Next()
         {
             int playlistOrderIndex = _playlistOrder.FindIndex(x => x == _position);
-            playlistOrderIndex++;
-            _nextCounter++;
-            if (Loop || _nextCounter <= _playList.Count - 1)
+            bool bHasMoreToPlay = Shuffle ? _nextCounter < _playList.Count - 1 : _position < _playList.Count - 1;
+
+            if (Loop || bHasMoreToPlay)
             {
-                if (playlistOrderIndex > _playList.Count - 1)
+                if (_position >= _playList.Count - 1)
                     playlistOrderIndex = 0;
+                else
+                    playlistOrderIndex++;
             }
             else
                 return false;
+            _nextCounter++;
             _position = _playlistOrder[playlistOrderIndex];
             return true;
         }
@@ -128,15 +140,17 @@ namespace Dopamine.Services.Playback
         public bool Prev()
         {
             int playlistOrderIndex = _playlistOrder.FindIndex(x => x == _position);
-            playlistOrderIndex--;
-            _nextCounter--;
-            if (Loop || _nextCounter > 0)
+            bool bHasMoreToPlay = Shuffle ? _nextCounter > 0 : _position > 0;
+            if (Loop || bHasMoreToPlay)
             {
-                if (playlistOrderIndex < 0)
+                if (_position <= 0)
                     playlistOrderIndex = _playList.Count - 1;
+                else
+                    playlistOrderIndex--;
             }
             else
                 return false;
+            _nextCounter--;
             _position = _playlistOrder[playlistOrderIndex];
             return true;
 

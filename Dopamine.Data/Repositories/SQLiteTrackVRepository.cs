@@ -390,12 +390,15 @@ GROUP BY t.id
 
         public PlaybackCounter GetPlaybackCounters(string path)
         {
-            throw new NotImplementedException();
+            Logger.Warn("ALEX TODO - PlaybackCounter GetPlaybackCounters(string path)");
+            return new PlaybackCounter();
+            //throw new NotImplementedException();
         }
 
         public void UpdatePlaybackCounters(PlaybackCounter counters)
         {
-            throw new NotImplementedException();
+            Logger.Warn("ALEX TODO - void UpdatePlaybackCounters(PlaybackCounter counters)");
+            //throw new NotImplementedException();
         }
 
 
