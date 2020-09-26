@@ -405,6 +405,12 @@ namespace Dopamine.Services.Playback
         {
             //=== Need to refresh
             Logger.Warn("UpdateQueueOrderAsync. Needs testing");
+            if (queueManager.CurrentTrack != null)
+            {
+                int newPosition = tracks.IndexOf(queueManager.CurrentTrack);
+                if (newPosition != -1)
+                    queueManager.Position = newPosition;
+            }
             queueManager.UpdatePlaylistTrackInfo(tracks);
             //await RefreshPlaylistInfo();
             this.QueueChanged(this, new EventArgs());
