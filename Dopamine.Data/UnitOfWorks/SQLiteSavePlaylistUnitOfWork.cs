@@ -14,10 +14,10 @@ namespace Dopamine.Data.UnitOfWorks
     {
 
         private SQLiteConnection conn;
-        public SQLiteSavePlaylistUnitOfWork(SQLiteConnection conn)
+        public SQLiteSavePlaylistUnitOfWork(ISQLiteConnectionFactory factory)
         {
-            this.conn = conn;
-            this.conn.BeginTransaction();
+            conn = factory.GetConnection();
+            conn.BeginTransaction();
         }
 
         public void SaveTracks(IList<TrackV> tracks)

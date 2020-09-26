@@ -305,8 +305,7 @@ namespace Dopamine.Data
                             "track_id           INTEGER," +
                             "FOREIGN KEY (track_id) REFERENCES Tracks(id));");
 
-
-
+                conn.Execute("CREATE INDEX PlaylistTracksTrackIDIndex ON PlaylistTracks(track_id);");
 
 
                 // ==== START MIGRATING DATA

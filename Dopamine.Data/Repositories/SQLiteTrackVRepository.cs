@@ -429,9 +429,9 @@ GROUP BY t.id
         {
             try
             {
-                using (var conn = factory.GetConnection())
+                using (SQLiteSavePlaylistUnitOfWork uow = new SQLiteSavePlaylistUnitOfWork(factory))
                 {
-                    SQLiteSavePlaylistUnitOfWork uow = new SQLiteSavePlaylistUnitOfWork(conn);
+                    uow.SaveTracks(tracks);
                 }
             }
             catch (Exception ex)

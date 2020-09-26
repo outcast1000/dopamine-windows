@@ -55,7 +55,7 @@ namespace Dopamine.Data.Repositories
         public string GetValue(GeneralRepositoryKeys key, string def = null)
         {
             string val = GetValue(key.ToString());
-            return val == null ? null : def;
+            return val == null ? def : val;
         }
 
         public void SetValue(GeneralRepositoryKeys key, string value)

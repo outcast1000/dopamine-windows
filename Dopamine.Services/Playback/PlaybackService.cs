@@ -476,15 +476,17 @@ namespace Dopamine.Services.Playback
             try
             {
                 IList<TrackV> tracksPaths = this.Queue.Select(x => x.Data).ToList();
-                TrackV currentTrackPath = this.CurrentTrack.Data;
-                long progressSeconds = Convert.ToInt64(this.GetCurrentTime.TotalSeconds);
                 trackRepository.SavePlaylistTracks(tracksPaths);
-                Logger.Info("ALEX TODO store position in playlist");
-                //Debug.Assert(false, "ALEX TODO store position in playlist");
-                //generalRepository.SetValue(GeneralRepositoryKeys.PlaylistCurrentID, queueManager.);
-                generalRepository.SetValue(GeneralRepositoryKeys.PlayListPositionInTrack, progressSeconds.ToString());
-
-                Logger.Info("Saved {0} queued tracks", tracksPaths.Count.ToString());
+                if (queueManager.CurrentTrack != null)
+                {
+                    TrackV currentTrackPath = this.CurrentTrack.Data;
+                    long progressSeconds = Convert.ToInt64(this.GetCurrentTime.TotalSeconds);
+                    generalRepository.SetValue(GeneralRepositoryKeys.PlayListPosition, queueManager.Position.ToString());
+                    generalRepository.SetValue(GeneralRepositoryKeys.PlayListPositionInTrack, progressSeconds.ToString());
+                    Logger.Info($"Saved {tracksPaths.Count} tracks in playlist. (Position: {queueManager.Position} ProgressSeconds: {progressSeconds})");
+                }
+                else
+                    Logger.Info($"Saved {tracksPaths.Count} tracks in playlist. (No current track)");
             }
             catch (Exception ex)
             {
@@ -1312,10 +1314,12 @@ namespace Dopamine.Services.Playback
             {
                 Logger.Info("Getting saved queued tracks");
                 IList<TrackV> existingTracks = trackRepository.GetPlaylistTracks();// SavedQueuedTracksAsync();
-                int playListPosition = int.Parse(generalRepository.GetValue(GeneralRepositoryKeys.PlayListPosition));// ALEX TODO (check for null)
+                int playListPosition = int.Parse(generalRepository.GetValue(GeneralRepositoryKeys.PlayListPosition, "-1"));// ALEX TODO (check for null)
                 IList<TrackViewModel> existingTrackViewModels = await this.container.ResolveTrackViewModelsAsync(existingTracks);
 
                 await this.EnqueueAsync(existingTrackViewModels, queueManager.Shuffle);
+                if (playListPosition != -1)
+                    queueManager.Position = playListPosition;
 
                 if (!SettingsClient.Get<bool>("Startup", "RememberLastPlayedTrack"))
                 {
@@ -1329,7 +1333,7 @@ namespace Dopamine.Services.Playback
                 }
 
 
-                TrackViewModel playingTrackViewModel = existingTrackViewModels[playListPosition];
+                TrackViewModel playingTrackViewModel = queueManager.CurrentTrack;
 
                 if (playingTrackViewModel == null)
                 {
@@ -1337,6 +1341,8 @@ namespace Dopamine.Services.Playback
                 }
 
                 int progressSeconds = int.Parse(generalRepository.GetValue(GeneralRepositoryKeys.PlayListPositionInTrack));
+
+
 
                 try
                 {
