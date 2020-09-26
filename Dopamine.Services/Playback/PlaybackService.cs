@@ -331,6 +331,7 @@ namespace Dopamine.Services.Playback
 
         public async Task<AudioDevice> GetSavedAudioDeviceAsync()
         {
+            
             string savedAudioDeviceId = SettingsClient.Get<string>("Playback", "AudioDevice");
 
             IList<AudioDevice> audioDevices = await this.GetAllAudioDevicesAsync();
@@ -392,7 +393,10 @@ namespace Dopamine.Services.Playback
         public async Task UpdateQueueOrderAsync(IList<TrackViewModel> tracks)
         {
             //=== Need to refresh
-            Debug.Assert(false, "ALEX TODO a refresh");
+            Logger.Warn("UpdateQueueOrderAsync. Needs testing");
+            queueManager.UpdatePlaylistTrackInfo(tracks);
+            //await RefreshPlaylistInfo();
+            this.QueueChanged(this, new EventArgs());
             /*
             if (await this.queueManager.UpdateQueueOrderAsync(tracks, this.shuffle))
             {
@@ -405,7 +409,11 @@ namespace Dopamine.Services.Playback
         public async Task UpdateQueueMetadataAsync(IList<FileMetadata> fileMetadatas)
         {
             //=== Need to refresh
-            Debug.Assert(false, "ALEX TODO a refresh");
+            //Debug.Assert(false, "ALEX TODO a refresh");
+            Logger.Warn("UpdateQueueMetadataAsync. Needs testing");
+            await RefreshPlaylistInfo();
+            PlayingTrackChanged(this, new EventArgs());
+            QueueChanged(this, new EventArgs());
 
             /*
             UpdateQueueMetadataResult result = await this.queueManager.UpdateMetadataAsync(fileMetadatas);
@@ -425,14 +433,10 @@ namespace Dopamine.Services.Playback
 
         private async void UpdateQueueLanguageAsync()
         {
-            Debug.Assert(false, "ALEX TODO a refresh");
-            /*
-            await this.queueManager.UpdateQueueLanguageAsync();
-
-            // Raise events
+            Logger.Warn("UpdateQueueLanguageAsync. Needs testing");
+            await RefreshPlaylistInfo();
             this.PlayingTrackChanged(this, new EventArgs());
             this.QueueChanged(this, new EventArgs());
-            */
         }
 
         public async Task SetIsEqualizerEnabledAsync(bool isEnabled)
@@ -463,7 +467,14 @@ namespace Dopamine.Services.Playback
             }
         }
 
-        public async Task SaveQueuedTracksAsync()
+        private async Task RefreshPlaylistInfo()
+        {
+            await SavePlaylistAsync();
+            IList<TrackV> existingTracks = trackRepository.GetPlaylistTracks();
+            queueManager.UpdatePlaylistTrackInfo(await this.container.ResolveTrackViewModelsAsync(existingTracks));
+        }
+
+        public async Task SavePlaylistAsync()
         {
             if (!this.isQueueChanged)
             {
@@ -475,18 +486,18 @@ namespace Dopamine.Services.Playback
 
             try
             {
-                IList<TrackV> tracksPaths = this.Queue.Select(x => x.Data).ToList();
-                trackRepository.SavePlaylistTracks(tracksPaths);
+                IList<TrackV> tracks = queueManager.Playlist.Select(x => x.Data).ToList();
+                trackRepository.SavePlaylistTracks(tracks);
                 if (queueManager.CurrentTrack != null)
                 {
                     TrackV currentTrackPath = this.CurrentTrack.Data;
                     long progressSeconds = Convert.ToInt64(this.GetCurrentTime.TotalSeconds);
                     generalRepository.SetValue(GeneralRepositoryKeys.PlayListPosition, queueManager.Position.ToString());
                     generalRepository.SetValue(GeneralRepositoryKeys.PlayListPositionInTrack, progressSeconds.ToString());
-                    Logger.Info($"Saved {tracksPaths.Count} tracks in playlist. (Position: {queueManager.Position} ProgressSeconds: {progressSeconds})");
+                    Logger.Info($"Saved {tracks.Count} tracks in playlist. (Position: {queueManager.Position} ProgressSeconds: {progressSeconds})");
                 }
                 else
-                    Logger.Info($"Saved {tracksPaths.Count} tracks in playlist. (No current track)");
+                    Logger.Info($"Saved {tracks.Count} tracks in playlist. (No current track)");
             }
             catch (Exception ex)
             {
@@ -947,7 +958,7 @@ namespace Dopamine.Services.Playback
             await this.SetIsEqualizerEnabledAsync(SettingsClient.Get<bool>("Equalizer", "IsEnabled"));
 
             // Queued tracks
-            this.GetSavedQueuedTracks();
+            this.LoadPlaylistAsync();
         }
 
         private async void SavePlaybackCountersHandler(object sender, ElapsedEventArgs e)
@@ -1262,47 +1273,10 @@ namespace Dopamine.Services.Playback
 
         private async void SaveQueuedTracksTimeoutHandler(object sender, ElapsedEventArgs e)
         {
-            await this.SaveQueuedTracksAsync();
+            await this.SavePlaylistAsync();
         }
 
-        private async Task<IList<TrackV>> ConvertQueuedTracksToTracks(IList<QueuedTrack> queuedTracks)
-        {
-            IList<TrackV> databaseTracks = trackRepository.GetTracksWithPaths(queuedTracks.Where(x => System.IO.File.Exists(x.Path)).Select(x => x.Path).ToList());
-
-            // All queued tracks were found as tracks in the database: there is no need to get metadata from the files
-            // (Getting metadata from files is an expensive operation, so we want to do this as little as possible.)
-            if (queuedTracks.Count.Equals(databaseTracks.Count))
-            {
-                return databaseTracks;
-            }
-
-            // Not all queued tracks exist as tracks in the database. We process them 1 by 1 and get metadata from files, if necessary.
-            IList<TrackV> oneByOneTracks = new List<TrackV>();
-
-            await Task.Run(async () =>
-            {
-                foreach (QueuedTrack queuedTrack in queuedTracks)
-                {
-                    TrackV foundDatabaseTrack = databaseTracks.Where(x => x.Path.Equals(queuedTrack.Path)).FirstOrDefault();
-
-                    if (foundDatabaseTrack != null)
-                    {
-                        // Queued track was found as track in database
-                        oneByOneTracks.Add(foundDatabaseTrack);
-
-                    }
-                    else if (System.IO.File.Exists(queuedTrack.Path))
-                    {
-                        // Queued track was not found as track in database: get metadata from file.
-                        oneByOneTracks.Add(await MetadataUtils.Path2TrackAsync(queuedTrack.Path));
-                    }
-                }
-            });
-
-            return oneByOneTracks;
-        }
-
-        private async void GetSavedQueuedTracks()
+        private async void LoadPlaylistAsync()
         {
             if (!this.canGetSavedQueuedTracks)
             {
@@ -1313,8 +1287,8 @@ namespace Dopamine.Services.Playback
             try
             {
                 Logger.Info("Getting saved queued tracks");
-                IList<TrackV> existingTracks = trackRepository.GetPlaylistTracks();// SavedQueuedTracksAsync();
-                int playListPosition = int.Parse(generalRepository.GetValue(GeneralRepositoryKeys.PlayListPosition, "-1"));// ALEX TODO (check for null)
+                IList<TrackV> existingTracks = trackRepository.GetPlaylistTracks();
+                int playListPosition = int.Parse(generalRepository.GetValue(GeneralRepositoryKeys.PlayListPosition, "-1"));
                 IList<TrackViewModel> existingTrackViewModels = await this.container.ResolveTrackViewModelsAsync(existingTracks);
 
                 await this.EnqueueAsync(existingTrackViewModels, queueManager.Shuffle);
@@ -1438,7 +1412,9 @@ namespace Dopamine.Services.Playback
 
         private async Task SetAudioDeviceAsync()
         {
+            Logger.Trace("SetAudioDeviceAsync");
             this.audioDevice = await this.GetSavedAudioDeviceAsync();
+            Logger.Trace("SetAudioDeviceAsync (END)");
         }
     }
 }

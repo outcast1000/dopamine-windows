@@ -41,7 +41,7 @@ namespace Dopamine.Services.Lifetime
             }
             else
             {
-                await this.playbackService.SaveQueuedTracksAsync();
+                await this.playbackService.SavePlaylistAsync();
             }
 
             LogClient.Info($"Save queued tracks. Time required: {Convert.ToInt64(DateTime.Now.Subtract(startTime).TotalMilliseconds)} ms");

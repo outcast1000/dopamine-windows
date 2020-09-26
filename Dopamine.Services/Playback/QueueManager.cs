@@ -31,6 +31,13 @@ namespace Dopamine.Services.Playback
 
         public IList<TrackViewModel> Playlist { get { return _playList; } }
 
+        public void UpdatePlaylistTrackInfo(IList<TrackViewModel> tracks)
+        {
+            Debug.Assert(tracks.Count == _playList.Count);
+            _playList.Clear();
+            _playList.InsertRange(0, tracks);
+        }
+
         public bool Shuffle { get { return _shuffle; } set
             {
                 if (value != Shuffle)
