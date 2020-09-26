@@ -36,6 +36,8 @@ namespace Dopamine.Services.Playback
 
         bool Shuffle { get; }
 
+        Task SetPlaylistPositionAsync(int newPosition);
+
         bool Mute { get; }
 
         bool IsStopped { get; }
@@ -76,7 +78,6 @@ namespace Dopamine.Services.Playback
 
         Task PlayOrPauseAsync();
 
-        Task PlaySelectedAsync(TrackViewModel track);
 
         Task<bool> PlaySelectedAsync(IList<TrackViewModel> tracks);
 

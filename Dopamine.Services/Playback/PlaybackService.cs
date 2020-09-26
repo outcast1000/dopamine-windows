@@ -85,6 +85,17 @@ namespace Dopamine.Services.Playback
 
         public bool HasMediaFoundationSupport => this.hasMediaFoundationSupport;
 
+        public async Task SetPlaylistPositionAsync(int newPosition)
+        {
+            queueManager.Position = newPosition;
+            // NewPosition may be invalid
+            if (queueManager.Position == newPosition)
+            {
+                await this.TryPlayAsync(queueManager.CurrentTrack);
+            }
+        }
+
+
         public bool IsStopped
         {
             get
@@ -820,11 +831,6 @@ namespace Dopamine.Services.Playback
             await this.EnqueueAsync(tracks, shuffle, unshuffle);
         }
 
-        public async Task PlaySelectedAsync(TrackViewModel track)
-        {
-            await this.TryPlayAsync(track);
-        }
-
         public async Task<bool> PlaySelectedAsync(IList<TrackViewModel> tracks)
         {
             queueManager.Play(tracks);
@@ -1416,5 +1422,6 @@ namespace Dopamine.Services.Playback
             this.audioDevice = await this.GetSavedAudioDeviceAsync();
             Logger.Trace("SetAudioDeviceAsync (END)");
         }
+
     }
 }
