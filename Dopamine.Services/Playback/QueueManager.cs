@@ -20,6 +20,7 @@ namespace Dopamine.Services.Playback
         private List<int> _playlistOrder = new List<int>();
         private int _position = -1;
         private int _nextCounter = 0;
+        private bool _shuffle = false;
 
         public QueueManager()
         {
@@ -30,7 +31,15 @@ namespace Dopamine.Services.Playback
 
         public IList<TrackViewModel> Playlist { get { return _playList; } }
 
-        public bool Shuffle { get; set; }
+        public bool Shuffle { get { return _shuffle; } set
+            {
+                if (value != Shuffle)
+                {
+                    _shuffle = value;
+                    _playlistOrder = CreatePlayListOrder();
+                }
+            }
+        }
 
         public bool Loop { get; set; }
 
