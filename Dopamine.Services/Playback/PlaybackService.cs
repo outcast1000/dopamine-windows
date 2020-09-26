@@ -1197,6 +1197,8 @@ namespace Dopamine.Services.Playback
 
             // When "loop one" is enabled and ignoreLoopOne is true, act like "loop all".
             LoopMode loopMode = this.LoopMode == LoopMode.One && ignoreLoopOne ? LoopMode.All : this.LoopMode;
+            if (loopMode == LoopMode.One)
+                return await this.TryPlayAsync(queueManager.CurrentTrack);
 
             if (!queueManager.Prev())
             {
@@ -1210,9 +1212,11 @@ namespace Dopamine.Services.Playback
         {
             this.isPlayingPreviousTrack = false;
 
-            LoopMode loopMode = this.LoopMode == LoopMode.One && ignoreLoopOne ? LoopMode.All : this.LoopMode;
-
             // When "loop one" is enabled and ignoreLoopOne is true, act like "loop all".
+            LoopMode loopMode = this.LoopMode == LoopMode.One && ignoreLoopOne ? LoopMode.All : this.LoopMode;
+            if (loopMode == LoopMode.One)
+                return await this.TryPlayAsync(queueManager.CurrentTrack);
+
             bool returnToStart = SettingsClient.Get<bool>("Playback", "LoopWhenShuffle") & queueManager.Shuffle;
             //TrackViewModel nextTrack = await this.queueManager.NextTrackAsync(loopMode, returnToStart);
 
