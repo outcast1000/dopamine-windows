@@ -284,11 +284,11 @@ namespace Dopamine.Data
                             "id                 INTEGER PRIMARY KEY AUTOINCREMENT," +
                             "name               TEXT NOT NULL);");
 
-                conn.Execute("INSERT INTO HistoryActions (name) VALUES ('Added'), ('Removed'), ('Modified'), ('Played'), ('Skipped'), ('Rated'), ('Loved');");
+                conn.Execute("INSERT INTO HistoryActions (name) VALUES ('ExplicitSelected'), ('Played'), ('Skipped'), ('Rated'), ('Loved');");
 
 
                 //=== History:
-                conn.Execute("CREATE TABLE History (" +
+                conn.Execute("CREATE TABLE TrackHistory (" +
                             "id                     INTEGER PRIMARY KEY AUTOINCREMENT," +
                             "track_id               INTEGER NOT NULL," +
                             "history_action_id      INTEGER NOT NULL," +

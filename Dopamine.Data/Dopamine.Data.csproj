@@ -111,6 +111,7 @@
     <Compile Include="DataUtils.cs" />
     <Compile Include="DbMigrator.cs" />
     <Compile Include="Entities\AlbumReview.cs" />
+    <Compile Include="Entities\TrackHistory.cs" />
     <Compile Include="Entities\General.cs" />
     <Compile Include="Entities\ArtistRole.cs" />
     <Compile Include="Entities\ArtistImageFailed.cs" />
@@ -157,6 +158,8 @@
     <Compile Include="Providers\LastFMAlbumInfoProvider.cs" />
     <Compile Include="Providers\TagTrackInfoProvider.cs" />
     <Compile Include="Providers\IAlbumInfoProvider.cs" />
+    <Compile Include="Repositories\SQLiteTrackHistoryRepository.cs" />
+    <Compile Include="Repositories\ITrackHistoryRepository.cs" />
     <Compile Include="Repositories\SQLiteGeneralRepository.cs" />
     <Compile Include="Repositories\IGeneralRepository.cs" />
     <Compile Include="Repositories\IImageRepository.cs" />
