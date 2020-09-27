@@ -91,7 +91,7 @@ namespace Dopamine.Services.Notification
 
         private async void SMCShuffleEnabledChanged(SystemMediaTransportControls sender, ShuffleEnabledChangeRequestedEventArgs args)
         {
-            await this.PlaybackService.SetShuffleAsync(args.RequestedShuffleEnabled);
+            this.PlaybackService.Shuffle = args.RequestedShuffleEnabled;
         }
 
         protected override bool CanShowNotification()
