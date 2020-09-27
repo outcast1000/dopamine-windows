@@ -403,24 +403,11 @@ namespace Dopamine.Services.Playback
 
         public async Task UpdateQueueOrderAsync(IList<TrackViewModel> tracks)
         {
-            //=== Need to refresh
-            Logger.Warn("UpdateQueueOrderAsync. Needs testing");
-            if (queueManager.CurrentTrack != null)
+            await Task.Run(() =>
             {
-                int newPosition = tracks.IndexOf(queueManager.CurrentTrack);
-                if (newPosition != -1)
-                    queueManager.Position = newPosition;
-            }
-            queueManager.UpdatePlaylistTrackInfo(tracks);
-            //await RefreshPlaylistInfo();
-            this.QueueChanged(this, new EventArgs());
-            /*
-            if (await this.queueManager.UpdateQueueOrderAsync(tracks, this.shuffle))
-            {
-                // Required to update other Now Playing screens
-                this.QueueChanged(this, new EventArgs());
-            }
-            */
+                queueManager.ReorderPlaylist(tracks);
+                QueueChanged(this, new EventArgs());
+            });
         }
 
         public async Task UpdateQueueMetadataAsync(IList<FileMetadata> fileMetadatas)

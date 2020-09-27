@@ -183,5 +183,25 @@ namespace Dopamine.Services.Playback
         }
 
 
+        public void ReorderPlaylist(IList<TrackViewModel> reorderedPlaylist)
+        {
+            Debug.Assert(reorderedPlaylist.Count == _playList.Count);
+            if (CurrentTrack != null)
+            {
+                int newPosition = reorderedPlaylist.IndexOf(CurrentTrack);
+                if (newPosition != -1)
+                    _position = newPosition;
+            }
+            _playList.Clear();
+            _playList.InsertRange(0, reorderedPlaylist);
+        }
+
+        public void RemoveTracks(IList<TrackViewModel> tracks)
+        {
+
+        }
+
+
+
     }
 }
