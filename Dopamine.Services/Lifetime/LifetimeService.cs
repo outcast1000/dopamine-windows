@@ -57,6 +57,7 @@ namespace Dopamine.Services.Lifetime
             LogClient.Info($"Update file metadata. Time required: {Convert.ToInt64(DateTime.Now.Subtract(startTime).TotalMilliseconds)} ms");
 
 
+            /*
             // Save playback counters
             startTime = DateTime.Now;
             
@@ -73,7 +74,7 @@ namespace Dopamine.Services.Lifetime
             }
 
             LogClient.Info($"Save playback counters. Time required: {Convert.ToInt64(DateTime.Now.Subtract(startTime).TotalMilliseconds)} ms");
-
+            */
             this.MustPerformClosingTasks = false;
         }
     }

@@ -29,11 +29,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
+using NLog;
 
 namespace Dopamine.ViewModels.Common.Base
 {
     public abstract class TracksViewModelBase : CommonViewModelBase
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
         private IContainerProvider container;
         private IDialogService dialogService;
         private ITrackVRepository trackRepository;
@@ -114,7 +117,7 @@ namespace Dopamine.ViewModels.Common.Base
                 this.RefreshLanguage();
             };
 
-            this.playbackService.PlaybackCountersChanged += PlaybackService_PlaybackCountersChanged;
+            this.playbackService.TrackHistoryChanged += PlaybackService_TrackHistoryChanged;
         }
 
         protected virtual async void MetadataChangedHandlerAsync(MetadataChangedEventArgs e)
@@ -122,25 +125,21 @@ namespace Dopamine.ViewModels.Common.Base
             await this.FillListsAsync();
         }
 
-        private async void PlaybackService_PlaybackCountersChanged(IList<PlaybackCounter> counters)
+        private async void PlaybackService_TrackHistoryChanged(TrackViewModel track)
         {
             if (this.Tracks == null)
             {
                 return;
             }
 
-            if (counters == null)
-            {
-                return;
-            }
 
-            if (counters.Count == 0)
-            {
-                return;
-            }
 
             await Task.Run(() =>
             {
+                Logger.Warn("PlaybackService_TrackHistoryChanged ALEX TODO. This need work / test");
+                if (Tracks.Contains(track))
+                    Application.Current.Dispatcher.Invoke(() => track.UpdateVisibleCounters(null));
+                /*
                 foreach (TrackViewModel vm in this.Tracks)
                 {
                     if (counters.Select(c => c.SafePath).Contains(vm.SafePath))
@@ -150,6 +149,7 @@ namespace Dopamine.ViewModels.Common.Base
                         Application.Current.Dispatcher.Invoke(() => vm.UpdateVisibleCounters(counter));
                     }
                 }
+                */
             });
         }
 

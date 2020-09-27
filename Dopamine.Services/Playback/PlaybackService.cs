@@ -65,14 +65,15 @@ namespace Dopamine.Services.Playback
 
         private ITrackVRepository trackRepository;
         private IGeneralRepository generalRepository;
+        private ITrackHistoryRepository trackHistoryRepository;
 
-        private System.Timers.Timer savePlaybackCountersTimer = new System.Timers.Timer();
-        private int savePlaybackCountersTimeoutSeconds = 2;
+        //private System.Timers.Timer savePlaybackCountersTimer = new System.Timers.Timer();
+        //private int savePlaybackCountersTimeoutSeconds = 2;
 
-        private bool isSavingPLaybackCounters = false;
-        private Dictionary<string, PlaybackCounter> playbackCounters = new Dictionary<string, PlaybackCounter>();
+        //private bool isSavingPLaybackCounters = false;
+        //private Dictionary<string, PlaybackCounter> playbackCounters = new Dictionary<string, PlaybackCounter>();
 
-        private object playbackCountersLock = new object();
+        //private object playbackCountersLock = new object();
 
         private SynchronizationContext context;
         private bool isLoadingTrack;
@@ -81,7 +82,7 @@ namespace Dopamine.Services.Playback
 
         public bool IsSavingQueuedTracks => this.isSavingQueuedTracks;
 
-        public bool IsSavingPlaybackCounters => this.isSavingPLaybackCounters;
+        //public bool IsSavingPlaybackCounters => this.isSavingPLaybackCounters;
 
         public bool HasMediaFoundationSupport => this.hasMediaFoundationSupport;
 
@@ -272,12 +273,14 @@ namespace Dopamine.Services.Playback
         }
 
         public PlaybackService(IFileService fileService, II18nService i18nService, ITrackVRepository trackRepository,
-            IEqualizerService equalizerService, IGeneralRepository generalRepository, IContainerProvider container, IPlaylistService playlistService)
+            IEqualizerService equalizerService, IGeneralRepository generalRepository, IContainerProvider container, 
+            IPlaylistService playlistService, ITrackHistoryRepository trackHistoryRepository)
         {
             this.fileService = fileService;
             this.i18nService = i18nService;
             this.trackRepository = trackRepository;
             this.generalRepository = generalRepository;
+            this.trackHistoryRepository = trackHistoryRepository;
             this.equalizerService = equalizerService;
             this.playlistService = playlistService;
             this.container = container;
@@ -298,8 +301,8 @@ namespace Dopamine.Services.Playback
             this.saveQueuedTracksTimer.Interval = TimeSpan.FromSeconds(this.saveQueuedTracksTimeoutSeconds).TotalMilliseconds;
             this.saveQueuedTracksTimer.Elapsed += new ElapsedEventHandler(this.SaveQueuedTracksTimeoutHandler);
 
-            this.savePlaybackCountersTimer.Interval = TimeSpan.FromSeconds(this.savePlaybackCountersTimeoutSeconds).TotalMilliseconds;
-            this.savePlaybackCountersTimer.Elapsed += new ElapsedEventHandler(this.SavePlaybackCountersHandler);
+            //this.savePlaybackCountersTimer.Interval = TimeSpan.FromSeconds(this.savePlaybackCountersTimeoutSeconds).TotalMilliseconds;
+            //this.savePlaybackCountersTimer.Elapsed += new ElapsedEventHandler(this.SavePlaybackCountersHandler);
 
             this.Initialize();
         }
@@ -324,7 +327,8 @@ namespace Dopamine.Services.Playback
         public event EventHandler PlaybackLoopChanged = delegate { };
         public event EventHandler PlaybackShuffleChanged = delegate { };
         public event Action<int> AddedTracksToQueue = delegate { };
-        public event PlaybackCountersChangedEventHandler PlaybackCountersChanged = delegate { };
+        //public event PlaybackCountersChangedEventHandler PlaybackCountersChanged = delegate { };
+        public event TrackHistoryChangedEventHandler TrackHistoryChanged = delegate { };
         public event Action<bool> LoadingTrack = delegate { };
         public event EventHandler PlayingTrackChanged = delegate { };
         public event EventHandler QueueChanged = delegate { };
@@ -509,6 +513,7 @@ namespace Dopamine.Services.Playback
             this.isSavingQueuedTracks = false;
         }
 
+        /*
         public async Task SavePlaybackCountersAsync()
         {
             if (this.playbackCounters.Count == 0 | this.isSavingPLaybackCounters)
@@ -548,7 +553,7 @@ namespace Dopamine.Services.Playback
                 this.ResetSavePlaybackCountersTimer();
             }
         }
-
+        */
         public async Task PlayOrPauseAsync()
         {
             if (!this.IsStopped)
@@ -649,18 +654,21 @@ namespace Dopamine.Services.Playback
             {
                 try
                 {
-                    int currentTime = this.GetCurrentTime.Seconds;
-                    int totalTime = this.GetTotalTime.Seconds;
+                    double currentTime = this.GetCurrentTime.TotalSeconds;
+                    double totalTime = this.GetTotalTime.TotalSeconds;
+                    double percentage = 100 * currentTime / totalTime;
 
-                    if (currentTime <= 10)
+                    if (percentage < 10)
                     {
                         // Increase SkipCount
-                        await this.UpdatePlaybackCountersAsync(this.CurrentTrack.Path, false, true);
+                        //await this.UpdatePlaybackCountersAsync(this.CurrentTrack.Path, false, true);
+                        trackHistoryRepository.AddSkippedAction(CurrentTrack.Id, (long) currentTime, (long)percentage);
                     }
                     else
                     {
                         // Increase PlayCount
-                        await this.UpdatePlaybackCountersAsync(this.CurrentTrack.Path, true, false);
+                        //await this.UpdatePlaybackCountersAsync(this.CurrentTrack.Path, true, false);
+                        trackHistoryRepository.AddPlayedAction(CurrentTrack.Id, (long) currentTime, (long)percentage);
                     }
 
                 }
@@ -733,8 +741,12 @@ namespace Dopamine.Services.Playback
             {
                 return;
             }
-            int idx  = tracks.IndexOf(track);
-            queueManager.Play(tracks, idx);
+            await Task.Run(() =>
+            {
+                int idx = tracks.IndexOf(track);
+                queueManager.Play(tracks, idx);
+                trackHistoryRepository.AddExplicitSelected(track.Id);
+            });
             await TryPlayAsync(track);
 
             //await this.EnqueueAsync(tracks, queueManager.Shuffle);
@@ -896,11 +908,14 @@ namespace Dopamine.Services.Playback
             this.LoadPlaylistAsync();
         }
 
+        /*
         private async void SavePlaybackCountersHandler(object sender, ElapsedEventArgs e)
         {
             await this.SavePlaybackCountersAsync();
         }
+        */
 
+        /*
         private async Task UpdatePlaybackCountersAsync(string path, bool incrementPlayCount, bool incrementSkipCount)
         {
 
@@ -947,6 +962,7 @@ namespace Dopamine.Services.Playback
 
             this.ResetSavePlaybackCountersTimer();
         }
+        */
 
         private async Task PauseAsync(bool isSilent = false)
         {
@@ -1201,7 +1217,8 @@ namespace Dopamine.Services.Playback
             this.context.Post(new SendOrPostCallback(async (state) =>
             {
                 LogClient.Info("Track finished: {0}", this.CurrentTrack.Path);
-                await this.UpdatePlaybackCountersAsync(this.CurrentTrack.Path, true, false); // Increase PlayCount
+                //await this.UpdatePlaybackCountersAsync(this.CurrentTrack.Path, true, false); // Increase PlayCount
+                trackHistoryRepository.AddPlayedAction(CurrentTrack.Id, (long) GetTotalTime.TotalSeconds, 100);
                 await this.TryPlayNextAsync(false);
             }), null);
         }
@@ -1322,11 +1339,13 @@ namespace Dopamine.Services.Playback
             this.saveQueuedTracksTimer.Start();
         }
 
+        /*
         private void ResetSavePlaybackCountersTimer()
         {
             this.savePlaybackCountersTimer.Stop();
             this.savePlaybackCountersTimer.Start();
         }
+        */
 
         private void SetPlaybackSettings()
         {

@@ -13,7 +13,8 @@ namespace Dopamine.Services.Playback
     public delegate void PlaybackFailedEventHandler(object sender, PlaybackFailedEventArgs e);
     public delegate void PlaybackSuccessEventHandler(object sender, PlaybackSuccessEventArgs e);
     public delegate void PlaybackPausedEventHandler(object sender, PlaybackPausedEventArgs e);
-    public delegate void PlaybackCountersChangedEventHandler(IList<PlaybackCounter> counters);
+    //public delegate void PlaybackCountersChangedEventHandler(IList<PlaybackCounter> counters);
+    public delegate void TrackHistoryChangedEventHandler(TrackViewModel track);
     public delegate void PlaybackVolumeChangedEventhandler(object sender, PlaybackVolumeChangedEventArgs e);
 
     public interface IPlaybackService
@@ -28,7 +29,7 @@ namespace Dopamine.Services.Playback
 
         bool IsSavingQueuedTracks { get; }
 
-        bool IsSavingPlaybackCounters { get; }
+        //bool IsSavingPlaybackCounters { get; }
 
         bool HasMediaFoundationSupport { get; }
 
@@ -111,8 +112,6 @@ namespace Dopamine.Services.Playback
 
         Task SavePlaylistAsync();
 
-        Task SavePlaybackCountersAsync();
-
         void ApplyPreset(EqualizerPreset preset);
 
         Task SetIsEqualizerEnabledAsync(bool isEnabled);
@@ -139,7 +138,8 @@ namespace Dopamine.Services.Playback
         event EventHandler PlaybackLoopChanged;
         event EventHandler PlaybackShuffleChanged;
         event Action<int> AddedTracksToQueue;
-        event PlaybackCountersChangedEventHandler PlaybackCountersChanged;
+        //event PlaybackCountersChangedEventHandler PlaybackCountersChanged;
+        event TrackHistoryChangedEventHandler TrackHistoryChanged;
         event Action<bool> LoadingTrack;
         event EventHandler PlayingTrackChanged;
         event EventHandler QueueChanged;

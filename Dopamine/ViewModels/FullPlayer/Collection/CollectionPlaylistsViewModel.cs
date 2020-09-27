@@ -84,7 +84,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             this.metadataService.LoveChanged += async (_) => await this.GetTracksIfSmartPlaylistSelectedAsync();
             this.metadataService.RatingChanged += async (_) => await this.GetTracksIfSmartPlaylistSelectedAsync();
             this.metadataService.MetadataChanged += async (_) => await this.GetTracksIfSmartPlaylistSelectedAsync();
-            this.playbackService.PlaybackCountersChanged += async (_) => await this.GetTracksIfSmartPlaylistSelectedAsync();
+            this.playbackService.TrackHistoryChanged += async (_) => await this.GetTracksIfSmartPlaylistSelectedAsync();
 
             // Commands
             this.EditSelectedPlaylistCommand = new DelegateCommand(async () => await this.EditSelectedPlaylistAsync());

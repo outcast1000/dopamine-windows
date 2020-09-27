@@ -52,7 +52,7 @@ namespace Dopamine.Data
 
                 conn.Execute("DROP TABLE IF EXISTS PlaylistTracks;");
 
-                conn.Execute("DROP TABLE IF EXISTS History;");
+                conn.Execute("DROP TABLE IF EXISTS TrackHistory;");
                 conn.Execute("DROP TABLE IF EXISTS HistoryActions;");
 
                 conn.Execute("DROP TABLE IF EXISTS TrackArtists;");
@@ -297,8 +297,8 @@ namespace Dopamine.Data
                             "FOREIGN KEY (track_id) REFERENCES Tracks(id)," +
                             "FOREIGN KEY (history_action_id) REFERENCES HistoryActions(id));");
 
-                conn.Execute("CREATE INDEX HistoryTrackIDIndex ON History(track_id);");
-                conn.Execute("CREATE INDEX HistoryHistoryActionIDIndex ON History(history_action_id);");
+                conn.Execute("CREATE INDEX HistoryTrackIDIndex ON TrackHistory(track_id);");
+                conn.Execute("CREATE INDEX HistoryHistoryActionIDIndex ON TrackHistory(history_action_id);");
 
                 conn.Execute("CREATE TABLE PlaylistTracks (" +
                             "id                 INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -511,7 +511,7 @@ namespace Dopamine.Data
                 {
                     this.userDatabaseVersion = Convert.ToInt32(conn.ExecuteScalar<string>("SELECT Value FROM General WHERE key = ?", GeneralRepositoryKeys.DBVersion.ToString()));
                     //=== ALEX DEBUG. USE "26" to force the update. "27" to avoid it. Reenable the Execute scalar
-                    //userDatabaseVersion = 26;
+                    //userDatabaseVersion = 27;
                 }
                 catch (Exception)
                 {
