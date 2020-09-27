@@ -34,7 +34,7 @@ namespace Dopamine.Services.Playback
 
         IList<TrackViewModel> Queue { get; }
 
-        bool Shuffle { get; }
+        bool Shuffle { get; set; }
 
         Task SetPlaylistPositionAsync(int newPosition);
 
@@ -70,8 +70,6 @@ namespace Dopamine.Services.Playback
 
         void SetMute(bool mute);
 
-        Task SetShuffleAsync(bool shuffle);
-
         Task PlayNextAsync();
 
         Task PlayPreviousAsync();
@@ -85,17 +83,17 @@ namespace Dopamine.Services.Playback
 
         Task EnqueueAsync(IList<TrackViewModel> tracks);
 
-        Task EnqueueAsync(bool shuffle, bool unshuffle);
+        Task EnqueueEverythingAsync();//bool shuffle, bool unshuffle);
 
-        Task EnqueueAsync(IList<TrackViewModel> tracks, bool shuffle, bool unshuffle);
+        //Task EnqueueAsync(IList<TrackViewModel> tracks, bool shuffle, bool unshuffle);
 
-        Task EnqueueArtistsAsync(IList<ArtistViewModel> artists, bool shuffle, bool unshuffle);
+        Task EnqueueArtistsAsync(IList<ArtistViewModel> artists);//, bool shuffle, bool unshuffle);
 
-        Task EnqueueGenresAsync(IList<GenreViewModel> genres, bool shuffle, bool unshuffle);
+        Task EnqueueGenresAsync(IList<GenreViewModel> genres);//, bool shuffle, bool unshuffle);
 
-        Task EnqueueAlbumsAsync(IList<AlbumViewModel> albumViewModels, bool shuffle, bool unshuffle);
+        Task EnqueueAlbumsAsync(IList<AlbumViewModel> albumViewModels);//, bool shuffle, bool unshuffle);
 
-        Task EnqueuePlaylistsAsync(IList<PlaylistViewModel> playlistViewModels, bool shuffle, bool unshuffle);
+        Task EnqueuePlaylistsAsync(IList<PlaylistViewModel> playlistViewModels);//, bool shuffle, bool unshuffle);
 
         Task StopIfPlayingAsync(TrackViewModel track);
 

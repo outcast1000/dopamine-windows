@@ -19,6 +19,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Prism.Ioc;
 using Dopamine.Services.Folders;
+using Dopamine.Core.Base;
 
 namespace Dopamine.ViewModels.Common.Base
 {
@@ -118,7 +119,12 @@ namespace Dopamine.ViewModels.Common.Base
             this.EditTracksCommand = new DelegateCommand(() => this.EditSelectedTracks(), () => !this.IsIndexing);
             this.LoadedCommand = new DelegateCommand(async () => await this.LoadedCommandAsync());
             this.UnloadedCommand = new DelegateCommand(async () => await this.UnloadedCommandAsync());
-            this.ShuffleAllCommand = new DelegateCommand(() => this.playbackService.EnqueueAsync(true, false));
+            this.ShuffleAllCommand = new DelegateCommand(() =>
+            {
+                this.playbackService.Shuffle = true;
+                this.playbackService.LoopMode = LoopMode.None;
+                this.playbackService.EnqueueEverythingAsync();
+            });
 
             // Events
             this.playbackService.PlaybackFailed += (_, __) => this.ShowPlayingTrackAsync();

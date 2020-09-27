@@ -175,9 +175,17 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             this.SelectedArtistsCommand = new DelegateCommand<object>(async (parameter) => await this.SelectedArtistsHandlerAsync(parameter));
             this.ShowArtistsZoomCommand = new DelegateCommand(async () => await this.ShowSemanticZoomAsync());
             this.AddArtistsToNowPlayingCommand = new DelegateCommand(async () => await this.AddArtistsToNowPlayingAsync(this.SelectedArtists));
-            this.ShuffleSelectedArtistsCommand = new DelegateCommand(async () => await this.playbackService.EnqueueArtistsAsync(this.SelectedArtists, true, false));
-
-            this.PlayArtistCommand = new DelegateCommand<ArtistViewModel>(async (avm) => await this.playbackService.EnqueueArtistsAsync(new List<ArtistViewModel>() { avm }, false, false));
+            this.ShuffleSelectedArtistsCommand = new DelegateCommand(async () =>
+            {
+                playbackService.Shuffle = true;
+                playbackService.LoopMode = LoopMode.None;
+                await this.playbackService.EnqueueArtistsAsync(SelectedArtists);
+            });
+            this.PlayArtistCommand = new DelegateCommand<ArtistViewModel>(async (avm) => {
+                playbackService.Shuffle = false;
+                playbackService.LoopMode = LoopMode.None;
+                await this.playbackService.EnqueueArtistsAsync(new List<ArtistViewModel>() { avm });
+            });
             this.EnqueueArtistCommand = new DelegateCommand<ArtistViewModel>(async (avm) => await this.playbackService.AddArtistsToQueueAsync(new List<ArtistViewModel>() { avm }));
             this.LoveArtistCommand = new DelegateCommand<ArtistViewModel>((avm) => Debug.Assert(false, "ALEX TODO"));
 

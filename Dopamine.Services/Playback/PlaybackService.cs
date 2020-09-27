@@ -178,20 +178,15 @@ namespace Dopamine.Services.Playback
 
         public bool Shuffle
         {
-            get { return queueManager.Shuffle; }
+            get { return queueManager.Shuffle; } set { 
+                queueManager.Shuffle = value;
+                this.PlaybackShuffleChanged(this, new EventArgs());
+            }
         }
 
         public bool Mute
         {
             get { return this.mute; }
-        }
-
-        public async Task SetShuffleAsync(bool isShuffled)
-        {
-            queueManager.Shuffle = isShuffled;
-
-            this.PlaybackShuffleChanged(this, new EventArgs());
-            this.QueueChanged(this, new EventArgs());
         }
 
         public bool UseAllAvailableChannels { get; set; }
@@ -488,25 +483,28 @@ namespace Dopamine.Services.Playback
             this.saveQueuedTracksTimer.Stop();
             this.isSavingQueuedTracks = true;
 
-            try
+            await Task.Run(() =>
             {
-                IList<TrackV> tracks = queueManager.Playlist.Select(x => x.Data).ToList();
-                trackRepository.SavePlaylistTracks(tracks);
-                if (queueManager.CurrentTrack != null)
+                try
                 {
-                    TrackV currentTrackPath = this.CurrentTrack.Data;
-                    long progressSeconds = Convert.ToInt64(this.GetCurrentTime.TotalSeconds);
-                    generalRepository.SetValue(GeneralRepositoryKeys.PlayListPosition, queueManager.Position.ToString());
-                    generalRepository.SetValue(GeneralRepositoryKeys.PlayListPositionInTrack, progressSeconds.ToString());
-                    Logger.Info($"Saved {tracks.Count} tracks in playlist. (Position: {queueManager.Position} ProgressSeconds: {progressSeconds})");
+                    IList<TrackV> tracks = queueManager.Playlist.Select(x => x.Data).ToList();
+                    trackRepository.SavePlaylistTracks(tracks);
+                    if (queueManager.CurrentTrack != null)
+                    {
+                        TrackV currentTrackPath = this.CurrentTrack.Data;
+                        long progressSeconds = Convert.ToInt64(this.GetCurrentTime.TotalSeconds);
+                        generalRepository.SetValue(GeneralRepositoryKeys.PlayListPosition, queueManager.Position.ToString());
+                        generalRepository.SetValue(GeneralRepositoryKeys.PlayListPositionInTrack, progressSeconds.ToString());
+                        Logger.Info($"Saved {tracks.Count} tracks in playlist. (Position: {queueManager.Position} ProgressSeconds: {progressSeconds})");
+                    }
+                    else
+                        Logger.Info($"Saved {tracks.Count} tracks in playlist. (No current track)");
                 }
-                else
-                    Logger.Info($"Saved {tracks.Count} tracks in playlist. (No current track)");
-            }
-            catch (Exception ex)
-            {
-                Logger.Error(ex, "Could not save queued tracks. Exception: {0}", ex.Message);
-            }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex, "Could not save queued tracks. Exception: {0}", ex.Message);
+                }
+            });
 
             this.isSavingQueuedTracks = false;
         }
@@ -574,7 +572,7 @@ namespace Dopamine.Services.Playback
                 else
                 {
                     // Enqueue all tracks before playing
-                    await this.EnqueueAsync(false, false);
+                    await this.EnqueueEverythingAsync();// false, false);
                 }
             }
         }
@@ -722,45 +720,11 @@ namespace Dopamine.Services.Playback
             }
         }
 
-        public async Task EnqueueAsync(IList<TrackViewModel> tracks, bool shuffle, bool unshuffle)
-        {
-            if (tracks == null)
-            {
-                return;
-            }
-
-            // Shuffle
-            if (shuffle)
-            {
-                await this.EnqueueAsync(tracks, true);
-            }
-
-            // Unshuffle
-            if (unshuffle)
-            {
-                await this.EnqueueAsync(tracks, false);
-            }
-
-            // Use the current shuffle mode
-            if (!shuffle && !unshuffle)
-            {
-                await this.EnqueueAsync(tracks, queueManager.Shuffle);
-            }
-
-            // Start playing
-            await this.PlayFirstAsync();
-        }
-
-        public async Task EnqueueAsync(bool shuffle, bool unshuffle)
+        public async Task EnqueueEverythingAsync()
         {
             IList<TrackV> tracks = this.trackRepository.GetTracks();
             List<TrackViewModel> orederedTracks = await EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
-            await this.EnqueueAsync(orederedTracks, shuffle, unshuffle);
-        }
-
-        public async Task EnqueueAsync(IList<TrackViewModel> tracks)
-        {
-            await this.EnqueueAsync(tracks, false, false);
+            await this.EnqueueAsync(orederedTracks);
         }
 
         public async Task EnqueueAsync(IList<TrackViewModel> tracks, TrackViewModel track)
@@ -777,7 +741,7 @@ namespace Dopamine.Services.Playback
             //await this.PlaySelectedAsync(track);
         }
 
-        public async Task EnqueueArtistsAsync(IList<ArtistViewModel> artists, bool shuffle, bool unshuffle)
+        public async Task EnqueueArtistsAsync(IList<ArtistViewModel> artists)
         {
             if (artists == null)
             {
@@ -786,10 +750,10 @@ namespace Dopamine.Services.Playback
 
             IList<TrackV> tracks = trackRepository.GetTracksOfArtists(artists.Select(x => x.Id).ToList());
             List<TrackViewModel> orderedTracks = await EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
-            await this.EnqueueAsync(orderedTracks, shuffle, unshuffle);
+            await this.EnqueueAsync(orderedTracks);
         }
 
-        public async Task EnqueueGenresAsync(IList<GenreViewModel> genres, bool shuffle, bool unshuffle)
+        public async Task EnqueueGenresAsync(IList<GenreViewModel> genres)
         {
             if (genres == null)
             {
@@ -798,10 +762,10 @@ namespace Dopamine.Services.Playback
 
             IList<TrackV> tracks = trackRepository.GetTracksWithGenres(genres.Select(x => x.Id).ToList());
             List<TrackViewModel> orderedTracks = await EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
-            await this.EnqueueAsync(orderedTracks, shuffle, unshuffle);
+            await this.EnqueueAsync(orderedTracks);
         }
 
-        public async Task EnqueueAlbumsAsync(IList<AlbumViewModel> albumViewModels, bool shuffle, bool unshuffle)
+        public async Task EnqueueAlbumsAsync(IList<AlbumViewModel> albumViewModels)
         {
             if (albumViewModels == null)
             {
@@ -810,10 +774,10 @@ namespace Dopamine.Services.Playback
 
             IList<TrackV> tracks = trackRepository.GetTracksOfAlbums(albumViewModels.Select(x => x.Id).ToList());
             List<TrackViewModel> orderedTracks = await Utils.EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
-            await this.EnqueueAsync(orderedTracks, shuffle, unshuffle);
+            await this.EnqueueAsync(orderedTracks);
         }
 
-        public async Task EnqueuePlaylistsAsync(IList<PlaylistViewModel> playlistViewModels, bool shuffle, bool unshuffle)
+        public async Task EnqueuePlaylistsAsync(IList<PlaylistViewModel> playlistViewModels)
         {
             if (playlistViewModels == null || playlistViewModels.Count == 0)
             {
@@ -821,7 +785,7 @@ namespace Dopamine.Services.Playback
             }
 
             IList<TrackViewModel> tracks = await this.playlistService.GetTracksAsync(playlistViewModels.First());
-            await this.EnqueueAsync(tracks, shuffle, unshuffle);
+            await this.EnqueueAsync(tracks);
         }
 
         public async Task<bool> PlaySelectedAsync(IList<TrackViewModel> tracks)
@@ -865,49 +829,26 @@ namespace Dopamine.Services.Playback
 
         public async Task<EnqueueResult> AddToQueueAsync(IList<TrackViewModel> tracks)
         {
-            queueManager.Enqueue(tracks);
-            QueueChanged(this, new EventArgs());
-            AddedTracksToQueue(tracks.Count);
-            ResetSaveQueuedTracksTimer();
-            return new EnqueueResult() { EnqueuedTracks = tracks, IsSuccess = true };
-            /*
-
-            EnqueueResult result = await this.queueManager.EnqueueAsync(tracks, this.shuffle);
-
-            this.QueueChanged(this, new EventArgs());
-
-            if (result.EnqueuedTracks != null && result.IsSuccess)
+            await Task.Run(() =>
             {
-                this.AddedTracksToQueue(result.EnqueuedTracks.Count);
-            }
-
-            this.ResetSaveQueuedTracksTimer(); // Save queued tracks to the database
-
-            return result;
-            */
+                queueManager.Enqueue(tracks);
+                QueueChanged(this, new EventArgs());
+                AddedTracksToQueue(tracks.Count);
+                ResetSaveQueuedTracksTimer();
+            });
+            return new EnqueueResult() { EnqueuedTracks = tracks, IsSuccess = true };
         }
 
         public async Task<EnqueueResult> AddToQueueNextAsync(IList<TrackViewModel> tracks)
         {
-            queueManager.EnqueueNext(tracks);
-            QueueChanged(this, new EventArgs());
-            AddedTracksToQueue(tracks.Count);
-            ResetSaveQueuedTracksTimer();
-            return new EnqueueResult() { EnqueuedTracks = tracks, IsSuccess = true };
-            /*
-            EnqueueResult result = await this.queueManager.EnqueueNextAsync(tracks);
-
-            this.QueueChanged(this, new EventArgs());
-
-            if (result.EnqueuedTracks != null && result.IsSuccess)
+            await Task.Run(() =>
             {
-                this.AddedTracksToQueue(result.EnqueuedTracks.Count);
-            }
-
-            this.ResetSaveQueuedTracksTimer(); // Save queued tracks to the database
-
-            return result;
-            */
+                queueManager.EnqueueNext(tracks);
+                QueueChanged(this, new EventArgs());
+                AddedTracksToQueue(tracks.Count);
+                ResetSaveQueuedTracksTimer();
+            });
+            return new EnqueueResult() { EnqueuedTracks = tracks, IsSuccess = true };
         }
 
         public async Task<EnqueueResult> AddArtistsToQueueAsync(IList<ArtistViewModel> artists)
@@ -1285,7 +1226,7 @@ namespace Dopamine.Services.Playback
                 int playListPosition = int.Parse(generalRepository.GetValue(GeneralRepositoryKeys.PlayListPosition, "-1"));
                 IList<TrackViewModel> existingTrackViewModels = await this.container.ResolveTrackViewModelsAsync(existingTracks);
 
-                await this.EnqueueAsync(existingTrackViewModels, queueManager.Shuffle);
+                await this.EnqueueAsync(existingTrackViewModels);
                 if (playListPosition != -1)
                     queueManager.Position = playListPosition;
 
@@ -1363,14 +1304,13 @@ namespace Dopamine.Services.Playback
             PlaybackProgressChanged(this, new EventArgs());
         }
 
-        private async Task EnqueueAsync(IList<TrackViewModel> tracks, bool shuffle)
+        public async Task EnqueueAsync(IList<TrackViewModel> tracks)
         {
-            if (queueManager.Shuffle != shuffle)
+            await Task.Run(() =>
             {
-                queueManager.Shuffle = shuffle;
-                PlaybackShuffleChanged(this, new EventArgs());
-            }
-            queueManager.Play(tracks);
+                queueManager.Play(tracks);
+            });
+            await TryPlayAsync(queueManager.CurrentTrack);
             this.QueueChanged(this, new EventArgs());
             this.ResetSaveQueuedTracksTimer(); // Save queued tracks to the database
         }

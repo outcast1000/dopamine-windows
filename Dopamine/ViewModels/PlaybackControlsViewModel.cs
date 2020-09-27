@@ -144,7 +144,7 @@ namespace Dopamine.ViewModels
 
         private void SetPlayBackServiceShuffle(bool iShuffle)
         {
-            this.playbackService.SetShuffleAsync(iShuffle);
+            this.playbackService.Shuffle = iShuffle;
         }
 
         public void GetPlayBackServiceLoop()

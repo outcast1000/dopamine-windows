@@ -174,7 +174,9 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private async Task ShuffleSelectedPlaylistAsync()
         {
             IList<TrackViewModel> tracks = await this.playlistService.GetTracksAsync(this.SelectedPlaylist);
-            await this.playbackService.EnqueueAsync(tracks, true, false);
+            this.playbackService.Shuffle = true;
+            this.playbackService.LoopMode = LoopMode.None;
+            await this.playbackService.EnqueueAsync(tracks);
         }
 
         private async Task AddPlaylistToNowPlayingAsync()

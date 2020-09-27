@@ -83,19 +83,27 @@ namespace Dopamine.Views.Common.Base
                 }
                 else if (lb.SelectedItem.GetType().Name == typeof(ArtistViewModel).Name)
                 {
-                    await this.playbackService.EnqueueArtistsAsync(new List<ArtistViewModel> { ((ArtistViewModel)lb.SelectedItem) }, false, false);
+                    playbackService.Shuffle = false;
+                    playbackService.LoopMode = LoopMode.None;
+                    await this.playbackService.EnqueueArtistsAsync(new List<ArtistViewModel> { ((ArtistViewModel)lb.SelectedItem) });
                 }
                 else if (lb.SelectedItem.GetType().Name == typeof(GenreViewModel).Name)
                 {
-                    await this.playbackService.EnqueueGenresAsync(new List<GenreViewModel> { ((GenreViewModel)lb.SelectedItem) }, false, false);
+                    playbackService.Shuffle = false;
+                    playbackService.LoopMode = LoopMode.None;
+                    await this.playbackService.EnqueueGenresAsync(new List<GenreViewModel> { ((GenreViewModel)lb.SelectedItem) });
                 }
                 else if (lb.SelectedItem.GetType().Name == typeof(AlbumViewModel).Name)
                 {
-                    await this.playbackService.EnqueueAlbumsAsync(new List<AlbumViewModel> { (AlbumViewModel)lb.SelectedItem }, false, false);
+                    playbackService.Shuffle = false;
+                    playbackService.LoopMode = LoopMode.None;
+                    await this.playbackService.EnqueueAlbumsAsync(new List<AlbumViewModel> { (AlbumViewModel)lb.SelectedItem });
                 }
                 else if (lb.SelectedItem.GetType().Name == typeof(PlaylistViewModel).Name)
                 {
-                    await this.playbackService.EnqueuePlaylistsAsync(new List<PlaylistViewModel> { (PlaylistViewModel)lb.SelectedItem }, false, false);
+                    playbackService.Shuffle = false;
+                    playbackService.LoopMode = LoopMode.None;
+                    await this.playbackService.EnqueuePlaylistsAsync(new List<PlaylistViewModel> { (PlaylistViewModel)lb.SelectedItem });
                 }
             }
             catch (Exception ex)

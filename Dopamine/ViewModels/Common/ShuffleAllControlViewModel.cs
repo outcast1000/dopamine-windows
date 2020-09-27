@@ -15,7 +15,10 @@ namespace Dopamine.ViewModels.Common
         {
             this.playbackService = playbackService;
 
-            this.ShuffleAllCommand = new DelegateCommand(() => this.playbackService.EnqueueAsync(true, false));
+            this.ShuffleAllCommand = new DelegateCommand(() => { 
+                this.playbackService.Shuffle = true;
+                this.playbackService.LoopMode = Core.Base.LoopMode.None;
+                this.playbackService.EnqueueEverythingAsync(); });
         }
     }
 }

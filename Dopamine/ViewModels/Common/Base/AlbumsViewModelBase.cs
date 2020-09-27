@@ -145,7 +145,11 @@ namespace Dopamine.ViewModels.Common.Base
 
             // Commands
             this.ToggleAlbumOrderCommand = new DelegateCommand(() => this.ToggleAlbumOrder());
-            this.ShuffleSelectedAlbumsCommand = new DelegateCommand(async () => await this.playbackService.EnqueueAlbumsAsync(this.SelectedAlbums, true, false));
+            this.ShuffleSelectedAlbumsCommand = new DelegateCommand(async () => {
+                playbackService.Shuffle = true;
+                playbackService.LoopMode = LoopMode.None;
+                await this.playbackService.EnqueueAlbumsAsync(this.SelectedAlbums); 
+            });
             this.AddAlbumsToPlaylistCommand = new DelegateCommand<string>(async (playlistName) => await this.AddAlbumsToPlaylistAsync(this.SelectedAlbums, playlistName));
             this.EditAlbumCommand = new DelegateCommand(() => this.EditSelectedAlbum(), () => !this.IsIndexing);
             this.AddAlbumsToNowPlayingCommand = new DelegateCommand(async () => await this.AddAlbumsToNowPlayingAsync(this.SelectedAlbums));

@@ -142,7 +142,11 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             this.SelectedGenresCommand = new DelegateCommand<object>(async (parameter) => await this.SelectedGenresHandlerAsync(parameter));
             this.ShowGenresZoomCommand = new DelegateCommand(async () => await this.ShowSemanticZoomAsync());
             this.AddGenresToNowPlayingCommand = new DelegateCommand(async () => await this.AddGenresToNowPlayingAsync(this.SelectedGenres));
-            this.ShuffleSelectedGenresCommand = new DelegateCommand(async () => await this.playbackService.EnqueueGenresAsync(this.SelectedGenres, true, false));
+            this.ShuffleSelectedGenresCommand = new DelegateCommand(async () => {
+                playbackService.Shuffle = true;
+                playbackService.LoopMode = LoopMode.None;
+                await this.playbackService.EnqueueGenresAsync(this.SelectedGenres);
+            });
 
             this.SemanticJumpCommand = new DelegateCommand<string>((header) =>
             {
