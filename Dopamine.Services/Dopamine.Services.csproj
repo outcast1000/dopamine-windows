@@ -205,7 +205,6 @@
     <Compile Include="Metadata\MetadataService.cs" />
     <Compile Include="Metadata\RatingChangedEventArgs.cs" />
     <Compile Include="Notification\INotificationService.cs" />
-    <Compile Include="Playback\DequeueResult.cs" />
     <Compile Include="Playback\EnqueueResult.cs" />
     <Compile Include="Playback\IPlaybackService.cs" />
     <Compile Include="Playback\PlaybackFailedEventArgs.cs" />

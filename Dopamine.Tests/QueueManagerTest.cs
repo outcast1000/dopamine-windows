@@ -31,7 +31,7 @@ namespace Dopamine.Tests
             }
 
 
-            QueueManager qm = new QueueManager();
+            QueueManager<TrackViewModel> qm = new QueueManager<TrackViewModel>();
             Test(qm, l1, l2, false, false);
             Test(qm, l1, l2, true, false);
             Test(qm, l1, l2, false, true);
@@ -41,7 +41,7 @@ namespace Dopamine.Tests
             //Assert.IsTrue(!string.IsNullOrEmpty(sessionKey));
         }
 
-        private void Test(QueueManager qm, IList<TrackViewModel> l1, IList<TrackViewModel> l2, bool shuffle, bool loop)
+        private void Test(QueueManager<TrackViewModel> qm, IList<TrackViewModel> l1, IList<TrackViewModel> l2, bool shuffle, bool loop)
         {
             qm.Shuffle = shuffle;
             qm.Loop = loop;
@@ -57,7 +57,7 @@ namespace Dopamine.Tests
             TestNextPrev(qm);
         }
 
-        private void TestNextPrev(QueueManager qm)
+        private void TestNextPrev(QueueManager<TrackViewModel> qm)
         {
             Debug.Print($"Testing NEXT");
             for (int i = 0; i < 20; i++)

@@ -20,6 +20,7 @@ namespace Dopamine.Services.Entities
         private bool isPaused;
         private bool showTrackNumber;
 
+        public TrackViewModel() { }
         public TrackViewModel(IMetadataService metadataService, IScrobblingService scrobblingService, TrackV track)
         {
             this.metadataService = metadataService;

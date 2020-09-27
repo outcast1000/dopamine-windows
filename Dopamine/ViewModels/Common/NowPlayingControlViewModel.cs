@@ -154,9 +154,10 @@ namespace Dopamine.ViewModels.Common
         private async Task RemoveSelectedTracksFromNowPlayingAsync()
         {
             // Remove Tracks from PlaybackService (this dequeues the Tracks)
-            DequeueResult dequeueResult = await this.playbackService.DequeueAsync(this.SelectedTracks);
+            IList<TrackViewModel> selectedTracks = this.SelectedTracks;
+            bool bSuccess = await this.playbackService.RemoveTracks(selectedTracks);
 
-            if (!dequeueResult.IsSuccess)
+            if (!bSuccess)
             {
                 this.dialogService.ShowNotification(
                      0xe711,
@@ -174,7 +175,7 @@ namespace Dopamine.ViewModels.Common
             }
 
             // Remove the ViewModels from Tracks (this updates the UI)
-            foreach (TrackViewModel track in dequeueResult.DequeuedTracks)
+            foreach (TrackViewModel track in selectedTracks)
             {
                 if (this.Tracks.Contains(track))
                 {

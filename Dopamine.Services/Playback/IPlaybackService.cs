@@ -109,7 +109,7 @@ namespace Dopamine.Services.Playback
 
         Task<EnqueueResult> AddToQueueNextAsync(IList<TrackViewModel> tracks);
 
-        Task<DequeueResult> DequeueAsync(IList<TrackViewModel> tracks);
+        Task<bool> RemoveTracks(IList<TrackViewModel> tracks);
 
         Task SavePlaylistAsync();
 

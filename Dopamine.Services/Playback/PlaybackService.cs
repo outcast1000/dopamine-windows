@@ -31,7 +31,7 @@ namespace Dopamine.Services.Playback
     public class PlaybackService : IPlaybackService
     {
         private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-        private QueueManager queueManager;
+        private QueueManager<TrackViewModel> queueManager;
         private System.Timers.Timer progressTimer = new System.Timers.Timer();
         private double progressTimeoutSeconds = 0.5;
         private double progress = 0.0;
@@ -289,7 +289,7 @@ namespace Dopamine.Services.Playback
 
             this.context = SynchronizationContext.Current;
 
-            this.queueManager = new QueueManager();
+            this.queueManager = new QueueManager<TrackViewModel>();
 
             // Event handlers
             this.fileService.ImportingTracks += (_, __) => this.canGetSavedQueuedTracks = false;
@@ -405,8 +405,8 @@ namespace Dopamine.Services.Playback
         {
             await Task.Run(() =>
             {
-                queueManager.ReorderPlaylist(tracks);
-                QueueChanged(this, new EventArgs());
+                if (queueManager.ReorderTracks(tracks))
+                    QueueChanged(this, new EventArgs());
             });
         }
 
@@ -841,31 +841,26 @@ namespace Dopamine.Services.Playback
             */
         }
 
-        public async Task<DequeueResult> DequeueAsync(IList<TrackViewModel> tracks)
+        public async Task<bool> RemoveTracks(IList<TrackViewModel> tracks)
         {
-            Debug.Assert(false, "ALEX TODO. Maybe replace that with an int list");
-            return new DequeueResult() { DequeuedTracks = tracks, IsPlayingTrackDequeued = false, IsSuccess = false, NextAvailableTrack = null };
-            /*
-            DequeueResult dequeueResult = await this.queueManager.DequeueAsync(tracks);
-
-            if (dequeueResult.IsSuccess & dequeueResult.IsPlayingTrackDequeued)
+            bool bRet = false;
+            long currentTrack = queueManager.CurrentTrack == null ? -1 : queueManager.CurrentTrack.Id;
+            await Task.Run(async () =>
             {
-                if (dequeueResult.NextAvailableTrack != null)
+                if (queueManager.RemoveTracks(tracks))
                 {
-                    await this.TryPlayAsync(dequeueResult.NextAvailableTrack);
+                    QueueChanged(this, new EventArgs());
+                    await SavePlaylistAsync();
+                    bRet = true;
                 }
-                else
-                {
-                    this.Stop();
-                }
+            });
+            long newCurrentTrack = queueManager.CurrentTrack == null ? -1 : queueManager.CurrentTrack.Id;
+            if (newCurrentTrack != currentTrack)
+            {
+                if (queueManager.CurrentTrack != null)
+                    await TryPlayAsync(queueManager.CurrentTrack);
             }
-
-            this.QueueChanged(this, new EventArgs());
-
-            this.ResetSaveQueuedTracksTimer(); // Save queued tracks to the database
-
-            return dequeueResult;
-            */
+            return bRet;
         }
 
         public async Task<EnqueueResult> AddToQueueAsync(IList<TrackViewModel> tracks)
@@ -1151,7 +1146,7 @@ namespace Dopamine.Services.Playback
                 // Set this to false again after raising the event. It is important to have a correct slide 
                 // direction for cover art when the next Track is a file from double click in Windows.
                 this.isPlayingPreviousTrack = false;
-                LogClient.Info("Playing the file {0}. EventMode={1}, ExclusiveMode={2}, LoopMode={3}, Shuffle={4}", track.Path, this.EventMode, this.ExclusiveMode, this.LoopMode, queueManager.Shuffle);
+                Logger.Info("Playing the file {0}. EventMode={1}, ExclusiveMode={2}, LoopMode={3}, Shuffle={4}", track.Path, this.EventMode, this.ExclusiveMode, this.LoopMode, queueManager.Shuffle);
             }
             catch (FileNotFoundException fnfex)
             {
