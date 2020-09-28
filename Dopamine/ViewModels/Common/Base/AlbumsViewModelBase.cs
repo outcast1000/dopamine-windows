@@ -146,9 +146,7 @@ namespace Dopamine.ViewModels.Common.Base
             // Commands
             this.ToggleAlbumOrderCommand = new DelegateCommand(() => this.ToggleAlbumOrder());
             this.ShuffleSelectedAlbumsCommand = new DelegateCommand(async () => {
-                playbackService.Shuffle = true;
-                playbackService.LoopMode = LoopMode.None;
-                await this.playbackService.EnqueueAlbumsAsync(this.SelectedAlbums); 
+                await this.playbackService.PlayAlbumsAsync(this.SelectedAlbums, PlaylistMode.Play, true); 
             });
             this.AddAlbumsToPlaylistCommand = new DelegateCommand<string>(async (playlistName) => await this.AddAlbumsToPlaylistAsync(this.SelectedAlbums, playlistName));
             this.EditAlbumCommand = new DelegateCommand(() => this.EditSelectedAlbum(), () => !this.IsIndexing);
@@ -447,12 +445,7 @@ namespace Dopamine.ViewModels.Common.Base
 
         protected async Task AddAlbumsToNowPlayingAsync(IList<AlbumViewModel> albumViewModel)
         {
-            EnqueueResult result = await this.playbackService.AddAlbumsToQueueAsync(albumViewModel);
-
-            if (!result.IsSuccess)
-            {
-                this.dialogService.ShowNotification(0xe711, 16, ResourceUtils.GetString("Language_Error"), ResourceUtils.GetString("Language_Error_Adding_Albums_To_Now_Playing"), ResourceUtils.GetString("Language_Ok"), true, ResourceUtils.GetString("Language_Log_File"));
-            }
+            await this.playbackService.PlayAlbumsAsync(albumViewModel, PlaylistMode.Enqueue);
         }
 
         protected async virtual Task SelectedAlbumsHandlerAsync(object parameter)

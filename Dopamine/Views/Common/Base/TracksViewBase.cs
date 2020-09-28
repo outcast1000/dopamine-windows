@@ -3,6 +3,7 @@ using Digimezzo.Foundation.Core.Logging;
 using Digimezzo.Foundation.WPF.Controls;
 using Dopamine.Core.Base;
 using Dopamine.Services.Entities;
+using Dopamine.Services.Playback;
 using Dopamine.Services.Utils;
 using System;
 using System.Collections.Generic;
@@ -79,31 +80,23 @@ namespace Dopamine.Views.Common.Base
                 // The user wants to enqueue tracks for the selected item
                 if (lb.SelectedItem.GetType().Name == typeof(TrackViewModel).Name)
                 {
-                    await this.playbackService.EnqueueAsync(lb.Items.OfType<TrackViewModel>().ToList(), (TrackViewModel)lb.SelectedItem);
+                    await this.playbackService.PlayTracksAndStartOnTrack(lb.Items.OfType<TrackViewModel>().ToList(), (TrackViewModel)lb.SelectedItem, PlaylistMode.Play);
                 }
                 else if (lb.SelectedItem.GetType().Name == typeof(ArtistViewModel).Name)
                 {
-                    playbackService.Shuffle = false;
-                    playbackService.LoopMode = LoopMode.None;
-                    await this.playbackService.EnqueueArtistsAsync(new List<ArtistViewModel> { ((ArtistViewModel)lb.SelectedItem) });
+                    await this.playbackService.PlayArtistsAsync(new List<ArtistViewModel> { ((ArtistViewModel)lb.SelectedItem) }, PlaylistMode.Play);
                 }
                 else if (lb.SelectedItem.GetType().Name == typeof(GenreViewModel).Name)
                 {
-                    playbackService.Shuffle = false;
-                    playbackService.LoopMode = LoopMode.None;
-                    await this.playbackService.EnqueueGenresAsync(new List<GenreViewModel> { ((GenreViewModel)lb.SelectedItem) });
+                    await this.playbackService.PlayGenresAsync(new List<GenreViewModel> { ((GenreViewModel)lb.SelectedItem) }, PlaylistMode.Play);
                 }
                 else if (lb.SelectedItem.GetType().Name == typeof(AlbumViewModel).Name)
                 {
-                    playbackService.Shuffle = false;
-                    playbackService.LoopMode = LoopMode.None;
-                    await this.playbackService.EnqueueAlbumsAsync(new List<AlbumViewModel> { (AlbumViewModel)lb.SelectedItem });
+                    await this.playbackService.PlayAlbumsAsync(new List<AlbumViewModel> { (AlbumViewModel)lb.SelectedItem }, PlaylistMode.Play);
                 }
                 else if (lb.SelectedItem.GetType().Name == typeof(PlaylistViewModel).Name)
                 {
-                    playbackService.Shuffle = false;
-                    playbackService.LoopMode = LoopMode.None;
-                    await this.playbackService.EnqueuePlaylistsAsync(new List<PlaylistViewModel> { (PlaylistViewModel)lb.SelectedItem });
+                    await this.playbackService.PlayPlaylistsAsync(new List<PlaylistViewModel> { (PlaylistViewModel)lb.SelectedItem }, PlaylistMode.Play);
                 }
             }
             catch (Exception ex)

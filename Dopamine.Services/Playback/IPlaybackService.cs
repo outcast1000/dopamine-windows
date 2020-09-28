@@ -17,6 +17,14 @@ namespace Dopamine.Services.Playback
     public delegate void TrackHistoryChangedEventHandler(TrackViewModel track);
     public delegate void PlaybackVolumeChangedEventhandler(object sender, PlaybackVolumeChangedEventArgs e);
 
+
+    public enum PlaylistMode
+    {
+        Play,
+        Enqueue,
+        EnqueuNext
+    }
+
     public interface IPlaybackService
     {
         IPlayer Player { get; }
@@ -77,36 +85,22 @@ namespace Dopamine.Services.Playback
 
         Task PlayOrPauseAsync();
 
+        Task PlayTracksAndStartOnTrack(IList<TrackViewModel> tracks, TrackViewModel track, PlaylistMode mode, bool? shuffle = null, LoopMode? loopMode = null);
 
-        Task<bool> PlaySelectedAsync(IList<TrackViewModel> tracks);
+        Task PlayTracksAsync(IList<TrackViewModel> tracks, PlaylistMode mode, bool? shuffle = null, LoopMode? loopMode = null);
 
-        Task EnqueueAsync(IList<TrackViewModel> tracks, TrackViewModel track);
+        Task PlayAllTracksAsync(PlaylistMode mode, bool? shuffle = null, LoopMode? loopMode = null);//bool shuffle, bool unshuffle);
 
-        Task EnqueueAsync(IList<TrackViewModel> tracks);
+        Task PlayArtistsAsync(IList<ArtistViewModel> artists, PlaylistMode mode, bool? shuffle = null, LoopMode? loopMode = null);//, bool shuffle, bool unshuffle);
 
-        Task EnqueueEverythingAsync();//bool shuffle, bool unshuffle);
+        Task PlayGenresAsync(IList<GenreViewModel> genres, PlaylistMode mode, bool? shuffle = null, LoopMode? loopMode = null);//, bool shuffle, bool unshuffle);
 
-        //Task EnqueueAsync(IList<TrackViewModel> tracks, bool shuffle, bool unshuffle);
+        Task PlayAlbumsAsync(IList<AlbumViewModel> albumViewModels, PlaylistMode mode, bool? shuffle = null, LoopMode? loopMode = null);//, bool shuffle, bool unshuffle);
 
-        Task EnqueueArtistsAsync(IList<ArtistViewModel> artists);//, bool shuffle, bool unshuffle);
-
-        Task EnqueueGenresAsync(IList<GenreViewModel> genres);//, bool shuffle, bool unshuffle);
-
-        Task EnqueueAlbumsAsync(IList<AlbumViewModel> albumViewModels);//, bool shuffle, bool unshuffle);
-
-        Task EnqueuePlaylistsAsync(IList<PlaylistViewModel> playlistViewModels);//, bool shuffle, bool unshuffle);
+        Task PlayPlaylistsAsync(IList<PlaylistViewModel> playlistViewModels, PlaylistMode mode, bool? shuffle = null, LoopMode? loopMode = null);//, bool shuffle, bool unshuffle);
 
         Task StopIfPlayingAsync(TrackViewModel track);
 
-        Task<EnqueueResult> AddToQueueAsync(IList<TrackViewModel> tracks);
-
-        Task<EnqueueResult> AddArtistsToQueueAsync(IList<ArtistViewModel> artists);
-
-        Task<EnqueueResult> AddGenresToQueueAsync(IList<GenreViewModel> genres);
-
-        Task<EnqueueResult> AddAlbumsToQueueAsync(IList<AlbumViewModel> albumViewModels);
-
-        Task<EnqueueResult> AddToQueueNextAsync(IList<TrackViewModel> tracks);
 
         Task<bool> RemoveTracks(IList<TrackViewModel> tracks);
 

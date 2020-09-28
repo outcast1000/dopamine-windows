@@ -143,9 +143,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             this.ShowGenresZoomCommand = new DelegateCommand(async () => await this.ShowSemanticZoomAsync());
             this.AddGenresToNowPlayingCommand = new DelegateCommand(async () => await this.AddGenresToNowPlayingAsync(this.SelectedGenres));
             this.ShuffleSelectedGenresCommand = new DelegateCommand(async () => {
-                playbackService.Shuffle = true;
-                playbackService.LoopMode = LoopMode.None;
-                await this.playbackService.EnqueueGenresAsync(this.SelectedGenres);
+                await this.playbackService.PlayGenresAsync(this.SelectedGenres, PlaylistMode.Play, true);
             });
 
             this.SemanticJumpCommand = new DelegateCommand<string>((header) =>
@@ -355,12 +353,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         private async Task AddGenresToNowPlayingAsync(IList<GenreViewModel> genres)
         {
-            EnqueueResult result = await this.playbackService.AddGenresToQueueAsync(genres);
-
-            if (!result.IsSuccess)
-            {
-                this.dialogService.ShowNotification(0xe711, 16, ResourceUtils.GetString("Language_Error"), ResourceUtils.GetString("Language_Error_Adding_Genres_To_Now_Playing"), ResourceUtils.GetString("Language_Ok"), true, ResourceUtils.GetString("Language_Log_File"));
-            }
+            await this.playbackService.PlayGenresAsync(genres, PlaylistMode.Enqueue);
         }
 
         private void GenresCvs_Filter(object sender, FilterEventArgs e)

@@ -174,20 +174,13 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private async Task ShuffleSelectedPlaylistAsync()
         {
             IList<TrackViewModel> tracks = await this.playlistService.GetTracksAsync(this.SelectedPlaylist);
-            this.playbackService.Shuffle = true;
-            this.playbackService.LoopMode = LoopMode.None;
-            await this.playbackService.EnqueueAsync(tracks);
+            await this.playbackService.PlayTracksAsync(tracks, PlaylistMode.Play, true);
         }
 
         private async Task AddPlaylistToNowPlayingAsync()
         {
             IList<TrackViewModel> tracks = await this.playlistService.GetTracksAsync(this.SelectedPlaylist);
-            EnqueueResult result = await this.playbackService.AddToQueueAsync(tracks);
-
-            if (!result.IsSuccess)
-            {
-                this.dialogService.ShowNotification(0xe711, 16, ResourceUtils.GetString("Language_Error"), ResourceUtils.GetString("Language_Error_Adding_Playlists_To_Now_Playing"), ResourceUtils.GetString("Language_Ok"), true, ResourceUtils.GetString("Language_Log_File"));
-            }
+            await this.playbackService.PlayTracksAsync(tracks, PlaylistMode.Enqueue);
         }
 
         private async Task GetTracksIfSmartPlaylistSelectedAsync()

@@ -177,16 +177,12 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             this.AddArtistsToNowPlayingCommand = new DelegateCommand(async () => await this.AddArtistsToNowPlayingAsync(this.SelectedArtists));
             this.ShuffleSelectedArtistsCommand = new DelegateCommand(async () =>
             {
-                playbackService.Shuffle = true;
-                playbackService.LoopMode = LoopMode.None;
-                await this.playbackService.EnqueueArtistsAsync(SelectedArtists);
+                await this.playbackService.PlayArtistsAsync(SelectedArtists, PlaylistMode.Play, true);
             });
             this.PlayArtistCommand = new DelegateCommand<ArtistViewModel>(async (avm) => {
-                playbackService.Shuffle = false;
-                playbackService.LoopMode = LoopMode.None;
-                await this.playbackService.EnqueueArtistsAsync(new List<ArtistViewModel>() { avm });
+                await this.playbackService.PlayArtistsAsync(new List<ArtistViewModel>() { avm }, PlaylistMode.Play);
             });
-            this.EnqueueArtistCommand = new DelegateCommand<ArtistViewModel>(async (avm) => await this.playbackService.AddArtistsToQueueAsync(new List<ArtistViewModel>() { avm }));
+            this.EnqueueArtistCommand = new DelegateCommand<ArtistViewModel>(async (avm) => await this.playbackService.PlayArtistsAsync(new List<ArtistViewModel>() { avm }, PlaylistMode.Enqueue));
             this.LoveArtistCommand = new DelegateCommand<ArtistViewModel>((avm) => Debug.Assert(false, "ALEX TODO"));
 
 
@@ -416,12 +412,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         private async Task AddArtistsToNowPlayingAsync(IList<ArtistViewModel> artists)
         {
-            EnqueueResult result = await this.playbackService.AddArtistsToQueueAsync(artists);
-
-            if (!result.IsSuccess)
-            {
-                this.dialogService.ShowNotification(0xe711, 16, ResourceUtils.GetString("Language_Error"), ResourceUtils.GetString("Language_Error_Adding_Artists_To_Now_Playing"), ResourceUtils.GetString("Language_Ok"), true, ResourceUtils.GetString("Language_Log_File"));
-            }
+            await this.playbackService.PlayArtistsAsync(artists, PlaylistMode.Enqueue);
         }
 
         private async Task ToggleArtistTypeAsync()

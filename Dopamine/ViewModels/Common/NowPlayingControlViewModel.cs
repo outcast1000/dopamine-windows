@@ -143,7 +143,7 @@ namespace Dopamine.ViewModels.Common
             {
                 IList<string> filenames = dropInfo.GetDroppedFilenames();
                 IList<TrackViewModel> tracks = await this.fileService.ProcessFilesAsync(filenames, true);
-                await this.playbackService.AddToQueueAsync(tracks);
+                await this.playbackService.PlayTracksAsync(tracks, PlaylistMode.Enqueue);
             }
             catch (Exception ex)
             {

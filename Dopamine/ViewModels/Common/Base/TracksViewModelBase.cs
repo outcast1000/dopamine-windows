@@ -399,36 +399,17 @@ namespace Dopamine.ViewModels.Common.Base
 
         protected async Task PlaySelectedAsync()
         {
-            var result = await this.playbackService.PlaySelectedAsync(this.selectedTracks);
-
-            if (!result)
-            {
-                this.dialogService.ShowNotification(0xe711, 16, ResourceUtils.GetString("Language_Error"), ResourceUtils.GetString("Language_Error_Playing_Selected_Songs"), ResourceUtils.GetString("Language_Ok"), true, ResourceUtils.GetString("Language_Log_File"));
-            }
+            await this.playbackService.PlayTracksAsync(SelectedTracks, PlaylistMode.Play);
         }
 
         protected async Task PlayNextAsync()
         {
-            IList<TrackViewModel> selectedTracks = this.SelectedTracks;
-
-            EnqueueResult result = await this.playbackService.AddToQueueNextAsync(selectedTracks);
-
-            if (!result.IsSuccess)
-            {
-                this.dialogService.ShowNotification(0xe711, 16, ResourceUtils.GetString("Language_Error"), ResourceUtils.GetString("Language_Error_Adding_Songs_To_Now_Playing"), ResourceUtils.GetString("Language_Ok"), true, ResourceUtils.GetString("Language_Log_File"));
-            }
+            await this.playbackService.PlayTracksAsync(SelectedTracks, PlaylistMode.EnqueuNext);
         }
 
         protected async Task AddTracksToNowPlayingAsync()
         {
-            IList<TrackViewModel> selectedTracks = this.SelectedTracks;
-
-            EnqueueResult result = await this.playbackService.AddToQueueAsync(selectedTracks);
-
-            if (!result.IsSuccess)
-            {
-                this.dialogService.ShowNotification(0xe711, 16, ResourceUtils.GetString("Language_Error"), ResourceUtils.GetString("Language_Error_Adding_Songs_To_Now_Playing"), ResourceUtils.GetString("Language_Ok"), true, ResourceUtils.GetString("Language_Log_File"));
-            }
+            await this.playbackService.PlayTracksAsync(SelectedTracks, PlaylistMode.Enqueue);
         }
 
         protected override void FilterLists()
