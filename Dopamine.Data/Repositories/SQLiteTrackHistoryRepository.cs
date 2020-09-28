@@ -42,13 +42,13 @@ namespace Dopamine.Data.Repositories
         {
             AddAction(HistoryRepositoryActions.ExplicitSelected, trackId);
         }
-        public void AddPlayedAction(long trackId, long position, long percentage)
+        public void AddPlayedAction(long trackId)
         {
-            AddAction(HistoryRepositoryActions.Played, trackId, $"{{\"position\":{position}, \"percentage\":{percentage}}}");
+            AddAction(HistoryRepositoryActions.Played, trackId, null);
         }
-        public void AddSkippedAction(long trackId, long position, long percentage)
+        public void AddSkippedAction(long trackId, long position, long percentage, string reason)
         {
-            AddAction(HistoryRepositoryActions.Skipped, trackId, $"{{\"position\":{position}, \"percentage\":{percentage}}}");
+            AddAction(HistoryRepositoryActions.Skipped, trackId, $"{{\"position\":{position}, \"percentage\":{percentage}, \"reason\":\"{reason}\"}}");
         }
 
         public void AddRateAction(long trackId, long rate)
