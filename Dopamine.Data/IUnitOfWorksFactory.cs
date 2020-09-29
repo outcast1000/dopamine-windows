@@ -5,8 +5,6 @@ namespace Dopamine.Data
 {
     public interface IUnitOfWorksFactory
     {
-        IDeleteMediaFileUnitOfWork getDeleteMediaFileUnitOfWork();
-        IIgnoreMediaFileUnitOfWork getIgnoreMediaFileUnitOfWork();
         IUpdateCollectionUnitOfWork getUpdateCollectionUnitOfWork();
         IAddFolderUnitOfWork getAddFolderUnitOfWork();
         IUpdateFolderUnitOfWork getUpdateFolderUnitOfWork();

@@ -26,7 +26,7 @@ namespace Dopamine.Data.UnitOfWorks
 
             try
             {
-                long rowsAffected = rowsAffected = conn.Execute($"UPDATE Tracks SET folder_id = NULL WHERE folder_id={folderId};");
+                long rowsAffected = conn.Execute($"UPDATE Tracks SET folder_id = NULL WHERE folder_id={folderId};");
                 /* REAL REMOVE. You need also to CleanUp History
                 long rowsAffected = conn.Execute($"DELETE FROM TrackArtists WHERE track_id in (SELECT id from tracks where folder_id={folderId});");
                 rowsAffected = conn.Execute($"DELETE FROM TrackAlbums WHERE track_id in (SELECT id from tracks where folder_id={folderId});");

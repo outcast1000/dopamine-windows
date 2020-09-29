@@ -173,11 +173,8 @@ namespace Dopamine.Services.Indexing
                                 if (!System.IO.File.Exists(track.Path))
                                 {
                                     Logger.Debug($"File not found: {track.Path}");
-                                    using (IDeleteMediaFileUnitOfWork uow = unitOfWorksFactory.getDeleteMediaFileUnitOfWork())
-                                    {
-                                        if (uow.DeleteMediaFile(track.Id))
-                                            removedFiles++;
-                                    }
+                                    if (trackVRepository.UpdateDeleteValue(track.Id, true))
+                                        removedFiles++;
                                 }
                             }
                             if (tracks.Count < limit)
@@ -370,7 +367,7 @@ namespace Dopamine.Services.Indexing
 
 
                 }
-                bool isTracksChanged = (addedFiles + updatedFiles + removedFiles) > 0;
+                bool isTracksChanged = (addedFiles + updatedFiles + removedFiles + resurrectedFiles) > 0;
                 bool isArtworkCleanedUp = false;
                 //=== STEP 3
                 //=== CLEAN UP Images

@@ -201,10 +201,6 @@
     <Compile Include="UnitOfWorks\IUpdateFolderUnitOfWork.cs" />
     <Compile Include="UnitOfWorks\IRemoveFolderUnitOfWork.cs" />
     <Compile Include="UnitOfWorks\IAddFolderUnitOfWork.cs" />
-    <Compile Include="UnitOfWorks\SQLiteDeleteTrackUnitOfWork.cs" />
-    <Compile Include="UnitOfWorks\IIgnoreTrackUnitOfWork.cs" />
-    <Compile Include="UnitOfWorks\SQLiteIgnoreTrackUnitOfWork.cs" />
-    <Compile Include="UnitOfWorks\IDeleteTrackUnitOfWork.cs" />
     <Compile Include="UnitOfWorks\SQLiteUpdateCollectionUnitOfWork.cs" />
     <Compile Include="UnitOfWorks\IUpdateCollectionUnitOfWork.cs" />
     <Compile Include="Repositories\RepositoryCommon.cs" />

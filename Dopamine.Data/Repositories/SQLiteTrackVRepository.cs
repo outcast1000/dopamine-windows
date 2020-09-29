@@ -330,59 +330,43 @@ GROUP BY t.id
 
         public bool UpdateFolderIdValue(long trackId, long? newFolderId)
         {
-            return UpdateTrack(new Track2()
-            {
-                Id = trackId,
-                FolderId = newFolderId
-            });
+
+            if (newFolderId.HasValue)
+                return ExecuteSQL("UPDATE Tracks SET folder_id = ? WHERE id = ?;", newFolderId, trackId);
+            return ExecuteSQL("UPDATE Tracks SET folder_id = NULL WHERE id = ?;", trackId);
         }
 
         public bool UpdateIgnoreValue(long trackId, bool Ignore)
         {
-            return UpdateTrack(new Track2()
-                {
-                    Id = trackId,
-                    DateIgnored = Ignore ? (long?)DateTime.Now.Ticks : null
-                }) ;
+            if (Ignore)
+                return ExecuteSQL("UPDATE Tracks SET date_ignored = ? WHERE id = ?;", DateTime.Now.Ticks, trackId);
+            return ExecuteSQL("UPDATE Tracks SET date_ignored = NULL WHERE id = ?;", trackId);
         }
 
         public bool UpdateDeleteValue(long trackId, bool Delete)
         {
-            return UpdateTrack(new Track2()
-            {
-                Id = trackId,
-                DateFileDeleted = Delete ? (long?)DateTime.Now.Ticks : null
-            });
+            if (Delete)
+                return ExecuteSQL("UPDATE Tracks SET date_file_deleted = ? WHERE id = ?;", DateTime.Now.Ticks, trackId);
+            return ExecuteSQL("UPDATE Tracks SET date_file_deleted = NULL WHERE id = ?;", trackId);
         }
 
-        private bool UpdateTrack(Track2 track)
+        private bool ExecuteSQL(string sql, params object[] args)
         {
             try
             {
                 using (var conn = this.factory.GetConnection())
                 {
-                    int ret = conn.Update(track);
+                    int ret = conn.Execute(sql, args);
                     return ret == 1;
                 }
             }
             catch (Exception ex)
             {
-                Logger.Error("Could not connect to the database. Exception: {0}", ex.Message);
+                Logger.Error(ex, "ExecuteSQL Failed. Exception: {0} SQL: {1}", ex.Message, sql);
             }
             return false;
         }
 
-
-        /*
-        public IDeleteMediaFileUnitOfWork getDeleteMediaFileUnitOfWork()
-        {
-            return new SQLiteDeleteMediaFileUnitOfWork(sQLiteConnectionFactory.GetConnection());
-        }
-        public IIgnoreMediaFileUnitOfWork getIgnoreMediaFileUnitOfWork()
-        {
-            return new SQLiteIgnoreMediaFileUnitOfWork(sQLiteConnectionFactory.GetConnection());
-        }
-        */
 
         public bool UpdateTrack(TrackV track)
         {
