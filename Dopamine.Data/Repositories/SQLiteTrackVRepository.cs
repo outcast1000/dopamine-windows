@@ -148,7 +148,7 @@ LEFT JOIN ArtistCollectionsArtists ON ArtistCollectionsArtists.artist_collection
 LEFT JOIN Artists as Artists2 ON Artists2.id = ArtistCollectionsArtists.artist_id 
 LEFT JOIN TrackGenres ON TrackGenres.track_id =t.id 
 LEFT JOIN Genres ON Genres.id = TrackGenres.genre_id  
-INNER JOIN Folders ON Folders.id = t.folder_id
+LEFT JOIN Folders ON Folders.id = t.folder_id
 #WHERE#
 GROUP BY t.id
 #LIMIT#";
@@ -208,31 +208,6 @@ GROUP BY t.id
             });
 
             return result;
-        }
-
-        public async Task ClearRemovedTrackAsync()
-        {
-            await Task.Run(() =>
-            {
-                try
-                {
-                    try
-                    {
-                        using (var conn = this.factory.GetConnection())
-                        {
-                            conn.Execute("DELETE FROM RemovedTrack;");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        LogClient.Error("Could not clear removed tracks. Exception: {0}", ex.Message);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogClient.Error("Could not connect to the database. Exception: {0}", ex.Message);
-                }
-            });
         }
 
         public async Task<bool> UpdateTrackFileInformationAsync(string path)
@@ -351,6 +326,63 @@ GROUP BY t.id
             options.extraWhereParams.Add(path);
             return GetTrackInternal(options);
         }
+
+
+        public bool UpdateFolderIdValue(long trackId, long? newFolderId)
+        {
+            return UpdateTrack(new Track2()
+            {
+                Id = trackId,
+                FolderId = newFolderId
+            });
+        }
+
+        public bool UpdateIgnoreValue(long trackId, bool Ignore)
+        {
+            return UpdateTrack(new Track2()
+                {
+                    Id = trackId,
+                    DateIgnored = Ignore ? (long?)DateTime.Now.Ticks : null
+                }) ;
+        }
+
+        public bool UpdateDeleteValue(long trackId, bool Delete)
+        {
+            return UpdateTrack(new Track2()
+            {
+                Id = trackId,
+                DateFileDeleted = Delete ? (long?)DateTime.Now.Ticks : null
+            });
+        }
+
+        private bool UpdateTrack(Track2 track)
+        {
+            try
+            {
+                using (var conn = this.factory.GetConnection())
+                {
+                    int ret = conn.Update(track);
+                    return ret == 1;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Could not connect to the database. Exception: {0}", ex.Message);
+            }
+            return false;
+        }
+
+
+        /*
+        public IDeleteMediaFileUnitOfWork getDeleteMediaFileUnitOfWork()
+        {
+            return new SQLiteDeleteMediaFileUnitOfWork(sQLiteConnectionFactory.GetConnection());
+        }
+        public IIgnoreMediaFileUnitOfWork getIgnoreMediaFileUnitOfWork()
+        {
+            return new SQLiteIgnoreMediaFileUnitOfWork(sQLiteConnectionFactory.GetConnection());
+        }
+        */
 
         public bool UpdateTrack(TrackV track)
         {

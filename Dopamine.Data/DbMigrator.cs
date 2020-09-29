@@ -199,7 +199,7 @@ namespace Dopamine.Data
                             "id	                INTEGER PRIMARY KEY AUTOINCREMENT," +
                             "name	            TEXT COLLATE NOCASE," +
                             "path               TEXT NOT NULL COLLATE NOCASE," +
-                            "folder_id          INTEGER NOT NULL," +
+                            "folder_id          INTEGER," +
                             "filesize           INTEGER," +
                             "bitrate            INTEGER," +
                             "samplerate	        INTEGER," +
@@ -511,7 +511,7 @@ namespace Dopamine.Data
                 {
                     this.userDatabaseVersion = Convert.ToInt32(conn.ExecuteScalar<string>("SELECT Value FROM General WHERE key = ?", GeneralRepositoryKeys.DBVersion.ToString()));
                     //=== ALEX DEBUG. USE "26" to force the update. "27" to avoid it. Reenable the Execute scalar
-                    //userDatabaseVersion = 27;
+                    userDatabaseVersion = 26;
                 }
                 catch (Exception)
                 {

@@ -12,6 +12,7 @@ namespace Dopamine.Data.UnitOfWorks
 {
     public class SQLiteRemoveFolderUnitOfWork : IRemoveFolderUnitOfWork
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private SQLiteConnection conn;
         public SQLiteRemoveFolderUnitOfWork(SQLiteConnection conn)
         {
@@ -25,17 +26,20 @@ namespace Dopamine.Data.UnitOfWorks
 
             try
             {
+                long rowsAffected = rowsAffected = conn.Execute($"UPDATE Tracks SET folder_id = NULL WHERE folder_id={folderId};");
+                /* REAL REMOVE. You need also to CleanUp History
                 long rowsAffected = conn.Execute($"DELETE FROM TrackArtists WHERE track_id in (SELECT id from tracks where folder_id={folderId});");
                 rowsAffected = conn.Execute($"DELETE FROM TrackAlbums WHERE track_id in (SELECT id from tracks where folder_id={folderId});");
                 rowsAffected = conn.Execute($"DELETE FROM TrackGenres WHERE track_id in (SELECT id from tracks where folder_id={folderId});");
                 rowsAffected = conn.Execute($"DELETE FROM TrackLyrics WHERE track_id in (SELECT id from tracks where folder_id={folderId});");
                 rowsAffected = conn.Execute($"DELETE FROM Tracks WHERE folder_id={folderId};");
+                */
                 rowsAffected = conn.Execute($"DELETE FROM Folders WHERE id={folderId};");
-                LogClient.Info("Removed the Folder with FolderID={0}", folderId);
+                Logger.Info("Removed the Folder with FolderID={0}", folderId);
             }
             catch (Exception ex)
             {
-                LogClient.Error("Could not remove the Folder with FolderID={0}. Exception: {1}", folderId, ex.Message);
+                Logger.Error(ex, "Could not remove the Folder with FolderID={0}. Exception: {1}", folderId, ex.Message);
                 result = RemoveFolderResult.Error;
             }
 

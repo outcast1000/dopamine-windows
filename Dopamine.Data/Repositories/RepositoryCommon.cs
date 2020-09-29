@@ -22,6 +22,7 @@ namespace Dopamine.Data.Repositories
         public QueryOptionsBool WhereVisibleFolders = QueryOptionsBool.True;
         public QueryOptionsBool WhereIgnored = QueryOptionsBool.False;
         public QueryOptionsBool WhereDeleted = QueryOptionsBool.False;
+        public QueryOptionsBool WhereInACollection = QueryOptionsBool.True;
         public List<string> extraJoinClause = new List<string>();
         public List<object> extraJoinParams = new List<object>();
         public List<string> extraWhereClause = new List<string>();
@@ -49,6 +50,11 @@ namespace Dopamine.Data.Repositories
             else if (usedOptions.WhereIndexingFailed == QueryOptionsBool.False)
                 where += "AND TrackIndexFailed.track_id is null ";
             */
+            //=== WhereNotInACollection
+            if (queryOptions.WhereInACollection == QueryOptionsBool.True)
+                queryOptions.extraWhereClause.Add("t.folder_id is not null");
+            else if (queryOptions.WhereInACollection == QueryOptionsBool.False)
+                queryOptions.extraWhereClause.Add("t.folder_id is null");
             //=== WhereIgnored
             if (queryOptions.WhereIgnored == QueryOptionsBool.True)
                 queryOptions.extraWhereClause.Add("t.date_ignored is not null");

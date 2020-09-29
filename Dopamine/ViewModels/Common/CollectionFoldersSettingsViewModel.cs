@@ -20,6 +20,7 @@ namespace Dopamine.ViewModels.Common
 {
     public class CollectionFoldersSettingsViewModel : BindableBase
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private IIndexingService indexingService;
         private IDialogService dialogService;
         private ICollectionService collectionservice;
@@ -97,6 +98,7 @@ namespace Dopamine.ViewModels.Common
                 if (this.dialogService.ShowConfirmation(0xe11b, 16, ResourceUtils.GetString("Language_Remove"), ResourceUtils.GetString("Language_Confirm_Remove_Folder"), ResourceUtils.GetString("Language_Yes"), ResourceUtils.GetString("Language_No")))
                 {
                     this.RemoveFolder(folderId.Value);
+                    Logger.Warn("ALEX TODO. Raise an event to show that the collections has been changed in order to refresh th ui");
                 }
             });
 

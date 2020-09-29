@@ -81,8 +81,8 @@ LEFT JOIN Albums ON Albums.id = TrackAlbums.album_id
 LEFT JOIN AlbumImages ON Albums.id = AlbumImages.album_id
 LEFT JOIN TrackGenres ON TrackGenres.track_id = t.id
 LEFT JOIN Genres ON TrackGenres.genre_id = Genres.id
+LEFT JOIN Folders ON Folders.id = t.folder_id
 #JOIN#
-INNER JOIN Folders ON Folders.id = t.folder_id
 #WHERE#
 GROUP BY Artists.id
 ORDER BY Artists.name

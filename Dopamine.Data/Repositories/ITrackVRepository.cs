@@ -27,6 +27,13 @@ namespace Dopamine.Data.Repositories
 
         bool UpdateTrack(TrackV track);
 
+
+        bool UpdateFolderIdValue(long trackId, long? newFolderId);
+        bool UpdateIgnoreValue(long trackId, bool Ignore);
+        bool UpdateDeleteValue(long trackId, bool Delete);
+
+
+
         bool UpdateTrackFileInformation(string path);
 
         void ClearRemovedTrack();

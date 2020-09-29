@@ -16,8 +16,8 @@ namespace Dopamine.Data.Entities
         [Column("path"), Unique(), NotNull()]
         public string Path { get; set; }
 
-        [Column("folder_id"), Indexed(), NotNull()]
-        public long FolderId { get; set; }
+        [Column("folder_id"), Indexed()]
+        public long? FolderId { get; set; }
 
         [Column("filesize")]
         public long? Filesize { get; set; }

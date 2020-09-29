@@ -26,6 +26,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 
+
 namespace Dopamine.ViewModels.Common.Base
 {
     public abstract class AlbumsViewModelBase : TracksViewModelBase
@@ -454,12 +455,15 @@ namespace Dopamine.ViewModels.Common.Base
 
             if (parameter != null)
             {
+                this.SelectedAlbums = ((IList<object>)parameter).Select(x => (AlbumViewModel)x).ToList();
+                /*
                 this.SelectedAlbums = new List<AlbumViewModel>();
 
                 foreach (AlbumViewModel item in (IList)parameter)
                 {
                     this.SelectedAlbums.Add(item);
                 }
+                */
             }
         }
 

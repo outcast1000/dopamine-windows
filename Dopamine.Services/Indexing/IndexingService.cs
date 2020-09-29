@@ -146,6 +146,7 @@ namespace Dopamine.Services.Indexing
                 int timeStarted = Environment.TickCount;
                 long totalFiles = 0;
                 long addedFiles = 0;
+                long resurrectedFiles = 0;
                 long updatedFiles = 0;
                 long removedFiles = 0;
                 long failedFiles = 0;
@@ -197,10 +198,20 @@ namespace Dopamine.Services.Indexing
                             Logger.Trace($"Total: {totalFiles} Added: {addedFiles} Updated: {updatedFiles} Removed: {removedFiles} Failed: {failedFiles} ElapsedMS: {Environment.TickCount - timeStarted} Total: {totalFiles} ");
                             totalFiles++;
                             //=== Check the DB for the path
-                            TrackV trackV = trackVRepository.GetTrackWithPath(path);
+                            TrackV trackV = trackVRepository.GetTrackWithPath(path, new QueryOptions() { WhereDeleted = QueryOptionsBool.Ignore, WhereInACollection = QueryOptionsBool.Ignore, WhereVisibleFolders = QueryOptionsBool.Ignore, WhereIgnored = QueryOptionsBool.Ignore});
                             long DateFileModified = FileUtils.DateModifiedTicks(path);
                             if (trackV != null && DateFileModified == trackV.DateFileModified && !bReReadTags)
                             {
+                                //=== There is also a case when tha track exists but not in a collection 
+                                //      There are 2 cases for that
+                                //          1. a collection that has been removed
+                                //          2. A file that has been played while it wasn't in a collection
+                                if (trackV.FolderID == 0)
+                                {
+                                    // Update the track record and set it to the new collection
+                                    if (trackVRepository.UpdateFolderIdValue(trackV.Id, folder.Id))
+                                        resurrectedFiles++;
+                                }
                                 //Logger.Debug($">> File {path} not changed! Go to the next file");
                                 return;
                             }

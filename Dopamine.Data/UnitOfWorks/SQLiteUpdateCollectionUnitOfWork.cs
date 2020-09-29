@@ -340,6 +340,10 @@ namespace Dopamine.Data.UnitOfWorks
 
         private long GetArtistID(String entry)
         {
+            //=== Normalization. Clean up "the " from artists
+            if (entry.ToLower().StartsWith("the "))
+                entry = entry.Substring(4);
+            //=== END Normalization
             long? id = conn.ExecuteScalar<long?>("SELECT id FROM Artists WHERE name=?", entry);
             if (id != null)
                 return (long)id;
