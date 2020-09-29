@@ -27,5 +27,7 @@ namespace Dopamine.Services.Indexing
         event AlbumImagesAddedEventHandler AlbumImagesAdded;
 
         event ArtistImagesAddedEventHandler ArtistImagesAdded;
+
+        void TriggerRefreshLists();
     }
 }

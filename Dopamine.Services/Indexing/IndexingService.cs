@@ -123,6 +123,11 @@ namespace Dopamine.Services.Indexing
             }
         }
 
+        public void TriggerRefreshLists()
+        {
+            RefreshLists(this, new EventArgs());
+        }
+
         public async Task RefreshCollectionAsync(bool bForce, bool bReReadTags = false)
         {
             Logger.Debug($"RefreshCollectionAsync bForce: {bForce} bReReadTags: {bReReadTags}");
@@ -414,7 +419,7 @@ namespace Dopamine.Services.Indexing
                 // -------------
                 if (isTracksChanged || isArtworkCleanedUp)
                 {
-                    LogClient.Info("Sending event to refresh the lists because: isTracksChanged = {0}, isArtworkCleanedUp = {1}", isTracksChanged, isArtworkCleanedUp);
+                    LogClient.Info($"Sending event to refresh the lists because: isTracksChanged = {isTracksChanged}, isArtworkCleanedUp = {isArtworkCleanedUp}");
                     RefreshLists(this, new EventArgs());
                 }
 

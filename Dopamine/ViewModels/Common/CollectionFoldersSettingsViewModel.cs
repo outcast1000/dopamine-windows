@@ -98,7 +98,6 @@ namespace Dopamine.ViewModels.Common
                 if (this.dialogService.ShowConfirmation(0xe11b, 16, ResourceUtils.GetString("Language_Remove"), ResourceUtils.GetString("Language_Confirm_Remove_Folder"), ResourceUtils.GetString("Language_Yes"), ResourceUtils.GetString("Language_No")))
                 {
                     this.RemoveFolder(folderId.Value);
-                    Logger.Warn("ALEX TODO. Raise an event to show that the collections has been changed in order to refresh th ui");
                 }
             });
 
@@ -225,6 +224,7 @@ namespace Dopamine.ViewModels.Common
                 {
                     case RemoveFolderResult.Success:
                         this.indexingService.OnFoldersChanged();
+                        indexingService.TriggerRefreshLists();// We manually request a Refresh List because the "FoldersChanged" process will not see any differences and wont trigger a refresh
                         this.GetFoldersAsync();
                         break;
                     case RemoveFolderResult.Error:
