@@ -366,7 +366,7 @@ namespace Dopamine.ViewModels.Common.Base
             {
                 // Populate CollectionViewSource
                 this.AlbumsCvs = new CollectionViewSource { Source = this.Albums };
-                //this.AlbumsCvs.Filter += new FilterEventHandler(AlbumsCvs_Filter);
+                this.AlbumsCvs.Filter += new FilterEventHandler(AlbumsCvs_Filter);
 
                 // Update count
                 this.AlbumsCount = albums.Count;// this.AlbumsCvs.View.Cast<AlbumViewModel>().Count();
