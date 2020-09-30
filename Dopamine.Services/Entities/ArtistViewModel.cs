@@ -103,5 +103,7 @@ namespace Dopamine.Services.Entities
         {
             return string.IsNullOrEmpty(data.Name) ? 0 : data.Name.GetHashCode();
         }
+
+        public bool IsSelected { get; set; }
     }
 }

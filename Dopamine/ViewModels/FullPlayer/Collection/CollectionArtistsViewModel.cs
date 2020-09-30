@@ -48,6 +48,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private double rightPaneWidthPercent;
         private ArtistType artistType;
         private string artistTypeText;
+        private IList<long> selectedArtistIDs;
 
         public DelegateCommand<string> AddArtistsToPlaylistCommand { get; set; }
 
@@ -124,6 +125,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             get { return this.selectedArtists; }
             set { SetProperty<IList<ArtistViewModel>>(ref this.selectedArtists, value); }
         }
+
 
         public long ArtistsCount
         {
@@ -209,6 +211,12 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                     this.SetTrackOrder("ArtistsTrackOrder");
                     await this.GetTracksAsync(this.SelectedArtists, null, this.SelectedAlbums, this.TrackOrder);
                 }
+
+                if (SettingsClient.IsSettingChanged(e, "State", "SelectedArtistIDs"))
+                {
+                    LoadSelectedArtists();
+                }
+
             };
 
             // PubSub Events
@@ -230,6 +238,32 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
             // Cover size
             this.SetCoversizeAsync((CoverSizeType)SettingsClient.Get<int>("CoverSizes", "ArtistsCoverSize"));
+            LoadSelectedArtists();
+
+        }
+
+        private void LoadSelectedArtists()
+        {
+            try
+            {
+                string s = SettingsClient.Get<String>("State", "SelectedArtistIDs");
+                if (!string.IsNullOrEmpty(s))
+                {
+                    selectedArtistIDs = s.Split(',').Select(x => long.Parse(x)).ToList();
+                    return;
+                }
+            }
+            catch (Exception _)
+            {
+
+            }
+            selectedArtistIDs = new List<long>();
+        }
+
+        private void SaveSelectedArtists()
+        {
+            string s = string.Join(",", selectedArtistIDs);// SettingsClient.Get<String>("State", "SelectedArtistIDs");
+            SettingsClient.Set<String>("State", "SelectedArtistIDs", s);
         }
 
         public async Task ShowSemanticZoomAsync()
@@ -290,6 +324,26 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
                 // Unbind to improve UI performance
                 ClearArtists();
+                selectedArtists = new List<ArtistViewModel>();
+                foreach (long id in selectedArtistIDs)
+                {
+                    ArtistViewModel avm = artistViewModels.Where(x => x.Id == id).FirstOrDefault();
+                    if (avm != null)
+                    {
+                        avm.IsSelected = selectedArtistIDs.Contains(avm.Id);
+                        selectedArtists.Add(avm);
+                    }
+                }
+                /*
+                foreach (ArtistViewModel avm in artistViewModels)
+                {
+                    if (selectedArtistIDs.Contains(avm.Id))
+                    {
+                        avm.IsSelected = selectedArtistIDs.Contains(avm.Id);
+                        selectedArtists.Add(avm);
+                    }
+                }
+                */
 
                 // Populate ObservableCollection
                 Artists = new ObservableCollection<ISemanticZoomable>(artistViewModels);
@@ -320,21 +374,51 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         private async Task SelectedArtistsHandlerAsync(object parameter)
         {
-            if (parameter != null)
+            bool bKeepOldSelections = true;
+            if (parameter != null && ((IList)parameter).Count > 0)
             {
-                this.SelectedArtists = new List<ArtistViewModel>();
-
-                foreach (ArtistViewModel item in (IList)parameter)
+                if (((IList)parameter).Count > 0)
                 {
-                    this.SelectedArtists.Add(item);
+                    bKeepOldSelections = false;
+                    selectedArtistIDs.Clear();
+                    selectedArtists.Clear();
+
+
+                    foreach (ArtistViewModel item in (IList)parameter)
+                    {
+                        selectedArtists.Add(item);
+                        item.IsSelected = true;
+                        selectedArtistIDs.Add(item.Id);
+                    }
+
                 }
+            }
+            
+            if (bKeepOldSelections)
+            {
+                // Keep the previous selection if possible. Otherwise select All
+                List<long> validSelectedArtistIDs = new List<long>();
+                selectedArtists.Clear();
+                foreach (long id in selectedArtistIDs)
+                {
+                    ArtistViewModel sel = (ArtistViewModel) artists.Where(x => ((ArtistViewModel)x).Id == id).FirstOrDefault();
+                    if (sel != null)
+                    {
+                        validSelectedArtistIDs.Add(id);
+                        sel.IsSelected = true;
+                        selectedArtists.Add(sel);
+                    }
+                }
+                selectedArtistIDs = validSelectedArtistIDs;
+
             }
 
             this.RaisePropertyChanged(nameof(this.HasSelectedArtists));
-            Task albums = GetArtistAlbumsAsync(this.SelectedArtists, this.ArtistType, this.AlbumOrder);
+            Task saveSelectedArtists = Task.Run(() => SaveSelectedArtists());
+            Task albums = GetArtistAlbumsAsync(selectedArtists, this.ArtistType, this.AlbumOrder);
             this.SetTrackOrder("ArtistsTrackOrder");
             Task tracks = GetTracksAsync(this.SelectedArtists, null, this.SelectedAlbums, this.TrackOrder);
-            Task.WhenAll(albums, tracks);
+            Task.WhenAll(albums, tracks, saveSelectedArtists);
 
         }
 
@@ -484,14 +568,38 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             await base.SetCoversizeAsync(coverSize);
             SettingsClient.Set<int>("CoverSizes", "ArtistsCoverSize", (int)coverSize);
         }
+        /* USAGE FOR A SINGLE SELECTED ITEM
+         * in CollectionArtists.xaml:                                 
+         * <dc:MultiSelectListBox ...  SelectedItem="{Binding SelectedArtist, Mode=TwoWay}" ...
+         * Here:
+            public ArtistViewModel SelectedArtist
+            {
+                get { return selectedArtists?.Count == 0 ? null : selectedArtists[0]; }
+                set
+                {
+                    SetProperty<IList<ArtistViewModel>>(ref this.selectedArtists, new List<ArtistViewModel>() { value });
+                }
+            }
+         */
+
 
         protected async override Task FillListsAsync()
         {
-            List<Task> tasks = new List<Task>();
-            tasks.Add(GetArtistsAsync(ArtistType));
-            tasks.Add(GetArtistAlbumsAsync(this.SelectedArtists, this.ArtistType, this.AlbumOrder));
-            tasks.Add(GetTracksAsync(this.SelectedArtists, null, this.SelectedAlbums, this.TrackOrder));
-            Task.WhenAll(tasks.ToArray());
+            Application.Current.Dispatcher.Invoke(async () =>
+            {
+                await GetArtistsAsync(ArtistType);
+                await GetArtistAlbumsAsync(this.SelectedArtists, this.ArtistType, this.AlbumOrder);
+                await GetTracksAsync(this.SelectedArtists, null, this.SelectedAlbums, this.TrackOrder);
+                /*
+                List<Task> tasks = new List<Task>();
+                tasks.Add(GetArtistsAsync(ArtistType));
+                tasks.Add(GetArtistAlbumsAsync(this.SelectedArtists, this.ArtistType, this.AlbumOrder));
+                tasks.Add(GetTracksAsync(this.SelectedArtists, null, this.SelectedAlbums, this.TrackOrder));
+                Task.WhenAll(tasks.ToArray());
+                */
+            });
+            
+
         }
 
         protected async override Task EmptyListsAsync()

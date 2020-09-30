@@ -99,7 +99,7 @@ namespace Dopamine.Views.FullPlayer.Collection
             }
             else
             {
-                this.ListBoxArtists.SelectedItem = null;
+                //this.ListBoxArtists.SelectedItem = null;
             }
         }
 

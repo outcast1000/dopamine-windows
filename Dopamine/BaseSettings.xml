@@ -2,7 +2,7 @@
 <Settings>
   <Namespace Name="Configuration">
     <Setting Name="Version">
-      <Value>117</Value>
+      <Value>118</Value>
     </Setting>
     <Setting Name="IsPortable">
       <Value>False</Value>
@@ -19,6 +19,11 @@
       <Value>True</Value>
     </Setting>
   </Namespace>
+<Namespace Name="State">
+	<Setting Name="SelectedArtistIDs">
+		<Value></Value>
+	</Setting>
+</Namespace>
   <Namespace Name="FullPlayer">
     <Setting Name="Width">
       <Value>950</Value>
