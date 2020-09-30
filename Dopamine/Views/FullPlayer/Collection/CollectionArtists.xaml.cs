@@ -91,18 +91,6 @@ namespace Dopamine.Views.FullPlayer.Collection
             }
         }
 
-        private void ArtistsButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (this.ListBoxArtists.SelectedItem == null)
-            {
-                this.eventAggregator.GetEvent<ToggleArtistOrderCommand>().Publish(null);
-            }
-            else
-            {
-                //this.ListBoxArtists.SelectedItem = null;
-            }
-        }
-
         private void AlbumsButton_Click(object sender, RoutedEventArgs e)
         {
             this.ListBoxAlbums.SelectedItem = null;

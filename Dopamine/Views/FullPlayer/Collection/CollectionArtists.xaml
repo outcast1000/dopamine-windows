@@ -89,21 +89,13 @@
                                 Style="{StaticResource SegoeAssets}"
                                 Text="&#xE8B1;" />
                         </Button>
-                        <Button
-                            x:Name="ArtistsButton"
+                        <TextBlock
+                            x:Name="ArtistsHeader"
                             Margin="10,0,0,0"
-                            Click="ArtistsButton_Click"
-                            Content="{Binding ArtistTypeText}"
+                            Text="{Binding ArtistTypeText}"
                             FontSize="13"
                             Foreground="{DynamicResource Brush_PrimaryText}"
-                            Style="{StaticResource TransparentButton}">
-                            <Button.ToolTip>
-                                <Grid>
-                                    <TextBlock Text="{DynamicResource Language_Select_None}" Visibility="{Binding HasSelectedArtists, Converter={StaticResource BooleanToCollapsedConverter}}" />
-                                    <TextBlock Text="{DynamicResource Language_Toggle_Artists}" Visibility="{Binding HasSelectedArtists, Converter={StaticResource InvertingBooleanToCollapsedConverter}}" />
-                                </Grid>
-                            </Button.ToolTip>
-                        </Button>
+                            Background="#00000000" />
                     </DockPanel>
                     <Grid>
                         <Border Panel.ZIndex="0" Visibility="{Binding IsArtistsZoomVisible, Converter={StaticResource InvertingBooleanToCollapsedConverter}}">
