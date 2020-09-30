@@ -293,7 +293,7 @@ namespace Dopamine.ViewModels.Common.Base
 
         protected async Task GetArtistAlbumsAsync(IList<ArtistViewModel> selectedArtists, ArtistType artistType, AlbumOrder albumOrder)
         {
-            if (!selectedArtists.IsNullOrEmpty())
+            if (!selectedArtists.IsNullOrEmpty() && string.IsNullOrEmpty(searchService.SearchText))
             {
                 await this.GetAlbumsCommonAsync(await this.collectionService.GetArtistAlbumsAsync(selectedArtists, artistType), albumOrder);
 
