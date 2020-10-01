@@ -399,7 +399,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             this.ClearTracks();
         }
 
-        protected override void FilterLists()
+        protected override void FilterLists(string searchText)
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
@@ -412,7 +412,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 }
             });
 
-            base.FilterLists();
+            base.FilterLists(searchText);
         }
 
         protected async override Task SelectedAlbumsHandlerAsync(object parameter)

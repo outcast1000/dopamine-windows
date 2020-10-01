@@ -412,7 +412,7 @@ namespace Dopamine.ViewModels.Common.Base
             await this.playbackService.PlayTracksAsync(SelectedTracks, PlaylistMode.Enqueue);
         }
 
-        protected override void FilterLists()
+        protected override void FilterLists(string searchText)
         {
             Application.Current.Dispatcher.Invoke(() =>
             {

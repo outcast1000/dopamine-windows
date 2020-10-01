@@ -477,7 +477,7 @@ namespace Dopamine.ViewModels.Common.Base
             }
         }
 
-        protected override void FilterLists()
+        protected override void FilterLists(string searchText)
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
@@ -489,7 +489,7 @@ namespace Dopamine.ViewModels.Common.Base
                 }
             });
 
-            base.FilterLists();
+            base.FilterLists(searchText);
         }
 
         protected virtual async Task SetCoversizeAsync(CoverSizeType coverSize)
