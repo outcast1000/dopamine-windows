@@ -587,9 +587,14 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         {
             Application.Current.Dispatcher.Invoke(async () =>
             {
+                ClearAlbums();
+                ClearTracks();
                 await GetArtistsAsync(ArtistType);
-                await GetArtistAlbumsAsync(this.SelectedArtists, this.ArtistType, this.AlbumOrder);
-                await GetTracksAsync(this.SelectedArtists, null, this.SelectedAlbums, this.TrackOrder);
+                if (selectedArtists.Count == 0) // Otherwise it will automatically get triggered by the change selection event
+                {
+                    await GetArtistAlbumsAsync(this.SelectedArtists, this.ArtistType, this.AlbumOrder);
+                    await GetTracksAsync(this.SelectedArtists, null, this.SelectedAlbums, this.TrackOrder);
+                }
                 /*
                 List<Task> tasks = new List<Task>();
                 tasks.Add(GetArtistsAsync(ArtistType));

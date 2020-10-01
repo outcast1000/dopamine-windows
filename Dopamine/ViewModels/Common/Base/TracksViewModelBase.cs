@@ -253,10 +253,15 @@ namespace Dopamine.ViewModels.Common.Base
 
         protected async Task GetTracksAsync(IList<ArtistViewModel> artists, IList<GenreViewModel> genres, IList<AlbumViewModel> albums, TrackOrder trackOrder)
         {
-            IList<TrackV> tracks = null;
             selectedArtists = artists;
             selectedAlbums = albums;
-            tracks = trackRepository.GetTracks();
+            if (Tracks == null || Tracks.Count == 0)
+            {
+                IList<TrackV> tracks = await Task.Run(()=> trackRepository.GetTracks());
+                await this.GetTracksCommonAsync(await this.container.ResolveTrackViewModelsAsync(tracks), trackOrder);
+            }
+            else
+                RefreshView();
 
             /*
             if (albums != null && albums.Count > 0)
@@ -281,7 +286,7 @@ namespace Dopamine.ViewModels.Common.Base
             }
             */
 
-            await this.GetTracksCommonAsync(await this.container.ResolveTrackViewModelsAsync(tracks), trackOrder);
+            
         }
 
         protected void ClearTracks()
@@ -331,7 +336,13 @@ namespace Dopamine.ViewModels.Common.Base
                 // Failed getting Tracks. Create empty ObservableCollection.
                 this.Tracks = new ObservableCollection<TrackViewModel>();
             }
+            RefreshView();
 
+
+        }
+
+        private void RefreshView()
+        {
             Application.Current.Dispatcher.Invoke(() =>
             {
                 // Populate CollectionViewSource

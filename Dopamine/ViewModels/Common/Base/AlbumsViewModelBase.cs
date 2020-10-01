@@ -323,7 +323,10 @@ namespace Dopamine.ViewModels.Common.Base
             }
             */
             this.selectedArtists = selectedArtists;
-            await this.GetAlbumsCommonAsync(await this.collectionService.GetAllAlbumsAsync(), albumOrder);
+            if (Albums.IsNullOrEmpty())
+                await this.GetAlbumsCommonAsync(await this.collectionService.GetAllAlbumsAsync(), albumOrder);
+            else
+                await this.GetAlbumsCommonAsync(Albums, albumOrder);
         }
 
         protected async Task GetGenreAlbumsAsync(IList<GenreViewModel> selectedGenres, AlbumOrder albumOrder)
