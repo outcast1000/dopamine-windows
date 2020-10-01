@@ -51,6 +51,8 @@ namespace Dopamine.ViewModels.Common.Base
         private ObservableCollection<TrackViewModel> tracks;
         private CollectionViewSource tracksCvs;
         private IList<TrackViewModel> selectedTracks;
+        private IList<ArtistViewModel> selectedArtists;
+        private IList<AlbumViewModel> selectedAlbums;
 
         public TrackViewModel PreviousPlayingTrack { get; set; }
 
@@ -168,11 +170,56 @@ namespace Dopamine.ViewModels.Common.Base
             }
         }
 
-        protected void TracksCvs_Filter(object sender, FilterEventArgs e)
+        protected void TracksCvs_Search_Filter(object sender, FilterEventArgs e)
         {
             TrackViewModel track = e.Item as TrackViewModel;
             e.Accepted = EntityUtils.FilterTracks(track, this.searchService.SearchText);
         }
+
+        protected void TracksCvs_Filter(object sender, FilterEventArgs e)
+        {
+            TrackViewModel tvm = e.Item as TrackViewModel;
+            e.Accepted = true;
+            // Check if the track should belong to a certain artist
+            if (!selectedArtists.IsNullOrEmpty())
+            {
+                string artists = "," + tvm.ArtistName + "," + tvm.AlbumArtist + ",";
+                bool bItemFound = false;
+                foreach (ArtistViewModel item in selectedArtists)
+                {
+                    if (artists.Contains("," + item.Name + ","))
+                    {
+                        bItemFound = true;
+                        break;
+                    }
+                }
+                if (!bItemFound)
+                {
+                    e.Accepted = false;
+                    return;
+                }
+            }
+            // Check if the track should belong to a certain album
+            if (!selectedAlbums.IsNullOrEmpty())
+            {
+                bool bItemFound = false;
+                foreach (AlbumViewModel album in selectedAlbums)
+                {
+                    if (tvm.AlbumTitle.Equals(album.Name))
+                    {
+                        bItemFound = true;
+                        break;
+                    }
+                }
+                if (!bItemFound)
+                {
+                    e.Accepted = false;
+                    return;
+                }
+            }
+        }
+
+
 
         /*
         protected async Task GetTracksAsync(IList<string> artists, IList<string> genres, IList<AlbumViewModel> albumViewModels, TrackOrder trackOrder)
@@ -207,7 +254,11 @@ namespace Dopamine.ViewModels.Common.Base
         protected async Task GetTracksAsync(IList<ArtistViewModel> artists, IList<GenreViewModel> genres, IList<AlbumViewModel> albums, TrackOrder trackOrder)
         {
             IList<TrackV> tracks = null;
+            selectedArtists = artists;
+            selectedAlbums = albums;
+            tracks = trackRepository.GetTracks();
 
+            /*
             if (albums != null && albums.Count > 0)
             {
                 // First, check Albums. They topmost have priority.
@@ -228,6 +279,7 @@ namespace Dopamine.ViewModels.Common.Base
                 // Tracks have lowest priority
                 tracks = trackRepository.GetTracks();
             }
+            */
 
             await this.GetTracksCommonAsync(await this.container.ResolveTrackViewModelsAsync(tracks), trackOrder);
         }
@@ -238,6 +290,7 @@ namespace Dopamine.ViewModels.Common.Base
             {
                 if (this.TracksCvs != null)
                 {
+                    this.TracksCvs.Filter -= new FilterEventHandler(TracksCvs_Search_Filter);
                     this.TracksCvs.Filter -= new FilterEventHandler(TracksCvs_Filter);
                 }
 
@@ -282,9 +335,14 @@ namespace Dopamine.ViewModels.Common.Base
             Application.Current.Dispatcher.Invoke(() =>
             {
                 // Populate CollectionViewSource
-                this.TracksCvs = new CollectionViewSource { Source = this.Tracks };
-                this.TracksCvs.Filter += new FilterEventHandler(TracksCvs_Filter);
 
+                this.TracksCvs = new CollectionViewSource { Source = this.Tracks };
+                this.TracksCvs.Filter -= new FilterEventHandler(TracksCvs_Filter);
+                this.TracksCvs.Filter -= new FilterEventHandler(TracksCvs_Search_Filter);
+                if (string.IsNullOrEmpty(searchService.SearchText))
+                    this.TracksCvs.Filter += new FilterEventHandler(TracksCvs_Filter);
+                else
+                    this.TracksCvs.Filter += new FilterEventHandler(TracksCvs_Search_Filter);
                 // Update count
                 this.TracksCount = this.TracksCvs.View.Cast<TrackViewModel>().Count();
 

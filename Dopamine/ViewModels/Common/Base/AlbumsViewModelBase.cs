@@ -49,6 +49,7 @@ namespace Dopamine.ViewModels.Common.Base
         private double albumWidth;
         private double albumHeight;
         private CoverSizeType selectedCoverSize;
+        private IList<ArtistViewModel> selectedArtists;
 
         public DelegateCommand ToggleAlbumOrderCommand { get; set; }
 
@@ -254,10 +255,30 @@ namespace Dopamine.ViewModels.Common.Base
                 ((EditAlbumViewModel)view.DataContext).SaveAlbumAsync);
         }
 
-        private void AlbumsCvs_Filter(object sender, FilterEventArgs e)
+        private void AlbumsCvs_Search_Filter(object sender, FilterEventArgs e)
         {
             AlbumViewModel avm = e.Item as AlbumViewModel;
             e.Accepted = Services.Utils.EntityUtils.FilterAlbums(avm, this.searchService.SearchText);
+        }
+
+        private void AlbumsCvs_Artist_Filter(object sender, FilterEventArgs e)
+        {
+            AlbumViewModel avm = e.Item as AlbumViewModel;
+            if (selectedArtists.IsNullOrEmpty())
+            {
+                e.Accepted = true;
+                return;
+            }
+            string artists = "," + avm.Artists + "," + avm.AlbumArtists + ",";
+            foreach (ArtistViewModel artist in selectedArtists)
+            {
+                if (artists.Contains("," + artist.Name + ","))
+                {
+                    e.Accepted = true;
+                    return;
+                }
+            }
+            e.Accepted = false;
         }
 
         protected void UpdateAlbumOrderText(AlbumOrder albumOrder)
@@ -293,13 +314,15 @@ namespace Dopamine.ViewModels.Common.Base
 
         protected async Task GetArtistAlbumsAsync(IList<ArtistViewModel> selectedArtists, ArtistType artistType, AlbumOrder albumOrder)
         {
+            /*
             if (!selectedArtists.IsNullOrEmpty() && string.IsNullOrEmpty(searchService.SearchText))
             {
                 await this.GetAlbumsCommonAsync(await this.collectionService.GetArtistAlbumsAsync(selectedArtists, artistType), albumOrder);
 
                 return;
             }
-
+            */
+            this.selectedArtists = selectedArtists;
             await this.GetAlbumsCommonAsync(await this.collectionService.GetAllAlbumsAsync(), albumOrder);
         }
 
@@ -326,7 +349,7 @@ namespace Dopamine.ViewModels.Common.Base
             {
                 if (this.AlbumsCvs != null)
                 {
-                    this.AlbumsCvs.Filter -= new FilterEventHandler(AlbumsCvs_Filter);
+                    this.AlbumsCvs.Filter -= new FilterEventHandler(AlbumsCvs_Search_Filter);
                 }
 
                 this.AlbumsCvs = null;
@@ -366,10 +389,15 @@ namespace Dopamine.ViewModels.Common.Base
             {
                 // Populate CollectionViewSource
                 this.AlbumsCvs = new CollectionViewSource { Source = this.Albums };
-                this.AlbumsCvs.Filter += new FilterEventHandler(AlbumsCvs_Filter);
+                this.AlbumsCvs.Filter -= new FilterEventHandler(AlbumsCvs_Artist_Filter);
+                this.AlbumsCvs.Filter -= new FilterEventHandler(AlbumsCvs_Search_Filter);
+                if (string.IsNullOrEmpty(searchService.SearchText))
+                    this.AlbumsCvs.Filter += new FilterEventHandler(AlbumsCvs_Artist_Filter);
+                else 
+                    this.AlbumsCvs.Filter += new FilterEventHandler(AlbumsCvs_Search_Filter);
 
                 // Update count
-                this.AlbumsCount = albums.Count;// this.AlbumsCvs.View.Cast<AlbumViewModel>().Count();
+                this.AlbumsCount = this.AlbumsCvs.View.Cast<AlbumViewModel>().Count();
             });
 
             // Set Album artwork
