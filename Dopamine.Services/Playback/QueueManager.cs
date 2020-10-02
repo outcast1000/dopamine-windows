@@ -48,13 +48,16 @@ namespace Dopamine.Services.Playback
             get { return _position; }
             set
             {
-                if (value >= 0 && value < _playList.Count())
+                if (!_playList.IsNullOrEmpty())
                 {
-                    _position = value;
-                }
-                else
-                {
-                    Debug.Assert(false, "Not a legal position value");
+                    if (value >= 0 && value < _playList.Count())
+                    {
+                        _position = value;
+                    }
+                    else
+                    {
+                        Debug.Assert(false, "Not a legal position value");
+                    }
                 }
             }
         }

@@ -8,6 +8,7 @@ namespace Dopamine.Data.Metadata
 {
     public class FileMetadata
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private TagLib.File file;
         private MetadataValue title;
         private MetadataValue album;
@@ -28,7 +29,14 @@ namespace Dopamine.Data.Metadata
         public FileMetadata(string filePath)
         {
             ByteVector.UseBrokenLatin1Behavior = true; // Otherwise Latin1 is used as default, which causes characters in various languages being displayed wrong.
-            this.file = TagLib.File.Create(filePath);
+            try
+            {
+                this.file = TagLib.File.Create(filePath);
+            }
+            catch (NotImplementedException ex)
+            {
+                Logger.Error(ex, $"Failed to read tags of {filePath}");
+            }
         }
 
         public string Path => this.file.Name;

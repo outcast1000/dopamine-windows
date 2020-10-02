@@ -287,7 +287,7 @@ namespace Dopamine.Services.Indexing
                                             }
                                         }
                                         //=== Add Lyrics
-                                        if (fileMetadata.Lyrics != null && fileMetadata.Lyrics.Value.Length > 0)
+                                        if (fileMetadata?.Lyrics?.Value?.Length > 0)
                                         {
                                             uc.SetLyrics(new TrackLyrics()
                                             {

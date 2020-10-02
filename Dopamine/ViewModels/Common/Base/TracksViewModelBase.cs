@@ -433,6 +433,7 @@ namespace Dopamine.ViewModels.Common.Base
                 if (source != null)
                 {
                     // Create copy of CollectionViewSource because only STA can access it
+                    // ALEX TODO. Here is where the warning for CollectionView comes from
                     viewCopy = new CollectionView(source.View);
                 }
             });
