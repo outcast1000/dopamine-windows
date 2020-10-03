@@ -34,6 +34,20 @@ namespace Dopamine.Data.Repositories
             return GetTracksInternal(options);
         }
 
+        public List<TrackV> GetTracksWithText(string text)
+        {
+
+            QueryOptions qo = new QueryOptions();
+            if (!string.IsNullOrEmpty(text))
+            {
+                qo.extraWhereClause.Add("(t.Name like ? OR Artists.Name like ? OR Albums.Name like ?)");
+                qo.extraWhereParams.Add("%" + text + "%");
+                qo.extraWhereParams.Add("%" + text + "%");
+                qo.extraWhereParams.Add("%" + text + "%");
+            }
+            return GetTracksInternal(qo);
+        }
+
         public List<TrackV> GetTracksOfFolders(IList<long> folderIds, QueryOptions options = null)
         {
             if (options == null)

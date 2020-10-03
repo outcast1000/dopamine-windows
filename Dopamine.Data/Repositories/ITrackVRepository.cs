@@ -9,6 +9,8 @@ namespace Dopamine.Data.Repositories
 
         List<TrackV> GetTracks(QueryOptions options = null);
 
+        List<TrackV> GetTracksWithText(string text);
+
         List<TrackV> GetTracksOfArtists(IList<long> artistIds);
 
         List<TrackV> GetTracksOfAlbums(IList<long> albumIds);
