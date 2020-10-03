@@ -27,6 +27,50 @@ using System.Windows.Data;
 using Dopamine.Data.Entities;
 using System.Diagnostics;
 
+/* ALEX COMMENT
+--- MAP OF VARIOUS EVENTS THAT TRIGGERS Data Refresh
+
+[XAML] SelectionChanged (CollectionArtists.xaml)
+	-> SelectedArtistsCommand 
+        -> SelectedArtistsHandlerAsync(IList<ArtistViewModel>)
+			
+[XAML] Loaded (Event) (CollectionArtists.xaml)
+	-> CommonViewModelBase::LoadedCommand
+		-> LoadedCommandAsync
+			-> FillListsAsync
+	
+CollectionService.CollectionChanged += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when the Collection has changed
+FoldersService.FoldersChanged += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when marked folders have changed
+IndexingService.RefreshLists += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when the indexer has finished indexing
+IndexingService.AlbumImagesAdded += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when the indexer has finished indexing
+IndexingService.ArtistImagesAdded += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when the indexer has finished indexing
+TracksViewModelBase::MetadataChangedHandlerAsync -> FillListsAsync
+CommonViewModelBase:: LoadedCommand
+	-> TracksViewModelBase::LoadedCommandAsync -> FillListsAsync
+TracksViewModelBase::RefreshLanguage -> FillListsAsync
+
+CommonViewModelBase::UnloadedCommand
+	-> TracksViewModelBase::UnloadedCommandAsync -> EmptyListsAsync
+
+
+---- LOCAL FUNCTION THA TRIGGER Data refresh
+
+FillListsAsync()
+	-> GetArtistsAsync (Triggers SelectionChanged)
+	-> if (selectedArtists.Count == 0) GetArtistAlbumsAsync(this.SelectedArtists, this.AlbumOrder);
+	-> if GetTracksAsync(this.SelectedArtists, null, this.SelectedAlbums, this.TrackOrder);
+
+SelectedArtistsHandlerAsync(IList<ArtistViewModel>)
+	-> RaisePropertyChanged("HasSelectedArtists")
+	-> AlbumsViewModelBase::GetArtistAlbumsAsync(IList<ArtistViewModel> selectedArtists, this.AlbumOrder);
+	-> TracksViewModelBase::GetTracksAsync(IList<ArtistViewModel> this.SelectedArtists, IList<GenreViewModel> null, IList<AlbumViewModel> this.SelectedAlbums, this.TrackOrder);
+
+	
+EmptyListsAsync
+
+
+ */
+
 namespace Dopamine.ViewModels.FullPlayer.Collection
 {
     public class CollectionArtistsViewModel : AlbumsViewModelBase, ISemanticZoomViewModel
@@ -47,6 +91,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private double leftPaneWidthPercent;
         private double rightPaneWidthPercent;
         private IList<long> selectedArtistIDs;
+        private bool _ignoreSelectionChangedEvent;
 
         public DelegateCommand<string> AddArtistsToPlaylistCommand { get; set; }
 
@@ -348,6 +393,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         private async Task SelectedArtistsHandlerAsync(object parameter)
         {
+            if (_ignoreSelectionChangedEvent)
+                return;
             bool bKeepOldSelections = true;
             if (parameter != null && ((IList)parameter).Count > 0)
             {
@@ -514,14 +561,12 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         {
             Application.Current.Dispatcher.Invoke(async () =>
             {
-                ClearAlbums();
-                ClearTracks();
+
+                _ignoreSelectionChangedEvent = true;
                 await GetArtistsAsync();
-                if (selectedArtists.Count == 0) // Otherwise it will automatically get triggered by the change selection event
-                {
-                    await GetArtistAlbumsAsync(this.SelectedArtists, this.AlbumOrder);
-                    await GetTracksAsync(this.SelectedArtists, null, this.SelectedAlbums, this.TrackOrder);
-                }
+                await GetArtistAlbumsAsync(this.SelectedArtists, this.AlbumOrder);
+                await GetTracksAsync(this.SelectedArtists, null, this.SelectedAlbums, this.TrackOrder);
+                _ignoreSelectionChangedEvent = false;
                 /*
                 List<Task> tasks = new List<Task>();
                 tasks.Add(GetArtistsAsync(ArtistType));
