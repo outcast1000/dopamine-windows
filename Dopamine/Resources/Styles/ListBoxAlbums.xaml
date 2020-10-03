@@ -104,15 +104,6 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <Border
-                            x:Name="MouseHoverHelper"
-                            Background= "{DynamicResource Brush_ItemHovered}"
-                            
-                            Opacity="0" />
-                        <Border
-                            x:Name="SelectionBorder"
-                            Height="{x:Static base:Constants.AlbumSelectionBorderSize}"
-                            HorizontalAlignment="Stretch" />
                         <Grid
                             Grid.Row="0"
                             Grid.Column="0"
@@ -187,23 +178,67 @@
                                     TextTrimming=" CharacterEllipsis" />
                             </Grid>
                         </Grid>
+                        <Border Name="OverlayBorder">
+                            <Border.Background>
+                                <SolidColorBrush Color="#0000" />
+                            </Border.Background>
+                        </Border>
+                        <Border
+                            Name="SelectionBorder"
+                            BorderThickness="3,0,0,0"
+                            Opacity="0">
+                            <Border.BorderBrush>
+                                <SolidColorBrush Color="#00F" />
+                            </Border.BorderBrush>
+                        </Border>
                     </Grid>
+
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource Brush_ItemSelected}" />
-                            <Setter TargetName="SelectionBorder" Property="Background" Value="{DynamicResource Brush_Accent}" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="SelectionBorder"
+                                            Storyboard.TargetProperty="Opacity"
+                                            From="0"
+                                            To="1"
+                                            Duration="0:0:0.15" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="SelectionBorder"
+                                            Storyboard.TargetProperty="Opacity"
+                                            From="1"
+                                            To="0"
+                                            Duration="0:0:0.3" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <EventTrigger RoutedEvent="MouseEnter">
                             <BeginStoryboard>
-                                <Storyboard TargetProperty="Opacity" Storyboard.TargetName="MouseHoverHelper">
-                                    <DoubleAnimation To="1" Duration="{x:Static base:Constants.MouseEnterDuration}" />
+                                <Storyboard TargetProperty="Opacity" Storyboard.TargetName="OverlayBorder">
+                                    <ColorAnimation
+                                        Storyboard.TargetName="OverlayBorder"
+                                        Storyboard.TargetProperty="Background.Color"
+                                        To="#8000"
+                                        Duration="0:0:0.15" />
                                 </Storyboard>
                             </BeginStoryboard>
                         </EventTrigger>
                         <EventTrigger RoutedEvent="MouseLeave">
                             <BeginStoryboard>
-                                <Storyboard TargetProperty="Opacity" Storyboard.TargetName="MouseHoverHelper">
-                                    <DoubleAnimation To="0" Duration="{x:Static base:Constants.MouseLeaveDuration}" />
+                                <Storyboard TargetProperty="Opacity" Storyboard.TargetName="OverlayBorder">
+                                    <ColorAnimation
+                                        Storyboard.TargetName="OverlayBorder"
+                                        Storyboard.TargetProperty="Background.Color"
+                                        To="#0000"
+                                        Duration="0:0:0.3" />
                                 </Storyboard>
                             </BeginStoryboard>
                         </EventTrigger>
