@@ -278,7 +278,7 @@ namespace Dopamine.ViewModels.Common.Base
                 List<TrackViewModel> orderedTrackViewModels = await EntityUtils.OrderTracksAsync(tracks, trackOrder);
 
                 // Unbind to improve UI performance
-                this.ClearTracks();
+                //this.ClearTracks();
 
                 // Populate ObservableCollection
                 this.Tracks = new ObservableCollection<TrackViewModel>(orderedTrackViewModels);

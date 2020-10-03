@@ -337,7 +337,7 @@ namespace Dopamine.ViewModels.Common.Base
                 var albumViewModels = new ObservableCollection<AlbumViewModel>(orderedAlbums);
 
                 // Unbind to improve UI performance
-                this.ClearAlbums();
+                //this.ClearAlbums();
 
                 // Populate ObservableCollection
                 this.Albums = albumViewModels;
