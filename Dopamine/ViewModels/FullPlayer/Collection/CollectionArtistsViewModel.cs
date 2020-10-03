@@ -46,8 +46,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private long artistsCount;
         private double leftPaneWidthPercent;
         private double rightPaneWidthPercent;
-        private ArtistType artistType;
-        private string artistTypeText;
         private IList<long> selectedArtistIDs;
 
         public DelegateCommand<string> AddArtistsToPlaylistCommand { get; set; }
@@ -66,21 +64,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         public DelegateCommand<ArtistViewModel> PlayArtistCommand { get; set; }
         public DelegateCommand<ArtistViewModel> EnqueueArtistCommand { get; set; }
         public DelegateCommand<ArtistViewModel> LoveArtistCommand { get; set; }
-
-        public ArtistType ArtistType
-        {
-            get { return this.artistType; }
-            set
-            {
-                SetProperty<ArtistType>(ref this.artistType, value);
-                this.UpdateArtistTypeText(value);
-            }
-        }
-
-        public string ArtistTypeText
-        {
-            get { return this.artistTypeText; }
-        }
 
         public double LeftPaneWidthPercent
         {
@@ -221,10 +204,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
             // PubSub Events
             this.eventAggregator.GetEvent<ShellMouseUp>().Subscribe((_) => this.IsArtistsZoomVisible = false);
-            this.eventAggregator.GetEvent<ToggleArtistOrderCommand>().Subscribe((_) => this.ToggleArtistTypeAsync());
-
-            // Set the initial ArtistOrder			
-            this.ArtistType = (ArtistType)SettingsClient.Get<int>("Ordering", "ArtistsArtistType");
 
             // Set the initial AlbumOrder
             this.AlbumOrder = (AlbumOrder)SettingsClient.Get<int>("Ordering", "ArtistsAlbumOrder");
@@ -295,11 +274,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
         }
 
-        private void SetArtistOrder(string settingName)
-        {
-            this.ArtistType = (ArtistType)SettingsClient.Get<int>("Ordering", settingName);
-        }
-
         private void ClearArtists()
         {
             Application.Current.Dispatcher.Invoke(() =>
@@ -315,12 +289,12 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             this.Artists = null;
         }
 
-        private async Task GetArtistsAsync(ArtistType artistType)
+        private async Task GetArtistsAsync()
         {
             try
             {
                 // Get the artists
-                var artistViewModels = new ObservableCollection<ArtistViewModel>(await this.collectionService.GetAllArtistsAsync(artistType));
+                var artistViewModels = new ObservableCollection<ArtistViewModel>(await this.collectionService.GetAllArtistsAsync());
 
                 // Unbind to improve UI performance
                 ClearArtists();
@@ -415,7 +389,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
             this.RaisePropertyChanged(nameof(this.HasSelectedArtists));
             Task saveSelectedArtists = Task.Run(() => SaveSelectedArtists());
-            Task albums = GetArtistAlbumsAsync(selectedArtists, this.ArtistType, this.AlbumOrder);
+            Task albums = GetArtistAlbumsAsync(selectedArtists, this.AlbumOrder);
             this.SetTrackOrder("ArtistsTrackOrder");
             Task tracks = GetTracksAsync(this.SelectedArtists, null, this.SelectedAlbums, this.TrackOrder);
             Task.WhenAll(albums, tracks, saveSelectedArtists);
@@ -499,53 +473,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             await this.playbackService.PlayArtistsAsync(artists, PlaylistMode.Enqueue);
         }
 
-        private async Task ToggleArtistTypeAsync()
-        {
-            this.HideSemanticZoom();
-
-            switch (this.ArtistType)
-            {
-                case ArtistType.All:
-                    this.ArtistType = ArtistType.Track;
-                    break;
-                case ArtistType.Track:
-                    this.ArtistType = ArtistType.Album;
-                    break;
-                case ArtistType.Album:
-                    this.ArtistType = ArtistType.All;
-                    break;
-                default:
-                    // Cannot happen, but just in case.	
-                    this.ArtistType = ArtistType.All;
-                    break;
-            }
-
-            SettingsClient.Set<int>("Ordering", "ArtistsArtistType", (int)this.ArtistType);
-            await this.GetArtistsAsync(this.ArtistType);
-        }
-
-        private void UpdateArtistTypeText(ArtistType artistType)
-        {
-            switch (artistType)
-            {
-                case ArtistType.All:
-                    this.artistTypeText = ResourceUtils.GetString("Language_All_Artists");
-                    break;
-                case ArtistType.Track:
-                    this.artistTypeText = ResourceUtils.GetString("Language_Song_Artists");
-                    break;
-                case ArtistType.Album:
-                    this.artistTypeText = ResourceUtils.GetString("Language_Album_Artists");
-                    break;
-                default:
-                    // Cannot happen, but just in case.	
-                    this.artistTypeText = ResourceUtils.GetString("Language_All_Artists");
-                    break;
-            }
-
-            RaisePropertyChanged(nameof(this.ArtistTypeText));
-        }
-
         private async Task ToggleTrackOrderAsync()
         {
             base.ToggleTrackOrder();
@@ -589,10 +516,10 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             {
                 ClearAlbums();
                 ClearTracks();
-                await GetArtistsAsync(ArtistType);
+                await GetArtistsAsync();
                 if (selectedArtists.Count == 0) // Otherwise it will automatically get triggered by the change selection event
                 {
-                    await GetArtistAlbumsAsync(this.SelectedArtists, this.ArtistType, this.AlbumOrder);
+                    await GetArtistAlbumsAsync(this.SelectedArtists, this.AlbumOrder);
                     await GetTracksAsync(this.SelectedArtists, null, this.SelectedAlbums, this.TrackOrder);
                 }
                 /*

@@ -193,36 +193,13 @@ namespace Dopamine.Services.Collection
             return tempGenreViewModels;
         }
 
-        public async Task<IList<ArtistViewModel>> GetAllArtistsAsync(ArtistType artistType)
+        public async Task<IList<ArtistViewModel>> GetAllArtistsAsync()
         {
             List<ArtistViewModel> tempArtistViewModels = new List<ArtistViewModel>();
             await Task.Run(() =>
             {
                //IList<string> artists = null;
                IList<ArtistV> artistsV = artistVRepository.GetArtists();
-
-               /*
-               switch (artistType)
-               {
-                   case ArtistType.All:
-                       IList<string> trackArtists = await this.trackRepository.GetTrackArtistsAsync();
-                       IList<string> albumArtists = await this.trackRepository.GetAlbumArtistsAsync();
-                       ((List<string>)trackArtists).AddRange(albumArtists);
-                       artists = trackArtists;
-                       break;
-                   case ArtistType.Track:
-                       artists = await this.trackRepository.GetTrackArtistsAsync();
-                       break;
-                   case ArtistType.Album:
-                       artists = await this.trackRepository.GetAlbumArtistsAsync();
-                       break;
-                   default:
-                       // Can't happen	
-                       break;
-               }
-               */
-
-               //IList<ArtistViewModel> orderedArtists = (await this.GetUniqueArtistsAsync(artists)).OrderBy(a => FormatUtils.GetSortableString(a.ArtistName, true)).ToList();
 
                IList<ArtistViewModel> orderedArtists = artistsV.Select(x => new ArtistViewModel(x)).ToList();
 
@@ -245,7 +222,7 @@ namespace Dopamine.Services.Collection
             return avm;
         }
 
-        public async Task<IList<AlbumViewModel>> GetArtistAlbumsAsync(IList<ArtistViewModel> selectedArtists, ArtistType artistType)
+        public async Task<IList<AlbumViewModel>> GetArtistAlbumsAsync(IList<ArtistViewModel> selectedArtists)
         {
             IList<AlbumViewModel> avm = null;
             await Task.Run(() =>

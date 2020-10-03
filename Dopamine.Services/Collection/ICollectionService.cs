@@ -11,13 +11,13 @@ namespace Dopamine.Services.Collection
     {
         Task<RemoveTracksResult> RemoveTracksFromCollectionAsync(IList<TrackViewModel> selectedTracks, bool bAlsoDeleteFromDisk);
 
-        Task<IList<ArtistViewModel>> GetAllArtistsAsync(ArtistType artistType);
+        Task<IList<ArtistViewModel>> GetAllArtistsAsync();
 
         Task<IList<GenreViewModel>> GetAllGenresAsync();
 
         Task<IList<AlbumViewModel>> GetAllAlbumsAsync();
 
-        Task<IList<AlbumViewModel>> GetArtistAlbumsAsync(IList<ArtistViewModel> selectedArtists, ArtistType artistType);
+        Task<IList<AlbumViewModel>> GetArtistAlbumsAsync(IList<ArtistViewModel> selectedArtists);
 
         Task<IList<AlbumViewModel>> GetGenreAlbumsAsync(IList<GenreViewModel> selectedGenres);
 

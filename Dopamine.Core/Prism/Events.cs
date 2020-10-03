@@ -53,7 +53,4 @@ namespace Dopamine.Core.Prism
     {
     }
 
-    public class ToggleArtistOrderCommand : PubSubEvent<object>
-    {
-    }
 }

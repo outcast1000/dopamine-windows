@@ -92,7 +92,7 @@
                         <TextBlock
                             x:Name="ArtistsHeader"
                             Margin="10,0,0,0"
-                            Text="{Binding ArtistTypeText}"
+                            Text="{DynamicResource Language_All_Artists}"
                             FontSize="13"
                             Foreground="{DynamicResource Brush_PrimaryText}"
                             Background="#00000000" />
