@@ -84,7 +84,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private IEventAggregator eventAggregator;
         private ObservableCollection<ISemanticZoomable> artists;
         private CollectionViewSource artistsCvs;
-        private IList<ArtistViewModel> selectedArtists;
+        private IList<ArtistViewModel> selectedArtists = new List<ArtistViewModel>();
         private ObservableCollection<ISemanticZoomSelector> artistsZoomSelectors;
         private bool isArtistsZoomVisible;
         private long artistsCount;
@@ -92,6 +92,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private double rightPaneWidthPercent;
         private IList<long> selectedArtistIDs;
         private bool _ignoreSelectionChangedEvent;
+        private string _searchString = "";
 
         public DelegateCommand<string> AddArtistsToPlaylistCommand { get; set; }
 
@@ -130,17 +131,21 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
         }
 
+        /*
         public ObservableCollection<ISemanticZoomable> Artists
         {
             get { return this.artists; }
             set { SetProperty<ObservableCollection<ISemanticZoomable>>(ref this.artists, value); }
         }
+        */
 
+        /*
         ObservableCollection<ISemanticZoomable> ISemanticZoomViewModel.SemanticZoomables
         {
             get { return Artists; }
             set { Artists = value; }
         }
+        */
 
         public CollectionViewSource ArtistsCvs
         {
@@ -323,48 +328,36 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                if (this.ArtistsCvs != null)
-                {
-                    this.ArtistsCvs.Filter -= new FilterEventHandler(ArtistsCvs_Filter);
-                }
-
                 this.ArtistsCvs = null;
             });
 
-            this.Artists = null;
+            //this.Artists = null;
         }
 
         private async Task GetArtistsAsync()
         {
+            ObservableCollection<ISemanticZoomable> Artists;
             try
             {
                 // Get the artists
-                var artistViewModels = new ObservableCollection<ArtistViewModel>(await this.collectionService.GetAllArtistsAsync());
+                var artistViewModels = new ObservableCollection<ArtistViewModel>(await this.collectionService.GetArtistsAsync(_searchString));
 
                 // Unbind to improve UI performance
-                ClearArtists();
-                selectedArtists = new List<ArtistViewModel>();
-                foreach (long id in selectedArtistIDs)
+                if (string.IsNullOrEmpty(_searchString))
                 {
-                    ArtistViewModel avm = artistViewModels.Where(x => x.Id == id).FirstOrDefault();
-                    if (avm != null)
+                    selectedArtists = new List<ArtistViewModel>();
+                    foreach (long id in selectedArtistIDs)
                     {
-                        avm.IsSelected = selectedArtistIDs.Contains(avm.Id);
-                        selectedArtists.Add(avm);
+                        ArtistViewModel avm = artistViewModels.Where(x => x.Id == id).FirstOrDefault();
+                        if (avm != null)
+                        {
+                            avm.IsSelected = selectedArtistIDs.Contains(avm.Id);
+                            selectedArtists.Add(avm);
+                        }
                     }
                 }
-                /*
-                foreach (ArtistViewModel avm in artistViewModels)
-                {
-                    if (selectedArtistIDs.Contains(avm.Id))
-                    {
-                        avm.IsSelected = selectedArtistIDs.Contains(avm.Id);
-                        selectedArtists.Add(avm);
-                    }
-                }
-                */
+                //ClearArtists();
 
-                // Populate ObservableCollection
                 Artists = new ObservableCollection<ISemanticZoomable>(artistViewModels);
             }
             catch (Exception ex)
@@ -376,24 +369,24 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
 
 
-
             Application.Current.Dispatcher.Invoke(() =>
             {
                 // Populate CollectionViewSource
                 this.ArtistsCvs = new CollectionViewSource { Source = Artists };
-                this.ArtistsCvs.Filter += new FilterEventHandler(ArtistsCvs_Filter);
+                //this.ArtistsCvs.Filter += new FilterEventHandler(ArtistsCvs_Filter);
 
                 // Update count
-                this.ArtistsCount = Artists.Count;
+                this.ArtistsCount = ArtistsCvs.View.Cast<ISemanticZoomable>().Count();
+                // Update Semantic Zoom Headers
+                this.UpdateSemanticZoomHeaders();
             });
-
-            // Update Semantic Zoom Headers
-            this.UpdateSemanticZoomHeaders();
         }
 
         private async Task SelectedArtistsHandlerAsync(object parameter)
         {
             if (_ignoreSelectionChangedEvent)
+                return;
+            if (!string.IsNullOrEmpty(_searchString) && parameter == null)
                 return;
             bool bKeepOldSelections = true;
             if (parameter != null && ((IList)parameter).Count > 0)
@@ -508,12 +501,14 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
         }
 
+        /*
         private void ArtistsCvs_Filter(object sender, FilterEventArgs e)
         {
             ArtistViewModel avm = e.Item as ArtistViewModel;
 
             e.Accepted = Services.Utils.EntityUtils.FilterArtists(avm, this.searchService.SearchText);
         }
+        */
 
         private async Task AddArtistsToNowPlayingAsync(IList<ArtistViewModel> artists)
         {
@@ -588,6 +583,12 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         protected override void FilterLists(string searchText)
         {
+            if (!_searchString.Equals(searchText))
+            {
+                _searchString = searchText;
+                GetArtistsAsync();
+            }
+            /*
             Application.Current.Dispatcher.Invoke(() =>
             {
                 // Artists
@@ -598,7 +599,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                     this.UpdateSemanticZoomHeaders();
                 }
             });
-
+            */
             base.FilterLists(searchText);
         }
 

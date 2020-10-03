@@ -6,7 +6,7 @@ namespace Dopamine.Services.Entities
 {
     public interface ISemanticZoomViewModel
     {
-        ObservableCollection<ISemanticZoomable> SemanticZoomables { get; set; }
+        //ObservableCollection<ISemanticZoomable> SemanticZoomables { get; set; }
 
         ObservableCollection<ISemanticZoomSelector> SemanticZoomSelectors { get; set; }
 

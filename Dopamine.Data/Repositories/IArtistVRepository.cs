@@ -6,7 +6,7 @@ namespace Dopamine.Data.Repositories
 {
     public interface IArtistVRepository
     {
-        List<ArtistV> GetArtists();
+        List<ArtistV> GetArtists(string searchString = null);
 
         List<ArtistV> GetArtistsWithoutImages(bool incudeFailedDownloads);
 

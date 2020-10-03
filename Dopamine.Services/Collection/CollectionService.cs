@@ -18,6 +18,7 @@ namespace Dopamine.Services.Collection
 {
     public class CollectionService : ICollectionService
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private IPlaybackService playbackService;
         private IContainerProvider container;
 
@@ -193,19 +194,26 @@ namespace Dopamine.Services.Collection
             return tempGenreViewModels;
         }
 
-        public async Task<IList<ArtistViewModel>> GetAllArtistsAsync()
+        public async Task<IList<ArtistViewModel>> GetArtistsAsync(string searchString)
         {
             List<ArtistViewModel> tempArtistViewModels = new List<ArtistViewModel>();
             await Task.Run(() =>
             {
-               //IList<string> artists = null;
-               IList<ArtistV> artistsV = artistVRepository.GetArtists();
+               IList<ArtistV> artistsV = artistVRepository.GetArtists(searchString);
+               if (artistsV == null)
+               {
+                    Logger.Warn($"GetArtistsAsync artistVRepository.GetArtists({searchString}) return null");
+                    tempArtistViewModels = new List<ArtistViewModel>();
+               }
+               else
+               {
 
-               IList<ArtistViewModel> orderedArtists = artistsV.Select(x => new ArtistViewModel(x)).ToList();
+                    IList<ArtistViewModel> orderedArtists = artistsV.Select(x => new ArtistViewModel(x)).ToList();
+                    // Workaround to make sure the "#" GroupHeader is shown at the top of the list
+                    tempArtistViewModels.AddRange(orderedArtists.Where((avm) => avm.Header.Equals("#")));
+                    tempArtistViewModels.AddRange(orderedArtists.Where((avm) => !avm.Header.Equals("#")));
 
-               // Workaround to make sure the "#" GroupHeader is shown at the top of the list
-               tempArtistViewModels.AddRange(orderedArtists.Where((avm) => avm.Header.Equals("#")));
-               tempArtistViewModels.AddRange(orderedArtists.Where((avm) => !avm.Header.Equals("#")));
+               }
 
             });
             return tempArtistViewModels;

@@ -82,11 +82,13 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             get { return this.genres; }
             set { SetProperty<ObservableCollection<ISemanticZoomable>>(ref this.genres, value); }
         }
+        /*
         ObservableCollection<ISemanticZoomable> ISemanticZoomViewModel.SemanticZoomables
         {
             get { return Genres; }
             set { Genres = value; }
         }
+        */
 
         public CollectionViewSource GenresCvs
         {
