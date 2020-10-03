@@ -80,9 +80,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private IPlaylistService playlistService;
         private IIndexingService indexingService;
         private IDialogService dialogService;
-        private ISearchService searchService;
         private IEventAggregator eventAggregator;
-        private ObservableCollection<ISemanticZoomable> artists;
         private CollectionViewSource artistsCvs;
         private IList<ArtistViewModel> selectedArtists = new List<ArtistViewModel>();
         private ObservableCollection<ISemanticZoomSelector> artistsZoomSelectors;
@@ -199,7 +197,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             this.playlistService = container.Resolve<IPlaylistService>();
             this.indexingService = container.Resolve<IIndexingService>();
             this.dialogService = container.Resolve<IDialogService>();
-            this.searchService = container.Resolve<ISearchService>();
             this.eventAggregator = container.Resolve<IEventAggregator>();
 
             // Commands
@@ -386,7 +383,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         {
             if (_ignoreSelectionChangedEvent)
                 return;
-            if (!string.IsNullOrEmpty(_searchString) && parameter == null)
+            if (!string.IsNullOrEmpty(_searchString) && ((IList)parameter).Count == 0)
                 return;
             bool bKeepOldSelections = true;
             if (parameter != null && ((IList)parameter).Count > 0)
@@ -413,9 +410,10 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 // Keep the previous selection if possible. Otherwise select All
                 List<long> validSelectedArtistIDs = new List<long>();
                 selectedArtists.Clear();
+                IEnumerable<ArtistViewModel> artists = ArtistsCvs.View.Cast<ArtistViewModel>();
                 foreach (long id in selectedArtistIDs)
                 {
-                    ArtistViewModel sel = (ArtistViewModel) artists.Where(x => ((ArtistViewModel)x).Id == id).FirstOrDefault();
+                    ArtistViewModel sel = artists.Where(x => x.Id == id).FirstOrDefault();
                     if (sel != null)
                     {
                         validSelectedArtistIDs.Add(id);

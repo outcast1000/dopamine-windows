@@ -219,12 +219,12 @@ namespace Dopamine.Services.Collection
             return tempArtistViewModels;
         }
 
-        public async Task<IList<AlbumViewModel>> GetAllAlbumsAsync()
+        public async Task<IList<AlbumViewModel>> GetAlbumsAsync(string searchString = null)
         {
             IList<AlbumViewModel> avm = null;
             await Task.Run(() =>
             {
-                IList<AlbumV> albumsV = albumVRepository.GetAlbums();
+                IList<AlbumV> albumsV = albumVRepository.GetAlbums(searchString);
                 avm = albumsV.Select(a => new AlbumViewModel(a)).ToList();
             });
             return avm;

@@ -17,9 +17,16 @@ namespace Dopamine.Data.Repositories
             this.factory = factory;
         }
 
-        public List<AlbumV> GetAlbums()
+        public List<AlbumV> GetAlbums(string searchString = null)
         {
-            return GetAlbumsInternal();
+            QueryOptions qo = new QueryOptions();
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                qo.extraWhereClause.Add("(Albums.Name like ? OR Artists.Name like ?)");
+                qo.extraWhereParams.Add("%" + searchString + "%");
+                qo.extraWhereParams.Add("%" + searchString + "%");
+            }
+            return GetAlbumsInternal(qo);
         }
 
         public List<AlbumV> GetAlbumsWithoutImages(bool incudeFailedDownloads)
