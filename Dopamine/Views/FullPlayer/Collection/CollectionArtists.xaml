@@ -75,6 +75,15 @@
                             Foreground="{DynamicResource Brush_Accent}"
                             Text="{Binding ArtistsCount}" />
                         <Button
+                            Margin="10,0,0,0"
+                            Command="{Binding ToggleArtistOrderCommand}"
+                            Content="{Binding ArtistOrderText}"
+                            DockPanel.Dock="Right"
+                            FontSize="13"
+                            Foreground="{DynamicResource Brush_SecondaryText}"
+                            Style="{StaticResource TransparentButton}"
+                            ToolTip="{DynamicResource Language_Toggle_Artist_Order}" />
+                        <Button
                             x:Name="ShuffleAllButton"
                             Margin="0,1,0,0"
                             VerticalContentAlignment="Center"
@@ -89,6 +98,7 @@
                                 Style="{StaticResource SegoeAssets}"
                                 Text="&#xE8B1;" />
                         </Button>
+
                         <TextBlock
                             x:Name="ArtistsHeader"
                             Margin="10,0,0,0"

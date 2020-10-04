@@ -233,15 +233,19 @@
     <Setting Name="ArtistsTrackOrder">
       <Value>2</Value>
     </Setting>
-    <Setting Name="AlbumsTrackOrder">
+	<Setting Name="ArtistsAlbumOrder">
+		<Value>1</Value>
+	</Setting>
+	<Setting Name="ArtistsArtistOrder">
+		<Value>1</Value>
+	</Setting>
+	  <Setting Name="AlbumsTrackOrder">
       <Value>2</Value>
     </Setting>
     <Setting Name="GenresTrackOrder">
       <Value>2</Value>
     </Setting>
-    <Setting Name="ArtistsAlbumOrder">
-      <Value>1</Value>
-    </Setting>
+
     <Setting Name="AlbumsAlbumOrder">
       <Value>1</Value>
     </Setting>

@@ -26,6 +26,7 @@ using System.Windows;
 using System.Windows.Data;
 using Dopamine.Data.Entities;
 using System.Diagnostics;
+using System.ComponentModel;
 
 /* ALEX COMMENT
 --- MAP OF VARIOUS EVENTS THAT TRIGGERS Data Refresh
@@ -91,10 +92,17 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private IList<long> selectedArtistIDs;
         private bool _ignoreSelectionChangedEvent;
         private string _searchString = "";
+        private string artistOrderText;
+        private ArtistOrder artistOrder;
+
+
 
 
         public delegate void EnsureSelectedItemVisibleAction(ArtistViewModel artist);
         public event EnsureSelectedItemVisibleAction EnsureItemVisible;
+
+        public DelegateCommand ToggleArtistOrderCommand { get; set; }
+
 
         public DelegateCommand<string> AddArtistsToPlaylistCommand { get; set; }
 
@@ -161,6 +169,16 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             set { SetProperty<IList<ArtistViewModel>>(ref this.selectedArtists, value); }
         }
 
+        public ArtistOrder ArtistOrder
+        {
+            get { return this.artistOrder; }
+            set
+            {
+                SetProperty<ArtistOrder>(ref this.artistOrder, value);
+
+                this.UpdateArtistOrderText(value);
+            }
+        }
 
         public long ArtistsCount
         {
@@ -173,6 +191,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             get { return this.isArtistsZoomVisible; }
             set { SetProperty<bool>(ref this.isArtistsZoomVisible, value); }
         }
+
+        public string ArtistOrderText => this.artistOrderText;
 
         public ObservableCollection<ISemanticZoomSelector> ArtistsZoomSelectors
         {
@@ -206,6 +226,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             // Commands
             this.ToggleTrackOrderCommand = new DelegateCommand(async () => await this.ToggleTrackOrderAsync());
             this.ToggleAlbumOrderCommand = new DelegateCommand(async () => await this.ToggleAlbumOrderAsync());
+            this.ToggleArtistOrderCommand = new DelegateCommand(async () => await this.ToggleArtistOrderAsync());
             this.RemoveSelectedTracksCommand = new DelegateCommand(async () => await this.RemoveTracksFromCollectionAsync(this.SelectedTracks), () => !this.IsIndexing);
             this.AddArtistsToPlaylistCommand = new DelegateCommand<string>(async (playlistName) => await this.AddArtistsToPlaylistAsync(this.SelectedArtists, playlistName));
             this.SelectedArtistsCommand = new DelegateCommand<object>(async (parameter) => await this.SelectedArtistsHandlerAsync(parameter));
@@ -259,6 +280,11 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             // Set the initial AlbumOrder
             this.AlbumOrder = (AlbumOrder)SettingsClient.Get<int>("Ordering", "ArtistsAlbumOrder");
 
+            // ALEX WARNING. EVERYTIME YOU NEED TO ADD A NEW SETTING YOU HAVE TO:
+            //  1. Update the \BaseSettings.xml of the project
+            //  2. Update the  C:\Users\Alex\AppData\Roaming\Dopamine\Settings.xml
+            this.ArtistOrder = (ArtistOrder)SettingsClient.Get<int>("Ordering", "ArtistsArtistOrder");
+
             // Set the initial TrackOrder
             this.SetTrackOrder("ArtistsTrackOrder");
 
@@ -304,6 +330,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         public void HideSemanticZoom()
         {
+
             this.IsArtistsZoomVisible = false;
         }
 
@@ -313,10 +340,17 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
             foreach (ArtistViewModel avm in this.ArtistsCvs.View)
             {
-                if (string.IsNullOrEmpty(previousHeader) || !avm.Header.Equals(previousHeader))
+                if (artistOrder == ArtistOrder.Alphabetical)
                 {
-                    previousHeader = avm.Header;
-                    avm.IsHeader = true;
+                    if (string.IsNullOrEmpty(previousHeader) || !avm.Header.Equals(previousHeader))
+                    {
+                        previousHeader = avm.Header;
+                        avm.IsHeader = true;
+                    }
+                    else
+                    {
+                        avm.IsHeader = false;
+                    }
                 }
                 else
                 {
@@ -374,13 +408,45 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             {
                 // Populate CollectionViewSource
                 this.ArtistsCvs = new CollectionViewSource { Source = Artists };
-                //this.ArtistsCvs.Filter += new FilterEventHandler(ArtistsCvs_Filter);
+                //=== TEST FOR SORTING
+                OrderArtists();
 
                 // Update count
                 this.ArtistsCount = ArtistsCvs.View.Cast<ISemanticZoomable>().Count();
                 // Update Semantic Zoom Headers
                 this.UpdateSemanticZoomHeaders();
             });
+        }
+
+        private void OrderArtists()
+        {
+            SortDescription sd = new SortDescription();
+            switch (artistOrder)
+            {
+                case ArtistOrder.Alphabetical:
+                    sd = new SortDescription("Name", ListSortDirection.Ascending);
+                    break;
+                case ArtistOrder.ByTrackCount:
+                    sd = new SortDescription("TrackCount", ListSortDirection.Descending);
+                    break;
+                case ArtistOrder.ByDateAdded:
+                    sd = new SortDescription("DateAdded", ListSortDirection.Descending);
+                    break;
+                case ArtistOrder.ByDateCreated:
+                    sd = new SortDescription("DateCreated", ListSortDirection.Descending);
+                    break;
+                case ArtistOrder.ByYearAscending:
+                    sd = new SortDescription("Year", ListSortDirection.Ascending);
+                    break;
+                case ArtistOrder.ByYearDescending:
+                    sd = new SortDescription("Year", ListSortDirection.Descending);
+                    break;
+                default:
+                    break;
+            }
+            ArtistsCvs.SortDescriptions.Clear();
+            ArtistsCvs.SortDescriptions.Add(sd);
+            this.UpdateSemanticZoomHeaders();
         }
 
         private async Task SelectedArtistsHandlerAsync(object parameter)
@@ -534,25 +600,28 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             await this.GetAlbumsCommonAsync(this.Albums, this.AlbumOrder);
         }
 
+        private async Task ToggleArtistOrderAsync()
+        {
+
+            ToggleArtistOrder();
+            SettingsClient.Set<int>("Ordering", "ArtistsArtistOrder", (int)this.ArtistOrder);
+            OrderArtists();
+            EnsureVisible();
+        }
+
+
+
         protected async override Task SetCoversizeAsync(CoverSizeType coverSize)
         {
             await base.SetCoversizeAsync(coverSize);
             SettingsClient.Set<int>("CoverSizes", "ArtistsCoverSize", (int)coverSize);
         }
-        /* USAGE FOR A SINGLE SELECTED ITEM
-         * in CollectionArtists.xaml:                                 
-         * <dc:MultiSelectListBox ...  SelectedItem="{Binding SelectedArtist, Mode=TwoWay}" ...
-         * Here:
-            public ArtistViewModel SelectedArtist
-            {
-                get { return selectedArtists?.Count == 0 ? null : selectedArtists[0]; }
-                set
-                {
-                    SetProperty<IList<ArtistViewModel>>(ref this.selectedArtists, new List<ArtistViewModel>() { value });
-                }
-            }
-         */
 
+        private void EnsureVisible()
+        {
+            if (SelectedArtists.Count > 0)
+                EnsureItemVisible?.Invoke(SelectedArtists[0]);
+        }
 
         protected async override Task FillListsAsync()
         {
@@ -563,8 +632,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 await GetArtistsAsync();
                 await GetArtistAlbumsAsync(this.SelectedArtists, this.AlbumOrder);
                 await GetTracksAsync(this.SelectedArtists, null, this.SelectedAlbums, this.TrackOrder);
-                if (SelectedArtists.Count > 0)
-                    EnsureItemVisible?.Invoke(SelectedArtists[0]);
+                EnsureVisible();
                 _ignoreSelectionChangedEvent = false;
                 /*
                 List<Task> tasks = new List<Task>();
@@ -592,18 +660,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 _searchString = searchText;
                 GetArtistsAsync();
             }
-            /*
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                // Artists
-                if (this.ArtistsCvs != null)
-                {
-                    this.ArtistsCvs.View.Refresh();
-                    this.ArtistsCount = this.ArtistsCvs.View.Cast<ISemanticZoomable>().Count();
-                    this.UpdateSemanticZoomHeaders();
-                }
-            });
-            */
             base.FilterLists(searchText);
         }
 
@@ -620,6 +676,65 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             this.UpdateAlbumOrderText(this.AlbumOrder);
             this.UpdateTrackOrderText(this.TrackOrder);
             base.RefreshLanguage();
+        }
+
+        protected virtual void ToggleArtistOrder()
+        {
+            switch (this.ArtistOrder)
+            {
+                case ArtistOrder.Alphabetical:
+                    this.ArtistOrder = ArtistOrder.ByDateAdded;
+                    break;
+                case ArtistOrder.ByDateAdded:
+                    this.ArtistOrder = ArtistOrder.ByDateCreated;
+                    break;
+                case ArtistOrder.ByDateCreated:
+                    this.ArtistOrder = ArtistOrder.ByTrackCount;
+                    break;
+                case ArtistOrder.ByTrackCount:
+                    this.ArtistOrder = ArtistOrder.ByYearAscending;
+                    break;
+                case ArtistOrder.ByYearAscending:
+                    this.ArtistOrder = ArtistOrder.ByYearDescending;
+                    break;
+                case ArtistOrder.ByYearDescending:
+                    this.ArtistOrder = ArtistOrder.Alphabetical;
+                    break;
+                default:
+                    // Cannot happen, but just in case.
+                    this.ArtistOrder = ArtistOrder.Alphabetical;
+                    break;
+            }
+        }
+        protected void UpdateArtistOrderText(ArtistOrder order)
+        {
+            switch (order)
+            {
+                case ArtistOrder.Alphabetical:
+                    this.artistOrderText = ResourceUtils.GetString("Language_A_Z");
+                    break;
+                case ArtistOrder.ByDateAdded:
+                    this.artistOrderText = ResourceUtils.GetString("Language_By_Date_Added");
+                    break;
+                case ArtistOrder.ByDateCreated:
+                    this.artistOrderText = ResourceUtils.GetString("Language_By_Date_Created");
+                    break;
+                case ArtistOrder.ByTrackCount:
+                    this.artistOrderText = ResourceUtils.GetString("Language_By_Track_Count");
+                    break;
+                case ArtistOrder.ByYearDescending:
+                    this.artistOrderText = ResourceUtils.GetString("Language_By_Year_Descending");
+                    break;
+                case ArtistOrder.ByYearAscending:
+                    this.artistOrderText = ResourceUtils.GetString("Language_By_Year_Ascending");
+                    break;
+                default:
+                    // Cannot happen, but just in case.
+                    this.artistOrderText = ResourceUtils.GetString("Language_A_Z");
+                    break;
+            }
+
+            RaisePropertyChanged(nameof(this.ArtistOrderText));
         }
     }
 }
