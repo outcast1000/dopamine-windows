@@ -76,6 +76,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 {
     public class CollectionArtistsViewModel : AlbumsViewModelBase, ISemanticZoomViewModel
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private ICollectionService collectionService;
         private IPlaybackService playbackService;
         private IPlaylistService playlistService;
@@ -376,8 +377,9 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             {
                 // Get the artists
                 var artistViewModels = new ObservableCollection<ArtistViewModel>(await this.collectionService.GetArtistsAsync(_searchString));
-
-                // Unbind to improve UI performance
+                // Unless we are in Search Mode, we should re-store the selected items. The cases are:
+                //  1. at the beginning of the application
+                //  2. after the search mode is finished 
                 if (string.IsNullOrEmpty(_searchString))
                 {
                     selectedArtists = new List<ArtistViewModel>();
@@ -391,14 +393,11 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                         }
                     }
                 }
-                //ClearArtists();
-
                 Artists = new ObservableCollection<ISemanticZoomable>(artistViewModels);
             }
             catch (Exception ex)
             {
-                LogClient.Error("An error occurred while getting Artists. Exception: {0}", ex.Message);
-
+                Logger.Error(ex, "An error occurred while getting Artists. Exception: {0}", ex.Message);
                 // Failed getting Artists. Create empty ObservableCollection.
                 Artists = new ObservableCollection<ISemanticZoomable>();
             }
@@ -408,13 +407,11 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             {
                 // Populate CollectionViewSource
                 this.ArtistsCvs = new CollectionViewSource { Source = Artists };
-                //=== TEST FOR SORTING
+                // Sort them using current ArtistOrder
                 OrderArtists();
-
+                EnsureVisible();
                 // Update count
                 this.ArtistsCount = ArtistsCvs.View.Cast<ISemanticZoomable>().Count();
-                // Update Semantic Zoom Headers
-                this.UpdateSemanticZoomHeaders();
             });
         }
 
@@ -454,33 +451,35 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         private async Task SelectedArtistsHandlerAsync(object parameter)
         {
+            // This happens when the user select an artist
+            // We should ignore this event when for example we are just refreshing the collection (app is starting)
             if (_ignoreSelectionChangedEvent)
                 return;
+            // We should also ignore it if we are in Search Mode AND the user does not selected anything. For example when we enter the search mode
             if (!string.IsNullOrEmpty(_searchString) && ((IList)parameter).Count == 0)
                 return;
             bool bKeepOldSelections = true;
             if (parameter != null && ((IList)parameter).Count > 0)
             {
-                if (((IList)parameter).Count > 0)
+                // This is the most usual case. The user has just selected one or more artists
+                bKeepOldSelections = false;
+                selectedArtistIDs.Clear();
+                selectedArtists.Clear();
+                foreach (ArtistViewModel item in (IList)parameter)
                 {
-                    bKeepOldSelections = false;
-                    selectedArtistIDs.Clear();
-                    selectedArtists.Clear();
-
-
-                    foreach (ArtistViewModel item in (IList)parameter)
-                    {
-                        selectedArtists.Add(item);
-                        item.IsSelected = true;
-                        selectedArtistIDs.Add(item.Id);
-                    }
-
+                    // Keep them in an array
+                    selectedArtistIDs.Add(item.Id);
+                    // Add it to the selectedArtists List
+                    selectedArtists.Add(item);
+                    // Mark it as selected
+                    item.IsSelected = true;
                 }
             }
             
             if (bKeepOldSelections)
             {
                 // Keep the previous selection if possible. Otherwise select All
+                // This is the case when we have refresh the collection etc.
                 List<long> validSelectedArtistIDs = new List<long>();
                 selectedArtists.Clear();
                 IEnumerable<ArtistViewModel> artists = ArtistsCvs.View.Cast<ArtistViewModel>();
@@ -499,8 +498,11 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
 
             this.RaisePropertyChanged(nameof(this.HasSelectedArtists));
+            // Store the selected artists in the Settings
             Task saveSelectedArtists = Task.Run(() => SaveSelectedArtists());
+            // Update the albums
             Task albums = GetArtistAlbumsAsync(selectedArtists, this.AlbumOrder);
+            // Update the tracks
             this.SetTrackOrder("ArtistsTrackOrder");
             Task tracks = GetTracksAsync(this.SelectedArtists, null, this.SelectedAlbums, this.TrackOrder);
             Task.WhenAll(albums, tracks, saveSelectedArtists);
@@ -635,7 +637,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 await GetArtistsAsync();
                 await GetArtistAlbumsAsync(this.SelectedArtists, this.AlbumOrder);
                 await GetTracksAsync(this.SelectedArtists, null, this.SelectedAlbums, this.TrackOrder);
-                EnsureVisible();
                 _ignoreSelectionChangedEvent = false;
                 /*
                 List<Task> tasks = new List<Task>();
@@ -663,7 +664,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 _searchString = searchText;
                 GetArtistsAsync();
             }
-            base.FilterLists(searchText);
+            if (!string.IsNullOrEmpty(searchText))
+                base.FilterLists(searchText);
         }
 
         protected async override Task SelectedAlbumsHandlerAsync(object parameter)

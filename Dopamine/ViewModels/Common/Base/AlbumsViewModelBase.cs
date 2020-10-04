@@ -31,6 +31,7 @@ namespace Dopamine.ViewModels.Common.Base
 {
     public abstract class AlbumsViewModelBase : TracksViewModelBase
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private IContainerProvider container;
         private ICollectionService collectionService;
         private IPlaybackService playbackService;
