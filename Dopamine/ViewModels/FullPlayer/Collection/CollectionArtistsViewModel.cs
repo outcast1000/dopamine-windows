@@ -92,6 +92,10 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private bool _ignoreSelectionChangedEvent;
         private string _searchString = "";
 
+
+        public delegate void EnsureSelectedItemVisibleAction(ArtistViewModel artist);
+        public event EnsureSelectedItemVisibleAction EnsureItemVisible;
+
         public DelegateCommand<string> AddArtistsToPlaylistCommand { get; set; }
 
 
@@ -559,6 +563,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 await GetArtistsAsync();
                 await GetArtistAlbumsAsync(this.SelectedArtists, this.AlbumOrder);
                 await GetTracksAsync(this.SelectedArtists, null, this.SelectedAlbums, this.TrackOrder);
+                if (SelectedArtists.Count > 0)
+                    EnsureItemVisible?.Invoke(SelectedArtists[0]);
                 _ignoreSelectionChangedEvent = false;
                 /*
                 List<Task> tasks = new List<Task>();
