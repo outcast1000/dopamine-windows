@@ -340,7 +340,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
             foreach (ArtistViewModel avm in this.ArtistsCvs.View)
             {
-                if (artistOrder == ArtistOrder.Alphabetical)
+                if (artistOrder == ArtistOrder.AlphabeticalAscending || artistOrder == ArtistOrder.AlphabeticalDescending)
                 {
                     if (string.IsNullOrEmpty(previousHeader) || !avm.Header.Equals(previousHeader))
                     {
@@ -423,8 +423,11 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             SortDescription sd = new SortDescription();
             switch (artistOrder)
             {
-                case ArtistOrder.Alphabetical:
+                case ArtistOrder.AlphabeticalAscending:
                     sd = new SortDescription("Name", ListSortDirection.Ascending);
+                    break;
+                case ArtistOrder.AlphabeticalDescending:
+                    sd = new SortDescription("Name", ListSortDirection.Descending);
                     break;
                 case ArtistOrder.ByTrackCount:
                     sd = new SortDescription("TrackCount", ListSortDirection.Descending);
@@ -682,7 +685,10 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         {
             switch (this.ArtistOrder)
             {
-                case ArtistOrder.Alphabetical:
+                case ArtistOrder.AlphabeticalAscending:
+                    this.ArtistOrder = ArtistOrder.AlphabeticalDescending;
+                    break;
+                case ArtistOrder.AlphabeticalDescending:
                     this.ArtistOrder = ArtistOrder.ByDateAdded;
                     break;
                 case ArtistOrder.ByDateAdded:
@@ -698,11 +704,11 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                     this.ArtistOrder = ArtistOrder.ByYearDescending;
                     break;
                 case ArtistOrder.ByYearDescending:
-                    this.ArtistOrder = ArtistOrder.Alphabetical;
+                    this.ArtistOrder = ArtistOrder.AlphabeticalAscending;
                     break;
                 default:
                     // Cannot happen, but just in case.
-                    this.ArtistOrder = ArtistOrder.Alphabetical;
+                    this.ArtistOrder = ArtistOrder.AlphabeticalAscending;
                     break;
             }
         }
@@ -710,8 +716,11 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         {
             switch (order)
             {
-                case ArtistOrder.Alphabetical:
+                case ArtistOrder.AlphabeticalAscending:
                     this.artistOrderText = ResourceUtils.GetString("Language_A_Z");
+                    break;
+                case ArtistOrder.AlphabeticalDescending:
+                    this.artistOrderText = ResourceUtils.GetString("Language_Z_A");
                     break;
                 case ArtistOrder.ByDateAdded:
                     this.artistOrderText = ResourceUtils.GetString("Language_By_Date_Added");
