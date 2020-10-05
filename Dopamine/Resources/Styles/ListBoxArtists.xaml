@@ -122,145 +122,144 @@
                             </Grid>
                         </Button>
                         <!--  Artist  -->
-                        <Grid Margin="0,0,0,0">
-                            <Grid Height="{Binding ActualHeight, ElementName=MainListItem}">
-                                <pc:SourceChangedImage
-                                    Margin="0,0,0,1"
-                                    HorizontalAlignment="Stretch"
-                                    VerticalAlignment="Center"
-                                    Stretch="UniformToFill">
-                                    <pc:SourceChangedImage.Source>
-                                        <PriorityBinding>
+                        <Border BorderBrush="#8888" BorderThickness="0">
+                            <Grid Margin="0,0,0,0">
+                                <Grid Height="{Binding ActualHeight, ElementName=MainListItem}">
+                                    <pc:SourceChangedImage
+                                        Margin="0,0,0,1"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Center"
+                                        Stretch="UniformToFill">
+                                        <pc:SourceChangedImage.Source>
                                             <Binding
                                                 Converter="{StaticResource KeyToPathConverter}"
+                                                ConverterParameter="/Resources/Media/no_artist_image.jpg"
                                                 IsAsync="True"
                                                 Path="Thumbnail" />
-                                            <Binding Source="{StaticResource NoArtistImage}" IsAsync="True" />
-                                        </PriorityBinding>
-                                    </pc:SourceChangedImage.Source>
-                                    <pc:SourceChangedImage.Triggers>
-                                        <EventTrigger RoutedEvent="pc:SourceChangedImage.SourceChanged">
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <DoubleAnimation
-                                                        Storyboard.TargetProperty="Opacity"
-                                                        From="0"
-                                                        To="1"
-                                                        Duration="{x:Static base:Constants.SourceChangedImageChangedDuration}" />
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </EventTrigger>
-                                    </pc:SourceChangedImage.Triggers>
-                                </pc:SourceChangedImage>
-                                <Border Name="OverlayBorder">
-                                    <Border.Background>
-                                        <SolidColorBrush Color="#0000" />
-                                    </Border.Background>
-                                </Border>
-                            </Grid>
-                            <Border
-                                Name="SelectionBorder"
-                                BorderThickness="3,0,0,0"
-                                Opacity="0">
-                                <Border.BorderBrush>
-                                    <SolidColorBrush Color="#00F" />
-                                </Border.BorderBrush>
-                            </Border>
-                            <StackPanel
-                                Name="MainListItem"
-                                HorizontalAlignment="Stretch"
-                                MinHeight="96"
-                                VerticalAlignment="Center"
-                                Orientation="Vertical">
-                                <pc:OutlinedTextBlock
-                                    Margin="10,0,0,4"
-                                    HorizontalAlignment="Left"
-                                    DockPanel.Dock="Left"
-                                    Fill="{DynamicResource Brush_PrimaryText}"
-                                    FontSize="20"
-                                    FontWeight="Bold"
-                                    Stroke="#d000"
-                                    StrokeThickness="3"
-                                    Text="{Binding Name}"
-                                    TextTrimming="CharacterEllipsis"
-                                    TextWrapping="Wrap" />
-                                <TextBlock
-                                    x:Name="ExtraInfo"
-                                    DockPanel.Dock="Left"
-                                    Margin="10,5,0,10"
-                                    HorizontalAlignment="Stretch"
-                                    Foreground="{DynamicResource Brush_PrimaryText}"
-                                    Opacity="0"
-                                    Text="{Binding ArtistItemInfo}"
-                                    TextTrimming="CharacterEllipsis"
-                                    TextWrapping="WrapWithOverflow" />
-
-                            </StackPanel>
-                            <DockPanel
-                                DockPanel.Dock="Bottom"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Bottom">
-                                <StackPanel
-                                    x:Name="ExtraButtons"
-                                    Orientation="Horizontal"
+                                        </pc:SourceChangedImage.Source>
+                                        <pc:SourceChangedImage.Triggers>
+                                            <EventTrigger RoutedEvent="pc:SourceChangedImage.SourceChanged">
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <DoubleAnimation
+                                                            Storyboard.TargetProperty="Opacity"
+                                                            From="0"
+                                                            To="1"
+                                                            Duration="{x:Static base:Constants.SourceChangedImageChangedDuration}" />
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </EventTrigger>
+                                        </pc:SourceChangedImage.Triggers>
+                                    </pc:SourceChangedImage>
+                                    <Border Name="OverlayBorder">
+                                        <Border.Background>
+                                            <SolidColorBrush Color="#0000" />
+                                        </Border.Background>
+                                    </Border>
+                                </Grid>
+                                <Border
+                                    Name="SelectionBorder"
+                                    BorderThickness="3,0,0,0"
                                     Opacity="0">
-                                    <Button
-                                        Style="{StaticResource TransparentRoundButton}"
-                                        x:Name="LoveButton"
-                                        Width="32"
-                                        Height="32"
-                                        Margin="4,4,4,4"
-                                        HorizontalContentAlignment="Center"
-                                        VerticalContentAlignment="Center"
-                                        Command="{Binding DataContext.LoveArtistCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
-                                        CommandParameter="{Binding .}"
-                                        ToolTip="{DynamicResource Language_Love}">
-                                        <TextBlock
-                                            FontSize="16"
-                                            Foreground="{DynamicResource Brush_PrimaryText}"
-                                            Style="{StaticResource SegoeAssets}"
-                                            Text="&#xE0A5;" />
-                                    </Button>
-                                    <Button
-                                        Style="{StaticResource TransparentRoundButton}"
-                                        x:Name="EnqueueButton"
-                                        Width="32"
-                                        Height="32"
-                                        Margin="4,4,4,4"
-                                        HorizontalContentAlignment="Center"
-                                        VerticalContentAlignment="Center"
-                                        Command="{Binding DataContext.EnqueueArtistCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
-                                        CommandParameter="{Binding .}"
-                                        ToolTip="{DynamicResource Language_Add_To_Playlist}">
-                                        <TextBlock
-                                            FontSize="16"
-                                            Foreground="{DynamicResource Brush_PrimaryText}"
-                                            Style="{StaticResource SegoeAssets}"
-                                            Text="&#xE710;" />
-                                    </Button>
-                                </StackPanel>
-                                <Button
-                                    Style="{StaticResource TransparentRoundButton}"
-                                    x:Name="PlayButton"
-                                    Width="32"
-                                    Height="32"
-                                    Margin="4,4,4,4"
-                                    HorizontalContentAlignment="Center"
-                                    VerticalContentAlignment="Center"
-                                    Command="{Binding DataContext.PlayArtistCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
-                                    CommandParameter="{Binding .}"
-                                    ToolTip="{DynamicResource Language_Play}">
+                                    <Border.BorderBrush>
+                                        <SolidColorBrush Color="#00F" />
+                                    </Border.BorderBrush>
+                                </Border>
+                                <StackPanel
+                                    Name="MainListItem"
+                                    HorizontalAlignment="Stretch"
+                                    MinHeight="96"
+                                    VerticalAlignment="Center"
+                                    Orientation="Vertical">
+                                    <pc:OutlinedTextBlock
+                                        Margin="10,0,0,4"
+                                        HorizontalAlignment="Left"
+                                        DockPanel.Dock="Left"
+                                        Fill="{DynamicResource Brush_PrimaryText}"
+                                        FontSize="20"
+                                        FontWeight="Bold"
+                                        Stroke="#d000"
+                                        StrokeThickness="3"
+                                        Text="{Binding Name}"
+                                        TextTrimming="CharacterEllipsis"
+                                        TextWrapping="Wrap" />
                                     <TextBlock
-                                        FontSize="16"
+                                        x:Name="ExtraInfo"
+                                        DockPanel.Dock="Left"
+                                        Margin="10,5,0,10"
+                                        HorizontalAlignment="Stretch"
                                         Foreground="{DynamicResource Brush_PrimaryText}"
-                                        Style="{StaticResource SegoeAssets}"
-                                        Text="&#xE768;" />
-                                </Button>
+                                        Opacity="0"
+                                        Text="{Binding ArtistItemInfo}"
+                                        TextTrimming="CharacterEllipsis"
+                                        TextWrapping="WrapWithOverflow" />
 
-                            </DockPanel>
+                                </StackPanel>
+                                <DockPanel
+                                    DockPanel.Dock="Bottom"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Bottom">
+                                    <StackPanel
+                                        x:Name="ExtraButtons"
+                                        Orientation="Horizontal"
+                                        Opacity="0">
+                                        <Button
+                                            Style="{StaticResource TransparentRoundButton}"
+                                            x:Name="LoveButton"
+                                            Width="32"
+                                            Height="32"
+                                            Margin="4,4,4,4"
+                                            HorizontalContentAlignment="Center"
+                                            VerticalContentAlignment="Center"
+                                            Command="{Binding DataContext.LoveArtistCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                            CommandParameter="{Binding .}"
+                                            ToolTip="{DynamicResource Language_Love}">
+                                            <TextBlock
+                                                FontSize="16"
+                                                Foreground="{DynamicResource Brush_PrimaryText}"
+                                                Style="{StaticResource SegoeAssets}"
+                                                Text="&#xE0A5;" />
+                                        </Button>
+                                        <Button
+                                            Style="{StaticResource TransparentRoundButton}"
+                                            x:Name="EnqueueButton"
+                                            Width="32"
+                                            Height="32"
+                                            Margin="4,4,4,4"
+                                            HorizontalContentAlignment="Center"
+                                            VerticalContentAlignment="Center"
+                                            Command="{Binding DataContext.EnqueueArtistCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                            CommandParameter="{Binding .}"
+                                            ToolTip="{DynamicResource Language_Add_To_Playlist}">
+                                            <TextBlock
+                                                FontSize="16"
+                                                Foreground="{DynamicResource Brush_PrimaryText}"
+                                                Style="{StaticResource SegoeAssets}"
+                                                Text="&#xE710;" />
+                                        </Button>
+                                    </StackPanel>
+                                    <Button
+                                        Style="{StaticResource TransparentRoundButton}"
+                                        x:Name="PlayButton"
+                                        Width="32"
+                                        Height="32"
+                                        Margin="4,4,4,4"
+                                        HorizontalContentAlignment="Center"
+                                        VerticalContentAlignment="Center"
+                                        Command="{Binding DataContext.PlayArtistCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                        CommandParameter="{Binding .}"
+                                        ToolTip="{DynamicResource Language_Play}">
+                                        <TextBlock
+                                            FontSize="16"
+                                            Foreground="{DynamicResource Brush_PrimaryText}"
+                                            Style="{StaticResource SegoeAssets}"
+                                            Text="&#xE768;" />
+                                    </Button>
 
-                        </Grid>
+                                </DockPanel>
 
+                            </Grid>
+                        </Border>
                     </DockPanel>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="True">
