@@ -67,13 +67,13 @@ namespace Dopamine.Data.Repositories
             return @"SELECT 
 Genres.ID as Id, 
 Genres.name as Name, 
-COUNT(t.id) as TrackCount, 
+COUNT(DISTINCT t.id) as TrackCount, 
 COUNT(DISTINCT Albums.id) as AlbumCount, 
 COUNT(DISTINCT Artists.id) as ArtistCount, 
-GROUP_CONCAT(DISTINCT Artists.name ) as Artists,
+GROUP_CONCAT(DISTINCT Artists.name) as Artists,
 MIN(t.year) as YearFrom,
 MAX(t.year) as YearTo,
-COALESCE(GenreImages.location,AlbumImages.location) as Thumbnail
+COALESCE(GenreImages.location,MAX(AlbumImages.location)) as Thumbnail
 from Tracks t
 LEFT JOIN TrackAlbums ON TrackAlbums.track_id = t.id
 LEFT JOIN Albums ON Albums.id = TrackAlbums.album_id
