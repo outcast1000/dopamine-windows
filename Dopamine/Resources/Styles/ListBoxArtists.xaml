@@ -71,6 +71,10 @@
     </ContextMenu>
     <!--  ListBoxItem  -->
     <Style x:Key="ListBoxArtistsItem" TargetType="{x:Type ListBoxItem}">
+        <Style.Resources>
+            <BitmapImage x:Key="NoArtistImage" UriSource="/Resources/Media/no_artist_image.jpg" />
+        </Style.Resources>
+
         <Setter Property="ContextMenu" Value="{StaticResource ListBoxArtistsContextMenu}" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -126,10 +130,13 @@
                                     VerticalAlignment="Center"
                                     Stretch="UniformToFill">
                                     <pc:SourceChangedImage.Source>
-                                        <Binding
-                                            Converter="{StaticResource KeyToPathConverter}"
-                                            IsAsync="True"
-                                            Path="Thumbnail" />
+                                        <PriorityBinding>
+                                            <Binding
+                                                Converter="{StaticResource KeyToPathConverter}"
+                                                IsAsync="True"
+                                                Path="Thumbnail" />
+                                            <Binding Source="{StaticResource NoArtistImage}" IsAsync="True" />
+                                        </PriorityBinding>
                                     </pc:SourceChangedImage.Source>
                                     <pc:SourceChangedImage.Triggers>
                                         <EventTrigger RoutedEvent="pc:SourceChangedImage.SourceChanged">
@@ -151,7 +158,6 @@
                                     </Border.Background>
                                 </Border>
                             </Grid>
-
                             <Border
                                 Name="SelectionBorder"
                                 BorderThickness="3,0,0,0"
@@ -164,7 +170,7 @@
                                 Name="MainListItem"
                                 HorizontalAlignment="Stretch"
                                 MinHeight="96"
-                                VerticalAlignment="Stretch"
+                                VerticalAlignment="Center"
                                 Orientation="Vertical">
                                 <pc:OutlinedTextBlock
                                     Margin="10,0,0,4"
