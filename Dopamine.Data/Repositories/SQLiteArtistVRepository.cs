@@ -75,7 +75,7 @@ COUNT(DISTINCT Albums.id ) as AlbumCount,
 GROUP_CONCAT(DISTINCT Albums.name ) as Albums,
 MIN(t.year) as MinYear,
 MAX(t.year) as MaxYear,
-COALESCE(ArtistImages.location, AlbumImages.location) as Thumbnail,
+COALESCE(ArtistImages.location, MAX(AlbumImages.location)) as Thumbnail,
 MIN(t.date_added) as DateAdded,
 MIN(t.date_file_created) as DateFileCreated
 from Tracks t

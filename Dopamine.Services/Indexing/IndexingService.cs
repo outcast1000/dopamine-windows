@@ -503,7 +503,7 @@ namespace Dopamine.Services.Indexing
 
                         Logger.Debug($"RetrieveAlbumInfoAsync: Downloading Album Image for {albumDataToIndex.Name} - {albumDataToIndex.AlbumArtists}");
                         //LastFMAlbumInfoProvider lf = new LastFMAlbumInfoProvider(albumDataToIndex.Name, DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToArray());
-                        IAlbumInfoProvider aip = infoProviderFactory.GetAlbumInfoProvider(albumDataToIndex.Name, DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToArray());
+                        IAlbumInfoProvider aip = infoProviderFactory.GetAlbumInfoProvider(albumDataToIndex.Name, string.IsNullOrEmpty(albumDataToIndex.AlbumArtists) ? null : DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToArray());
                         bool bImageAdded = false;
                         if (aip.Success)
                         {
