@@ -13,7 +13,7 @@ namespace Dopamine.Services.Collection
 
         Task<IList<ArtistViewModel>> GetArtistsAsync(string searchString = null);
 
-        Task<IList<GenreViewModel>> GetAllGenresAsync();
+        Task<IList<GenreViewModel>> GetGenresAsync(string searchString = null);
 
         Task<IList<AlbumViewModel>> GetAlbumsAsync(string searchString = null);
 

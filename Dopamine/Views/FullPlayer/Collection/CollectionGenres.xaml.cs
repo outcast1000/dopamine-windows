@@ -11,6 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Dopamine.Services.Utils;
 using Dopamine.Services.Entities;
+using Dopamine.ViewModels.FullPlayer.Collection;
 
 namespace Dopamine.Views.FullPlayer.Collection
 {
@@ -40,6 +41,12 @@ namespace Dopamine.Views.FullPlayer.Collection
                     LogClient.Error("Could not perform semantic zoom on Genres. Exception: {0}", ex.Message);
                 }
             });
+
+            CollectionGenresViewModel vm = (CollectionGenresViewModel)DataContext;
+            vm.EnsureItemVisible += (GenreViewModel genreViewModel) =>
+            {
+                ListBoxGenres.ScrollIntoView(genreViewModel);// ListBoxArtists.SelectedItem);
+            };
         }
 
         protected async Task SemanticScrollToGenreAsync(ListBox listBox, string letter)

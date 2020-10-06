@@ -15,9 +15,15 @@ namespace Dopamine.Data.Repositories
             this.factory = factory;
         }
 
-        public List<GenreV> GetGenres()
+        public List<GenreV> GetGenres(string searchString = null)
         {
-            return GetGenresInternal();
+            QueryOptions qo = new QueryOptions();
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                qo.extraWhereClause.Add("Genres.Name like ?");
+                qo.extraWhereParams.Add("%" + searchString + "%");
+            }
+            return GetGenresInternal(qo);
         }
 
         public List<GenreV> GetGenresByAlbumId(long albumId)

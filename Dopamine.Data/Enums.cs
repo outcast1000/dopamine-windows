@@ -45,6 +45,15 @@
         ByYearAscending = 7
     }
 
+    public enum GenreOrder
+    {
+        AlphabeticalAscending = 1,
+        AlphabeticalDescending = 2,
+        ByTrackCount = 5
+    }
+
+    
+
     public enum RemoveTracksResult
     {
         Error = 0,

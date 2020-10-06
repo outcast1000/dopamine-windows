@@ -9,7 +9,23 @@
     xmlns:utils="clr-namespace:Dopamine.Utils">
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/Dopamine;component/Resources/Styles/FontStyles.xaml" />
+        <ResourceDictionary Source="/Dopamine;component/Resources/Styles/Buttons.xaml" />
     </ResourceDictionary.MergedDictionaries>
+    <Style x:Key="RoundedButtonStyle" TargetType="{x:Type Button}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border
+                        Padding="2"
+                        Background="White"
+                        BorderThickness="1"
+                        CornerRadius="15">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
     <converters:BooleanToCollapsedConverter x:Key="BooleanToCollapsedConverter" />
     <converters:InvertingBooleanToCollapsedConverter x:Key="InvertingBooleanToCollapsedConverter" />
     <converters:InvertingBooleanToVisibilityConverter x:Key="InvertingBooleanToVisibilityConverter" />
@@ -23,7 +39,6 @@
             <utils:BindingProxy x:Key="NewPlaylistProxy" Data="{DynamicResource Language_New_Playlist}" />
             <CollectionViewSource x:Key="PlaylistsDataSource" Source="{Binding DataContext.ContextMenuPlaylists, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
         </ContextMenu.Resources>
-
         <MenuItem
             Command="{Binding DataContext.AddGenresToNowPlayingCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
             Header="{DynamicResource Language_Add_To_Now_Playing}"
@@ -57,11 +72,17 @@
 
     <!--  ListBoxItem  -->
     <Style x:Key="ListBoxGenresItem" TargetType="{x:Type ListBoxItem}">
+        <Style.Resources>
+            <BitmapImage x:Key="NoGenreImage" UriSource="/Resources/Media/no_genre_image.jpg" />
+        </Style.Resources>
+
         <Setter Property="ContextMenu" Value="{StaticResource ListBoxGenresContextMenu}" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="Foreground" Value="{DynamicResource Brush_PrimaryText}" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         <Setter Property="Margin" Value="0,0,0,2" />
+        <Setter Property="IsSelected" Value="{Binding IsSelected}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ListBoxItem}">
@@ -110,15 +131,6 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <Border
-                                x:Name="MouseHoverHelper"
-                                Height="32"
-                                Background="{DynamicResource Brush_ItemHovered}"
-                                Opacity="0" />
-                            <Border
-                                x:Name="SelectionBorder"
-                                Height="{x:Static base:Constants.AlbumSelectionBorderSize}"
-                                HorizontalAlignment="Stretch" />
                             <Grid
                                 Grid.Row="0"
                                 Grid.Column="0"
@@ -143,13 +155,11 @@
                                     RenderOptions.BitmapScalingMode="HighQuality"
                                     Stretch="Uniform">
                                     <pc:SourceChangedImage.Source>
-                                        <MultiBinding Converter="{StaticResource PathToImageConverter}">
-                                            <Binding
-                                                Converter="{StaticResource KeyToPathConverter}"
-                                                IsAsync="True"
-                                                Path="Thumbnail" />
-                                            <Binding Path="DataContext.UpscaledCoverSize" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type UserControl}}" />
-                                        </MultiBinding>
+                                        <Binding
+                                            Converter="{StaticResource KeyToPathConverter}"
+                                            ConverterParameter="/Resources/Media/no_artist_image.jpg"
+                                            IsAsync="True"
+                                            Path="Thumbnail" />
                                     </pc:SourceChangedImage.Source>
                                     <pc:SourceChangedImage.Triggers>
                                         <EventTrigger RoutedEvent="pc:SourceChangedImage.SourceChanged">
@@ -165,7 +175,20 @@
                                         </EventTrigger>
                                     </pc:SourceChangedImage.Triggers>
                                 </pc:SourceChangedImage>
+                                <Border Name="OverlayBorder">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="#0000" />
+                                    </Border.Background>
+                                </Border>
                             </Grid>
+                            <Border
+                                Name="SelectionBorder"
+                                BorderThickness="3,0,0,0"
+                                Opacity="0">
+                                <Border.BorderBrush>
+                                    <SolidColorBrush Color="#00F" />
+                                </Border.BorderBrush>
+                            </Border>
                             <Grid
                                 Grid.Row="0"
                                 Grid.Column="1"
@@ -191,26 +214,85 @@
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Top"
                                     Foreground="{DynamicResource Brush_SecondaryText}"
-                                        Text="{Binding GenreItemInfo}"
+                                    Text="{Binding GenreItemInfo}"
                                     TextTrimming=" CharacterEllipsis" />
                             </Grid>
                         </Grid>
                     </DockPanel>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource Brush_ItemSelected}" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="SelectionBorder"
+                                            Storyboard.TargetProperty="Opacity"
+                                            From="0"
+                                            To="1"
+                                            Duration="0:0:0.15" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="SelectionBorder"
+                                            Storyboard.TargetProperty="Opacity"
+                                            From="1"
+                                            To="0"
+                                            Duration="0:0:0.3" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <EventTrigger RoutedEvent="MouseEnter">
                             <BeginStoryboard>
-                                <Storyboard TargetProperty="Opacity" Storyboard.TargetName="MouseHoverHelper">
-                                    <DoubleAnimation To="1" Duration="{x:Static base:Constants.MouseEnterDuration}" />
+                                <Storyboard TargetProperty="Opacity" Storyboard.TargetName="OverlayBorder">
+                                    <ColorAnimation
+                                        Storyboard.TargetName="OverlayBorder"
+                                        Storyboard.TargetProperty="Background.Color"
+                                        To="#8000"
+                                        Duration="0:0:0.15" />
+                                    <!--
+                                    <DoubleAnimation
+                                        Storyboard.TargetName="ExtraInfo"
+                                        Storyboard.TargetProperty="Opacity"
+                                        From="0"
+                                        To="1"
+                                        Duration="0:0:0.3" />
+                                    <DoubleAnimation
+                                        Storyboard.TargetName="ExtraButtons"
+                                        Storyboard.TargetProperty="Opacity"
+                                        From="0"
+                                        To="1"
+                                        Duration="0:0:0.3" />
+                                    -->
                                 </Storyboard>
                             </BeginStoryboard>
                         </EventTrigger>
                         <EventTrigger RoutedEvent="MouseLeave">
                             <BeginStoryboard>
-                                <Storyboard TargetProperty="Opacity" Storyboard.TargetName="MouseHoverHelper">
-                                    <DoubleAnimation To="0" Duration="{x:Static base:Constants.MouseLeaveDuration}" />
+                                <Storyboard TargetProperty="Opacity" Storyboard.TargetName="OverlayBorder">
+                                    <ColorAnimation
+                                        Storyboard.TargetName="OverlayBorder"
+                                        Storyboard.TargetProperty="Background.Color"
+                                        To="#0000"
+                                        Duration="0:0:0.3" />
+                                    <!--
+                                    <DoubleAnimation
+                                        Storyboard.TargetName="ExtraInfo"
+                                        Storyboard.TargetProperty="Opacity"
+                                        From="1"
+                                        To="0"
+                                        Duration="0:0:0.3" />
+                                    <DoubleAnimation
+                                        Storyboard.TargetName="ExtraButtons"
+                                        Storyboard.TargetProperty="Opacity"
+                                        From="1"
+                                        To="0"
+                                        Duration="0:0:0.3" />
+                                    -->
                                 </Storyboard>
                             </BeginStoryboard>
                         </EventTrigger>
@@ -219,7 +301,6 @@
             </Setter.Value>
         </Setter>
     </Style>
-
     <!--  ListBox  -->
     <Style x:Key="ListBoxGenres" TargetType="{x:Type ListBox}">
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
