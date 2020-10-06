@@ -458,6 +458,9 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             // We should also ignore it if we are in Search Mode AND the user does not selected anything. For example when we enter the search mode
             if (!string.IsNullOrEmpty(_searchString) && ((IList)parameter).Count == 0)
                 return;
+            // We should also ignore it if we have an empty list (for example when we clear the list)
+            if (ArtistsCvs == null)
+                return;
             bool bKeepOldSelections = true;
             if (parameter != null && ((IList)parameter).Count > 0)
             {
