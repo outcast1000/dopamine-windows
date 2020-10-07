@@ -23,6 +23,12 @@
 	<Setting Name="SelectedArtistIDs">
 		<Value></Value>
 	</Setting>
+	<Setting Name="SelectedGenreIDs">
+		<Value></Value>
+	</Setting>
+	<Setting Name="SelectedAlbumIDs">
+		<Value></Value>
+	</Setting>
 </Namespace>
   <Namespace Name="FullPlayer">
     <Setting Name="Width">
@@ -233,15 +239,23 @@
     <Setting Name="ArtistsTrackOrder">
       <Value>2</Value>
     </Setting>
-    <Setting Name="AlbumsTrackOrder">
+	<Setting Name="ArtistsAlbumOrder">
+		<Value>1</Value>
+	</Setting>
+	<Setting Name="ArtistsArtistOrder">
+		<Value>1</Value>
+	</Setting>
+	  <Setting Name="AlbumsTrackOrder">
       <Value>2</Value>
     </Setting>
-    <Setting Name="GenresTrackOrder">
+
+	  <Setting Name="GenresGenreOrder">
+		  <Value>2</Value>
+	  </Setting>
+	  <Setting Name="GenresTrackOrder">
       <Value>2</Value>
     </Setting>
-    <Setting Name="ArtistsAlbumOrder">
-      <Value>1</Value>
-    </Setting>
+
     <Setting Name="AlbumsAlbumOrder">
       <Value>1</Value>
     </Setting>

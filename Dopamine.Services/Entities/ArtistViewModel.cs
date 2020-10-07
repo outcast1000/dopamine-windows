@@ -76,6 +76,10 @@ namespace Dopamine.Services.Entities
 
         public DateTime DateAdded { get { return data.DateAdded; } }
 
+        public DateTime DateCreated { get { return data.DateFileCreated; } }
+
+        public long? Year { get { return data.MinYear; } }
+
         public string Header => SemanticZoomUtils.GetGroupHeader(Name, true);
 
         public bool IsHeader

@@ -34,6 +34,26 @@
         ByYearAscending = 6
     }
 
+    public enum ArtistOrder
+    {
+        AlphabeticalAscending = 1,
+        AlphabeticalDescending = 2,
+        ByDateAdded = 3,
+        ByDateCreated = 4,
+        ByTrackCount = 5,
+        ByYearDescending = 6,
+        ByYearAscending = 7
+    }
+
+    public enum GenreOrder
+    {
+        AlphabeticalAscending = 1,
+        AlphabeticalDescending = 2,
+        ByTrackCount = 5
+    }
+
+    
+
     public enum RemoveTracksResult
     {
         Error = 0,

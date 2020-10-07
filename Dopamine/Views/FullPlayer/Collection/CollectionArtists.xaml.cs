@@ -1,6 +1,8 @@
 ﻿using Digimezzo.Foundation.Core.Logging;
 using Dopamine.Core.Prism;
+using Dopamine.Services.Entities;
 using Dopamine.Services.Utils;
+using Dopamine.ViewModels.FullPlayer.Collection;
 using Dopamine.Views.Common.Base;
 using Prism.Commands;
 using System;
@@ -37,6 +39,13 @@ namespace Dopamine.Views.FullPlayer.Collection
                     LogClient.Error("Could not perform semantic zoom on Artists. Exception: {0}", ex.Message);
                 }
             });
+
+            CollectionArtistsViewModel vm = (CollectionArtistsViewModel)DataContext;
+            vm.EnsureItemVisible += (ArtistViewModel artist) =>
+            {
+                //var item = ListBoxArtists.Items.GetItemAt(10);
+                ListBoxArtists.ScrollIntoView(artist);// ListBoxArtists.SelectedItem);
+            };
         }
 
         private async void ListBoxArtists_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -95,5 +104,15 @@ namespace Dopamine.Views.FullPlayer.Collection
         {
             this.ListBoxAlbums.SelectedItem = null;
         }
+
+        public void listBox_ScrollToSelectedItem(object sender, RoutedEventArgs e)
+        {
+            //ListBoxArtists.SelectedItem = lv.Items.GetItemAt(rows.Count - 1);
+            ListBoxArtists.ScrollIntoView(ListBoxArtists.SelectedItem);
+            //ListViewItem item = ListBoxArtists.ItemContainerGenerator.ContainerFromItem(lv.SelectedItem) as ListViewItem;
+            //item.Focus();
+        }
+
+
     }
 }

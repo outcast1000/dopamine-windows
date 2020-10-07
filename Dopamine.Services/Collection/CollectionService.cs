@@ -18,6 +18,7 @@ namespace Dopamine.Services.Collection
 {
     public class CollectionService : ICollectionService
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private IPlaybackService playbackService;
         private IContainerProvider container;
 
@@ -178,46 +179,44 @@ namespace Dopamine.Services.Collection
         }
         */
 
-        public async Task<IList<GenreViewModel>> GetAllGenresAsync()
+        public async Task<IList<GenreViewModel>> GetGenresAsync(string searchString = null)
         {
-            List<GenreViewModel> tempGenreViewModels = null;
+            List<GenreViewModel> viewModels = new List<GenreViewModel>();
             await Task.Run(() =>
             {
-                IList<GenreV> genres = this.genreVRepository.GetGenres();
-                IList<GenreViewModel> orderedGenres = genres.Select(g => new GenreViewModel(g)).ToList();//. OrderBy(g => FormatUtils.GetSortableString(g.GenreName, true)).ToList();
-                // Workaround to make sure the "#" GroupHeader is shown at the top of the list
-                tempGenreViewModels = new List<GenreViewModel>();
-                tempGenreViewModels.AddRange(orderedGenres.Where((gvm) => gvm.Header.Equals("#")));
-                tempGenreViewModels.AddRange(orderedGenres.Where((gvm) => !gvm.Header.Equals("#")));
+                IList<GenreV> items = this.genreVRepository.GetGenres(searchString);
+                if (items == null)
+                    Logger.Warn($"GetGenresAsync genreVRepository({searchString}) return null");
+                else
+                    viewModels = items.Select(x => new GenreViewModel(x)).ToList();
             });
-            return tempGenreViewModels;
+            return viewModels;
         }
 
-        public async Task<IList<ArtistViewModel>> GetAllArtistsAsync()
+        public async Task<IList<ArtistViewModel>> GetArtistsAsync(string searchString = null)
         {
-            List<ArtistViewModel> tempArtistViewModels = new List<ArtistViewModel>();
+            List<ArtistViewModel> viewModels = new List<ArtistViewModel>();
             await Task.Run(() =>
             {
-               //IList<string> artists = null;
-               IList<ArtistV> artistsV = artistVRepository.GetArtists();
-
-               IList<ArtistViewModel> orderedArtists = artistsV.Select(x => new ArtistViewModel(x)).ToList();
-
-               // Workaround to make sure the "#" GroupHeader is shown at the top of the list
-               tempArtistViewModels.AddRange(orderedArtists.Where((avm) => avm.Header.Equals("#")));
-               tempArtistViewModels.AddRange(orderedArtists.Where((avm) => !avm.Header.Equals("#")));
-
+               IList<ArtistV> items = artistVRepository.GetArtists(searchString);
+               if (items == null)
+                    Logger.Warn($"GetArtistsAsync artistVRepository.GetArtists({searchString}) return null");
+               else
+                    viewModels = items.Select(x => new ArtistViewModel(x)).ToList();
             });
-            return tempArtistViewModels;
+            return viewModels;
         }
 
-        public async Task<IList<AlbumViewModel>> GetAllAlbumsAsync()
+        public async Task<IList<AlbumViewModel>> GetAlbumsAsync(string searchString = null)
         {
-            IList<AlbumViewModel> avm = null;
+            IList<AlbumViewModel> avm = new List<AlbumViewModel>();
             await Task.Run(() =>
             {
-                IList<AlbumV> albumsV = albumVRepository.GetAlbums();
-                avm = albumsV.Select(a => new AlbumViewModel(a)).ToList();
+                IList<AlbumV> items = albumVRepository.GetAlbums(searchString);
+                if (items == null)
+                    Logger.Warn($"GetAlbumsAsync albumVRepository.GetAlbums({searchString}) return null");
+                else
+                    avm = items.Select(a => new AlbumViewModel(a)).ToList();
             });
             return avm;
         }

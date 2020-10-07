@@ -16,7 +16,7 @@ namespace Dopamine.Data.Repositories
             throw new System.NotImplementedException();
         }
 
-        public List<AlbumV> GetAlbums()
+        public List<AlbumV> GetAlbums(string searchString = null)
         {
             return new List<AlbumV>() { 
                 new AlbumV() { Id = 1, Name = "album 1", TrackCount = 2, Genres = "Genre 1, Genre 2", MinYear = 1999, AlbumArtists="Album Artist 1", Artists="Artist 1" },

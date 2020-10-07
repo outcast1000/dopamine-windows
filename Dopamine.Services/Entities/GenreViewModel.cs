@@ -97,7 +97,9 @@ namespace Dopamine.Services.Entities
 
         public override int GetHashCode()
         {
-            return this.data.Name.GetHashCode();
+            return string.IsNullOrEmpty(data.Name) ? 0 : data.Name.GetHashCode();
         }
+
+        public bool IsSelected { get; set; }
     }
 }

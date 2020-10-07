@@ -1,12 +1,18 @@
-﻿<baseviews:TracksViewBase x:Class="Dopamine.Views.FullPlayer.Collection.CollectionGenres"
-                          xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                          xmlns:dc="clr-namespace:Digimezzo.Foundation.WPF.Controls;assembly=Digimezzo.Foundation.WPF"
-                          xmlns:pc="clr-namespace:Dopamine.Controls"
-                          xmlns:baseviews="clr-namespace:Dopamine.Views.Common.Base"
-                          xmlns:prismMvvm="clr-namespace:Prism.Mvvm;assembly=Prism.Wpf"
-                          xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
-                          prismMvvm:ViewModelLocator.AutoWireViewModel="True">
+﻿<baseviews:TracksViewBase
+    x:Class="Dopamine.Views.FullPlayer.Collection.CollectionGenres"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:baseviews="clr-namespace:Dopamine.Views.Common.Base"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dc="clr-namespace:Digimezzo.Foundation.WPF.Controls;assembly=Digimezzo.Foundation.WPF"
+    xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:pc="clr-namespace:Dopamine.Controls"
+    xmlns:prismMvvm="clr-namespace:Prism.Mvvm;assembly=Prism.Wpf"
+    d:DesignHeight="300"
+    d:DesignWidth="300"
+    prismMvvm:ViewModelLocator.AutoWireViewModel="True"
+    mc:Ignorable="d">
 
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">
@@ -20,46 +26,86 @@
     <baseviews:TracksViewBase.Resources>
         <Storyboard x:Key="ShowSemanticZoom">
             <Storyboard>
-                <DoubleAnimation Storyboard.TargetProperty="Opacity" BeginTime="0:0:0" From="0" To="1" Duration="0:0:0.25" />
-                <ThicknessAnimation Storyboard.TargetProperty="Margin" BeginTime="0:0:0" From="-50" To="0" Duration="0:0:0.15" />
+                <DoubleAnimation
+                    BeginTime="0:0:0"
+                    Storyboard.TargetProperty="Opacity"
+                    From="0"
+                    To="1"
+                    Duration="0:0:0.25" />
+                <ThicknessAnimation
+                    BeginTime="0:0:0"
+                    Storyboard.TargetProperty="Margin"
+                    From="-50"
+                    To="0"
+                    Duration="0:0:0.15" />
             </Storyboard>
         </Storyboard>
         <Storyboard x:Key="HideSemanticZoom">
             <Storyboard>
-                <DoubleAnimation Storyboard.TargetProperty="Opacity" BeginTime="0:0:0" From="1" To="0" Duration="0:0:0" />
-                <ThicknessAnimation Storyboard.TargetProperty="Margin" BeginTime="0:0:0" From="0" To="-50" Duration="0:0:0" />
+                <DoubleAnimation
+                    BeginTime="0:0:0"
+                    Storyboard.TargetProperty="Opacity"
+                    From="1"
+                    To="0"
+                    Duration="0:0:0" />
+                <ThicknessAnimation
+                    BeginTime="0:0:0"
+                    Storyboard.TargetProperty="Margin"
+                    From="0"
+                    To="-50"
+                    Duration="0:0:0" />
             </Storyboard>
         </Storyboard>
     </baseviews:TracksViewBase.Resources>
 
     <dc:MultiPanePanel
-        ContentResizeDelay="25" 
-        LeftPaneWidthPercent="{Binding LeftPaneWidthPercent, Mode=TwoWay}" 
-        RightPaneWidthPercent="{Binding RightPaneWidthPercent, Mode=TwoWay}"
+        ContentResizeDelay="25"
         LeftPaneMinimumWidth="250"
+        LeftPaneWidthPercent="{Binding LeftPaneWidthPercent, Mode=TwoWay}"
         MiddlePaneMinimumWidth="250"
-        RightPaneMinimumWidth="250">
+        RightPaneMinimumWidth="250"
+        RightPaneWidthPercent="{Binding RightPaneWidthPercent, Mode=TwoWay}">
         <dc:MultiPanePanel.LeftPaneContent>
             <Border Background="{DynamicResource Brush_PaneBackground}">
                 <DockPanel Margin="10,20,10,26">
-                    <DockPanel DockPanel.Dock="Top" Margin="10,0,10,20">
-                        <TextBlock Text="{Binding GenresCount}" FontSize="13"
-                                   Foreground="{DynamicResource Brush_Accent}" DockPanel.Dock="Left"/>
-                        <Button x:Name="ShuffleAllButton" DockPanel.Dock="Right" Margin="0,1,0,0" FontSize="13" 
-                                Style="{StaticResource TransparentButton}" 
-                                VerticalContentAlignment="Center" ToolTip="{DynamicResource Language_Shuffle_All}" 
-                                Command="{Binding DataContext.ShuffleAllCommand,RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
-                            <TextBlock Text="&#xE8B1;" Style="{StaticResource SegoeAssets}" FontSize="16"
-                                       Foreground="{DynamicResource Brush_SecondaryText}" />
+                    <DockPanel Margin="10,0,10,20" DockPanel.Dock="Top">
+                        <TextBlock
+                            DockPanel.Dock="Left"
+                            FontSize="13"
+                            Foreground="{DynamicResource Brush_Accent}"
+                            Text="{Binding GenresCount}" />
+                        <Button
+                            Margin="10,0,0,0"
+                            Command="{Binding ToggleGenreOrderCommand}"
+                            Content="{Binding GenreOrderText}"
+                            DockPanel.Dock="Right"
+                            FontSize="13"
+                            Foreground="{DynamicResource Brush_SecondaryText}"
+                            Style="{StaticResource TransparentButton}"
+                            ToolTip="{DynamicResource Language_Toggle_Genre_Order}" />
+                        <Button
+                            x:Name="ShuffleAllButton"
+                            Margin="0,1,0,0"
+                            VerticalContentAlignment="Center"
+                            Command="{Binding DataContext.ShuffleAllCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+                            DockPanel.Dock="Right"
+                            FontSize="13"
+                            Style="{StaticResource TransparentButton}"
+                            ToolTip="{DynamicResource Language_Shuffle_All}">
+                            <TextBlock
+                                FontSize="16"
+                                Foreground="{DynamicResource Brush_SecondaryText}"
+                                Style="{StaticResource SegoeAssets}"
+                                Text="&#xE8B1;" />
                         </Button>
-                        <Button x:Name="GenresButton" 
-                                Content="{DynamicResource Language_Genres}" 
-                                Style="{StaticResource TransparentButton}"
-                                FontSize="13" 
-                                Margin="10,0,0,0"
-                                Foreground="{DynamicResource Brush_PrimaryText}"
-                                Click="GenresButton_Click" ToolTip="{DynamicResource Language_Select_None}">
-                        </Button>
+
+                        <TextBlock
+                            x:Name="GenresHeader"
+                            Margin="10,0,0,0"
+                            Text="{DynamicResource Language_All_Genres}"
+                            FontSize="13"
+                            Foreground="{DynamicResource Brush_PrimaryText}"
+                            Background="#00000000" />
                     </DockPanel>
                     <Grid>
                         <Border Panel.ZIndex="0" Visibility="{Binding IsGenresZoomVisible,Converter={StaticResource InvertingBooleanToCollapsedConverter}}">

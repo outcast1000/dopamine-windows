@@ -7,7 +7,7 @@ namespace Dopamine.Data.Repositories
     public class MockArtistVRepository: IArtistVRepository
     {
 
-        public List<ArtistV> GetArtists()
+        public List<ArtistV> GetArtists(string searchString = null)
         {
             return new List<ArtistV>() { 
                 new ArtistV() { Id = 1, Name = "Test 1", TrackCount = 2, Genres = "Genre 1, Genre 2" },

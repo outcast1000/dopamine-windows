@@ -18,6 +18,63 @@ namespace Dopamine.Data.Providers
 
         public int RequestedImages { get; set; }
 
+        private string GetChannel_v1(IInternetDownloader internetDownloader, string artist)
+        {
+            try
+            {
+                Uri uri = new Uri(string.Format("https://music.youtube.com/search?q={0}", System.Uri.EscapeDataString(artist)));
+                string result = internetDownloader.DownloadString(uri);
+                if (result?.Length <= 0)
+                {
+                    Logger.Warn($"Download search page failed. Artist: '{artist}' URL: {uri.AbsolutePath}. Exiting...");
+                    return null;
+                }
+                var regex = new Regex("{\\\\\"browseId\\\\\":\\\\\"(.*?)\\\\\",\\\\\"browseEndpointContextSupportedConfigs\\\\\":{\\\\\"browseEndpointContextMusicConfig\\\\\":{\\\\\"pageType\\\\\":\\\\\"MUSIC_PAGE_TYPE_ARTIST");
+                MatchCollection matches = regex.Matches(result);
+                if (matches.Count == 0)
+                {
+                    Logger.Warn($"Find search page failed for channel page. Artist: '{artist}'. URL: {uri.AbsolutePath}. Exiting...");
+                    return null;
+                }
+                return matches[0].Groups[1].Value;
+
+            }
+            catch (Exception ex)
+            {
+                OnException("", ex);
+            }
+            return null;
+        }
+
+        private string GetChannel_v2(IInternetDownloader internetDownloader, string artist)
+        {
+            try
+            {
+                Uri uri = new Uri(string.Format("https://www.youtube.com/results?search_query={0}", System.Uri.EscapeDataString(artist)));
+                string result = internetDownloader.DownloadString(uri);
+                if (result?.Length <= 0)
+                {
+                    Logger.Warn($"GetChannel_v2: Download page failed. Artist: '{artist}' URL: {uri.AbsolutePath}");
+                    return null;
+                }
+                //=== universalWatchCardRenderer.*?channel\/(.*?)"
+                var regex = new Regex("universalWatchCardRenderer.*?channel\\/(.*?)\"");
+                MatchCollection matches = regex.Matches(result);
+                if (matches.Count == 0)
+                {
+                    Logger.Warn($"GetChannel_v2: Find channel failed. Artist: '{artist}'. URL: {uri.AbsolutePath}");
+                    return null;
+                }
+                return matches[0].Groups[1].Value;
+
+            }
+            catch (Exception ex)
+            {
+                OnException("", ex);
+            }
+            return null;
+        }
+
         private bool Init(String artist, IInternetDownloaderCreator internetDownloaderCreator)
         {
             if (string.IsNullOrEmpty(artist))
@@ -26,32 +83,21 @@ namespace Dopamine.Data.Providers
                 return false;
             }
             Data = new ArtistInfoProviderData();
-            Uri uri = new Uri(string.Format("https://music.youtube.com/search?q={0}", System.Uri.EscapeDataString(artist)));
-
             try
             {
-
                 using (var client = internetDownloaderCreator.create())
                 {
-                    // Get the search page
-                    string result = client.DownloadString(uri);
-                    if (result?.Length <= 0)
+                    string channel = GetChannel_v1(client, artist);
+                    if (channel == null)
                     {
-                        Logger.Warn($"Download search page failed. Artist: '{artist}' URL: {uri.AbsolutePath}. Exiting...");
-                        return false;
+                        //channel = GetChannel_v2(client, artist);
+                        return false; //=== Even if you get the correct channel, the final page is different
                     }
-                    // Find the channel page
-                    var regex = new Regex("{\\\\\"browseId\\\\\":\\\\\"(.*?)\\\\\",\\\\\"browseEndpointContextSupportedConfigs\\\\\":{\\\\\"browseEndpointContextMusicConfig\\\\\":{\\\\\"pageType\\\\\":\\\\\"MUSIC_PAGE_TYPE_ARTIST");
-                    MatchCollection matches = regex.Matches(result);
-                    if (matches.Count == 0)
-                    {
-                        Logger.Warn($"Find search page failed for channel page. Artist: '{artist}'. URL: {uri.AbsolutePath}. Exiting...");
+                    if (channel == null)
                         return false;
-                    }
-                    string channel = matches[0].Groups[1].Value;
                     // Download the channel page
-                    uri = new Uri(string.Format("https://music.youtube.com/channel/{0}", channel));
-                    result = client.DownloadString(uri);
+                    Uri uri = new Uri(string.Format("https://music.youtube.com/channel/{0}", channel));
+                    string result = client.DownloadString(uri);
                     if (result?.Length <= 0)
                     {
                         Logger.Warn($"Download channel page failed. Artist: '{artist}' URL: {uri.AbsolutePath}. Exiting...");
@@ -59,8 +105,8 @@ namespace Dopamine.Data.Providers
                     }
 
                     // Find the Bio: description\\\":{\\\"runs\\\":\[{\\\"text\\\":\\\"(.*?)\\\"}\]}
-                    regex = new Regex("description\\\\\\\":{\\\\\\\"runs\\\\\\\":\\[{\\\\\\\"text\\\\\\\":\\\\\\\"(.*?)\\\\\\\"}\\]}");
-                    matches = regex.Matches(result);
+                    Regex regex = new Regex("description\\\\\\\":{\\\\\\\"runs\\\\\\\":\\[{\\\\\\\"text\\\\\\\":\\\\\\\"(.*?)\\\\\\\"}\\]}");
+                    MatchCollection matches = regex.Matches(result);
                     if (matches.Count > 0)
                     {
                         // May have escape chars like  \\\"futuristic \/

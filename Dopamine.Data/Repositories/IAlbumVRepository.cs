@@ -6,7 +6,7 @@ namespace Dopamine.Data.Repositories
 {
     public interface IAlbumVRepository
     {
-        List<AlbumV> GetAlbums();
+        List<AlbumV> GetAlbums(string searchString = null);
 
         List<AlbumV> GetAlbumsWithArtists(List<long> artistIds);
 

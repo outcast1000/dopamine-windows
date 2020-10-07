@@ -17,9 +17,16 @@ namespace Dopamine.Data.Repositories
             this.factory = factory;
         }
 
-        public List<AlbumV> GetAlbums()
+        public List<AlbumV> GetAlbums(string searchString = null)
         {
-            return GetAlbumsInternal();
+            QueryOptions qo = new QueryOptions();
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                qo.extraWhereClause.Add("(Albums.Name like ? OR Artists.Name like ?)");
+                qo.extraWhereParams.Add("%" + searchString + "%");
+                qo.extraWhereParams.Add("%" + searchString + "%");
+            }
+            return GetAlbumsInternal(qo);
         }
 
         public List<AlbumV> GetAlbumsWithoutImages(bool incudeFailedDownloads)
@@ -77,13 +84,13 @@ namespace Dopamine.Data.Repositories
             return @"SELECT 
 Albums.ID as Id, 
 Albums.name as Name, 
-COUNT(t.id) as TrackCount, 
+COUNT(DISTINCT t.id) as TrackCount, 
 COUNT(DISTINCT AlbumArtists.id) as AlbumArtistCount, 
-GROUP_CONCAT(DISTINCT AlbumArtists.name ) as AlbumArtists,
+GROUP_CONCAT(DISTINCT AlbumArtists.name) as AlbumArtists,
 COUNT(DISTINCT Artists.id) as ArtistCount, 
-GROUP_CONCAT(DISTINCT Artists.name ) as Artists,
+GROUP_CONCAT(DISTINCT Artists.name) as Artists,
 COUNT(DISTINCT Genres.id) as GenreCount, 
-GROUP_CONCAT(DISTINCT Genres.name ) as Genres, 
+GROUP_CONCAT(DISTINCT Genres.name) as Genres, 
 MIN(t.year) as MinYear,
 MAX(t.year) as MaxYear,
 AlbumImages.Location as Thumbnail,
