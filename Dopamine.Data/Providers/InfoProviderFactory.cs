@@ -16,7 +16,7 @@ namespace Dopamine.Data.Providers
         public IAlbumInfoProvider GetLocalAlbumInfoProvider(string path) => throw new NotImplementedException(); //=== Check the folder of the track for images
         public IArtistInfoProvider GetArtistInfoProvider()
         {
-            return new YoutubeArtistInfoProvider(new DefaultInternetDownloaderCreator());
+            return new MainArtistInfoProvider(new DefaultInternetDownloaderCreator());
         }
         public ITrackInfoProvider GetTrackInfoProvider(string artist, string album, string track)
         {

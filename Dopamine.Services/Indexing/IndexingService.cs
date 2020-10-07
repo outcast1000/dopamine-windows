@@ -666,7 +666,7 @@ namespace Dopamine.Services.Indexing
                             }
                         }
 
-                        if (!bImageAdded)
+                        if (!bImageAdded && data.result != InfoProviderResult.Fail_InternetFailed)
                         {
                             using (var conn = this.sQLiteConnectionFactory.GetConnection())
                             {

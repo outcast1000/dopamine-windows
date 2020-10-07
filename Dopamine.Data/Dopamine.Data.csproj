@@ -151,6 +151,7 @@
     <Compile Include="Providers\ITracktInfoProvider.cs" />
     <Compile Include="Providers\IInfoProviderFactory.cs" />
     <Compile Include="Providers\InfoProviderCommon.cs" />
+    <Compile Include="Providers\MainArtistInfoProvider.cs" />
     <Compile Include="Providers\YoutubeArtistInfoProvider.cs" />
     <Compile Include="Providers\IArtistInfoProvider.cs" />
     <Compile Include="Providers\GoogleArtistInfoProvider.cs" />

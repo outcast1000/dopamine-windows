@@ -14,7 +14,6 @@ namespace Dopamine.Data.Providers
     public class LastFMArtistInfoProvider : IArtistInfoProvider
     {
         private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-        IInternetDownloaderCreator _internetDownloaderCreator;
         public LastFMArtistInfoProvider()
         {
         }
