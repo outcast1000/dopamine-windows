@@ -157,7 +157,6 @@
     <Compile Include="Providers\GoogleArtistInfoProvider.cs" />
     <Compile Include="Providers\LastFMArtistInfoProvider.cs" />
     <Compile Include="Providers\LastFMAlbumInfoProvider.cs" />
-    <Compile Include="Providers\TagTrackInfoProvider.cs" />
     <Compile Include="Providers\IAlbumInfoProvider.cs" />
     <Compile Include="Repositories\SQLiteTrackHistoryRepository.cs" />
     <Compile Include="Repositories\ITrackHistoryRepository.cs" />

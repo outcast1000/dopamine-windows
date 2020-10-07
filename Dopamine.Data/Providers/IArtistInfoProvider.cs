@@ -31,7 +31,7 @@ namespace Dopamine.Data.Providers
     public interface IArtistInfoProvider
     {
 
-        ArtistInfoProviderData get(string artist);
+        ArtistInfoProviderData Get(string artist);
 
         string ProviderName { get; }
     }

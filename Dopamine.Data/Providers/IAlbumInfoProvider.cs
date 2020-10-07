@@ -8,19 +8,17 @@ namespace Dopamine.Data.Providers
 {
     public class AlbumInfoProviderData
     {
-        public Byte[][] Images { get; set; }
-        public string Review { get; set; }
-        public string Year { get; set; }
-        public string[] Genres { get; set; }
-        public string[] Tracks { get; set; }
+        public InfoProviderResult result;
+        public OriginatedData<Byte[]>[] Images { get; set; }
+        public OriginatedData<string> Review { get; set; }
+        public OriginatedData<string> Year { get; set; }
+        public OriginatedData<string[]> Genres { get; set; }
+        public OriginatedData<string[]> Tracks { get; set; }
     }
-
+  
     public interface IAlbumInfoProvider
     {
-
-        bool Success { get; }
-
-        AlbumInfoProviderData Data { get; }
+        AlbumInfoProviderData Get(string album, string[] artists);
 
         string ProviderName { get; }
     }

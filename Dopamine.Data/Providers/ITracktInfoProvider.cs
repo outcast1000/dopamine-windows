@@ -15,11 +15,7 @@ namespace Dopamine.Data.Providers
 
     public interface ITrackInfoProvider
     {
-
-        bool Success { get;  }
-
-        TrackInfoProviderData Data { get; }
-
+        TrackInfoProviderData Get(string artist, string album, string track);
         string ProviderName { get; }
     }
 }

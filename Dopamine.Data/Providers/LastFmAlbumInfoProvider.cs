@@ -12,16 +12,25 @@ namespace Dopamine.Data.Providers
 {
     public class LastFMAlbumInfoProvider : IAlbumInfoProvider
     {
-
-        public LastFMAlbumInfoProvider(String album, string[] artists)
+        IInternetDownloaderCreator _internetDownloaderCreator;
+        public LastFMAlbumInfoProvider(IInternetDownloaderCreator internetDownloaderCreator)
         {
-            Success = false;
+            _internetDownloaderCreator = internetDownloaderCreator;
+        }
+
+
+
+
+        public AlbumInfoProviderData Get(String album, string[] artists)
+        {
+            AlbumInfoProviderData data = new AlbumInfoProviderData() { result = InfoProviderResult.Success };
+
             if (string.IsNullOrEmpty(album) || artists == null)
             {
                 Debug.Print("LastFmAlbumImageProvider. Missing album info");
-                return;
+                data.result = InfoProviderResult.Fail_Generic;
+                return data;
             }
-            Data = new AlbumInfoProviderData();
 
             foreach (string artist in artists)
             {
@@ -29,39 +38,30 @@ namespace Dopamine.Data.Providers
 
                 if (!string.IsNullOrEmpty(lfmAlbum.LargestImage()))
                 {
-                    
                     try
                     {
                         var uri = new Uri(lfmAlbum.LargestImage());
-                        using (var client = new WebClient())
+                        using (var client = _internetDownloaderCreator.create())
                         {
-                            Data.Images = new Byte[][] { client.DownloadData(uri)};
-                            Success = true;
+                            data.Images = new OriginatedData<byte[]>[] { new OriginatedData<byte[]>() { Data = client.DownloadData(uri), Origin = ProviderName } };
+                            data.result = InfoProviderResult.Success;
+                            return data;
                         }
-
                     }
                     catch (Exception ex)
                     {
                         Debug.Print("Could not download file to temporary cache. Exception: {0}", ex.Message);
-                        Success = false;
+                        data.result = InfoProviderResult.Fail_InternetFailed;
+                        return data;
                     }
-                    break;
                 }
             }
-
+            data.result = InfoProviderResult.Fail_Generic;
+            return data;
         }
-
-
         public string ProviderName
         {
             get { return "LAST_FM_ALBUMS"; }
         }
-
-        public AlbumInfoProviderData Data
-        {
-            get; private set;
-        }
-
-        public bool Success { get; private set; }
     }
 }

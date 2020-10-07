@@ -22,9 +22,9 @@ namespace Dopamine.Data.Providers
 
         public int RequestedImages { get; set; }
 
-        public ArtistInfoProviderData get(String artist)
+        public ArtistInfoProviderData Get(String artist)
         {
-            ArtistInfoProviderData data = _ytaProvider.get(artist);
+            ArtistInfoProviderData data = _ytaProvider.Get(artist);
             if (data.Images?.Length > 0)
             {
                 // We have images. No need to do anything more
@@ -32,7 +32,7 @@ namespace Dopamine.Data.Providers
             else
             {
                 // We will try to get images from Google Artist Images
-                ArtistInfoProviderData gaData = _gaProvider.get(artist);
+                ArtistInfoProviderData gaData = _gaProvider.Get(artist);
                 if (gaData.Images?.Length > 0)
                 {
                     data.Images = gaData.Images;

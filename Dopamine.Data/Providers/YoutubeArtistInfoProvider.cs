@@ -59,7 +59,7 @@ namespace Dopamine.Data.Providers
             return matches[0].Groups[1].Value;
         }
 
-        public ArtistInfoProviderData get(String artist)
+        public ArtistInfoProviderData Get(String artist)
         {
             ArtistInfoProviderData data = new ArtistInfoProviderData() { result = InfoProviderResult.Success };
             if (string.IsNullOrEmpty(artist))

@@ -9,22 +9,18 @@ namespace Dopamine.Data.Providers
 {
     public class InfoProviderFactory: IInfoProviderFactory
     {
-        public IAlbumInfoProvider GetAlbumInfoProvider(string album, string[] artists)
+        public IAlbumInfoProvider GetAlbumInfoProvider()
         {
-            return new LastFMAlbumInfoProvider(album, artists);
+            return new LastFMAlbumInfoProvider(new DefaultInternetDownloaderCreator());
         }
-        public IAlbumInfoProvider GetLocalAlbumInfoProvider(string path) => throw new NotImplementedException(); //=== Check the folder of the track for images
+        public IAlbumInfoProvider GetLocalAlbumInfoProvider() => throw new NotImplementedException(); //=== Check the folder of the track for images
         public IArtistInfoProvider GetArtistInfoProvider()
         {
             return new MainArtistInfoProvider(new DefaultInternetDownloaderCreator());
         }
-        public ITrackInfoProvider GetTrackInfoProvider(string artist, string album, string track)
+        public ITrackInfoProvider GetTrackInfoProvider()
         {
             throw new NotImplementedException();
-        }
-        public ITrackInfoProvider GetTrackInfoProviderFromTag(FileMetadata fileMetadata)
-        {
-            return new TagTrackInfoProvider(fileMetadata);
         }
 
 

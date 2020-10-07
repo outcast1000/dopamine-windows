@@ -18,7 +18,7 @@ namespace Dopamine.Data.Providers
         {
         }
 		
-		public ArtistInfoProviderData get(String artist)
+		public ArtistInfoProviderData Get(String artist)
 		{
             ArtistInfoProviderData data = new ArtistInfoProviderData() { result = InfoProviderResult.Success };
             if (string.IsNullOrEmpty(artist))

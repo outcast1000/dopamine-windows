@@ -469,6 +469,7 @@ namespace Dopamine.Services.Indexing
                 {
                     IList<AlbumV> albumsAdded = new List<AlbumV>();
                     IList<AlbumV> albumDatasToIndex = rescanAll ? albumVRepository.GetAlbums() : albumVRepository.GetAlbumsWithoutImages(rescanFailed);
+                    IAlbumInfoProvider aip = infoProviderFactory.GetAlbumInfoProvider();
 
                     foreach (AlbumV albumDataToIndex in albumDatasToIndex)
                     {
@@ -503,34 +504,34 @@ namespace Dopamine.Services.Indexing
 
                         Logger.Debug($"RetrieveAlbumInfoAsync: Downloading Album Image for {albumDataToIndex.Name} - {albumDataToIndex.AlbumArtists}");
                         //LastFMAlbumInfoProvider lf = new LastFMAlbumInfoProvider(albumDataToIndex.Name, DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToArray());
-                        IAlbumInfoProvider aip = infoProviderFactory.GetAlbumInfoProvider(albumDataToIndex.Name, string.IsNullOrEmpty(albumDataToIndex.AlbumArtists) ? null : DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToArray());
                         bool bImageAdded = false;
-                        if (aip.Success)
+                        AlbumInfoProviderData data = aip.Get(albumDataToIndex.Name, string.IsNullOrEmpty(albumDataToIndex.AlbumArtists) ? null : DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToArray());
+                        if (data.result == InfoProviderResult.Success)
                         {
                             using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
                             {
-                                if (aip.Data?.Images?.Length > 0)
+                                if (data?.Images?.Length > 0)
                                 {
 
-                                    string cacheId = fileStorage.SaveImageToCache(aip.Data.Images[0], FileStorageItemType.Album);
+                                    string cacheId = fileStorage.SaveImageToCache(data.Images[0].Data, FileStorageItemType.Album);
                                     uc.SetAlbumImage(new AlbumImage()
                                     {
                                         AlbumId = albumDataToIndex.Id,
                                         DateAdded = DateTime.Now.Ticks,
                                         Location = cacheId,
-                                        Source = aip.ProviderName
+                                        Source = data.Images[0].Origin
                                     }, true);
                                     albumsAdded.Add(albumDataToIndex);
                                     bImageAdded = true;
                                 }
-                                if (aip.Data?.Review?.Length > 0)
+                                if (data?.Review?.Data?.Length > 0)
                                 {
                                     uc.SetAlbumReview(new AlbumReview()
                                     {
                                         AlbumId = albumDataToIndex.Id,
                                         DateAdded = DateTime.Now.Ticks,
-                                        Review = aip.Data.Review,
-                                        Source = aip.ProviderName
+                                        Review = data.Review.Data,
+                                        Source = data.Review.Origin
                                     });
                                 }
                             }
@@ -634,7 +635,7 @@ namespace Dopamine.Services.Indexing
                         }
 
                         bool bImageAdded = false;
-                        ArtistInfoProviderData data = ip.get(artist.Name);
+                        ArtistInfoProviderData data = ip.Get(artist.Name);
                         if (data.result == InfoProviderResult.Success)
                         {
                             using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
