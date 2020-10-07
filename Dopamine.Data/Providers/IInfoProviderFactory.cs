@@ -11,7 +11,7 @@ namespace Dopamine.Data.Providers
     {
         IAlbumInfoProvider GetAlbumInfoProvider(string album, string[] artists);
         IAlbumInfoProvider GetLocalAlbumInfoProvider(string path);//=== Check the folder of the track for images
-        IArtistInfoProvider GetArtistInfoProvider(string artist);
+        IArtistInfoProvider GetArtistInfoProvider();
         ITrackInfoProvider GetTrackInfoProvider(string artist, string album, string track);
         ITrackInfoProvider GetTrackInfoProviderFromTag(FileMetadata fileMetadata);
 

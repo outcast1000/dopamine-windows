@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 
@@ -9,113 +10,92 @@ namespace Dopamine.Data.Providers
     public class YoutubeArtistInfoProvider : IArtistInfoProvider
     {
         private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+        IInternetDownloaderCreator _internetDownloaderCreator;
 
-        public YoutubeArtistInfoProvider(String artist, IInternetDownloaderCreator internetDownloaderCreator = null)
+        public YoutubeArtistInfoProvider(IInternetDownloaderCreator internetDownloaderCreator)
         {
             RequestedImages = 1;
-            Success = Init(artist, internetDownloaderCreator ?? new DefaultInternetDownloaderCreator());
+            _internetDownloaderCreator = internetDownloaderCreator;
         }
 
         public int RequestedImages { get; set; }
 
         private string GetChannel_v1(IInternetDownloader internetDownloader, string artist)
         {
-            try
+            Uri uri = new Uri(string.Format("https://music.youtube.com/search?q={0}", System.Uri.EscapeDataString(artist)));
+            string result = internetDownloader.DownloadString(uri);
+            if (result?.Length <= 0)
             {
-                Uri uri = new Uri(string.Format("https://music.youtube.com/search?q={0}", System.Uri.EscapeDataString(artist)));
-                string result = internetDownloader.DownloadString(uri);
-                if (result?.Length <= 0)
-                {
-                    Logger.Warn($"Download search page failed. Artist: '{artist}' URL: {uri.AbsolutePath}. Exiting...");
-                    return null;
-                }
-                var regex = new Regex("{\\\\\"browseId\\\\\":\\\\\"(.*?)\\\\\",\\\\\"browseEndpointContextSupportedConfigs\\\\\":{\\\\\"browseEndpointContextMusicConfig\\\\\":{\\\\\"pageType\\\\\":\\\\\"MUSIC_PAGE_TYPE_ARTIST");
-                MatchCollection matches = regex.Matches(result);
-                if (matches.Count == 0)
-                {
-                    Logger.Warn($"Find search page failed for channel page. Artist: '{artist}'. URL: {uri.AbsolutePath}. Exiting...");
-                    return null;
-                }
-                return matches[0].Groups[1].Value;
-
+                Logger.Warn($"Download search page failed. Artist: '{artist}' URL: {uri.AbsolutePath}. Exiting...");
+                return null;
             }
-            catch (Exception ex)
+            var regex = new Regex("{\\\\\"browseId\\\\\":\\\\\"(.*?)\\\\\",\\\\\"browseEndpointContextSupportedConfigs\\\\\":{\\\\\"browseEndpointContextMusicConfig\\\\\":{\\\\\"pageType\\\\\":\\\\\"MUSIC_PAGE_TYPE_ARTIST");
+            MatchCollection matches = regex.Matches(result);
+            if (matches.Count == 0)
             {
-                OnException("", ex);
+                Logger.Warn($"Find search page failed for channel page. Artist: '{artist}'. URL: {uri.AbsolutePath}. Exiting...");
+                return null;
             }
-            return null;
+            return matches[0].Groups[1].Value;
         }
 
         private string GetChannel_v2(IInternetDownloader internetDownloader, string artist)
         {
-            try
+            Uri uri = new Uri(string.Format("https://www.youtube.com/results?search_query={0}", System.Uri.EscapeDataString(artist)));
+            string result = internetDownloader.DownloadString(uri);
+            if (result?.Length <= 0)
             {
-                Uri uri = new Uri(string.Format("https://www.youtube.com/results?search_query={0}", System.Uri.EscapeDataString(artist)));
-                string result = internetDownloader.DownloadString(uri);
-                if (result?.Length <= 0)
-                {
-                    Logger.Warn($"GetChannel_v2: Download page failed. Artist: '{artist}' URL: {uri.AbsolutePath}");
-                    return null;
-                }
-                //=== universalWatchCardRenderer.*?channel\/(.*?)"
-                var regex = new Regex("universalWatchCardRenderer.*?channel\\/(.*?)\"");
-                MatchCollection matches = regex.Matches(result);
-                if (matches.Count == 0)
-                {
-                    Logger.Warn($"GetChannel_v2: Find channel failed. Artist: '{artist}'. URL: {uri.AbsolutePath}");
-                    return null;
-                }
-                return matches[0].Groups[1].Value;
-
+                Logger.Warn($"GetChannel_v2: Download page failed. Artist: '{artist}' URL: {uri.AbsolutePath}");
+                return null;
             }
-            catch (Exception ex)
+            //=== universalWatchCardRenderer.*?channel\/(.*?)"
+            var regex = new Regex("universalWatchCardRenderer.*?channel\\/(.*?)\"");
+            MatchCollection matches = regex.Matches(result);
+            if (matches.Count == 0)
             {
-                OnException("", ex);
+                Logger.Warn($"GetChannel_v2: Find channel failed. Artist: '{artist}'. URL: {uri.AbsolutePath}");
+                return null;
             }
-            return null;
+            return matches[0].Groups[1].Value;
         }
 
-        private bool Init(String artist, IInternetDownloaderCreator internetDownloaderCreator)
+        public ArtistInfoProviderData get(String artist)
         {
+            ArtistInfoProviderData data = new ArtistInfoProviderData() { result = InfoProviderResult.Success };
             if (string.IsNullOrEmpty(artist))
             {
                 Debug.Print("YoutubeArtistInfoProvider. Missing artist name");
-                return false;
+                data.result = InfoProviderResult.Fail_Generic;
+                return data;
             }
-            Data = new ArtistInfoProviderData();
             try
             {
-                using (var client = internetDownloaderCreator.create())
+                using (var client = _internetDownloaderCreator.create())
                 {
-                    string channel = GetChannel_v1(client, artist);
+                    // Download the search page. Find the channel page
+                    string channel = null;
+                    channel = GetChannel_v1(client, artist);
                     if (channel == null)
-                    {
-                        //channel = GetChannel_v2(client, artist);
-                        return false; //=== Even if you get the correct channel, the final page is different
-                    }
-                    if (channel == null)
-                        return false;
+                        return data;
                     // Download the channel page
                     Uri uri = new Uri(string.Format("https://music.youtube.com/channel/{0}", channel));
                     string result = client.DownloadString(uri);
                     if (result?.Length <= 0)
                     {
                         Logger.Warn($"Download channel page failed. Artist: '{artist}' URL: {uri.AbsolutePath}. Exiting...");
-                        return false;
+                        data.result = InfoProviderResult.Fail_InternetFailed;
+                        return data;
                     }
-
                     // Find the Bio: description\\\":{\\\"runs\\\":\[{\\\"text\\\":\\\"(.*?)\\\"}\]}
                     Regex regex = new Regex("description\\\\\\\":{\\\\\\\"runs\\\\\\\":\\[{\\\\\\\"text\\\\\\\":\\\\\\\"(.*?)\\\\\\\"}\\]}");
                     MatchCollection matches = regex.Matches(result);
                     if (matches.Count > 0)
                     {
                         // May have escape chars like  \\\"futuristic \/
-                        Data.Biography = matches[0].Groups[1].Value.Replace("\\\\\\\"", "\"").Replace("\\/", "/");
+                        data.Biography = new OriginatedData<string>[] { new OriginatedData<string>() { Data = matches[0].Groups[1].Value.Replace("\\\\\\\"", "\"").Replace("\\/", "/"), Origin = ProviderName } };
                     }
                     else
-                    {
                         Logger.Info($"Bio not found. Artist: '{artist}'. URL: {uri.AbsolutePath}");
-                    }
                     // Find the images
                     List<byte[]> images = new List<byte[]>();
                     regex = new Regex("thumbnail\\\\\\\":{\\\\\\\"thumbnails\\\\\\\":\\[{\\\\\\\"url\\\\\\\":\\\\\\\"(.*?)\\\\\\\",\\\\\\\"width\\\\\\\":(.*?),");
@@ -139,11 +119,11 @@ namespace Dopamine.Data.Providers
                         if (images.Count >= RequestedImages)
                             break;
                     }
-                    Data.Images = images.ToArray();
-                    if (Data.Images.Length == 0)
-                    {
+                    
+                    if (images.Count > 0)
+                        data.Images = images.Select(x => new OriginatedData<Byte[]>() { Data = x, Origin = ProviderName }).ToArray();
+                    else
                         Logger.Info($"Artist Image not found. Artist: '{artist}'. Matches: {matches.Count}. URL: {uri.AbsolutePath}");
-                    }
 
                     //=== Find the tracks (5 most popular?)
                     // \[{\\"musicResponsiveListItemFlexColumnRenderer\\":{\\"text\\":{\\"runs\\":\[{\\"text\\":\\"(.*?)\\",
@@ -151,16 +131,11 @@ namespace Dopamine.Data.Providers
                     regex = new Regex("\\[{\\\\\"musicResponsiveListItemFlexColumnRenderer\\\\\":{\\\\\"text\\\\\":{\\\\\"runs\\\\\":\\[{\\\\\"text\\\\\":\\\\\"(.*?)\\\\\",");
                     matches = regex.Matches(result);
                     foreach (Match match in matches)
-                    {
                         tracks.Add(match.Groups[1].Value);
-                    }
-                    Data.Tracks = tracks.ToArray();
-                    if (Data.Images.Length == 0)
-                    {
+                    if (tracks.Count == 0)
+                        data.Tracks = new OriginatedData<string[]>[] { new OriginatedData<string[]>() { Data = tracks.ToArray(), Origin = ProviderName } };
+                    else
                         Logger.Info($"Artist Tracks not found. Artist: '{artist}'. URL: {uri.AbsolutePath}");
-                    }
-
-                    return true;
 
                     //=== ALEX TODO
                     // Find the Albums, Members, Genres
@@ -170,8 +145,9 @@ namespace Dopamine.Data.Providers
             catch (Exception ex)
             {
                 OnException("", ex);
+                data.result = InfoProviderResult.Fail_InternetFailed;
             }
-            return false;
+            return data;
         }
 
         private void OnException(string message,
@@ -195,11 +171,5 @@ namespace Dopamine.Data.Providers
             get { return "GOOGLE_ARTISTS"; }
         }
 
-        public ArtistInfoProviderData Data
-        {
-            get; private set;
-        }
-
-        public bool Success { get; private set; }
     }
 }

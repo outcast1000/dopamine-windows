@@ -14,28 +14,32 @@ namespace Dopamine.Data.Providers
 {
     public class GoogleArtistInfoProvider : IArtistInfoProvider
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+        IInternetDownloaderCreator _internetDownloaderCreator;
 
-        public GoogleArtistInfoProvider(String artist, IInternetDownloaderCreator internetDownloaderCreator = null)
+        public GoogleArtistInfoProvider(IInternetDownloaderCreator internetDownloaderCreator)
         {
-            Init(artist, internetDownloaderCreator ?? new DefaultInternetDownloaderCreator());
+            RequestedImages = 1;
+            _internetDownloaderCreator = internetDownloaderCreator;
         }
 
-        private void Init(String artist, IInternetDownloaderCreator internetDownloaderCreator)
+        public int RequestedImages { get; set; }
+
+        public ArtistInfoProviderData get(String artist)
         {
-            Success = false;
+            ArtistInfoProviderData data = new ArtistInfoProviderData() { result = InfoProviderResult.Success };
             if (string.IsNullOrEmpty(artist))
             {
-                Debug.Print("GoogleArtistImageProvider. Missing artist name");
-                return;
+                Debug.Print("Missing artist name");
+                data.result = InfoProviderResult.Fail_Generic;
+                return data;
             }
-            Data = new ArtistInfoProviderData();
-            Uri uri = new Uri(string.Format("https://www.google.com/search?q={0}+(band)", System.Uri.EscapeDataString(artist)));
 
             try
             {
-
-                using (var client = internetDownloaderCreator.create())
+                using (var client = _internetDownloaderCreator.create())
                 {
+                    Uri uri = new Uri(string.Format("https://www.google.com/search?q={0}+live", System.Uri.EscapeDataString(artist)));
                     string result = client.DownloadString(uri);
                     var regex = new Regex("data:image\\/jpeg;base64,(.*?)';");
                     MatchCollection matches = regex.Matches(result);
@@ -47,27 +51,30 @@ namespace Dopamine.Data.Providers
                         try
                         {
                             string base64 = match.Groups[1].Value.Replace("\\x3d", "=");
-                            byte[] data = Convert.FromBase64String(base64);
-                            images.Add(data);
+                            byte[] imageData = Convert.FromBase64String(base64);
+                            images.Add(imageData);
                         }
                         catch (Exception e)
                         {
                             Debug.Print("Exception for {0}: {1}, :{2}", matchCount, e.Message, match.Groups[1].Value);
                         }
                         matchCount++;
+                        if (matchCount >= RequestedImages)
+                            break;
                     }
-                    Success = true;
-                    Data.Images = images.ToArray();
+                    data.Images = images.Select(x => new OriginatedData<Byte[]>() { Data = x, Origin = ProviderName }).ToArray();
                 }
             }
             catch (Exception ex)
             {
                 OnException("", ex);
+                data.result = InfoProviderResult.Fail_InternetFailed;
             }
+            return data;
         }
 
-        private void OnException(string message, 
-            Exception ex, 
+        private void OnException(string message,
+            Exception ex,
             [System.Runtime.CompilerServices.CallerMemberName] string memberName = "",
             [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = "",
             [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = 0
@@ -84,11 +91,8 @@ namespace Dopamine.Data.Providers
 
         public string ProviderName
         {
-            get { return "GOOGLE_ARTISTS"; }
+            get { return "GOOGLE_IMAGES_ARTISTS"; }
         }
 
-        public bool Success { get; private set; }
-
-        public ArtistInfoProviderData Data { get; private set; }
     }
 }

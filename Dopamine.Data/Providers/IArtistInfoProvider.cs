@@ -6,23 +6,32 @@ using System.Threading.Tasks;
 
 namespace Dopamine.Data.Providers
 {
+    public class OriginatedData<T>
+    {
+        public T Data;
+        public string Origin;
+    }
 
+    public enum InfoProviderResult{
+        Success,
+        Fail_Generic,
+        Fail_InternetFailed
+    }
     public class ArtistInfoProviderData
     {
-        public Byte[][] Images { get; set; }
-        public string Biography { get; set; }
-        public string[] Albums { get; set; }
-        public string[] Tracks { get; set; }
-        public string[] Members { get; set; }
-        public string[] Genres { get; set; }
+        public InfoProviderResult result;
+        public OriginatedData<Byte[]>[] Images { get; set; }
+        public OriginatedData<string>[] Biography { get; set; }
+        public OriginatedData<string[]>[] Albums { get; set; }
+        public OriginatedData<string[]>[] Tracks { get; set; }
+        public OriginatedData<string[]>[] Members { get; set; }
+        public OriginatedData<string[]>[] Genres { get; set; }
     }
 
     public interface IArtistInfoProvider
     {
 
-        bool Success { get;  }
-
-        ArtistInfoProviderData Data { get; }
+        ArtistInfoProviderData get(string artist);
 
         string ProviderName { get; }
     }

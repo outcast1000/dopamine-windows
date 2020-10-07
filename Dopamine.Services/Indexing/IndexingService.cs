@@ -602,6 +602,7 @@ namespace Dopamine.Services.Indexing
                 {
                     IList<ArtistV> artistsAdded = new List<ArtistV>();
                     IList<ArtistV> artistsToIndex = rescanAll ? artistVRepository.GetArtists() : artistVRepository.GetArtistsWithoutImages(rescanFailed);
+                    IArtistInfoProvider ip = infoProviderFactory.GetArtistInfoProvider();
 
                     foreach (ArtistV artist in artistsToIndex)
                     {
@@ -632,33 +633,33 @@ namespace Dopamine.Services.Indexing
                             conn.Execute("DELETE FROM ArtistImageFailed WHERE artist_id=?", artist.Id);
                         }
 
-                        IArtistInfoProvider ip = infoProviderFactory.GetArtistInfoProvider(artist.Name);
                         bool bImageAdded = false;
-                        if (ip.Success)
+                        ArtistInfoProviderData data = ip.get(artist.Name);
+                        if (data.result == InfoProviderResult.Success)
                         {
                             using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
                             {
-                                if (ip.Data?.Images?.Length > 0)
+                                if (data.Images?.Length > 0)
                                 {
-                                    string cacheId = fileStorage.SaveImageToCache(ip.Data.Images[0], FileStorageItemType.Artist);
+                                    string cacheId = fileStorage.SaveImageToCache(data.Images[0].Data, FileStorageItemType.Artist);
                                     uc.SetArtistImage(new ArtistImage()
                                     {
                                         ArtistId = artist.Id,
                                         DateAdded = DateTime.Now.Ticks,
                                         Location = cacheId,
-                                        Source = ip.ProviderName
+                                        Source = data.Images[0].Origin
                                     }, true);// albumDataToIndex.Id, "cache://" + albumImageName, len, sourceHash, providerName, false);
                                     artistsAdded.Add(artist);
                                     bImageAdded = true;
                                 }
-                                if (ip.Data?.Biography?.Length > 0)
+                                if (data.Biography?.Length > 0)
                                 {
                                     uc.SetArtistBiography(new ArtistBiography()
                                     {
                                         ArtistId = artist.Id,
                                         DateAdded = DateTime.Now.Ticks,
-                                        Biography = ip.Data.Biography,
-                                        Source = ip.ProviderName
+                                        Biography = data.Biography[0].Data,
+                                        Source = data.Biography[0].Origin
                                     });// albumDataToIndex.Id, "cache://" + albumImageName, len, sourceHash, providerName, false);
                                 }
 
