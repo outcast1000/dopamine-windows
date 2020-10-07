@@ -98,7 +98,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
 
 
-        public delegate void EnsureSelectedItemVisibleAction(ArtistViewModel artist);
+        public delegate void EnsureSelectedItemVisibleAction(ArtistViewModel item);
         public event EnsureSelectedItemVisibleAction EnsureItemVisible;
 
         public DelegateCommand ToggleArtistOrderCommand { get; set; }
@@ -302,7 +302,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         private void SaveSelectedItems()
         {
-            string s = string.Join(",", selectedIDs);// SettingsClient.Get<String>("State", "SelectedArtistIDs");
+            string s = string.Join(",", selectedIDs);
             SettingsClient.Set<String>("State", "SelectedArtistIDs", s);
         }
 

@@ -26,6 +26,9 @@
 	<Setting Name="SelectedGenreIDs">
 		<Value></Value>
 	</Setting>
+	<Setting Name="SelectedAlbumIDs">
+		<Value></Value>
+	</Setting>
 </Namespace>
   <Namespace Name="FullPlayer">
     <Setting Name="Width">

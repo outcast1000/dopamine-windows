@@ -2,23 +2,31 @@
 using Dopamine.Core.Base;
 using Dopamine.Data;
 using Dopamine.Services.Collection;
+using Dopamine.Services.Entities;
 using Dopamine.Services.Indexing;
 using Dopamine.ViewModels.Common.Base;
 using Prism.Commands;
 using Prism.Events;
 using Prism.Ioc;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace Dopamine.ViewModels.FullPlayer.Collection
 {
     public class CollectionAlbumsViewModel : AlbumsViewModelBase
     {
-        private IIndexingService indexingService;
         private ICollectionService collectionService;
+        private IIndexingService indexingService;
         private IEventAggregator eventAggregator;
         private double leftPaneWidthPercent;
+        private IList<long> selectedIDs;
+        private bool _ignoreSelectionChangedEvent;
 
+        public delegate void EnsureSelectedItemVisibleAction(AlbumViewModel item);
+        public event EnsureSelectedItemVisibleAction EnsureItemVisible;
         public double LeftPaneWidthPercent
         {
             get { return this.leftPaneWidthPercent; }
@@ -32,8 +40,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         public CollectionAlbumsViewModel(IContainerProvider container) : base(container)
         {
             // Dependency injection
-            this.indexingService = container.Resolve<IIndexingService>();
             this.collectionService = container.Resolve<ICollectionService>();
+            this.indexingService = container.Resolve<IIndexingService>();
             this.eventAggregator = container.Resolve<IEventAggregator>();
 
             // Settings
@@ -70,8 +78,32 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
             // Cover size
             this.SetCoversizeAsync((CoverSizeType)SettingsClient.Get<int>("CoverSizes", "AlbumsCoverSize"));
+            LoadSelectedItems();
         }
 
+        private void LoadSelectedItems()
+        {
+            try
+            {
+                string s = SettingsClient.Get<String>("State", "SelectedAlbumIDs");
+                if (!string.IsNullOrEmpty(s))
+                {
+                    selectedIDs = s.Split(',').Select(x => long.Parse(x)).ToList();
+                    return;
+                }
+            }
+            catch (Exception _)
+            {
+
+            }
+            selectedIDs = new List<long>();
+        }
+
+        private void SaveSelectedItems()
+        {
+            string s = string.Join(",", selectedIDs);
+            SettingsClient.Set<String>("State", "SelectedAlbumIDs", s);
+        }
         private async Task ToggleTrackOrderAsync()
         {
             base.ToggleTrackOrder();
@@ -88,16 +120,28 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             await this.GetAlbumsCommonAsync(this.Albums, this.AlbumOrder);
         }
 
-        protected async override Task SetCoversizeAsync(CoverSizeType iCoverSize)
+        protected async override Task SetCoversizeAsync(CoverSizeType coverSize)
         {
-            await base.SetCoversizeAsync(iCoverSize);
-            SettingsClient.Set<int>("CoverSizes", "AlbumsCoverSize", (int)iCoverSize);
+            await base.SetCoversizeAsync(coverSize);
+            SettingsClient.Set<int>("CoverSizes", "AlbumsCoverSize", (int)coverSize);
+        }
+
+        private void EnsureVisible()
+        {
+            if (SelectedAlbums.Count > 0)
+                EnsureItemVisible?.Invoke(SelectedAlbums[0]);
         }
 
         protected async override Task FillListsAsync()
         {
-            await this.GetAllAlbumsAsync(this.AlbumOrder);
-            await this.GetTracksAsync(null, null, this.SelectedAlbums, this.TrackOrder);
+            Application.Current.Dispatcher.Invoke(async () =>
+            {
+
+                _ignoreSelectionChangedEvent = true;
+                await GetAllAlbumsAsync(this.AlbumOrder);
+                await GetTracksAsync(null, null, this.SelectedAlbums, this.TrackOrder);
+                _ignoreSelectionChangedEvent = false;
+            });
         }
 
         protected async override Task EmptyListsAsync()
