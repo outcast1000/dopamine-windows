@@ -31,7 +31,7 @@ namespace Dopamine.Data.Providers
             {
                 LastFmArtist lf = LastfmApi.ArtistGetInfo(artist, false, "EN").Result;
                 if (lf.Biography != null)
-                    data.Biography = new OriginatedData<string>[] { new OriginatedData<string>() { Data = lf.Biography.Content, Origin = ProviderName } };
+                    data.Biography = new OriginatedData<string>() { Data = lf.Biography.Content, Origin = ProviderName };
             }
             catch (Exception ex)
             {

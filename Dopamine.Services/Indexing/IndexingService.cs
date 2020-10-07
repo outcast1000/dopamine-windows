@@ -652,14 +652,14 @@ namespace Dopamine.Services.Indexing
                                     artistsAdded.Add(artist);
                                     bImageAdded = true;
                                 }
-                                if (data.Biography?.Length > 0)
+                                if (data.Biography != null)
                                 {
                                     uc.SetArtistBiography(new ArtistBiography()
                                     {
                                         ArtistId = artist.Id,
                                         DateAdded = DateTime.Now.Ticks,
-                                        Biography = data.Biography[0].Data,
-                                        Source = data.Biography[0].Origin
+                                        Biography = data.Biography.Data,
+                                        Source = data.Biography.Origin
                                     });// albumDataToIndex.Id, "cache://" + albumImageName, len, sourceHash, providerName, false);
                                 }
 

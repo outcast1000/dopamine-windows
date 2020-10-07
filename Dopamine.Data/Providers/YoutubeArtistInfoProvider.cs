@@ -92,7 +92,7 @@ namespace Dopamine.Data.Providers
                     if (matches.Count > 0)
                     {
                         // May have escape chars like  \\\"futuristic \/
-                        data.Biography = new OriginatedData<string>[] { new OriginatedData<string>() { Data = matches[0].Groups[1].Value.Replace("\\\\\\\"", "\"").Replace("\\/", "/"), Origin = ProviderName } };
+                        data.Biography = new OriginatedData<string>() { Data = matches[0].Groups[1].Value.Replace("\\\\\\\"", "\"").Replace("\\/", "/"), Origin = ProviderName };
                     }
                     else
                         Logger.Info($"Bio not found. Artist: '{artist}'. URL: {uri.AbsolutePath}");
@@ -133,7 +133,7 @@ namespace Dopamine.Data.Providers
                     foreach (Match match in matches)
                         tracks.Add(match.Groups[1].Value);
                     if (tracks.Count == 0)
-                        data.Tracks = new OriginatedData<string[]>[] { new OriginatedData<string[]>() { Data = tracks.ToArray(), Origin = ProviderName } };
+                        data.Tracks = new OriginatedData<string[]>() { Data = tracks.ToArray(), Origin = ProviderName };
                     else
                         Logger.Info($"Artist Tracks not found. Artist: '{artist}'. URL: {uri.AbsolutePath}");
 

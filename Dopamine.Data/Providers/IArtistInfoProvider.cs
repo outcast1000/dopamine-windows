@@ -21,11 +21,11 @@ namespace Dopamine.Data.Providers
     {
         public InfoProviderResult result;
         public OriginatedData<Byte[]>[] Images { get; set; }
-        public OriginatedData<string>[] Biography { get; set; }
-        public OriginatedData<string[]>[] Albums { get; set; }
-        public OriginatedData<string[]>[] Tracks { get; set; }
-        public OriginatedData<string[]>[] Members { get; set; }
-        public OriginatedData<string[]>[] Genres { get; set; }
+        public OriginatedData<string> Biography { get; set; }
+        public OriginatedData<string[]> Albums { get; set; }
+        public OriginatedData<string[]> Tracks { get; set; }
+        public OriginatedData<string[]> Members { get; set; }
+        public OriginatedData<string[]> Genres { get; set; }
     }
 
     public interface IArtistInfoProvider
