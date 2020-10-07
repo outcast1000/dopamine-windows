@@ -25,8 +25,13 @@ namespace Dopamine.Data.Providers
         public ArtistInfoProviderData get(String artist)
         {
             ArtistInfoProviderData data = _ytaProvider.get(artist);
-            if (data.Images?.Length == 0)
+            if (data.Images?.Length > 0)
             {
+                // We have images. No need to do anything more
+            }
+            else
+            {
+                // We will try to get images from Google Artist Images
                 ArtistInfoProviderData gaData = _gaProvider.get(artist);
                 if (gaData.Images?.Length > 0)
                 {
