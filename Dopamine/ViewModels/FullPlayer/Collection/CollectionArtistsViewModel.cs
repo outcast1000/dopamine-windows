@@ -73,7 +73,7 @@ EmptyListsAsync
 
 namespace Dopamine.ViewModels.FullPlayer.Collection
 {
-    public class CollectionArtistsViewModel : AlbumsViewModelBase, ISemanticZoomViewModel
+    public class CollectionArtistsViewModel : TracksViewModelBase, ISemanticZoomViewModel
     {
         private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private ICollectionService collectionService;
@@ -209,7 +209,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
             // Commands
             this.ToggleTrackOrderCommand = new DelegateCommand(async () => await this.ToggleTrackOrderAsync());
-            this.ToggleAlbumOrderCommand = new DelegateCommand(async () => await this.ToggleAlbumOrderAsync());
             this.ToggleArtistOrderCommand = new DelegateCommand(async () => await this.ToggleOrderAsync());
             this.RemoveSelectedTracksCommand = new DelegateCommand(async () => await this.RemoveTracksFromCollectionAsync(this.SelectedTracks), () => !this.IsIndexing);
             this.AddArtistsToPlaylistCommand = new DelegateCommand<string>(async (playlistName) => await this.AddItemsToPlaylistAsync(this.SelectedArtists, playlistName));
@@ -241,14 +240,14 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 {
                     this.EnableRating = (bool)e.Entry.Value;
                     this.SetTrackOrder("ArtistsTrackOrder");
-                    await this.GetTracksAsync(this.SelectedArtists, null, this.SelectedAlbums, this.TrackOrder);
+                    await this.GetTracksAsync(this.SelectedArtists, null, null, this.TrackOrder);
                 }
 
                 if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableLove"))
                 {
                     this.EnableLove = (bool)e.Entry.Value;
                     this.SetTrackOrder("ArtistsTrackOrder");
-                    await this.GetTracksAsync(this.SelectedArtists, null, this.SelectedAlbums, this.TrackOrder);
+                    await this.GetTracksAsync(this.SelectedArtists, null, null, this.TrackOrder);
                 }
 
                 if (SettingsClient.IsSettingChanged(e, "State", "SelectedArtistIDs"))
@@ -260,9 +259,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
             // PubSub Events
             this.eventAggregator.GetEvent<ShellMouseUp>().Subscribe((_) => this.IsArtistsZoomVisible = false);
-
-            // Set the initial AlbumOrder
-            this.AlbumOrder = (AlbumOrder)SettingsClient.Get<int>("Ordering", "ArtistsAlbumOrder");
 
             // ALEX WARNING. EVERYTIME YOU NEED TO ADD A NEW SETTING YOU HAVE TO:
             //  1. Update the \BaseSettings.xml of the project
@@ -277,7 +273,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             this.RightPaneWidthPercent = SettingsClient.Get<int>("ColumnWidths", "ArtistsRightPaneWidthPercent");
 
             // Cover size
-            this.SetCoversizeAsync((CoverSizeType)SettingsClient.Get<int>("CoverSizes", "ArtistsCoverSize"));
             LoadSelectedItems();
 
         }
@@ -481,12 +476,10 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
             this.RaisePropertyChanged(nameof(this.HasSelectedArtists));
             Task saveSelectedArtists = Task.Run(() => SaveSelectedItems());
-            // Update the albums
-            Task albums = GetArtistAlbumsAsync(selectedItems, this.AlbumOrder);
             // Update the tracks
             this.SetTrackOrder("ArtistsTrackOrder");
-            Task tracks = GetTracksAsync(this.SelectedArtists, null, this.SelectedAlbums, this.TrackOrder);
-            Task.WhenAll(albums, tracks, saveSelectedArtists);
+            Task tracks = GetTracksAsync(this.SelectedArtists, null, null, this.TrackOrder);
+            Task.WhenAll(tracks, saveSelectedArtists);
 
         }
 
@@ -568,15 +561,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             await this.GetTracksCommonAsync(this.Tracks, this.TrackOrder);
         }
 
-        private async Task ToggleAlbumOrderAsync()
-        {
-
-            base.ToggleAlbumOrder();
-
-            SettingsClient.Set<int>("Ordering", "ArtistsAlbumOrder", (int)this.AlbumOrder);
-            await this.GetAlbumsCommonAsync(this.Albums, this.AlbumOrder);
-        }
-
         private async Task ToggleOrderAsync()
         {
 
@@ -584,12 +568,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             SettingsClient.Set<int>("Ordering", "ArtistsArtistOrder", (int)this.ArtistOrder);
             OrderItems();
             EnsureVisible();
-        }
-
-        protected async override Task SetCoversizeAsync(CoverSizeType coverSize)
-        {
-            await base.SetCoversizeAsync(coverSize);
-            SettingsClient.Set<int>("CoverSizes", "ArtistsCoverSize", (int)coverSize);
         }
 
         private void EnsureVisible()
@@ -605,8 +583,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
                 _ignoreSelectionChangedEvent = true;
 	            await this.GetItemsAsync();
-                await GetArtistAlbumsAsync(this.SelectedArtists, this.AlbumOrder);
-                await GetTracksAsync(this.SelectedArtists, null, this.SelectedAlbums, this.TrackOrder);
+                await GetTracksAsync(this.SelectedArtists, null, null, this.TrackOrder);
                 _ignoreSelectionChangedEvent = false;
                 /*
                 List<Task> tasks = new List<Task>();
@@ -622,7 +599,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         protected async override Task EmptyListsAsync()
         {
             this.ClearItems();
-            this.ClearAlbums();
             this.ClearTracks();
         }
 
@@ -637,18 +613,9 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 base.FilterLists(searchText);
         }
 
-        protected async override Task SelectedAlbumsHandlerAsync(object parameter)
-        {
-            await base.SelectedAlbumsHandlerAsync(parameter);
-
-            this.SetTrackOrder("ArtistsTrackOrder");
-            await this.GetTracksAsync(this.SelectedArtists, null, this.SelectedAlbums, this.TrackOrder);
-        }
-
         protected override void RefreshLanguage()
         {
             this.UpdateArtistOrderText(this.ArtistOrder);
-            this.UpdateAlbumOrderText(this.AlbumOrder);
             this.UpdateTrackOrderText(this.TrackOrder);
             base.RefreshLanguage();
         }

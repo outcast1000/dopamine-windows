@@ -77,6 +77,9 @@ namespace Dopamine.ViewModels.Common.Base
             set { SetProperty<IList<TrackViewModel>>(ref this.selectedTracks, value); }
         }
 
+        public double UpscaledCoverSize => 128 * Constants.CoverUpscaleFactor;
+
+
         public TracksViewModelBase(IContainerProvider container) : base(container)
         {
             // Dependency injection
