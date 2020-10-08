@@ -20,8 +20,8 @@ namespace Dopamine.ViewModels.FullPlayer
             this.trackRepository = trackRepository;
             this.indexingService = indexingService;
             this.RefreshNowCommand = new DelegateCommand(() => this.indexingService.RefreshCollectionAsync(true, false));
-            this.ReloadAllCoversCommand = new DelegateCommand(() => this.indexingService.RetrieveInfoAsync(false));
-            this.ReloadMissingCoversCommand = new DelegateCommand(() => this.indexingService.RetrieveInfoAsync(true));
+            this.ReloadAllCoversCommand = new DelegateCommand(() => this.indexingService.RetrieveInfoAsync(true, true));
+            this.ReloadMissingCoversCommand = new DelegateCommand(() => this.indexingService.RetrieveInfoAsync(true, false));
             this.GetCheckBoxesAsync();
         }
 
@@ -67,7 +67,7 @@ namespace Dopamine.ViewModels.FullPlayer
 
                 if (value)
                 {
-                    this.indexingService.RetrieveInfoAsync(true);
+                    this.indexingService.RetrieveInfoAsync(true, false);
                 }
             }
         }

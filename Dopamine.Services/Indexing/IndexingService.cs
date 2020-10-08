@@ -25,8 +25,103 @@ using System.Threading.Tasks;
 using System.Windows.Media.Animation;
 using Dopamine.Services.File;
 
+/* DESIGN (CALLERS)
+
+(WHEN YOU CHANGE THE SETTINGS) EVENT FROM SettingsClient
+	-> private async void SettingsClient_SettingChanged(object sender, Digimezzo.Foundation.Core.Settings.SettingChangedEventArgs e)
+		-> await watcherManager.StartWatchingAsync(); await watcherManager.StopWatchingAsync();
+
+(ADD FOLDER) DIRECT CALL FROM CollectionFoldersSettingsViewModel (AddFolderResult.Success)
+	-> public async void OnFoldersChanged()
+		-> await watcherManager.StartWatchingAsync();
+
+(REMOVE FOLDER) DIRECT CALL FROM CollectionFoldersSettingsViewModel (RemoveFolderResult.Success)
+	-> public async void OnFoldersChanged()
+		-> await watcherManager.StartWatchingAsync();
+
+(REMOVE FOLDER) DIRECT CALL FROM CollectionFoldersSettingsViewModel (RemoveFolderResult.Success)
+	-> TriggerRefreshLists()
+		-> RefreshLists(this, new EventArgs());
+
+(WHEN A FOLDER HAS CHANGED) EVENT FROM watcherManager.FoldersChanged
+	-> WatcherManager_FoldersChanged
+		-> await RefreshCollectionAsync(false, false);
+		
+(FROM STARTUP) DIRECT CALL FROM App.InitializeShell
+	-> if (!showOobe) Container.Resolve<IIndexingService>().RefreshCollectionAsync(false, false);
+
+(FROM FULL PLAYER / REFRESH NOW COMMAND) FullPlayerAddMusicViewModel.RefreshNowCommand
+	-> this.indexingService.RefreshCollectionAsync(true, false)
+	
+(? AFTER YOU CLOSE THE Manage Collections Dialog?)
+	-> FullPlayerViewModel::ManageCollectionAsync()
+		-> this.indexingService.RefreshCollectionAsync(false, false);
+		
+(WHEN YOU CLOSE THE OOBE) Oobe::Window_Closing
+	-> this.indexingService.RefreshCollectionAsync(false, false);
+
+*/
+ 
+
 namespace Dopamine.Services.Indexing
 {
+
+    public class UpdateStatistics
+    {
+        public int TotalChecked = 0;
+        public int Checked = 0;
+        public int Added = 0;
+        public int Updated = 0;
+        public int Removed = 0;
+        public int ResurrectedFiles = 0;
+        public int Failed = 0;
+
+        public void AddStatistics(UpdateStatistics updateStatistics)
+        {
+            TotalChecked += updateStatistics.TotalChecked;
+            Checked += updateStatistics.Checked;
+            Added += updateStatistics.Added;
+            Updated += updateStatistics.Updated;
+            Removed += updateStatistics.Removed;
+            ResurrectedFiles += updateStatistics.ResurrectedFiles;
+            Failed += updateStatistics.Failed;
+        }
+
+        public bool IsSomethingChanged()
+        {
+            return (Added + Updated + Removed + ResurrectedFiles) > 0;
+        }
+    }
+
+    public class TimeCounter
+    {
+        long _startTick;
+        long _endTick = 0;
+        public TimeCounter()
+        {
+            Start();
+        }
+        public void Start()
+        {
+            _startTick = DateTime.Now.Ticks;
+        }
+
+        public void Stop()
+        {
+            _endTick = DateTime.Now.Ticks;
+        }
+
+        public double GetMs(bool bStop)
+        {
+            if (bStop)
+                Stop();
+            if (_endTick == 0)
+                return (DateTime.Now.Ticks - _startTick) / 10000.0;
+            return (_endTick - _startTick) / 10000.0;
+        }
+    }
+
+
     public class IndexingService : IIndexingService
     {
         private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
@@ -69,7 +164,7 @@ namespace Dopamine.Services.Indexing
         public event AlbumImagesAddedEventHandler AlbumImagesAdded = delegate { };
         public event ArtistImagesAddedEventHandler ArtistImagesAdded = delegate { };
 
-        
+        private bool _shouldCancelIndexing = false;
 
         public bool IsIndexing
         {
@@ -128,6 +223,322 @@ namespace Dopamine.Services.Indexing
             RefreshLists(this, new EventArgs());
         }
 
+
+        // This function find all the files in a collection and checks if the files actually exist in the FileSystem
+        // If it cannot locate them then it sets the DELETED_AT filed at the current Date (Tick Count)
+        // Memory Optimization: It does it in chuncks of 1000.
+        private int UpdateRemovedFiles(long folderId)
+        {
+            int updateRemovedFilesCount = 0;
+            long offset = 0;
+            const long limit = 1000;
+            while (true)
+            {
+                IList<TrackV> tracks = trackVRepository.GetTracksOfFolders(new List<long>() { folderId }, new QueryOptions() { Limit = limit, Offset = offset, WhereIgnored = QueryOptionsBool.Ignore, WhereVisibleFolders = QueryOptionsBool.Ignore });
+                foreach (TrackV track in tracks)
+                {
+                    if (!System.IO.File.Exists(track.Path))
+                    {
+                        Logger.Debug($"File not found: {track.Path}");
+                        if (trackVRepository.UpdateDeleteValue(track.Id, true))
+                            updateRemovedFilesCount++;
+                    }
+                }
+                if (tracks.Count < limit)
+                    break;
+                offset += limit;
+            }
+            return updateRemovedFilesCount;
+        }
+
+        private FileMetadata GetFileMetadata(string path)
+        {
+            try
+            {
+                return new FileMetadata(path);
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn(ex, $"Unable to READ TAG from the file {path}. The process will continue with file name data.");
+            }
+            return null;
+        }
+
+        private MediaFileData GetMediaFileData(FileMetadata fileMetadata, string path)
+        {
+            MediaFileData mediaFileData = new MediaFileData()
+            {
+                Path = path,
+                Filesize = FileUtils.SizeInBytes(path),
+                Language = null,
+                DateAdded = DateTime.Now.Ticks,
+                Love = null,
+                DateFileCreated = FileUtils.DateCreatedTicks(path),
+                DateFileModified = FileUtils.DateModifiedTicks(path),
+                DateFileDeleted = null,
+                DateIgnored = null
+            };
+            if (fileMetadata != null)
+            {
+                mediaFileData.Name = FormatUtils.TrimValue(fileMetadata.Title.Value);
+                mediaFileData.Bitrate = fileMetadata.BitRate;
+                mediaFileData.Samplerate = fileMetadata.SampleRate;
+                mediaFileData.Duration = Convert.ToInt64(fileMetadata.Duration.TotalMilliseconds);
+                mediaFileData.Year = (string.IsNullOrEmpty(fileMetadata.Year.Value) ? null : (long?)MetadataUtils.SafeConvertToLong(fileMetadata.Year.Value));
+                mediaFileData.Rating = fileMetadata.Rating.Value == 0 ? null : (long?)fileMetadata.Rating.Value;//Should you take it from the file?
+                mediaFileData.TrackNumber = string.IsNullOrEmpty(fileMetadata.TrackNumber.Value) ? null : (long?)MetadataUtils.SafeConvertToLong(fileMetadata.TrackNumber.Value);
+                mediaFileData.TrackCount = string.IsNullOrEmpty(fileMetadata.TrackCount.Value) ? null : (long?)MetadataUtils.SafeConvertToLong(fileMetadata.TrackCount.Value);
+                mediaFileData.DiscNumber = string.IsNullOrEmpty(fileMetadata.DiscNumber.Value) ? null : (long?)MetadataUtils.SafeConvertToLong(fileMetadata.DiscNumber.Value);
+                mediaFileData.DiscCount = string.IsNullOrEmpty(fileMetadata.DiscCount.Value) ? null : (long?)MetadataUtils.SafeConvertToLong(fileMetadata.DiscCount.Value);
+                mediaFileData.Lyrics = string.IsNullOrEmpty(fileMetadata.Lyrics.Value) ? null : new MediaFileDataText() { Text = fileMetadata.Lyrics.Value };
+                mediaFileData.Artists = fileMetadata.Artists.Values;
+                mediaFileData.Genres = fileMetadata.Genres.Values;
+                mediaFileData.Album = FormatUtils.TrimValue(fileMetadata.Album.Value);
+                mediaFileData.AlbumArtists = fileMetadata.AlbumArtists.Values;
+            }
+            else
+            {
+                mediaFileData.Name = Path.GetFileNameWithoutExtension(path);
+            }
+            if (string.IsNullOrEmpty(mediaFileData.Name))
+                mediaFileData.Name = Path.GetFileNameWithoutExtension(path);
+            return mediaFileData;
+        }
+
+        private bool AddAlbumImageIfNecessary(IUpdateCollectionUnitOfWork uc, long albumId, FileMetadata fileMetadata)
+        {
+            Debug.Assert(uc != null);
+            Debug.Assert(albumId > 0);
+            Debug.Assert(fileMetadata != null);
+
+            if (!(fileMetadata.ArtworkData?.Value?.Length > 0))
+                return false; //=== TAG does not have embedded image. Exit.
+
+            AlbumImage albumImage = imageRepository.GetAlbumImage(albumId);
+            if (albumImage != null)
+                return false; //=== This album has already an image
+            string location = fileStorage.SaveImageToCache(fileMetadata.ArtworkData.Value, FileStorageItemType.Album);
+            return uc.SetAlbumImage(new AlbumImage()
+            {
+                AlbumId = albumId,
+                DateAdded = DateTime.Now.Ticks,
+                Location = location,
+                Source = "[TAG]"
+            }, false);
+        }
+
+        private bool AddTrackLyrics(IUpdateCollectionUnitOfWork uc, long trackId, FileMetadata fileMetadata)
+        {
+            Debug.Assert(uc != null);
+            Debug.Assert(trackId > 0);
+            Debug.Assert(fileMetadata != null);
+            if (!(fileMetadata.Lyrics?.Value?.Length > 0))
+                return false;
+            return uc.SetLyrics(new TrackLyrics()
+            {
+                TrackId = trackId,
+                DateAdded = DateTime.Now.Ticks,
+                Source = "[TAG]",
+                Lyrics = fileMetadata.Lyrics.Value
+            }, false);
+        }
+
+        private int _collectionFilesChanged = 0;
+        private void OnCollectionFileChanged()
+        {
+            _collectionFilesChanged++;
+            if (_collectionFilesChanged > 50)
+            {
+                _collectionFilesChanged = 0;
+                RefreshLists(this, new EventArgs());
+            }
+        }
+
+        private int _collectionImagesChanged = 0;
+        private void OnCollectionImageChanged()
+        {
+            _collectionImagesChanged++;
+            if (_collectionImagesChanged > 5)
+            {
+                _collectionImagesChanged = 0;
+                RefreshLists(this, new EventArgs());
+            }
+        }
+
+        private UpdateStatistics RefreshCollection(FolderV folder, bool bReReadTags)
+        {
+            Logger.Debug($"Refreshing: {folder.Path}");
+            UpdateStatistics stats = new UpdateStatistics();
+            if (!SettingsClient.Get<bool>("Indexing", "IgnoreRemovedFiles"))
+            {
+                //=== DELETE ALL THE FILES from the DB that have been deleted from the disk 
+                Logger.Debug("STEP: Removing deleted files");
+                stats.Removed = UpdateRemovedFiles(folder.Id);
+            }
+
+            //=== Add OR Update the files that on disk
+            Logger.Debug("STEP: Reading file system");
+
+            FileOperations.GetFiles(folder.Path,
+                (path) =>
+                {
+                    stats.TotalChecked++;
+                       //=== Check the extension
+                    if (!FileFormats.SupportedMediaExtensions.Contains(Path.GetExtension(path.ToLower())))
+                        return;
+                    stats.Checked++;
+                    //=== Check the DB for the path
+                    TrackV trackV = trackVRepository.GetTrackWithPath(path, new QueryOptions() { WhereDeleted = QueryOptionsBool.Ignore, WhereInACollection = QueryOptionsBool.Ignore, WhereVisibleFolders = QueryOptionsBool.Ignore, WhereIgnored = QueryOptionsBool.Ignore });
+                    long DateFileModified = FileUtils.DateModifiedTicks(path);
+                    if (trackV != null && DateFileModified == trackV.DateFileModified && !bReReadTags)
+                    {
+                        //=== There is also a case when tha track exists but not in a collection 
+                        //      There are 2 cases for that
+                        //          1. a collection that has been removed
+                        //          2. A file that has been played while it wasn't in a collection
+                        if (trackV.FolderID == 0)
+                        {
+                            // Update the track record and set it to the new collection
+                            if (trackVRepository.UpdateFolderIdValue(trackV.Id, folder.Id))
+                            {
+                                stats.ResurrectedFiles++;
+                                OnCollectionFileChanged();
+                            }
+                        }
+                        //Logger.Debug($">> File {path} not changed! Go to the next file");
+                        return;
+                    }
+                    //=== Get File Info
+                    FileMetadata fileMetadata = GetFileMetadata(path);
+                    MediaFileData mediaFileData = GetMediaFileData(fileMetadata, path);
+
+                    using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
+                    {
+                        if (trackV == null)
+                        {
+                            AddMediaFileResult result = uc.AddMediaFile(mediaFileData, folder.Id);
+                            if (result.Success)
+                            {
+                                stats.Added++;
+                                OnCollectionFileChanged();
+                                if (fileMetadata != null)
+                                {
+                                    //=== Add Album Image
+                                    if (result.AlbumId.HasValue)
+                                        AddAlbumImageIfNecessary(uc, (long)result.AlbumId, fileMetadata);
+                                    //=== Add Lyrics
+                                    AddTrackLyrics(uc, (long)result.TrackId, fileMetadata);
+                                }
+                            }
+                            else
+                            {
+                                stats.Failed++;
+                                Logger.Warn($">> Failed to add ({path})");
+                            }
+                        }
+                        else
+                        {
+                            // If we update the file we do not want to change these Dates
+                            mediaFileData.DateAdded = trackV.DateAdded;
+                            mediaFileData.DateIgnored = trackV.DateIgnored;
+                            // If the file was previously deleted then now it seem that i re-emerged
+                            mediaFileData.DateFileDeleted = null;
+                            // Love / Rating/ Language are not saved in tags
+                            mediaFileData.Love = trackV.Love;
+                            mediaFileData.Rating = trackV.Rating;
+                            mediaFileData.Language = trackV.Language;
+                            UpdateMediaFileResult result = uc.UpdateMediaFile(trackV, mediaFileData);
+                            if (result.Success)
+                            {
+                                stats.Updated++;
+                                OnCollectionFileChanged();
+                                if (fileMetadata != null)
+                                {
+                                    //=== Add Album Image
+                                    if (result.AlbumId.HasValue)
+                                        AddAlbumImageIfNecessary(uc, (long)result.AlbumId, fileMetadata);
+                                    //=== Add Lyrics
+                                    AddTrackLyrics(uc, trackV.Id, fileMetadata);
+                                }
+                            }
+                            else
+                            {
+                                stats.Failed++;
+                                Logger.Warn($">> Failed to update ({path})");
+                            }
+
+                        }
+                    }
+
+                },
+                () =>
+                {
+                    return !_shouldCancelIndexing;
+                },
+                (ex) =>
+                {
+                    Logger.Error(ex, "Updating Collection");
+                }
+            );
+            return stats;
+        }
+
+        private long DeleteUnusedImagesFromDB()
+        {
+            Logger.Debug("CLEAN UP Database from image entities without tracks (Artists, albums, genres)");
+            using (ICleanUpImagesUnitOfWork cleanUpAlbumImagesUnitOfWork = unitOfWorksFactory.getCleanUpAlbumImages())
+            {
+                return cleanUpAlbumImagesUnitOfWork.CleanUp();
+            }
+        }
+
+        private long DeleteUnusedImagesFromTheDisk()
+        {
+            //=== CLEAN UP Images from cache that is not included in the DB
+            long imageDeletions = 0;
+            IList<string> images = imageRepository.GetAllImagePaths();
+            if (!ListExtensions.IsNullOrEmpty(images))
+            {
+                HashSet<string> imagePaths = new HashSet<string>(images.Select(x => Path.GetFileNameWithoutExtension(fileStorage.GetRealPath(x))).ToList());
+                FileOperations.GetFiles(fileStorage.StorageImagePath,
+                    (path) =>
+                    {
+                        string ext = Path.GetExtension(path);
+                        string name = Path.GetFileNameWithoutExtension(path);
+
+                        if (!ext.Equals(".jpg"))
+                            return;
+                        if (imagePaths.Contains(name) == false)
+                        {
+                            imageDeletions++;
+                            Logger.Debug($">> Deleting unused image: {name}");
+                            System.IO.File.Delete(path);
+                        }
+                    },
+                    () =>
+                    {
+                        return true;
+                    },
+                    (ex) =>
+                    {
+                        Logger.Info(ex, String.Format("Exception: {0}", ex.Message));
+                    });
+            }
+            return imageDeletions;
+        }
+
+        public async Task CleanUp()
+        {
+            await Task.Run(() =>
+            {
+                DeleteUnusedImagesFromDB();
+                DeleteUnusedImagesFromTheDisk();
+                // ALEX TODO: DELETE ALL FILES with folder.id = null WHERE THERE IS NO HISTORY
+                // +++
+
+            });
+        }
+
         public async Task RefreshCollectionAsync(bool bForce, bool bReReadTags = false)
         {
             Logger.Debug($"RefreshCollectionAsync bForce: {bForce} bReReadTags: {bReReadTags}");
@@ -148,294 +559,36 @@ namespace Dopamine.Services.Indexing
             await Task.Run(async () =>
             {
                 Logger.Debug("RefreshCollectionAsync ENTER Task");
-                int timeStarted = Environment.TickCount;
-                long totalFiles = 0;
-                long addedFiles = 0;
-                long resurrectedFiles = 0;
-                long updatedFiles = 0;
-                long removedFiles = 0;
-                long failedFiles = 0;
+                UpdateStatistics totalStats = new UpdateStatistics();
+                TimeCounter timerTotal = new TimeCounter();
                 List<FolderV> folders = folderVRepository.GetFolders();
-                // Recursively get all the files in the collection folders
-                bool bContinue = true;
                 foreach (FolderV folder in folders)
                 {
-                    Logger.Debug($"Refreshing: {folder.Path}");
-                    //=== STEP 1. DELETE ALL THE FILES from the collections that have been deleted from the disk 
-                    //=== Get All the paths from the DB (in chunks of 1000)
-                    //=== For each one of them
-                    //=== if they exist then OK. Otherwise then set the date to "DELETED_AT"
-                    if (!SettingsClient.Get<bool>("Indexing", "IgnoreRemovedFiles"))
-                    {
-                        Logger.Debug("STEP 1: Removing deleted files");
-                        long offset = 0;
-                        const long limit = 1000;
-                        while (true)
-                        {
-                            IList<TrackV> tracks = trackVRepository.GetTracksOfFolders(new List<long>() { folder.Id }, new QueryOptions() { Limit = limit, Offset = offset, WhereIgnored = QueryOptionsBool.Ignore, WhereVisibleFolders = QueryOptionsBool.Ignore });
-                            foreach (TrackV track in tracks)
-                            {
-                                if (!System.IO.File.Exists(track.Path))
-                                {
-                                    Logger.Debug($"File not found: {track.Path}");
-                                    if (trackVRepository.UpdateDeleteValue(track.Id, true))
-                                        removedFiles++;
-                                }
-                            }
-                            if (tracks.Count < limit)
-                                break;
-                            offset += limit;
-                        }
-                    }
-
-                    //=== STEP 2. Add OR Update the files that on disk
-                    Logger.Debug("STEP 2: Reading files in folder");
-
-                    FileOperations.GetFiles(folder.Path,
-                        (path) =>
-                        {
-                            //=== Check the extension
-                            if (!FileFormats.SupportedMediaExtensions.Contains(Path.GetExtension(path.ToLower())))
-                                return;
-                            Logger.Trace($"Total: {totalFiles} Added: {addedFiles} Updated: {updatedFiles} Removed: {removedFiles} Failed: {failedFiles} ElapsedMS: {Environment.TickCount - timeStarted} Total: {totalFiles} ");
-                            totalFiles++;
-                            //=== Check the DB for the path
-                            TrackV trackV = trackVRepository.GetTrackWithPath(path, new QueryOptions() { WhereDeleted = QueryOptionsBool.Ignore, WhereInACollection = QueryOptionsBool.Ignore, WhereVisibleFolders = QueryOptionsBool.Ignore, WhereIgnored = QueryOptionsBool.Ignore});
-                            long DateFileModified = FileUtils.DateModifiedTicks(path);
-                            if (trackV != null && DateFileModified == trackV.DateFileModified && !bReReadTags)
-                            {
-                                //=== There is also a case when tha track exists but not in a collection 
-                                //      There are 2 cases for that
-                                //          1. a collection that has been removed
-                                //          2. A file that has been played while it wasn't in a collection
-                                if (trackV.FolderID == 0)
-                                {
-                                    // Update the track record and set it to the new collection
-                                    if (trackVRepository.UpdateFolderIdValue(trackV.Id, folder.Id))
-                                        resurrectedFiles++;
-                                }
-                                //Logger.Debug($">> File {path} not changed! Go to the next file");
-                                return;
-                            }
-                            //=== Get File Info
-                            MediaFileData mediaFileData = new MediaFileData()
-                            {
-                                Path = path,
-                                Filesize = FileUtils.SizeInBytes(path),
-                                Language = null,
-                                DateAdded = DateTime.Now.Ticks,
-                                Love = null,
-                                DateFileCreated = FileUtils.DateCreatedTicks(path),
-                                DateFileModified = DateFileModified,
-                                DateFileDeleted = null,
-                                DateIgnored = null
-                            };
-                            FileMetadata fileMetadata = null;
-                            try
-                            {
-                                fileMetadata = new FileMetadata(path);
-                                mediaFileData.Name = FormatUtils.TrimValue(fileMetadata.Title.Value);
-                                mediaFileData.Bitrate = fileMetadata.BitRate;
-                                mediaFileData.Samplerate = fileMetadata.SampleRate;
-                                mediaFileData.Duration = Convert.ToInt64(fileMetadata.Duration.TotalMilliseconds);
-                                mediaFileData.Year = (string.IsNullOrEmpty(fileMetadata.Year.Value) ? null : (long?)MetadataUtils.SafeConvertToLong(fileMetadata.Year.Value));
-                                mediaFileData.Rating = fileMetadata.Rating.Value == 0 ? null : (long?)fileMetadata.Rating.Value;//Should you take it from the file?
-                                mediaFileData.TrackNumber = string.IsNullOrEmpty(fileMetadata.TrackNumber.Value) ? null : (long?)MetadataUtils.SafeConvertToLong(fileMetadata.TrackNumber.Value);
-                                mediaFileData.TrackCount = string.IsNullOrEmpty(fileMetadata.TrackCount.Value) ? null : (long?)MetadataUtils.SafeConvertToLong(fileMetadata.TrackCount.Value);
-                                mediaFileData.DiscNumber = string.IsNullOrEmpty(fileMetadata.DiscNumber.Value) ? null : (long?)MetadataUtils.SafeConvertToLong(fileMetadata.DiscNumber.Value);
-                                mediaFileData.DiscCount = string.IsNullOrEmpty(fileMetadata.DiscCount.Value) ? null : (long?)MetadataUtils.SafeConvertToLong(fileMetadata.DiscCount.Value);
-                                mediaFileData.Lyrics = string.IsNullOrEmpty(fileMetadata.Lyrics.Value) ? null : new MediaFileDataText() { Text = fileMetadata.Lyrics.Value };
-                                mediaFileData.Artists = fileMetadata.Artists.Values;
-                                mediaFileData.Genres = fileMetadata.Genres.Values;
-                                mediaFileData.Album = FormatUtils.TrimValue(fileMetadata.Album.Value);
-                                mediaFileData.AlbumArtists = fileMetadata.AlbumArtists.Values;
-                            }
-                            catch (Exception ex)
-                            {
-                                Logger.Warn(ex, $"Unable to READ TAG from the file {path}. The process will continue with file name data.");
-                                mediaFileData.Name = Path.GetFileNameWithoutExtension(path);
-                                //=== TODO. Do something more advanced like getting tags from path
-                            }
-                            if (string.IsNullOrEmpty(mediaFileData.Name))
-                                mediaFileData.Name = Path.GetFileNameWithoutExtension(path);
-
-                            using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
-                            {
-                                if (trackV == null)
-                                {
-                                    
-                                    AddMediaFileResult result = uc.AddMediaFile(mediaFileData, folder.Id);
-                                    if (result.Success)
-                                    {
-                                        addedFiles++;
-                                        Logger.Debug($">> Adding ({addedFiles}) New Track in DB...{path} ");
-                                        //=== If it has album image and we actually have an album
-                                        if (result.AlbumId.HasValue && fileMetadata?.ArtworkData?.Value?.Length > 0)
-                                        {
-                                            //=== If Album do not have an image
-                                            AlbumImage albumImage = imageRepository.GetAlbumImage((long)result.AlbumId);
-                                            if (albumImage == null)
-                                            {
-                                                string location = fileStorage.SaveImageToCache(fileMetadata.ArtworkData.Value, FileStorageItemType.Album);
-                                                uc.SetAlbumImage(new AlbumImage()
-                                                {
-                                                    AlbumId = (long)result.AlbumId,
-                                                    DateAdded = mediaFileData.DateAdded,
-                                                    Location = location,
-                                                    Source = "[TAG]"
-                                                }, false);
-                                            }
-                                        }
-                                        //=== Add Lyrics
-                                        if (fileMetadata?.Lyrics?.Value?.Length > 0)
-                                        {
-                                            uc.SetLyrics(new TrackLyrics()
-                                            {
-                                                TrackId = (long)result.TrackId,
-                                                DateAdded = DateTime.Now.Ticks,
-                                                Source = "[TAG]",
-                                                Lyrics = fileMetadata.Lyrics.Value
-                                            }, false);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        failedFiles++;
-                                        Logger.Warn($">> Failed ({failedFiles})");
-                                    }
-                                }
-                                else
-                                {
-                                    //= If we update the file we do not want to change these Dates
-                                    mediaFileData.DateAdded = trackV.DateAdded;
-                                    mediaFileData.DateIgnored = trackV.DateIgnored;
-                                    //= If the file was previously deleted then now it seem that i re-emerged
-                                    mediaFileData.DateFileDeleted = null;
-                                    //== Love is not saved in tags
-                                    mediaFileData.Love = trackV.Love;
-                                    mediaFileData.Language = trackV.Language;
-                                    UpdateMediaFileResult result = uc.UpdateMediaFile(trackV, mediaFileData);
-                                    if (result.Success)
-                                    {
-                                        updatedFiles++;
-                                        Logger.Debug($">> Updated ({updatedFiles}) Track in DB...{path} ");
-                                        //=== If it has album image and we actually have an album
-                                        if (fileMetadata?.ArtworkData?.Value?.Length > 0 && result.AlbumId.HasValue)
-                                        {
-                                            //=== If Album do not have an image
-                                            AlbumImage albumImage = imageRepository.GetAlbumImage((long)result.AlbumId);
-                                            if (albumImage == null || albumImage.Source == "[TAG]")
-                                            {
-                                                string location = fileStorage.SaveImageToCache(fileMetadata.ArtworkData.Value, FileStorageItemType.Album);
-                                                if (albumImage != null && !albumImage.Location.Equals(location))
-                                                {
-                                                    uc.SetAlbumImage(new AlbumImage()
-                                                    {
-                                                        AlbumId = (long)result.AlbumId,
-                                                        DateAdded = DateTime.Now.Ticks,
-                                                        Location = location,
-                                                        Source = "[TAG]"
-                                                    }, true);
-                                                }
-                                            }
-                                        }
-
-                                        //=== Add Lyrics
-                                        if (fileMetadata?.Lyrics?.Value?.Length > 0)
-                                        {
-                                            uc.SetLyrics(new TrackLyrics()
-                                            {
-                                                TrackId = (long)trackV.Id,
-                                                DateAdded = DateTime.Now.Ticks,
-                                                Source = "[TAG]",
-                                                Lyrics = fileMetadata.Lyrics.Value
-                                            }, true);
-                                        }
-
-                                    }
-                                    else
-                                        failedFiles++;
-
-                                }
-                            }
-
-                        },
-                        () =>
-                        {
-                            return bContinue;
-                        },
-                        (ex) =>
-                        {
-                            Logger.Error(ex, "Updating Collection");
-                        }
-                        );
-
-
+                    TimeCounter timerFolderUpdate = new TimeCounter();
+                    UpdateStatistics folderStats = RefreshCollection(folder, bReReadTags);
+                    totalStats.AddStatistics(folderStats);
+                    Logger.Debug($"RefreshCollectionAsync. Folder '{folder.Path}' checked in {timerFolderUpdate.GetMs(true)} ms");
                 }
-                bool isTracksChanged = (addedFiles + updatedFiles + removedFiles + resurrectedFiles) > 0;
-                bool isArtworkCleanedUp = false;
-                //=== STEP 3
-                //=== CLEAN UP Images
-                Logger.Debug($">> STEP3: CLEAN UP Database from entities without tracks (Artists, albums, genres)");
-                using (ICleanUpImagesUnitOfWork cleanUpAlbumImagesUnitOfWork = unitOfWorksFactory.getCleanUpAlbumImages())
-                {
-                    isArtworkCleanedUp = cleanUpAlbumImagesUnitOfWork.CleanUp() > 0;
-                }
-                Logger.Debug($">> STEP4: CLEAN UP Images from cache that is not included in the DB");
-                //=== STEP 4
-                //=== CLEAN UP Images from cache that is not included in the DB
-                IList<string> images = imageRepository.GetAllImagePaths();
-                if (!ListExtensions.IsNullOrEmpty(images))
-                {
-                    long imageDeletions = 0;
-                    HashSet<string> imagePaths = new HashSet<string>(images.Select(x => Path.GetFileNameWithoutExtension(fileStorage.GetRealPath(x))).ToList());
-                    FileOperations.GetFiles(fileStorage.StorageImagePath,
-                        (path) =>
-                        {
-                            string ext = Path.GetExtension(path);
-                            string name = Path.GetFileNameWithoutExtension(path);
 
-                            if (!ext.Equals(".jpg"))
-                                return;
-                            if (imagePaths.Contains(name) == false)
-                            {
-                                imageDeletions++;
-                                Logger.Debug($">> Deleting unused image: {name}");
-                                System.IO.File.Delete(path);
-                             }
-                        },
-                        () =>
-                        {
-                            return bContinue;
-                        },
-                        (ex) =>
-                        {
-                            LogClientA.Info(String.Format("Exception: {0}", ex.Message));
-                        });
-                }
 
 
                 // Refresh lists
-                // -------------
-                if (isTracksChanged || isArtworkCleanedUp)
-                {
-                    LogClient.Info($"Sending event to refresh the lists because: isTracksChanged = {isTracksChanged}, isArtworkCleanedUp = {isArtworkCleanedUp}");
+                if (totalStats.IsSomethingChanged())
                     RefreshLists(this, new EventArgs());
-                }
 
                 // Finalize
                 // --------
                 isIndexingFiles = false;
                 IndexingStopped(this, new EventArgs());
 
-                await RetrieveAlbumInfoAsync(false, false);
-                await RetrieveArtistInfoAsync(false, false);
-
+                
 
                 if (SettingsClient.Get<bool>("Indexing", "RefreshCollectionAutomatically"))
                 {
                     await watcherManager.StartWatchingAsync();
                 }
+
+                await RetrieveInfoAsync(false, false);
             });
         }
 
@@ -503,7 +656,6 @@ namespace Dopamine.Services.Indexing
                         }
 
                         Logger.Debug($"RetrieveAlbumInfoAsync: Downloading Album Image for {albumDataToIndex.Name} - {albumDataToIndex.AlbumArtists}");
-                        //LastFMAlbumInfoProvider lf = new LastFMAlbumInfoProvider(albumDataToIndex.Name, DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToArray());
                         bool bImageAdded = false;
                         AlbumInfoProviderData data = aip.Get(albumDataToIndex.Name, string.IsNullOrEmpty(albumDataToIndex.AlbumArtists) ? null : DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToArray());
                         if (data.result == InfoProviderResult.Success)
@@ -512,7 +664,6 @@ namespace Dopamine.Services.Indexing
                             {
                                 if (data?.Images?.Length > 0)
                                 {
-
                                     string cacheId = fileStorage.SaveImageToCache(data.Images[0].Data, FileStorageItemType.Album);
                                     uc.SetAlbumImage(new AlbumImage()
                                     {
@@ -535,10 +686,9 @@ namespace Dopamine.Services.Indexing
                                     });
                                 }
                             }
-
                         }
-                        
-                        if (!bImageAdded)
+
+                        if (!bImageAdded && data.result != InfoProviderResult.Fail_InternetFailed)
                         {
                             using (var conn = this.sQLiteConnectionFactory.GetConnection())
                             {
@@ -549,17 +699,9 @@ namespace Dopamine.Services.Indexing
                                 });
                             }
                         }
+                        if (bImageAdded)
+                            OnCollectionImageChanged();
 
-                        // If artwork was found for 20 albums, trigger a refresh of the UI.
-                        if (albumsAdded.Count >= 20)
-                        {
-
-                            IList<AlbumV> eventArgs = albumsAdded.Select(item => item).ToList();
-                            albumsAdded.Clear();
-                            AlbumImagesAdded(this, new AlbumArtworkAddedEventArgs() { Albums = eventArgs }); // Update UI
-                            Logger.Debug($"RetrieveAlbumInfoAsync. Stopping to MAX LIMIT OF 20 (DEBUG)");
-                            break;//=== TODO ALEX. Remove It. Here for Test Purposes
-                        }
                     }
                     if (albumsAdded.Count > 0)
                     {
@@ -572,12 +714,12 @@ namespace Dopamine.Services.Indexing
                 }
                 catch (Exception ex)
                 {
-                    LogClient.Error("Unexpected error occurred while updating artwork in the background. Exception: {0}", ex.Message);
+                    Logger.Error(ex, "Unexpected error occurred while updating artwork in the background. Exception: {0}", ex.Message);
                 }
             });
 
             isIndexingAlbumImages = false;
-            LogClient.Error("+++ FINISHED ADDING ARTWORK IN THE BACKGROUND. Time required: {0} ms +++", Convert.ToInt64(DateTime.Now.Subtract(startTime).TotalMilliseconds));
+            Logger.Error(ex, "+++ FINISHED ADDING ARTWORK IN THE BACKGROUND. Time required: {0} ms +++", Convert.ToInt64(DateTime.Now.Subtract(startTime).TotalMilliseconds));
         }
 
         private async Task RetrieveArtistInfoAsync(bool rescanFailed, bool rescanAll)
@@ -678,17 +820,9 @@ namespace Dopamine.Services.Indexing
                                 });
                             }
                         }
+                        if (bImageAdded)
+                            OnCollectionImageChanged();
 
-                        // If artwork was found for 20 albums, trigger a refresh of the UI.
-                        if (artistsAdded.Count >= 20)
-                        {
-                            IList<ArtistV> eventArgs = artistsAdded.Select(item => item).ToList();
-                            artistsAdded.Clear();
-                            ArtistImagesAdded(this, new ArtistImagesAddedEventArgs() { Artists = eventArgs }); // Update UI
-                            //=== TODO ALEX (REMOVE IT. FOR TESTING)
-                            Logger.Debug($"RetrieveArtistInfoAsync. Stopping to MAX LIMIT OF 20 (DEBUG)");
-                            break;
-                        }
                     }
                     if (artistsAdded.Count > 0)
                     {
@@ -699,31 +833,29 @@ namespace Dopamine.Services.Indexing
                 }
                 catch (Exception ex)
                 {
-                    LogClient.Error("Unexpected error occurred while updating artwork in the background. Exception: {0}", ex.Message);
+                    Logger.Error(ex, "Unexpected error occurred while updating artwork in the background. Exception: {0}", ex.Message);
                 }
             });
 
             isIndexingArtistImages = false;
-            LogClient.Error("+++ FINISHED ADDING ARTWORK IN THE BACKGROUND. Time required: {0} ms +++", Convert.ToInt64(DateTime.Now.Subtract(startTime).TotalMilliseconds));
         }
 
 
 
-        public async Task RetrieveInfoAsync(bool onlyWhenHasNoCover)
+        public async Task RetrieveInfoAsync(bool rescanFailed, bool rescanAll)
         {
             canIndexAlbumImages = false;
+            canIndexArtistImages = false;
 
             // Wait until artwork indexing is stopped
-            while (isIndexingAlbumImages)
+            while (isIndexingAlbumImages || isIndexingArtistImages)
             {
                 await Task.Delay(100);
             }
 
-            //await trackRepository.EnableNeedsAlbumArtworkIndexingForAllTracksAsync(onlyWhenHasNoCover);
-
-            await RetrieveAlbumInfoAsync(true, false);
-            await RetrieveArtistInfoAsync(true, false);
-            //Task.WaitAll(albumInfo, artistInfo);
+            Task retrieveAlbumInfo = RetrieveAlbumInfoAsync(rescanFailed, rescanAll);
+            Task retrieveArtistInfo = RetrieveArtistInfoAsync(rescanFailed, rescanAll);
+            Task.WaitAll(retrieveAlbumInfo, retrieveArtistInfo);
 
         }
 

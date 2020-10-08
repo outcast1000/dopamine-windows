@@ -14,7 +14,7 @@ namespace Dopamine.Services.Indexing
 
         Task RefreshCollectionAsync(bool bForce, bool bReadTags);
 
-        Task RetrieveInfoAsync(bool onlyMissing);
+        Task RetrieveInfoAsync(bool rescanFailed, bool rescanAll);
 
         event EventHandler IndexingStarted;
 
