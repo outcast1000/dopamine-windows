@@ -112,7 +112,7 @@ namespace Dopamine.Data.Providers
                         byte[] bRes = client.DownloadData(uri);
                         if (bRes?.Length == 0)
                         {
-                            Logger.Info($"Artist Image Download failed. Artist: '{artist}'. URL: {uri.AbsolutePath}");
+                            Logger.Info($"Artist Image Download failed. Artist: '{artist}'. URL: {uri.AbsoluteUri}");
                             continue;
                         }
                         images.Add(bRes);
@@ -123,7 +123,7 @@ namespace Dopamine.Data.Providers
                     if (images.Count > 0)
                         data.Images = images.Select(x => new OriginatedData<Byte[]>() { Data = x, Origin = ProviderName }).ToArray();
                     else
-                        Logger.Info($"Artist Image not found. Artist: '{artist}'. Matches: {matches.Count}. URL: {uri.AbsolutePath}");
+                        Logger.Debug($"Artist Image not found. Artist: '{artist}'. Matches: {matches.Count}. URL: {uri.AbsoluteUri}");
 
                     //=== Find the tracks (5 most popular?)
                     // \[{\\"musicResponsiveListItemFlexColumnRenderer\\":{\\"text\\":{\\"runs\\":\[{\\"text\\":\\"(.*?)\\",
@@ -135,7 +135,7 @@ namespace Dopamine.Data.Providers
                     if (tracks.Count == 0)
                         data.Tracks = new OriginatedData<string[]>() { Data = tracks.ToArray(), Origin = ProviderName };
                     else
-                        Logger.Info($"Artist Tracks not found. Artist: '{artist}'. URL: {uri.AbsolutePath}");
+                        Logger.Debug($"Artist Tracks not found. Artist: '{artist}'. URL: {uri.AbsoluteUri}");
 
                     //=== ALEX TODO
                     // Find the Albums, Members, Genres

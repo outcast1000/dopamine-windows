@@ -59,6 +59,7 @@ using System.Windows.Shell;
 using System.Windows.Threading;
 using Dopamine.Data.Providers;
 using NLog;
+using System.Threading.Tasks;
 
 namespace Dopamine
 {
@@ -180,8 +181,11 @@ namespace Dopamine
             // We're not showing the OOBE screen, tell the IndexingService to start.
             if (!showOobe)
             {
-                Container.Resolve<IIndexingService>().RefreshCollectionAsync(false, false);
-            }
+                Task.Delay(10000).ContinueWith(task =>
+                {
+                    Container.Resolve<IIndexingService>().RefreshCollectionAsync(false, false);
+                });
+        }
         }
 
         protected void InitializeWcfServices()

@@ -99,7 +99,7 @@ namespace Dopamine.Data.Repositories
             try
             {
                 List<T> list = connection.Query<T>(sql, allParams.ToArray());
-                Logger.Trace($"Query ({++sQueryCounter}) {typeof(T).ToString()} {list.Count} records");
+                //Logger.Trace($"Query ({++sQueryCounter}) {typeof(T).ToString()} {list.Count} records");
                 return list;
             }
             catch (Exception ex)

@@ -91,6 +91,11 @@ namespace Dopamine.Services.Indexing
         {
             return (Added + Updated + Removed + ResurrectedFiles) > 0;
         }
+
+        override public string ToString()
+        {
+            return $"TotalChecked: {TotalChecked}, Checked: {Checked}, Added: {Added}, Updated: {Updated}, Removed: {Removed}, ResurrectedFiles: {ResurrectedFiles}, Failed: {Failed}";
+        }
     }
 
     public class TimeCounter
@@ -367,17 +372,19 @@ namespace Dopamine.Services.Indexing
 
         private UpdateStatistics RefreshCollection(FolderV folder, bool bReReadTags)
         {
-            Logger.Debug($"Refreshing: {folder.Path}");
+            Logger.Debug($"Refreshing... {folder.Path}");
             UpdateStatistics stats = new UpdateStatistics();
+            TimeCounter tcRefreshCollection = new TimeCounter();
             if (!SettingsClient.Get<bool>("Indexing", "IgnoreRemovedFiles"))
             {
                 //=== DELETE ALL THE FILES from the DB that have been deleted from the disk 
-                Logger.Debug("STEP: Removing deleted files");
+                Logger.Debug($"--> Removing files...");
                 stats.Removed = UpdateRemovedFiles(folder.Id);
+                Logger.Debug($"--> Removed files: {stats.Removed}");
             }
 
             //=== Add OR Update the files that on disk
-            Logger.Debug("STEP: Reading file system");
+            Logger.Debug("-->Reading file system...");
 
             FileOperations.GetFiles(folder.Path,
                 (path) =>
@@ -477,9 +484,10 @@ namespace Dopamine.Services.Indexing
                 },
                 (ex) =>
                 {
-                    Logger.Error(ex, "Updating Collection");
+                    Logger.Error(ex, $"Updating Collection {ex.Message}");
                 }
             );
+            Logger.Debug($"Refreshing collection finished in {tcRefreshCollection.GetMs(true)}. Stats: {stats}");
             return stats;
         }
 
@@ -567,7 +575,6 @@ namespace Dopamine.Services.Indexing
                     TimeCounter timerFolderUpdate = new TimeCounter();
                     UpdateStatistics folderStats = RefreshCollection(folder, bReReadTags);
                     totalStats.AddStatistics(folderStats);
-                    Logger.Debug($"RefreshCollectionAsync. Folder '{folder.Path}' checked in {timerFolderUpdate.GetMs(true)} ms");
                 }
 
 
@@ -614,10 +621,11 @@ namespace Dopamine.Services.Indexing
             canIndexAlbumImages = true;
             isIndexingAlbumImages = true;
 
-            DateTime startTime = DateTime.Now;
-
             await Task.Run(() =>
             {
+                Logger.Info("RetrieveAlbumInfoAsync starting");
+                TimeCounter timerTotal = new TimeCounter();
+
                 try
                 {
                     IList<AlbumV> albumsAdded = new List<AlbumV>();
@@ -633,7 +641,7 @@ namespace Dopamine.Services.Indexing
                         {
                             try
                             {
-                                Logger.Warn("+++ ABORTED ADDING ARTWORK IN THE BACKGROUND. Time required: {0} ms +++", Convert.ToInt64(DateTime.Now.Subtract(startTime).TotalMilliseconds));
+                                Logger.Warn("RetrieveAlbumInfoAsync. Aborting... Time required: {0} ms +++", timerTotal.GetMs(true));
                                 AlbumImagesAdded(this, new AlbumArtworkAddedEventArgs() { Albums = albumsAdded }); // Update UI
                             }
                             catch (Exception ex)
@@ -716,10 +724,11 @@ namespace Dopamine.Services.Indexing
                 {
                     Logger.Error(ex, "Unexpected error occurred while updating artwork in the background. Exception: {0}", ex.Message);
                 }
+                Logger.Info("RetrieveAlbumInfoAsync. Finished... Time required: {0} ms +++", timerTotal.GetMs(true));
+
             });
 
             isIndexingAlbumImages = false;
-            Logger.Error(ex, "+++ FINISHED ADDING ARTWORK IN THE BACKGROUND. Time required: {0} ms +++", Convert.ToInt64(DateTime.Now.Subtract(startTime).TotalMilliseconds));
         }
 
         private async Task RetrieveArtistInfoAsync(bool rescanFailed, bool rescanAll)
@@ -733,14 +742,13 @@ namespace Dopamine.Services.Indexing
                 Debug.Print("AddArtistImagesInBackgroundAsync [ALREADY IN]. Exiting...");
                 return;
             }
-            Logger.Info("RetrieveArtistInfoAsync starting");
             canIndexArtistImages = true;
             isIndexingArtistImages = true;
 
-            DateTime startTime = DateTime.Now;
-
             await Task.Run(() =>
             {
+                Logger.Info("RetrieveArtistInfoAsync starting");
+                TimeCounter timerTotal = new TimeCounter();
                 try
                 {
                     IList<ArtistV> artistsAdded = new List<ArtistV>();
@@ -757,7 +765,7 @@ namespace Dopamine.Services.Indexing
                         {
                             try
                             {
-                                Logger.Info("RetrieveArtistInfoAsync. Aborting ... Time required: {0} ms +++", Convert.ToInt64(DateTime.Now.Subtract(startTime).TotalMilliseconds));
+                                Logger.Info("RetrieveArtistInfoAsync. Aborting ... Time required: {0} ms +++", timerTotal.GetMs(true));
                                 ArtistImagesAdded(this, new ArtistImagesAddedEventArgs() { Artists = artistsAdded }); // Update UI
                             }
                             catch (Exception ex)
@@ -829,7 +837,7 @@ namespace Dopamine.Services.Indexing
                         IList<ArtistV> eventArgs = artistsAdded.Select(item => item).ToList();
                         ArtistImagesAdded(this, new ArtistImagesAddedEventArgs() { Artists = eventArgs }); // Update UI
                     }
-
+                    Logger.Info("RetrieveArtistInfoAsync. Finished Time required: {0} ms +++", timerTotal.GetMs(true));
                 }
                 catch (Exception ex)
                 {
