@@ -108,6 +108,9 @@ namespace Dopamine.Services.Entities
 
         public string GroupSubHeader => this.AlbumArtist;
 
+        public string GroupThumbnailSource => this.Data.Thumbnail;// @"C:\Users\Alex\AppData\Roaming\Dopamine\Debug\Cache\album-00-B1-45-5F-FF-52-98-57-87-03-B8-8C-5E-C8-40-C0-EE-7D-58-4D.jpg";
+
+
         public string GetAlbumArtist()
         {
             if (!string.IsNullOrEmpty(this.Data.AlbumArtists))

@@ -125,7 +125,8 @@ namespace Dopamine.Data.Repositories
 
         private string GetSQLTemplate()
         {
-            return @"SELECT DISTINCT t.id as Id, 
+            return @"
+SELECT DISTINCT t.id as Id, 
 GROUP_CONCAT(DISTINCT Artists.name) as Artists, 
 GROUP_CONCAT(DISTINCT Genres.name) as Genres, 
 GROUP_CONCAT(DISTINCT Albums.name) as AlbumTitle, 
@@ -152,7 +153,9 @@ t.love as Love,
 0 as PlayCount, 
 0 as SkipCount, 
 0 as DateLastPlayed,
-t.folder_id as FolderID
+t.folder_id as FolderID,
+COALESCE(MAX(AlbumImages.location), ArtistImages.location) as Thumbnail,
+AlbumImages.location as Thumbnail
 FROM Tracks t
 LEFT JOIN TrackArtists ON TrackArtists.track_id =t.id 
 LEFT JOIN Artists ON Artists.id =TrackArtists.artist_id  
@@ -163,6 +166,8 @@ LEFT JOIN Artists as Artists2 ON Artists2.id = ArtistCollectionsArtists.artist_i
 LEFT JOIN TrackGenres ON TrackGenres.track_id =t.id 
 LEFT JOIN Genres ON Genres.id = TrackGenres.genre_id  
 LEFT JOIN Folders ON Folders.id = t.folder_id
+LEFT JOIN AlbumImages ON Albums.id=AlbumImages.album_id
+LEFT JOIN ArtistImages ON Artists.id=ArtistImages.artist_id
 #WHERE#
 GROUP BY t.id
 #LIMIT#";

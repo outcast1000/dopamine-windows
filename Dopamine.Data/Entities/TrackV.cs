@@ -78,6 +78,8 @@ namespace Dopamine.Data.Entities
 
         public string Language { get; set; }
 
+        public string Thumbnail { get; set; }
+
         public static TrackV CreateDefault(string path)
         {
             var track = new TrackV()
