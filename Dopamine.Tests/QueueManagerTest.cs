@@ -25,9 +25,9 @@ namespace Dopamine.Tests
             for (int i = 0; i < 20; i++)
             {
                 if (i < 5)
-                    l1.Add(new TrackViewModel(null, null, new TrackV() { Id = i + 1, TrackTitle = "L1 - " + i.ToString()}));
+                    l1.Add(new TrackViewModel(null, null, null, new TrackV() { Id = i + 1, TrackTitle = "L1 - " + i.ToString()}));
                 if (i < 10)
-                    l2.Add(new TrackViewModel(null, null, new TrackV() { Id = i + 11, TrackTitle = "L2 - " + i.ToString() }));
+                    l2.Add(new TrackViewModel(null, null, null, new TrackV() { Id = i + 11, TrackTitle = "L2 - " + i.ToString() }));
             }
 
 

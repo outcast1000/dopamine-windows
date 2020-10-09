@@ -44,10 +44,6 @@ namespace Dopamine.Services.Entities
             get
             {
                 string info = "";
-                if (AlbumArtists.Equals(Artists))
-                    info += AlbumArtists;
-                else
-                    info += string.Format("{0} ({1})", AlbumArtists, Artists);
                 //info += string.Format("\n{0} tracks", data.TrackCount);
                 if (!data.MinYear.HasValue)
                 {
@@ -61,7 +57,20 @@ namespace Dopamine.Services.Entities
                     info += string.Format("\n{0}", data.Genres);
                 //info += string.Format("\n{0}", data.DateAdded);
                 //info += string.Format("\n{0}", data.DateFileCreated);
-                return info;
+                return info.Trim();
+            }
+        }
+
+        public string AlbumArtistComplete
+        {
+            get
+            {
+                string result = "";
+                if (AlbumArtists.Equals(Artists))
+                    result += AlbumArtists;
+                else
+                    result += string.Format("{0} ({1})", AlbumArtists, Artists);
+                return result;
             }
         }
 

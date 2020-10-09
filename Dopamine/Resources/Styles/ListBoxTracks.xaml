@@ -4,6 +4,7 @@
     xmlns:converters="clr-namespace:Dopamine.Converters"
     xmlns:utils="clr-namespace:Dopamine.Utils"
     xmlns:base="clr-namespace:Dopamine.Core.Base;assembly=Dopamine.Core"
+    xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
     xmlns:pc="clr-namespace:Dopamine.Controls">
 
     <converters:InvertingBooleanConverter x:Key="InvertingBooleanConverter" />
@@ -180,6 +181,22 @@
                                         Text="{Binding GroupSubHeader}"
                                         DataContext="{Binding Items}"
                                         Margin="10,0,10,10"
+                                        HorizontalAlignment="Stretch"
+                                        TextTrimming="CharacterEllipsis"
+                                        Foreground="{DynamicResource Brush_SecondaryText}" />
+                                    <!-- Bind to the parent context example
+                                    <TextBlock
+                                        Text="{Binding DataContext.AlbumInfo, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, diag:PresentationTraceSources.TraceLevel=High}"
+                                        Margin="10,0,10,10"
+                                        HorizontalAlignment="Stretch"
+                                        TextTrimming="CharacterEllipsis"
+                                        Foreground="{DynamicResource Brush_SecondaryText}" />
+                                    -->
+                                    <TextBlock
+                                        Text="{Binding GroupAlbumInfo}"
+                                        DataContext="{Binding Items}"
+                                        Margin="10,0,10,10"
+                                        VerticalAlignment="Top"
                                         HorizontalAlignment="Stretch"
                                         TextTrimming="CharacterEllipsis"
                                         Foreground="{DynamicResource Brush_SecondaryText}" />

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System;
 using Digimezzo.Foundation.Core.Logging;
 using System.Windows.Documents;
+using System.Diagnostics;
 
 namespace Dopamine.Data.Repositories
 {
@@ -53,6 +54,18 @@ namespace Dopamine.Data.Repositories
             QueryOptions qo = new QueryOptions();
             qo.extraWhereClause.Add("Genres.id in (" + string.Join(",", genreIds) + ")");
             return GetAlbumsInternal(qo);
+        }
+
+        public AlbumV GetAlbumOfTrackId(long trackId)
+        {
+            QueryOptions qo = new QueryOptions();
+            qo.extraWhereClause.Add("t.id=?");
+            qo.extraWhereParams.Add(trackId);
+            List<AlbumV> result = GetAlbumsInternal(qo);
+            if (result.Count == 0)
+                return null;
+            Debug.Assert(result.Count == 1);
+            return result[0];
         }
 
         private List<AlbumV> GetAlbumsInternal(QueryOptions queryOptions = null)

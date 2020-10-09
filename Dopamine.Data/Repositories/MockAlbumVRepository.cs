@@ -43,5 +43,10 @@ namespace Dopamine.Data.Repositories
         {
             throw new System.NotImplementedException();
         }
+        public AlbumV GetAlbumOfTrackId(long trackId)
+        {
+            throw new System.NotImplementedException();
+        }
+
     }
 }
