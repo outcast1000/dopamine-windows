@@ -1,10 +1,13 @@
-﻿using System;
+﻿using Dopamine.Data.Entities;
+using System;
 using System.Threading.Tasks;
 
 namespace Dopamine.Services.Indexing
 {
-    public delegate void AlbumImagesAddedEventHandler(object sender, AlbumArtworkAddedEventArgs e);
-    public delegate void ArtistImagesAddedEventHandler(object sender, ArtistImagesAddedEventArgs e);
+
+    public delegate void AlbumInfoDownloaded(AlbumV requestedAlbum, bool success);
+    public delegate void ArtistInfoDownloaded(ArtistV requestedArtist, bool success);
+
 
     public interface IIndexingService
     {
@@ -20,13 +23,20 @@ namespace Dopamine.Services.Indexing
 
         event EventHandler IndexingStopped;
 
+
         event Action<IndexingStatusEventArgs> IndexingStatusChanged;
 
         event EventHandler RefreshLists;
 
-        event AlbumImagesAddedEventHandler AlbumImagesAdded;
 
-        event ArtistImagesAddedEventHandler ArtistImagesAdded;
+
+        event AlbumInfoDownloaded AlbumInfoDownloaded;
+        event ArtistInfoDownloaded ArtistInfoDownloaded;
+
+
+        Task<bool> RequestArtistInfoAsync(ArtistV artist, bool bIgnorePreviousFailures, bool bForce);
+        Task<bool> RequestAlbumInfoAsync(AlbumV album, bool bIgnorePreviousFailures, bool bForce);
+            
 
         void TriggerRefreshLists();
     }

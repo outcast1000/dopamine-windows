@@ -325,7 +325,7 @@ namespace Dopamine.Data
                 Logger.Debug("CreateTablesAndIndexes: START DATA MIGRATION");
 
                 conn.BeginTransaction();
-                SQLiteImageRepository imageRepository = new SQLiteImageRepository(null);
+                SQLiteInfoRepository imageRepository = new SQLiteInfoRepository(null);
                 imageRepository.SetSQLiteConnection(conn);
                 using (SQLiteUpdateCollectionUnitOfWork uc = new SQLiteUpdateCollectionUnitOfWork(conn, true))
                 {

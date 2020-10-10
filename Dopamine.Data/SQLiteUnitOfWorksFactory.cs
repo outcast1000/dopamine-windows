@@ -1,4 +1,5 @@
-﻿using Dopamine.Data.UnitOfWorks;
+﻿using Dopamine.Data.Entities;
+using Dopamine.Data.UnitOfWorks;
 using SQLite;
 
 namespace Dopamine.Data
@@ -35,5 +36,6 @@ namespace Dopamine.Data
         {
             return new SQLiteUpdateFolderUnitOfWork(sQLiteConnectionFactory.GetConnection());
         }
+
     }
 }

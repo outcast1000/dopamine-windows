@@ -81,11 +81,16 @@ namespace Dopamine.Data.UnitOfWorks
         //      bIsPrimary: If another images is primary it will be deleted. There should be only one primary image
         // return false on error
         bool SetAlbumImage(AlbumImage image, bool replaceIfExists);
+        bool SetAlbumImageFailed(AlbumV album);
 
         bool RemoveAlbumImage(long album_id);
 
 
         bool SetArtistImage(ArtistImage image, bool replaceIfExists);
+        bool SetArtistImageFailed(ArtistV artist);
+        bool ClearArtistImageFailed(ArtistV artist);
+        bool HasArtistImageFailed(ArtistV artist);
+
 
         bool RemoveArtistImage(long artist_id);
 
@@ -94,6 +99,9 @@ namespace Dopamine.Data.UnitOfWorks
 
         bool SetArtistBiography(ArtistBiography artistBiography);
         bool SetAlbumReview(AlbumReview albumReview);
+        bool ClearAlbumImageFailed(AlbumV album);
+        bool HasAlbumImageFailed(AlbumV album);
+
 
 
 

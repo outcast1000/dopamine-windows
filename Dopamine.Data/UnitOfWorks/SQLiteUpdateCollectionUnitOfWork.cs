@@ -20,7 +20,7 @@ namespace Dopamine.Data.UnitOfWorks
 
         private SQLiteConnection conn;
         private SQLiteTrackVRepository sQLiteTrackVRepository;
-        private SQLiteImageRepository sQLiteImageRepository;
+        private SQLiteInfoRepository sQLiteImageRepository;
         private bool bSharedConnection;
         public SQLiteUpdateCollectionUnitOfWork(SQLiteConnection conn, bool bSharedConnection)
         {
@@ -29,7 +29,7 @@ namespace Dopamine.Data.UnitOfWorks
             if (!bSharedConnection)
                 this.conn.BeginTransaction();
             sQLiteTrackVRepository = new SQLiteTrackVRepository(null);
-            sQLiteImageRepository = new SQLiteImageRepository(null);
+            sQLiteImageRepository = new SQLiteInfoRepository(null);
             sQLiteTrackVRepository.SetSQLiteConnection(conn);
             sQLiteImageRepository.SetSQLiteConnection(conn);
 
@@ -572,6 +572,45 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
                 Logger.Error(ex, "SetAlbumReview");
             }
             return false;
+        }
+
+        public bool SetAlbumImageFailed(AlbumV album)
+        {
+            return conn.InsertOrReplace(new AlbumImageFailed()
+            {
+                AlbumId = album.Id,
+                DateAdded = DateTime.Now.Ticks
+            }) > 0;
+        }
+        public bool SetArtistImageFailed(ArtistV artist)
+        {
+            return conn.InsertOrReplace(new ArtistImageFailed()
+            {
+                ArtistId = artist.Id,
+                DateAdded = DateTime.Now.Ticks
+            }) > 0;
+        }
+
+        public bool HasArtistImageFailed(ArtistV artist)
+        {
+            List<long> ids = conn.Query<long>("SELECT artist_id from ArtistImageFailed WHERE artist_id=?", artist.Id);
+            return !ids.IsNullOrEmpty();
+        }
+
+        public bool HasAlbumImageFailed(AlbumV album)
+        {
+            List<long> ids = conn.Query<long>("SELECT album_id from AlbumImageFailed WHERE album_id=?", album.Id);
+            return !ids.IsNullOrEmpty();
+        }
+
+
+        public bool ClearAlbumImageFailed(AlbumV album)
+        {
+            return conn.Execute("DELETE FROM AlbumImageFailed WHERE album_id=?", album.Id) > 0;
+        }
+        public bool ClearArtistImageFailed(ArtistV artist)
+        {
+            return conn.Execute("DELETE FROM ArtistImageFailed WHERE artist_id=?", artist.Id) > 0;
         }
 
 

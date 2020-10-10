@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Dopamine.Data.Providers
@@ -31,31 +32,39 @@ namespace Dopamine.Data.Providers
                 data.result = InfoProviderResult.Fail_Generic;
                 return data;
             }
+            album = album.Trim();
+            HashSet<string> albumAlternatives = new HashSet<String>();
+            albumAlternatives.Add(album);
+            albumAlternatives.Add(Regex.Replace(album, @"\(.*\)", "").Trim());
 
-            foreach (string artist in artists)
+            foreach (string albumAlt in albumAlternatives)
             {
-                LastFmAlbum lfmAlbum = LastfmApi.AlbumGetInfo(artist, album, false, "EN").Result;
-
-                if (!string.IsNullOrEmpty(lfmAlbum.LargestImage()))
+                foreach (string artist in artists)
                 {
-                    try
+                    LastFmAlbum lfmAlbum = LastfmApi.AlbumGetInfo(artist, albumAlt, false, "EN").Result;
+
+                    if (!string.IsNullOrEmpty(lfmAlbum.LargestImage()))
                     {
-                        var uri = new Uri(lfmAlbum.LargestImage());
-                        using (var client = _internetDownloaderCreator.create())
+                        try
                         {
-                            data.Images = new OriginatedData<byte[]>[] { new OriginatedData<byte[]>() { Data = client.DownloadData(uri), Origin = ProviderName } };
-                            data.result = InfoProviderResult.Success;
+                            var uri = new Uri(lfmAlbum.LargestImage());
+                            using (var client = _internetDownloaderCreator.create())
+                            {
+                                data.Images = new OriginatedData<byte[]>[] { new OriginatedData<byte[]>() { Data = client.DownloadData(uri), Origin = ProviderName } };
+                                data.result = InfoProviderResult.Success;
+                                return data;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.Print("Could not download file to temporary cache. Exception: {0}", ex.Message);
+                            data.result = InfoProviderResult.Fail_InternetFailed;
                             return data;
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        Debug.Print("Could not download file to temporary cache. Exception: {0}", ex.Message);
-                        data.result = InfoProviderResult.Fail_InternetFailed;
-                        return data;
-                    }
                 }
             }
+
             data.result = InfoProviderResult.Fail_Generic;
             return data;
         }

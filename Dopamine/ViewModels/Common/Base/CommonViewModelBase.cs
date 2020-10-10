@@ -138,8 +138,9 @@ namespace Dopamine.ViewModels.Common.Base
             this.searchService.DoSearch += (searchText) => this.FilterLists(searchText);
             this.metadataService.RatingChanged += MetadataService_RatingChangedAsync;
             this.metadataService.LoveChanged += MetadataService_LoveChangedAsync;
-            this.indexingService.AlbumImagesAdded += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when the indexer has finished indexing
-            this.indexingService.ArtistImagesAdded += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when the indexer has finished indexing
+            //=== ALEX TODO. CHECK IF WE NEED THIS SOMEHOW AFTER THE REFACTORING WHICH ASKS THE Images ON demand
+            //this.indexingService.AlbumImagesAdded += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when the indexer has finished indexing
+            //this.indexingService.ArtistImagesAdded += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when the indexer has finished indexing
 
 
             // Flags

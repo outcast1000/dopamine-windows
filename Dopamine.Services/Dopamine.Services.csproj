@@ -179,6 +179,8 @@
     <Compile Include="I18n\II18nService.cs" />
     <Compile Include="I18n\Language.cs" />
     <Compile Include="Indexing\AlbumArtworkAddedEventArgs.cs" />
+    <Compile Include="Indexing\ArtistInfoIndexingQueue.cs" />
+    <Compile Include="Indexing\AlbumInfoIndexingQueue.cs" />
     <Compile Include="Indexing\Enums.cs" />
     <Compile Include="Indexing\FolderWatcherManager.cs" />
     <Compile Include="Indexing\IIndexingService.cs" />

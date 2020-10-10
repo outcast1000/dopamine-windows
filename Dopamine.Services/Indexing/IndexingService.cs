@@ -132,15 +132,16 @@ namespace Dopamine.Services.Indexing
         private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         // Services
         private IInfoDownloadService infoDownloadService;
+        private AlbumInfoIndexingQueue _albumInfoIndexingQueue;
+        private ArtistInfoIndexingQueue _artistInfoIndexingQueue;
+
 
         // Repositories
         private ITrackVRepository trackVRepository;
         private IAlbumVRepository albumVRepository;
         private IArtistVRepository artistVRepository;
-        //private IAlbumImageRepository albumArtworkRepository;
         private IFolderVRepository folderVRepository;
-        //private IAlbumImageRepository albumImageRepository;
-        private IImageRepository imageRepository;
+        private IInfoRepository infoRepository;
 
         // Factories
         private ISQLiteConnectionFactory sQLiteConnectionFactory;
@@ -155,10 +156,6 @@ namespace Dopamine.Services.Indexing
 
         // Flags
         private bool isIndexingFiles;
-        private bool canIndexAlbumImages;
-        private bool isIndexingAlbumImages = false;
-        private bool canIndexArtistImages;
-        private bool isIndexingArtistImages = false;
 
         // Events
         public event EventHandler IndexingStopped = delegate { };
@@ -166,8 +163,8 @@ namespace Dopamine.Services.Indexing
         public event Action<IndexingStatusEventArgs> IndexingStatusChanged = delegate { };
         public event EventHandler RefreshLists = delegate { };
         public event EventHandler RefreshArtwork = delegate { };
-        public event AlbumImagesAddedEventHandler AlbumImagesAdded = delegate { };
-        public event ArtistImagesAddedEventHandler ArtistImagesAdded = delegate { };
+        //public event AlbumImagesAddedEventHandler AlbumImagesAdded = delegate { };
+        //public event ArtistImagesAddedEventHandler ArtistImagesAdded = delegate { };
 
         private bool _shouldCancelIndexing = false;
 
@@ -178,7 +175,7 @@ namespace Dopamine.Services.Indexing
 
         public IndexingService(ISQLiteConnectionFactory sQLiteConnectionFactory, IInfoDownloadService infoDownloadService,
             ITrackVRepository trackVRepository, IFolderVRepository folderVRepository, IAlbumVRepository albumVRepository,
-            IUnitOfWorksFactory unitOfWorksFactory, IImageRepository imageRepository, IArtistVRepository artistVRepository, 
+            IUnitOfWorksFactory unitOfWorksFactory, IInfoRepository infoRepository, IArtistVRepository artistVRepository, 
             IInfoProviderFactory infoProviderFactory, IFileStorage fileStorage)
         {
             this.infoDownloadService = infoDownloadService;
@@ -188,9 +185,13 @@ namespace Dopamine.Services.Indexing
             this.folderVRepository = folderVRepository;
             this.sQLiteConnectionFactory = sQLiteConnectionFactory;
             this.unitOfWorksFactory = unitOfWorksFactory;
-            this.imageRepository = imageRepository;
+            this.infoRepository = infoRepository;
             this.infoProviderFactory = infoProviderFactory;
             this.fileStorage = fileStorage;
+            _albumInfoIndexingQueue = new AlbumInfoIndexingQueue(infoProviderFactory.GetAlbumInfoProvider());
+            _artistInfoIndexingQueue = new ArtistInfoIndexingQueue(infoProviderFactory.GetArtistInfoProvider());
+            _albumInfoIndexingQueue.InfoDownloaded += _albumInfoIndexingQueue_InfoDownloaded;
+            _artistInfoIndexingQueue.InfoDownloaded += _artistInfoIndexingQueue_InfoDownloaded;
 
             watcherManager = new FolderWatcherManager(folderVRepository);
 
@@ -198,6 +199,75 @@ namespace Dopamine.Services.Indexing
             watcherManager.FoldersChanged += WatcherManager_FoldersChanged;
 
             isIndexingFiles = false;
+        }
+
+        private void _artistInfoIndexingQueue_InfoDownloaded(ArtistV requestedArtist, ArtistInfoProviderData data)
+        {
+            // Note: This runs on its ProcessQueued Thread (not on the main thread
+            bool bImageAdded = false;
+            if (data.result == InfoProviderResult.Success)
+            {
+                if (data.Images?.Length > 0)
+                {
+                    string cacheId = fileStorage.SaveImageToCache(data.Images[0].Data, FileStorageItemType.Artist);
+                    infoRepository.SetArtistImage(new ArtistImage()
+                    {
+                        ArtistId = requestedArtist.Id,
+                        DateAdded = DateTime.Now.Ticks,
+                        Location = cacheId,
+                        Source = data.Images[0].Origin
+                    });
+                    bImageAdded = true;
+                }
+                if (data.Biography?.Data?.Length > 0)
+                {
+                    infoRepository.SetArtistBiography(new ArtistBiography()
+                    {
+                        ArtistId = requestedArtist.Id,
+                        DateAdded = DateTime.Now.Ticks,
+                        Biography = data.Biography.Data,
+                        Source = data.Biography.Origin
+                    });
+                }
+
+            }
+            if (!bImageAdded && data.result != InfoProviderResult.Fail_InternetFailed)
+                infoRepository.SetArtistImageFailed(requestedArtist);
+            ArtistInfoDownloaded?.Invoke(requestedArtist, data.result == InfoProviderResult.Success);
+        }
+
+        private void _albumInfoIndexingQueue_InfoDownloaded(AlbumV requestedAlbum, AlbumInfoProviderData data)
+        {
+            // Note: This runs on its ProcessQueued Thread (not on the main thread
+            bool bImageAdded = false;
+            if (data.result == InfoProviderResult.Success)
+            {
+                if (data.Images?.Length > 0)
+                {
+                    string cacheId = fileStorage.SaveImageToCache(data.Images[0].Data, FileStorageItemType.Album);
+                    infoRepository.SetAlbumImage(new AlbumImage()
+                    {
+                        AlbumId = requestedAlbum.Id,
+                        DateAdded = DateTime.Now.Ticks,
+                        Location = cacheId,
+                        Source = data.Images[0].Origin
+                    });
+                    bImageAdded = true;
+                }
+                if (data?.Review?.Data?.Length > 0)
+                {
+                    infoRepository.SetAlbumReview(new AlbumReview()
+                    {
+                        AlbumId = requestedAlbum.Id,
+                        DateAdded = DateTime.Now.Ticks,
+                        Review = data.Review.Data,
+                        Source = data.Review.Origin
+                    });
+                }
+            }
+            if (!bImageAdded && data.result != InfoProviderResult.Fail_InternetFailed)
+                infoRepository.SetAlbumImageFailed(requestedAlbum);
+            AlbumInfoDownloaded?.Invoke(requestedAlbum, data.result == InfoProviderResult.Success);
         }
 
         private async void SettingsClient_SettingChanged(object sender, Digimezzo.Foundation.Core.Settings.SettingChangedEventArgs e)
@@ -319,7 +389,7 @@ namespace Dopamine.Services.Indexing
             if (!(fileMetadata.ArtworkData?.Value?.Length > 0))
                 return false; //=== TAG does not have embedded image. Exit.
 
-            AlbumImage albumImage = imageRepository.GetAlbumImage(albumId);
+            AlbumImage albumImage = infoRepository.GetAlbumImage(albumId);
             if (albumImage != null)
                 return false; //=== This album has already an image
             string location = fileStorage.SaveImageToCache(fileMetadata.ArtworkData.Value, FileStorageItemType.Album);
@@ -504,7 +574,7 @@ namespace Dopamine.Services.Indexing
         {
             //=== CLEAN UP Images from cache that is not included in the DB
             long imageDeletions = 0;
-            IList<string> images = imageRepository.GetAllImagePaths();
+            IList<string> images = infoRepository.GetAllImagePaths();
             if (!ListExtensions.IsNullOrEmpty(images))
             {
                 HashSet<string> imagePaths = new HashSet<string>(images.Select(x => Path.GetFileNameWithoutExtension(fileStorage.GetRealPath(x))).ToList());
@@ -556,12 +626,6 @@ namespace Dopamine.Services.Indexing
                 return;
             }
             isIndexingFiles = true;
-            canIndexAlbumImages = false;
-            // Wait until artwork indexing is stopped
-            while (isIndexingAlbumImages)
-            {
-                await Task.Delay(100);
-            }
             await watcherManager.StopWatchingAsync();
             IndexingStarted(this, new EventArgs());
             await Task.Run(async () =>
@@ -595,7 +659,7 @@ namespace Dopamine.Services.Indexing
                     await watcherManager.StartWatchingAsync();
                 }
 
-                await RetrieveInfoAsync(false, false);
+                //await RetrieveInfoAsync(false, false);
             });
         }
 
@@ -605,239 +669,45 @@ namespace Dopamine.Services.Indexing
             await RefreshCollectionAsync(false, false);
         }
 
+        
+
         private async Task RetrieveAlbumInfoAsync(bool rescanFailed, bool rescanAll)
         {
             Logger.Debug($"RetrieveAlbumInfoAsync rescanFailed:{rescanFailed} rescanAll:{rescanAll}");
-            if (!SettingsClient.Get<bool>("Covers", "DownloadMissingAlbumCovers"))
-            {
-                Logger.Debug("EXITING: DownloadMissingAlbumCovers is false.");
-                return;
-            }
-            if (isIndexingAlbumImages)
-            {
-                Logger.Debug("EXITING: RetrieveAlbumInfoAsync [ALREADY IN]");
-                return;
-            }
-            canIndexAlbumImages = true;
-            isIndexingAlbumImages = true;
-
             await Task.Run(() =>
             {
-                Logger.Info("RetrieveAlbumInfoAsync starting");
-                TimeCounter timerTotal = new TimeCounter();
-
                 try
                 {
                     IList<AlbumV> albumsAdded = new List<AlbumV>();
                     IList<AlbumV> albumDatasToIndex = rescanAll ? albumVRepository.GetAlbums() : albumVRepository.GetAlbumsWithoutImages(rescanFailed);
                     IAlbumInfoProvider aip = infoProviderFactory.GetAlbumInfoProvider();
-
-                    foreach (AlbumV albumDataToIndex in albumDatasToIndex)
+                    foreach (AlbumV album in albumDatasToIndex)
                     {
-                        if (string.IsNullOrEmpty(albumDataToIndex.Name))
-                            continue;
-                        // Check if we must cancel artwork indexing
-                        if (!canIndexAlbumImages)
-                        {
-                            try
-                            {
-                                Logger.Warn("RetrieveAlbumInfoAsync. Aborting... Time required: {0} ms +++", timerTotal.GetMs(true));
-                                AlbumImagesAdded(this, new AlbumArtworkAddedEventArgs() { Albums = albumsAdded }); // Update UI
-                            }
-                            catch (Exception ex)
-                            {
-                                Logger.Error(ex, "Failed to commit changes while aborting adding artwork in background.");
-                            }
-
-                            isIndexingAlbumImages = false;
-
-                            return;
-                        }
-
-                        if (rescanFailed || rescanAll)
-                        {
-                            using (var conn = this.sQLiteConnectionFactory.GetConnection())
-                            {
-                                conn.Execute("DELETE FROM AlbumImageFailed WHERE album_id=?", albumDataToIndex.Id);
-                            }
-
-                        }
-
-                        Logger.Debug($"RetrieveAlbumInfoAsync: Downloading Album Image for {albumDataToIndex.Name} - {albumDataToIndex.AlbumArtists}");
-                        bool bImageAdded = false;
-                        AlbumInfoProviderData data = aip.Get(albumDataToIndex.Name, string.IsNullOrEmpty(albumDataToIndex.AlbumArtists) ? null : DataUtils.SplitAndTrimColumnMultiValue(albumDataToIndex.AlbumArtists).ToArray());
-                        if (data.result == InfoProviderResult.Success)
-                        {
-                            using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
-                            {
-                                if (data?.Images?.Length > 0)
-                                {
-                                    string cacheId = fileStorage.SaveImageToCache(data.Images[0].Data, FileStorageItemType.Album);
-                                    uc.SetAlbumImage(new AlbumImage()
-                                    {
-                                        AlbumId = albumDataToIndex.Id,
-                                        DateAdded = DateTime.Now.Ticks,
-                                        Location = cacheId,
-                                        Source = data.Images[0].Origin
-                                    }, true);
-                                    albumsAdded.Add(albumDataToIndex);
-                                    bImageAdded = true;
-                                }
-                                if (data?.Review?.Data?.Length > 0)
-                                {
-                                    uc.SetAlbumReview(new AlbumReview()
-                                    {
-                                        AlbumId = albumDataToIndex.Id,
-                                        DateAdded = DateTime.Now.Ticks,
-                                        Review = data.Review.Data,
-                                        Source = data.Review.Origin
-                                    });
-                                }
-                            }
-                        }
-
-                        if (!bImageAdded && data.result != InfoProviderResult.Fail_InternetFailed)
-                        {
-                            using (var conn = this.sQLiteConnectionFactory.GetConnection())
-                            {
-                                conn.Insert(new AlbumImageFailed()
-                                {
-                                    AlbumId = albumDataToIndex.Id,
-                                    DateAdded = DateTime.Now.Ticks
-                                });
-                            }
-                        }
-                        if (bImageAdded)
-                            OnCollectionImageChanged();
-
+                        _albumInfoIndexingQueue.Enqueue(new AlbumInfoIndexingQueueJob() { Album = album });
                     }
-                    if (albumsAdded.Count > 0)
-                    {
-
-                        IList<AlbumV> eventArgs = albumsAdded.Select(item => item).ToList();
-                        albumsAdded.Clear();
-                        AlbumImagesAdded(this, new AlbumArtworkAddedEventArgs() { Albums = eventArgs }); // Update UI
-                    }
-
                 }
                 catch (Exception ex)
                 {
                     Logger.Error(ex, "Unexpected error occurred while updating artwork in the background. Exception: {0}", ex.Message);
                 }
-                Logger.Info("RetrieveAlbumInfoAsync. Finished... Time required: {0} ms +++", timerTotal.GetMs(true));
-
             });
-
-            isIndexingAlbumImages = false;
         }
 
         private async Task RetrieveArtistInfoAsync(bool rescanFailed, bool rescanAll)
         {
-            //=== ALEX TODO
-            //if (!SettingsClient.Get<bool>("Covers", "DownloadMissingAlbumCovers"))
-            //    Debug.Print("DownloadMissingAlbumCovers is false.");
-            //=== ALEX TODO END
-            if (isIndexingArtistImages)
-            {
-                Debug.Print("AddArtistImagesInBackgroundAsync [ALREADY IN]. Exiting...");
-                return;
-            }
-            canIndexArtistImages = true;
-            isIndexingArtistImages = true;
-
+            Logger.Debug($"RetrieveArtistInfoAsync rescanFailed:{rescanFailed} rescanAll:{rescanAll}");
             await Task.Run(() =>
             {
-                Logger.Info("RetrieveArtistInfoAsync starting");
                 TimeCounter timerTotal = new TimeCounter();
                 try
                 {
                     IList<ArtistV> artistsAdded = new List<ArtistV>();
                     IList<ArtistV> artistsToIndex = rescanAll ? artistVRepository.GetArtists() : artistVRepository.GetArtistsWithoutImages(rescanFailed);
                     IArtistInfoProvider ip = infoProviderFactory.GetArtistInfoProvider();
-
                     foreach (ArtistV artist in artistsToIndex)
                     {
-                        if (string.IsNullOrEmpty(artist.Name))
-                            continue;
-                        Logger.Debug($"RetrieveArtistInfoAsync. Getting {artist.Name}");
-                        // Check if we must cancel artwork indexing
-                        if (!canIndexArtistImages)
-                        {
-                            try
-                            {
-                                Logger.Info("RetrieveArtistInfoAsync. Aborting ... Time required: {0} ms +++", timerTotal.GetMs(true));
-                                ArtistImagesAdded(this, new ArtistImagesAddedEventArgs() { Artists = artistsAdded }); // Update UI
-                            }
-                            catch (Exception ex)
-                            {
-                                Logger.Error(ex, "Failed to commit changes while aborting adding artwork in background.");
-                            }
-
-                            isIndexingAlbumImages = false;
-
-                            return;
-                        }
-
-
-                        using (var conn = this.sQLiteConnectionFactory.GetConnection())
-                        {
-                            conn.Execute("DELETE FROM ArtistImageFailed WHERE artist_id=?", artist.Id);
-                        }
-
-                        bool bImageAdded = false;
-                        ArtistInfoProviderData data = ip.Get(artist.Name);
-                        if (data.result == InfoProviderResult.Success)
-                        {
-                            using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
-                            {
-                                if (data.Images?.Length > 0)
-                                {
-                                    string cacheId = fileStorage.SaveImageToCache(data.Images[0].Data, FileStorageItemType.Artist);
-                                    uc.SetArtistImage(new ArtistImage()
-                                    {
-                                        ArtistId = artist.Id,
-                                        DateAdded = DateTime.Now.Ticks,
-                                        Location = cacheId,
-                                        Source = data.Images[0].Origin
-                                    }, true);// albumDataToIndex.Id, "cache://" + albumImageName, len, sourceHash, providerName, false);
-                                    artistsAdded.Add(artist);
-                                    bImageAdded = true;
-                                }
-                                if (data.Biography != null)
-                                {
-                                    uc.SetArtistBiography(new ArtistBiography()
-                                    {
-                                        ArtistId = artist.Id,
-                                        DateAdded = DateTime.Now.Ticks,
-                                        Biography = data.Biography.Data,
-                                        Source = data.Biography.Origin
-                                    });// albumDataToIndex.Id, "cache://" + albumImageName, len, sourceHash, providerName, false);
-                                }
-
-                            }
-                        }
-
-                        if (!bImageAdded && data.result != InfoProviderResult.Fail_InternetFailed)
-                        {
-                            using (var conn = this.sQLiteConnectionFactory.GetConnection())
-                            {
-                                conn.Insert(new ArtistImageFailed()
-                                {
-                                    ArtistId = artist.Id,
-                                    DateAdded = DateTime.Now.Ticks
-                                });
-                            }
-                        }
-                        if (bImageAdded)
-                            OnCollectionImageChanged();
-
+                        _artistInfoIndexingQueue.Enqueue(new ArtistInfoIndexingQueueJob() { Artist = artist });
                     }
-                    if (artistsAdded.Count > 0)
-                    {
-                        IList<ArtistV> eventArgs = artistsAdded.Select(item => item).ToList();
-                        ArtistImagesAdded(this, new ArtistImagesAddedEventArgs() { Artists = eventArgs }); // Update UI
-                    }
-                    Logger.Info("RetrieveArtistInfoAsync. Finished Time required: {0} ms +++", timerTotal.GetMs(true));
                 }
                 catch (Exception ex)
                 {
@@ -845,26 +715,86 @@ namespace Dopamine.Services.Indexing
                 }
             });
 
-            isIndexingArtistImages = false;
         }
 
 
 
         public async Task RetrieveInfoAsync(bool rescanFailed, bool rescanAll)
         {
-            canIndexAlbumImages = false;
-            canIndexArtistImages = false;
-
-            // Wait until artwork indexing is stopped
-            while (isIndexingAlbumImages || isIndexingArtistImages)
-            {
-                await Task.Delay(100);
-            }
-
+            // ALEX TODO. Check if there is a need to keep this function. In any case the lists must be updated when this ends
             Task retrieveAlbumInfo = RetrieveAlbumInfoAsync(rescanFailed, rescanAll);
             Task retrieveArtistInfo = RetrieveArtistInfoAsync(rescanFailed, rescanAll);
             Task.WaitAll(retrieveAlbumInfo, retrieveArtistInfo);
 
+        }
+
+
+        //=== NEW
+
+        public event AlbumInfoDownloaded AlbumInfoDownloaded;
+        public event ArtistInfoDownloaded ArtistInfoDownloaded;
+
+        public async Task<bool> RequestArtistInfoAsync(ArtistV artist, bool bIgnorePreviousFailures, bool bForce)
+        {
+            if (string.IsNullOrEmpty(artist.Name))
+            {
+                Logger.Warn("RequestArtistInfoAsync. Name is empty. Exiting");
+                return false;
+            }
+            if (artist.ArtistImage != null && !bForce)
+            {
+                Logger.Warn("RequestArtistInfoAsync. Image Already Present. Exiting");
+                return false;
+            }
+            bool bRet = true;
+            await Task.Run(() =>
+            {
+                if (bIgnorePreviousFailures || bForce)
+                    infoRepository.ClearArtistImageFailed(artist);
+                if (!bIgnorePreviousFailures)
+                {
+                    if (infoRepository.HasArtistImageFailed(artist))
+                    {
+                        Logger.Warn("RequestArtistInfoAsync. Image has already failed once. Exiting");
+                        bRet = false;
+                        return;
+                    }
+                }
+                _artistInfoIndexingQueue.Enqueue(new ArtistInfoIndexingQueueJob() { Artist = artist });
+            });
+            return bRet;
+
+        }
+
+        public async Task<bool> RequestAlbumInfoAsync(AlbumV album, bool bIgnorePreviousFailures, bool bForce)
+        {
+            if (string.IsNullOrEmpty(album.Name))
+            {
+                Logger.Warn("RequestAlbumInfoAsync. Name is empty. Exiting");
+                return false;
+            }
+            if (album.Thumbnail != null && !bForce)
+            {
+                Logger.Warn("RequestAlbumInfo. Image Already Present. Exiting");
+                return false;
+            }
+            bool bRet = true;
+            await Task.Run(() =>
+            {
+                if (bIgnorePreviousFailures || bForce)
+                    infoRepository.ClearAlbumImageFailed(album);
+                if (!bIgnorePreviousFailures)
+                {
+                    if (infoRepository.HasAlbumImageFailed(album))
+                    {
+                        Logger.Info("RequestAlbumInfo. Image has already failed once. Exiting");
+                        bRet = false;
+                        return;
+                    }
+                }
+                _albumInfoIndexingQueue.Enqueue(new AlbumInfoIndexingQueueJob() { Album = album });
+            });
+            return bRet;
         }
 
     }

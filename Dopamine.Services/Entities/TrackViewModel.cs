@@ -5,6 +5,7 @@ using Dopamine.Core.Utils;
 using Dopamine.Data;
 using Dopamine.Data.Entities;
 using Dopamine.Data.Repositories;
+using Dopamine.Services.Indexing;
 using Dopamine.Services.Metadata;
 using Dopamine.Services.Scrobbling;
 using NLog.Fluent;
@@ -21,6 +22,7 @@ namespace Dopamine.Services.Entities
         private IMetadataService metadataService;
         private IScrobblingService scrobblingService;
         private IAlbumVRepository albumVRepository;
+        private IIndexingService indexingService;
         private bool isPlaying;
         private bool isPaused;
         private bool showTrackNumber;
@@ -28,12 +30,13 @@ namespace Dopamine.Services.Entities
         private string _groupAlbumInfo;
 
         public TrackViewModel() { }
-        public TrackViewModel(IMetadataService metadataService, IScrobblingService scrobblingService, IAlbumVRepository albumVRepository, TrackV track)
+        public TrackViewModel(IMetadataService metadataService, IScrobblingService scrobblingService, IAlbumVRepository albumVRepository, IIndexingService indexingService, TrackV track)
         {
             this.metadataService = metadataService;
             this.scrobblingService = scrobblingService;
             this.Data = track;
             this.albumVRepository = albumVRepository;
+            this.indexingService = indexingService;
         }
 
         public string PlaylistEntry { get; set; }
@@ -116,7 +119,19 @@ namespace Dopamine.Services.Entities
 
         public string GroupSubHeader => this.AlbumArtist;
 
-        public string GroupThumbnailSource => this.Data.Thumbnail;// @"C:\Users\Alex\AppData\Roaming\Dopamine\Debug\Cache\album-00-B1-45-5F-FF-52-98-57-87-03-B8-8C-5E-C8-40-C0-EE-7D-58-4D.jpg";
+        public string GroupThumbnailSource
+        {
+            get
+            {
+                if (albumViewModel == null)
+                {
+                    GetAlbumViewModel();
+                    return null;
+                }
+                return _albumThumbnail;
+            }
+            set { SetProperty<string>(ref _albumThumbnail, value); }
+        }
 
         public string GroupAlbumInfo
         {
@@ -124,19 +139,25 @@ namespace Dopamine.Services.Entities
             {
                 if (_groupAlbumInfo == null)
                 {
-                    GetAlbumInfo();
+                    GetAlbumViewModel();
                     return "...";
                 }
                 return _groupAlbumInfo;
             }
             set { SetProperty<string>(ref _groupAlbumInfo, value); }
         }
-
-        private async Task GetAlbumInfo()
+        private string _albumViewModelRequested = "";
+        private string _albumThumbnail;
+        private async Task GetAlbumViewModel()
         {
-            //=== ALEX TODO. In a 2nd stage. Request the image from indexing service (Do not retrieve everything serially). The same should be done in Artists list etc.
+            lock (_albumViewModelRequested)
+            {
+                if (_albumViewModelRequested != "")
+                    return;
+                _albumViewModelRequested = "ENTERED";
+            }
             //=== Use the AlbumVRepository to get extra info
-            await Task.Run(() =>
+            await Task.Run(async () =>
             {
                 AlbumV album = albumVRepository.GetAlbumOfTrackId(Data.Id);
                 if (album == null)
@@ -148,12 +169,33 @@ namespace Dopamine.Services.Entities
                 else
                 {
                     albumViewModel = new AlbumViewModel(album);
-                    //await Task.Delay(5000);
+                    if (!albumViewModel.HasCover)
+                    {
+                        indexingService.AlbumInfoDownloaded += IndexingService_AlbumInfoDownloaded;
+                        await indexingService.RequestAlbumInfoAsync(album, false, false);
+                    }
+                    else
+                        GroupThumbnailSource = albumViewModel.Thumbnail;
                     GroupAlbumInfo = albumViewModel.AlbumItemInfo;
                 }
             });
+        }
 
-
+        private void IndexingService_AlbumInfoDownloaded(AlbumV requestedAlbum, bool success)
+        {
+            if (requestedAlbum.Id != albumViewModel.Data.Id)
+                return;// Belongs to a different view model
+            indexingService.AlbumInfoDownloaded -= IndexingService_AlbumInfoDownloaded;
+            if (!success)
+                return;// Nothing to change
+            AlbumV album = albumVRepository.GetAlbumOfTrackId(Data.Id);
+            if (album == null)
+                return;// Should not happen
+            albumViewModel = new AlbumViewModel(album);
+            if (albumViewModel.HasCover)
+                GroupThumbnailSource = albumViewModel.Thumbnail;
+            else
+                GroupAlbumInfo = albumViewModel.AlbumItemInfo;
         }
 
         public string GetAlbumArtist()
@@ -273,7 +315,7 @@ namespace Dopamine.Services.Entities
 
         public TrackViewModel DeepCopy()
         {
-            return new TrackViewModel(this.metadataService, this.scrobblingService, this.albumVRepository, this.Data);
+            return new TrackViewModel(this.metadataService, this.scrobblingService, this.albumVRepository, this.indexingService, this.Data);
         }
 
         public void UpdateTrack(TrackV track)

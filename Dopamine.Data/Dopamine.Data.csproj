@@ -162,10 +162,8 @@
     <Compile Include="Repositories\ITrackHistoryRepository.cs" />
     <Compile Include="Repositories\SQLiteGeneralRepository.cs" />
     <Compile Include="Repositories\IGeneralRepository.cs" />
-    <Compile Include="Repositories\IImageRepository.cs" />
-    <Compile Include="Repositories\IGenreImageRepository.cs" />
-    <Compile Include="Repositories\IArtistImageRepository.cs" />
-    <Compile Include="Repositories\SQLiteImageRepository.cs" />
+    <Compile Include="Repositories\IInfoRepository.cs" />
+    <Compile Include="Repositories\SQLiteInfoRepository.cs" />
     <Compile Include="Repositories\SQLiteFolderVRepository.cs" />
     <Compile Include="Repositories\IFolderVRepository.cs" />
     <Compile Include="SQLiteUnitOfWorksFactory.cs" />
