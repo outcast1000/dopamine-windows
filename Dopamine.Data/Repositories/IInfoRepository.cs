@@ -10,7 +10,7 @@ namespace Dopamine.Data.Repositories
         IList<AlbumImage> GetAlbumImages();
         AlbumImage GetAlbumImage(long albumId);
         AlbumImage GetAlbumImageForTrackWithPath(string path);
-        bool SetAlbumImage(AlbumImage image);
+        bool SetAlbumImage(AlbumImage image, bool bReplaceMode);
         bool SetAlbumImageFailed(AlbumV album);
         bool HasAlbumImageFailed(AlbumV album);
         bool ClearAlbumImageFailed(AlbumV album);
@@ -19,6 +19,7 @@ namespace Dopamine.Data.Repositories
         // ARTIST
         IList<ArtistImage> GetArtistImages();
         bool SetArtistImage(ArtistImage image);
+        bool RemoveArtistImage(long artist_id);
         bool SetArtistImageFailed(ArtistV artist);
         bool HasArtistImageFailed(ArtistV artist);
         bool ClearArtistImageFailed(ArtistV artist);
@@ -28,7 +29,8 @@ namespace Dopamine.Data.Repositories
         IList<GenreImage> GetGenreImages();
 
         // TRACK
-        bool SetTrackLyrics(TrackLyrics lyrics);
+        bool SetTrackLyrics(TrackLyrics lyrics, bool bReplaceMode);
+        bool RemoveTrackLyrics(long track_id);
 
         // GENERAL
         IList<string> GetAllImagePaths();

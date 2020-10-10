@@ -325,8 +325,8 @@ namespace Dopamine.Data
                 Logger.Debug("CreateTablesAndIndexes: START DATA MIGRATION");
 
                 conn.BeginTransaction();
-                SQLiteInfoRepository imageRepository = new SQLiteInfoRepository(null);
-                imageRepository.SetSQLiteConnection(conn);
+                SQLiteInfoRepository infoRepository = new SQLiteInfoRepository(null);
+                infoRepository.SetSQLiteConnection(conn);
                 using (SQLiteUpdateCollectionUnitOfWork uc = new SQLiteUpdateCollectionUnitOfWork(conn, true))
                 {
                     List<Folder> folders = conn.Table<Folder>().ToList();
@@ -398,8 +398,8 @@ namespace Dopamine.Data
 
                         if (!string.IsNullOrEmpty(track.AlbumImage) && addMediaFileResult.AlbumId.HasValue)
                         {
-                            IList<AlbumImage> images = imageRepository.GetAlbumImages();
-                            AlbumImage ai = imageRepository.GetAlbumImage((long) addMediaFileResult.AlbumId);
+                            IList<AlbumImage> images = infoRepository.GetAlbumImages();
+                            AlbumImage ai = infoRepository.GetAlbumImage((long) addMediaFileResult.AlbumId);
                             if (ai == null)
                             {
                                 string realPath = System.IO.Path.Combine(coverArtCacheFolderPath, track.AlbumImage + ".jpg");
@@ -416,7 +416,7 @@ namespace Dopamine.Data
                                         Location = location,
                                         Source = "[MIGRATION]"
                                     };
-                                    uc.SetAlbumImage(albumImage, false);
+                                    infoRepository.SetAlbumImage(albumImage, false);
                                 }
                                 else
                                 {

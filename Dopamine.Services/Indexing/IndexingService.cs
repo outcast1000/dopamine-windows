@@ -251,7 +251,7 @@ namespace Dopamine.Services.Indexing
                         DateAdded = DateTime.Now.Ticks,
                         Location = cacheId,
                         Source = data.Images[0].Origin
-                    });
+                    }, true);
                     bImageAdded = true;
                 }
                 if (data?.Review?.Data?.Length > 0)
@@ -380,9 +380,8 @@ namespace Dopamine.Services.Indexing
             return mediaFileData;
         }
 
-        private bool AddAlbumImageIfNecessary(IUpdateCollectionUnitOfWork uc, long albumId, FileMetadata fileMetadata)
+        private bool AddAlbumImageIfNecessary(long albumId, FileMetadata fileMetadata)
         {
-            Debug.Assert(uc != null);
             Debug.Assert(albumId > 0);
             Debug.Assert(fileMetadata != null);
 
@@ -393,7 +392,7 @@ namespace Dopamine.Services.Indexing
             if (albumImage != null)
                 return false; //=== This album has already an image
             string location = fileStorage.SaveImageToCache(fileMetadata.ArtworkData.Value, FileStorageItemType.Album);
-            return uc.SetAlbumImage(new AlbumImage()
+            return infoRepository.SetAlbumImage(new AlbumImage()
             {
                 AlbumId = albumId,
                 DateAdded = DateTime.Now.Ticks,
@@ -402,14 +401,13 @@ namespace Dopamine.Services.Indexing
             }, false);
         }
 
-        private bool AddTrackLyrics(IUpdateCollectionUnitOfWork uc, long trackId, FileMetadata fileMetadata)
+        private bool AddTrackLyrics(long trackId, FileMetadata fileMetadata)
         {
-            Debug.Assert(uc != null);
             Debug.Assert(trackId > 0);
             Debug.Assert(fileMetadata != null);
             if (!(fileMetadata.Lyrics?.Value?.Length > 0))
                 return false;
-            return uc.SetLyrics(new TrackLyrics()
+            return infoRepository.SetTrackLyrics(new TrackLyrics()
             {
                 TrackId = trackId,
                 DateAdded = DateTime.Now.Ticks,
@@ -489,11 +487,13 @@ namespace Dopamine.Services.Indexing
                     FileMetadata fileMetadata = GetFileMetadata(path);
                     MediaFileData mediaFileData = GetMediaFileData(fileMetadata, path);
 
-                    using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
-                    {
                         if (trackV == null)
                         {
-                            AddMediaFileResult result = uc.AddMediaFile(mediaFileData, folder.Id);
+                            AddMediaFileResult result;
+                            using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
+                            {
+                                result = uc.AddMediaFile(mediaFileData, folder.Id);
+                            }
                             if (result.Success)
                             {
                                 stats.Added++;
@@ -502,9 +502,9 @@ namespace Dopamine.Services.Indexing
                                 {
                                     //=== Add Album Image
                                     if (result.AlbumId.HasValue)
-                                        AddAlbumImageIfNecessary(uc, (long)result.AlbumId, fileMetadata);
+                                        AddAlbumImageIfNecessary((long)result.AlbumId, fileMetadata);
                                     //=== Add Lyrics
-                                    AddTrackLyrics(uc, (long)result.TrackId, fileMetadata);
+                                    AddTrackLyrics((long)result.TrackId, fileMetadata);
                                 }
                             }
                             else
@@ -524,7 +524,11 @@ namespace Dopamine.Services.Indexing
                             mediaFileData.Love = trackV.Love;
                             mediaFileData.Rating = trackV.Rating;
                             mediaFileData.Language = trackV.Language;
-                            UpdateMediaFileResult result = uc.UpdateMediaFile(trackV, mediaFileData);
+                            UpdateMediaFileResult result;
+                            using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
+                            {
+                                result = uc.UpdateMediaFile(trackV, mediaFileData);
+                            }
                             if (result.Success)
                             {
                                 stats.Updated++;
@@ -533,9 +537,9 @@ namespace Dopamine.Services.Indexing
                                 {
                                     //=== Add Album Image
                                     if (result.AlbumId.HasValue)
-                                        AddAlbumImageIfNecessary(uc, (long)result.AlbumId, fileMetadata);
+                                        AddAlbumImageIfNecessary((long)result.AlbumId, fileMetadata);
                                     //=== Add Lyrics
-                                    AddTrackLyrics(uc, trackV.Id, fileMetadata);
+                                    AddTrackLyrics(trackV.Id, fileMetadata);
                                 }
                             }
                             else
@@ -545,7 +549,7 @@ namespace Dopamine.Services.Indexing
                             }
 
                         }
-                    }
+                    
 
                 },
                 () =>

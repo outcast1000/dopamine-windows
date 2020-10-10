@@ -256,7 +256,7 @@ namespace Dopamine.Services.Metadata
             {
                 //String realImagePath = cacheService.GetCachedArtworkPath("cache://" + artworkID);
                 //long len = new FileInfo(realImagePath).Length;
-                uc.SetAlbumImage(new AlbumImage()
+                infoRepository.SetAlbumImage(new AlbumImage()
                 {
                     AlbumId = albumViewModel.Id,
                     //Location = "cache://" + artworkID,

@@ -162,12 +162,15 @@ namespace Dopamine.Data.Repositories
             return null;
         }
 
-        public bool SetAlbumImage(AlbumImage image)
+        public bool SetAlbumImage(AlbumImage image, bool bReplaceMode)
         {
             Debug.Assert(image.AlbumId > 0);
             Debug.Assert(image.Location.Length > 10);
             Logger.Debug("SetAlbumImage {0}", image.Location);
-            return ExecuteInternal("INSERT OR REPLACE INTO AlbumImages (album_id, location, source, date_added) VALUES (?,?,?,?)", image.AlbumId, image.Location, image.Source, DateTime.Now.Ticks) > 0;
+            string insert = "INSERT";
+            if (bReplaceMode)
+                insert = "INSERT OR REPLACE";
+            return ExecuteInternal(insert + " INTO AlbumImages (album_id, location, source, date_added) VALUES (?,?,?,?)", image.AlbumId, image.Location, image.Source, DateTime.Now.Ticks) > 0;
         }
         public bool SetArtistImage(ArtistImage image)
         {
@@ -224,20 +227,34 @@ namespace Dopamine.Data.Repositories
             Debug.Assert(artistBiography.ArtistId > 0);
             Debug.Assert(artistBiography.Biography.Length > 0);
             Logger.Debug($"SetArtistBiography artistID:{artistBiography.ArtistId}");
-            // ALEX TODO. Check what happens with language = null
             return ExecuteInternal("INSERT OR REPLACE INTO ArtistBiographies (artist_id, biography, source, language, date_added) VALUES (?,?,?,?,?)", 
                 artistBiography.ArtistId, artistBiography.Biography, artistBiography.Source, artistBiography.Language, artistBiography.DateAdded) > 0;
 
         }
 
-        public bool SetTrackLyrics(TrackLyrics lyrics)
+        public bool SetTrackLyrics(TrackLyrics lyrics, bool bReplaceMode)
         {
             Debug.Assert(lyrics.TrackId > 0);
             Debug.Assert(lyrics.Lyrics.Length > 0);
             Logger.Debug($"SetTrackLyrics TrackId:{lyrics.TrackId}");
-            // ALEX TODO. Check what happens with language = null
-            return ExecuteInternal("INSERT OR REPLACE INTO TrackLyrics (track_id, lyrics, source, language, date_added) VALUES (?,?,?,?,?)",
+            string insert = "INSERT";
+            if (bReplaceMode)
+                insert = "INSERT OR REPLACE";
+            return ExecuteInternal(insert + " INTO TrackLyrics (track_id, lyrics, source, language, date_added) VALUES (?,?,?,?,?)",
                 lyrics.TrackId, lyrics.Lyrics, lyrics.Source, lyrics.Language, lyrics.DateAdded) > 0;
+        }
+
+
+        public bool RemoveArtistImage(long artist_id)
+        {
+            Debug.Assert(artist_id > 0);
+            return ExecuteInternal("DELETE FROM ArtistImages WHERE artist_id=?", artist_id) > 0;
+        }
+
+        public bool RemoveTrackLyrics(long track_id)
+        {
+            Debug.Assert(track_id > 0);
+            return ExecuteInternal("DELETE FROM TrackLyrics WHERE track_id=?", track_id) > 0;
         }
     }
 }
