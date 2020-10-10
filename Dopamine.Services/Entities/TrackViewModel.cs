@@ -172,7 +172,9 @@ namespace Dopamine.Services.Entities
                     if (!albumViewModel.HasCover)
                     {
                         indexingService.AlbumInfoDownloaded += IndexingService_AlbumInfoDownloaded;
-                        await indexingService.RequestAlbumInfoAsync(album, false, false);
+                        bool bAccepted = await indexingService.RequestAlbumInfoAsync(album, false, false);
+                        if (!bAccepted)
+                            indexingService.AlbumInfoDownloaded -= IndexingService_AlbumInfoDownloaded;
                     }
                     else
                         GroupThumbnailSource = albumViewModel.Thumbnail;
