@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
 using Digimezzo.Foundation.Core.Logging;
+using System.Diagnostics;
 
 namespace Dopamine.Data.Repositories
 {
@@ -25,6 +26,20 @@ namespace Dopamine.Data.Repositories
             }
             return GetArtistsInternal(qo);
         }
+
+        public ArtistV GetArtist(long artistID)
+        {
+            Debug.Assert(artistID > 0);
+            QueryOptions qo = new QueryOptions();
+            qo.extraWhereClause.Add("Artists.id=?");
+            qo.extraWhereParams.Add(artistID);
+            IList<ArtistV> artists = GetArtistsInternal(qo);
+            Debug.Assert(artists.Count == 1);
+            if (artists.Count == 1)
+                return artists[0];
+            return null;
+        }
+
 
         public List<ArtistV> GetArtistsWithoutImages(bool incudeFailedDownloads)
         {

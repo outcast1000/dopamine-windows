@@ -10,5 +10,8 @@ namespace Dopamine.Data.Repositories
 
         List<ArtistV> GetArtistsWithoutImages(bool incudeFailedDownloads);
 
+        ArtistV GetArtist(long artistID);
+
+
     }
 }

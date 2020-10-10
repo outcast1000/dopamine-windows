@@ -132,7 +132,7 @@ namespace Dopamine.Data.Providers
                     matches = regex.Matches(result);
                     foreach (Match match in matches)
                         tracks.Add(match.Groups[1].Value);
-                    if (tracks.Count == 0)
+                    if (tracks.Count > 0)
                         data.Tracks = new OriginatedData<string[]>() { Data = tracks.ToArray(), Origin = ProviderName };
                     else
                         Logger.Debug($"Artist Tracks not found. Artist: '{artist}'. URL: {uri.AbsoluteUri}");

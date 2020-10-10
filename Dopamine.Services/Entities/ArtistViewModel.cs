@@ -2,10 +2,13 @@
 using Dopamine.Core.Utils;
 using Dopamine.Data;
 using Dopamine.Data.Entities;
+using Dopamine.Data.Repositories;
 using Dopamine.Services.Cache;
+using Dopamine.Services.Indexing;
 using Dopamine.Services.Utils;
 using Prism.Mvvm;
 using System;
+using System.Threading.Tasks;
 
 namespace Dopamine.Services.Entities
 {
@@ -13,11 +16,14 @@ namespace Dopamine.Services.Entities
     {
         private ArtistV data;
         private bool isHeader;
-        public ArtistViewModel(ArtistV data)
+        private IIndexingService _indexingService;
+        private IArtistVRepository _artistVRepository;
+        public ArtistViewModel(IIndexingService indexingService, IArtistVRepository artistVRepository, ArtistV data)
         {
             this.data = data;
             this.isHeader = false;
-
+            _indexingService = indexingService;
+            _artistVRepository = artistVRepository;
         }
 
         public long Id { get { return data.Id; } }
@@ -72,7 +78,38 @@ namespace Dopamine.Services.Entities
             get { return !string.IsNullOrEmpty(data.Thumbnail); }
         }
 
-        public string Thumbnail { get { return data.Thumbnail; } }
+        public string Thumbnail { get {
+                if (Data.ArtistImage == null)
+                {
+                    Task.Run(async () =>
+                    {
+                        _indexingService.ArtistInfoDownloaded += indexingService_ArtistInfoDownloaded;
+                        bool bAccepted = await _indexingService.RequestArtistInfoAsync(Data, false, false);
+                        if (!bAccepted)
+                            _indexingService.ArtistInfoDownloaded -= indexingService_ArtistInfoDownloaded;
+                    });
+                }
+
+                return data.Thumbnail; 
+            }
+            private set { SetProperty<string>(ref _thumbnail, value); }
+        }
+
+        private string _thumbnail;
+        private void indexingService_ArtistInfoDownloaded(ArtistV requestedArtist, bool success)
+        {
+            if (requestedArtist.Id != Data.Id)
+                return;// Belongs to a different view model
+            _indexingService.ArtistInfoDownloaded -= indexingService_ArtistInfoDownloaded;
+            if (!success)
+                return;// Nothing to change
+            ArtistV artist = _artistVRepository.GetArtist(Data.Id);
+            if (artist == null)
+                return;// Should not happen
+            data = artist;
+            if (artist.Thumbnail != null)
+                Thumbnail = artist.Thumbnail;
+        }
 
         public DateTime DateAdded { get { return data.DateAdded; } }
 

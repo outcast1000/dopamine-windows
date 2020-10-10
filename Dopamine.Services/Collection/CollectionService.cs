@@ -6,6 +6,7 @@ using Dopamine.Data.Entities;
 using Dopamine.Data.Repositories;
 using Dopamine.Services.Cache;
 using Dopamine.Services.Entities;
+using Dopamine.Services.Indexing;
 using Dopamine.Services.Playback;
 using Prism.Ioc;
 using System;
@@ -20,6 +21,7 @@ namespace Dopamine.Services.Collection
     {
         private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private IPlaybackService playbackService;
+        private IIndexingService indexingService;
         private IContainerProvider container;
 
         //=== ALEX
@@ -31,7 +33,7 @@ namespace Dopamine.Services.Collection
 
 
         public CollectionService(ITrackVRepository trackVRepository, IFolderVRepository folderVRepository, IPlaybackService playbackService, IContainerProvider container,
-            IArtistVRepository artistVRepository, IAlbumVRepository albumVRepository, IGenreVRepository genreVRepository)
+            IArtistVRepository artistVRepository, IAlbumVRepository albumVRepository, IGenreVRepository genreVRepository, IIndexingService indexingService)
         {
             this.folderVRepository = folderVRepository;
             this.playbackService = playbackService;
@@ -40,6 +42,7 @@ namespace Dopamine.Services.Collection
             this.artistVRepository = artistVRepository;
             this.albumVRepository = albumVRepository;
             this.genreVRepository = genreVRepository;
+            this.indexingService = indexingService;
 
 
         }
@@ -202,7 +205,7 @@ namespace Dopamine.Services.Collection
                if (items == null)
                     Logger.Warn($"GetArtistsAsync artistVRepository.GetArtists({searchString}) return null");
                else
-                    viewModels = items.Select(x => new ArtistViewModel(x)).ToList();
+                    viewModels = items.Select(x => new ArtistViewModel(indexingService, artistVRepository, x)).ToList();
             });
             return viewModels;
         }

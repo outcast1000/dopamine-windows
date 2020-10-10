@@ -6,6 +6,10 @@ namespace Dopamine.Data.Repositories
 {
     public class MockArtistVRepository: IArtistVRepository
     {
+        public ArtistV GetArtist(long artistID)
+        {
+            throw new System.NotImplementedException();
+        }
 
         public List<ArtistV> GetArtists(string searchString = null)
         {

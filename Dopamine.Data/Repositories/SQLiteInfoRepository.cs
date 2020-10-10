@@ -215,7 +215,7 @@ namespace Dopamine.Data.Repositories
             Debug.Assert(albumReview.Review.Length > 0);
             Logger.Debug($"SetAlbumReview albumID:{albumReview.AlbumId}");
             // ALEX TODO. Check what happens with language = null
-            return ExecuteInternal("INSERT OR REPLACE INTO AlbumReviews (album_id, review, source, language date_added) VALUES (?,?,?,?,?)",
+            return ExecuteInternal("INSERT OR REPLACE INTO AlbumReviews (album_id, review, source, language, date_added) VALUES (?,?,?,?,?)",
                 albumReview.AlbumId, albumReview.Review, albumReview.Source, albumReview.Language, albumReview.DateAdded) > 0;
         }
 
@@ -225,7 +225,7 @@ namespace Dopamine.Data.Repositories
             Debug.Assert(artistBiography.Biography.Length > 0);
             Logger.Debug($"SetArtistBiography artistID:{artistBiography.ArtistId}");
             // ALEX TODO. Check what happens with language = null
-            return ExecuteInternal("INSERT OR REPLACE INTO ArtistBiographies (artist_id, biography, source, language date_added) VALUES (?,?,?,?,?)", 
+            return ExecuteInternal("INSERT OR REPLACE INTO ArtistBiographies (artist_id, biography, source, language, date_added) VALUES (?,?,?,?,?)", 
                 artistBiography.ArtistId, artistBiography.Biography, artistBiography.Source, artistBiography.Language, artistBiography.DateAdded) > 0;
 
         }
@@ -236,7 +236,7 @@ namespace Dopamine.Data.Repositories
             Debug.Assert(lyrics.Lyrics.Length > 0);
             Logger.Debug($"SetTrackLyrics TrackId:{lyrics.TrackId}");
             // ALEX TODO. Check what happens with language = null
-            return ExecuteInternal("INSERT OR REPLACE INTO TrackLyrics (track_id, lyrics, source, language date_added) VALUES (?,?,?,?,?)",
+            return ExecuteInternal("INSERT OR REPLACE INTO TrackLyrics (track_id, lyrics, source, language, date_added) VALUES (?,?,?,?,?)",
                 lyrics.TrackId, lyrics.Lyrics, lyrics.Source, lyrics.Language, lyrics.DateAdded) > 0;
         }
     }
