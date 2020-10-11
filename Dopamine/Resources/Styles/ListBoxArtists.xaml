@@ -68,6 +68,19 @@
                     Text="&#xE8B1;" />
             </MenuItem.Icon>
         </MenuItem>
+        <Separator />
+        <MenuItem
+            Command="{Binding DataContext.DownloadImageArtistsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+            CommandParameter="{Binding .}"
+            Header="{DynamicResource Language_Download_An_Image}">
+            <MenuItem.Icon>
+                <TextBlock
+                    Margin="0,1,0,0"
+                    FontSize="15"
+                    Style="{StaticResource SegoeAssets}"
+                    Text="&#xE896;" />
+            </MenuItem.Icon>
+        </MenuItem>
     </ContextMenu>
     <!--  ListBoxItem  -->
 

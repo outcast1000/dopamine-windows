@@ -81,18 +81,23 @@ namespace Dopamine.Services.Entities
         public string Thumbnail { get {
                 if (Data.ArtistImage == null)
                 {
-                    Task.Run(async () =>
-                    {
-                        _indexingService.ArtistInfoDownloaded += indexingService_ArtistInfoDownloaded;
-                        bool bAccepted = await _indexingService.RequestArtistInfoAsync(Data, false, false);
-                        if (!bAccepted)
-                            _indexingService.ArtistInfoDownloaded -= indexingService_ArtistInfoDownloaded;
-                    });
+                    RequestImageDownload(false, false);
                 }
 
                 return data.Thumbnail; 
             }
             private set { SetProperty<string>(ref _thumbnail, value); }
+        }
+
+        public async Task RequestImageDownload(bool bIgnorePreviousFailures, bool bForce)
+        {
+            await Task.Run(async () =>
+            {
+                _indexingService.ArtistInfoDownloaded += indexingService_ArtistInfoDownloaded;
+                bool bAccepted = await _indexingService.RequestArtistInfoAsync(Data, bIgnorePreviousFailures, bForce);
+                if (!bAccepted)
+                    _indexingService.ArtistInfoDownloaded -= indexingService_ArtistInfoDownloaded;
+            });
         }
 
         private string _thumbnail;

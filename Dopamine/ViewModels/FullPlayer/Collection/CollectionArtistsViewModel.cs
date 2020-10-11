@@ -117,6 +117,9 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         public DelegateCommand ShuffleSelectedArtistsCommand { get; set; }
 
+        public DelegateCommand<ArtistViewModel> DownloadImageArtistsCommand { get; set; }
+        
+
         public DelegateCommand<ArtistViewModel> PlayArtistCommand { get; set; }
         public DelegateCommand<ArtistViewModel> EnqueueArtistCommand { get; set; }
         public DelegateCommand<ArtistViewModel> LoveArtistCommand { get; set; }
@@ -218,6 +221,10 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             this.ShuffleSelectedArtistsCommand = new DelegateCommand(async () =>
             {
                 await this.playbackService.PlayArtistsAsync(SelectedArtists, PlaylistMode.Play, true);
+            });
+            this.DownloadImageArtistsCommand = new DelegateCommand<ArtistViewModel>((artist) =>
+            {
+                artist.RequestImageDownload(true, true);
             });
             this.PlayArtistCommand = new DelegateCommand<ArtistViewModel>(async (vm) => {
                 await this.playbackService.PlayArtistsAsync(new List<ArtistViewModel>() { vm }, PlaylistMode.Play);
