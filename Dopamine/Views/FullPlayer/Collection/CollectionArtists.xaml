@@ -60,9 +60,9 @@
 
     <dc:MultiPanePanel
         ContentResizeDelay="25"
-	IsRightPaneCollapsed="True" 
+        IsRightPaneCollapsed="True"
         LeftPaneWidthPercent="{Binding LeftPaneWidthPercent, Mode=TwoWay}"
-	LeftPaneMinimumWidth="250"
+        LeftPaneMinimumWidth="250"
         MiddlePaneMinimumWidth="250">
         <dc:MultiPanePanel.LeftPaneContent>
             <Border Background="{DynamicResource Brush_PaneBackground}">

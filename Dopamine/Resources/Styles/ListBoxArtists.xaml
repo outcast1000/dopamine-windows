@@ -126,7 +126,7 @@
                             <Grid Margin="0,0,0,0">
                                 <Grid Height="{Binding ActualHeight, ElementName=MainListItem}">
                                     <pc:SourceChangedImage
-                                        Margin="0,0,0,1"
+                                        Margin="0,1,0,1"
                                         HorizontalAlignment="Stretch"
                                         VerticalAlignment="Center"
                                         Stretch="UniformToFill">
@@ -157,32 +157,31 @@
                                         </Border.Background>
                                     </Border>
                                 </Grid>
-                                <Border
-                                    Name="SelectionBorder"
-                                    BorderThickness="3,0,0,0"
-                                    Opacity="0">
-                                    <Border.BorderBrush>
-                                        <SolidColorBrush Color="#00F" />
-                                    </Border.BorderBrush>
-                                </Border>
+
                                 <StackPanel
                                     Name="MainListItem"
                                     HorizontalAlignment="Stretch"
                                     MinHeight="96"
+                                    Margin="0,0,0,0"
                                     VerticalAlignment="Center"
-                                    Orientation="Vertical">
-                                    <pc:OutlinedTextBlock
-                                        Margin="10,0,0,4"
-                                        HorizontalAlignment="Left"
-                                        DockPanel.Dock="Left"
-                                        Fill="{DynamicResource Brush_PrimaryText}"
-                                        FontSize="20"
-                                        FontWeight="Bold"
-                                        Stroke="#d000"
-                                        StrokeThickness="3"
-                                        Text="{Binding Name}"
-                                        TextTrimming="CharacterEllipsis"
-                                        TextWrapping="Wrap" />
+                                    Orientation="Vertical"
+                                    DockPanel.Dock="Left">
+                                    <StackPanel HorizontalAlignment="Stretch" Orientation="Horizontal">
+                                        <TextBlock
+                                            Background="{DynamicResource Brush_MainWindowBackground}"
+                                            Padding="10,2,10,4"
+                                            HorizontalAlignment="Left"
+                                            FontSize="20"
+                                            FontWeight="Light"
+                                            Text="{Binding Name}"
+                                            TextTrimming="CharacterEllipsis"
+                                            TextWrapping="Wrap" />
+                                        <Border
+                                            Width="50"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Stretch"
+                                            Background="{DynamicResource Brush_FadeOutCaptionBackground}" />
+                                    </StackPanel>
                                     <TextBlock
                                         x:Name="ExtraInfo"
                                         DockPanel.Dock="Left"
@@ -195,6 +194,11 @@
                                         TextWrapping="WrapWithOverflow" />
 
                                 </StackPanel>
+                                <Border
+                                    Name="SelectionBorder"
+                                    BorderThickness="3,0,0,0"
+                                    Opacity="0"
+                                    BorderBrush="{DynamicResource Brush_SelectedBorder}" />
                                 <DockPanel
                                     DockPanel.Dock="Bottom"
                                     HorizontalAlignment="Right"
@@ -294,7 +298,7 @@
                                     <ColorAnimation
                                         Storyboard.TargetName="OverlayBorder"
                                         Storyboard.TargetProperty="Background.Color"
-                                        To="#8000"
+                                        To="#F000"
                                         Duration="0:0:0.15" />
                                     <DoubleAnimation
                                         Storyboard.TargetName="ExtraInfo"
