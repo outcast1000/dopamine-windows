@@ -682,7 +682,6 @@ namespace Dopamine.Services.Indexing
             {
                 try
                 {
-                    IList<AlbumV> albumsAdded = new List<AlbumV>();
                     IList<AlbumV> albumDatasToIndex = rescanAll ? albumVRepository.GetAlbums() : albumVRepository.GetAlbumsWithoutImages(rescanFailed);
                     IAlbumInfoProvider aip = infoProviderFactory.GetAlbumInfoProvider();
                     foreach (AlbumV album in albumDatasToIndex)
@@ -702,10 +701,8 @@ namespace Dopamine.Services.Indexing
             Logger.Debug($"RetrieveArtistInfoAsync rescanFailed:{rescanFailed} rescanAll:{rescanAll}");
             await Task.Run(() =>
             {
-                TimeCounter timerTotal = new TimeCounter();
                 try
                 {
-                    IList<ArtistV> artistsAdded = new List<ArtistV>();
                     IList<ArtistV> artistsToIndex = rescanAll ? artistVRepository.GetArtists() : artistVRepository.GetArtistsWithoutImages(rescanFailed);
                     IArtistInfoProvider ip = infoProviderFactory.GetArtistInfoProvider();
                     foreach (ArtistV artist in artistsToIndex)
@@ -718,20 +715,14 @@ namespace Dopamine.Services.Indexing
                     Logger.Error(ex, "Unexpected error occurred while updating artwork in the background. Exception: {0}", ex.Message);
                 }
             });
-
         }
-
-
 
         public async Task RetrieveInfoAsync(bool rescanFailed, bool rescanAll)
         {
-            // ALEX TODO. Check if there is a need to keep this function. In any case the lists must be updated when this ends
             Task retrieveAlbumInfo = RetrieveAlbumInfoAsync(rescanFailed, rescanAll);
             Task retrieveArtistInfo = RetrieveArtistInfoAsync(rescanFailed, rescanAll);
-            Task.WaitAll(retrieveAlbumInfo, retrieveArtistInfo);
-
+            await Task.WhenAll(retrieveAlbumInfo, retrieveArtistInfo);// WhenAll is used in the place of WaitAll in order to suppress WARNING CS1998 https://stackoverflow.com/questions/49330335/async-await-deadlock-task-waitall-vs-task-whenall
         }
-
 
         //=== NEW
 

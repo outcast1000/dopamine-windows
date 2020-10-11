@@ -94,8 +94,7 @@ namespace Dopamine.Services.Metadata
 
         public async Task UpdateTrackLoveAsync(string path, bool love)
         {
-            this.trackRepository.UpdateLove(path, love ? 1 : 0);
-
+            await Task.Run(() => this.trackRepository.UpdateLove(path, love ? 1 : 0));
             this.LoveChanged(new LoveChangedEventArgs(path.ToSafePath(), love));
         }
 

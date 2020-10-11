@@ -35,34 +35,33 @@ namespace Dopamine.Services.Folders
 
         public async Task SaveToggledFoldersAsync()
         {
-            bool isCollectionChanged = false;
-
-            try
+            await Task.Run(() =>
             {
-                IList<FolderV> folders = new List<FolderV>();
-
-                lock (this.toggledFoldersLock)
+                bool isCollectionChanged = false;
+                try
                 {
-                    isCollectionChanged = this.toggledFolders.Count > 0;
-                    folders = this.toggledFolders.Select(x => x.Folder).ToList();
-                    this.toggledFolders.Clear();
+                    IList<FolderV> folders = new List<FolderV>();
+
+                    lock (this.toggledFoldersLock)
+                    {
+                        isCollectionChanged = this.toggledFolders.Count > 0;
+                        folders = this.toggledFolders.Select(x => x.Folder).ToList();
+                        this.toggledFolders.Clear();
+                    }
+                    using (IUpdateFolderUnitOfWork u = unitOfWorksFactory.getUpdateFolderUnitOfWork())
+                        u.UpdateFolders(folders);
                 }
-                using (IUpdateFolderUnitOfWork u = unitOfWorksFactory.getUpdateFolderUnitOfWork())
+                catch (Exception ex)
                 {
-                    u.UpdateFolders(folders);
-
+                    LogClient.Error("Error updating folders. Exception: {0}", ex.Message);
                 }
-            }
-            catch (Exception ex)
-            {
-                LogClient.Error("Error updating folders. Exception: {0}", ex.Message);
-            }
 
-            if (isCollectionChanged)
-            {
-                // Execute on Dispatcher as this will cause a refresh of the lists
-                Application.Current.Dispatcher.Invoke(() => this.FoldersChanged(this, new EventArgs()));
-            }
+                if (isCollectionChanged)
+                {
+                    // Execute on Dispatcher as this will cause a refresh of the lists
+                    Application.Current.Dispatcher.Invoke(() => this.FoldersChanged(this, new EventArgs()));
+                }
+            });
         }
 
         public async Task ToggleFolderAsync(FolderViewModel folderViewModel)

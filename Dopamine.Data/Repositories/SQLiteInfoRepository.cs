@@ -217,7 +217,6 @@ namespace Dopamine.Data.Repositories
             Debug.Assert(albumReview.AlbumId > 0);
             Debug.Assert(albumReview.Review.Length > 0);
             Logger.Debug($"SetAlbumReview albumID:{albumReview.AlbumId}");
-            // ALEX TODO. Check what happens with language = null
             return ExecuteInternal("INSERT OR REPLACE INTO AlbumReviews (album_id, review, source, language, date_added) VALUES (?,?,?,?,?)",
                 albumReview.AlbumId, albumReview.Review, albumReview.Source, albumReview.Language, albumReview.DateAdded) > 0;
         }

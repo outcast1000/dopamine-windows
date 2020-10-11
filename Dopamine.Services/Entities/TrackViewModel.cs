@@ -125,7 +125,7 @@ namespace Dopamine.Services.Entities
             {
                 if (albumViewModel == null)
                 {
-                    GetAlbumViewModel();
+                    _ = GetAlbumViewModel(); // Suppress warning cs4014 https://stackoverflow.com/questions/22629951/suppressing-warning-cs4014-because-this-call-is-not-awaited-execution-of-the
                     return null;
                 }
                 return _albumThumbnail;
@@ -139,7 +139,7 @@ namespace Dopamine.Services.Entities
             {
                 if (_groupAlbumInfo == null)
                 {
-                    GetAlbumViewModel();
+                    _ = GetAlbumViewModel(); // Suppress warning cs4014 https://stackoverflow.com/questions/22629951/suppressing-warning-cs4014-because-this-call-is-not-awaited-execution-of-the
                     return "...";
                 }
                 return _groupAlbumInfo;
