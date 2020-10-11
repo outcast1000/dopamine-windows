@@ -1,5 +1,6 @@
 ﻿using Dopamine.Core.Alex;
 using Dopamine.Core.IO;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,6 +14,8 @@ namespace Dopamine.Data
 {
     public class FileStorage : IFileStorage
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
         public FileStorage()
         {
             StorageImagePath = Path.Combine(SettingsClient.ApplicationFolder(), ApplicationPaths.CacheFolder);
@@ -37,7 +40,17 @@ namespace Dopamine.Data
             string sha1 = CalculateSHA1(bytes);
             string location = Path.Combine("cache://", fileStorageItemType.ToString().ToLower() + "-" + sha1);// "cache://" + type + "//" + sha1;
             string realPath = GetRealPath(location);
-            File.WriteAllBytes(realPath, bytes);
+            try
+            {
+                Logger.Debug($"SaveImageToCache: {bytes.Length} - {location}");
+                File.WriteAllBytes(realPath, bytes);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, $"SaveImageToCache: {ex.Message} - {location}");
+                if (!File.Exists(realPath))
+                    return null; // It seems that even if it could not write the file actually exists
+            }
             return location;
         }
 

@@ -66,11 +66,11 @@ namespace Dopamine.Services.Indexing
                 {
                     InfoDownloaded(item.Artist, RetrieveInfo(item.Artist));
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Logger.Error(ex, $"ProcessQueuedItems: {ex.Message}");
                     ThreadPool.UnsafeQueueUserWorkItem(ProcessQueuedItems, null);
 					InfoDownloaded(item.Artist, null);
-                    throw;
                 }
             }
         }

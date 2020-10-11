@@ -205,7 +205,7 @@ namespace Dopamine.Services.Indexing
         {
             // Note: This runs on its ProcessQueued Thread (not on the main thread
             bool bImageAdded = false;
-            if (data.result == InfoProviderResult.Success)
+            if (data?.result == InfoProviderResult.Success)
             {
                 if (data.Images?.Length > 0)
                 {
@@ -231,9 +231,9 @@ namespace Dopamine.Services.Indexing
                 }
 
             }
-            if (!bImageAdded && data.result != InfoProviderResult.Fail_InternetFailed)
+            if (!bImageAdded && !(data?.result == InfoProviderResult.Fail_InternetFailed))
                 infoRepository.SetArtistImageFailed(requestedArtist);
-            ArtistInfoDownloaded?.Invoke(requestedArtist, data.result == InfoProviderResult.Success);
+            ArtistInfoDownloaded?.Invoke(requestedArtist, data?.result == InfoProviderResult.Success);
         }
 
         private void _albumInfoIndexingQueue_InfoDownloaded(AlbumV requestedAlbum, AlbumInfoProviderData data)
