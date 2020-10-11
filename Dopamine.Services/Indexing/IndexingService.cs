@@ -441,6 +441,8 @@ namespace Dopamine.Services.Indexing
         private UpdateStatistics RefreshCollection(FolderV folder, bool bReReadTags)
         {
             Logger.Debug($"Refreshing... {folder.Path}");
+            IndexingStatusChanged(new IndexingStatusEventArgs() { IndexingAction = IndexingAction.RemoveTracks, ExtraInfo = folder.Path });
+
             UpdateStatistics stats = new UpdateStatistics();
             TimeCounter tcRefreshCollection = new TimeCounter();
             if (!SettingsClient.Get<bool>("Indexing", "IgnoreRemovedFiles"))
@@ -452,16 +454,33 @@ namespace Dopamine.Services.Indexing
             }
 
             //=== Add OR Update the files that on disk
-            Logger.Debug("-->Reading file system...");
+            Logger.Debug("-->Counting Files...");
+            int totalFiles = 0;
+            IndexingStatusChanged(new IndexingStatusEventArgs() { IndexingAction = IndexingAction.UpdateTracks, ExtraInfo = folder.Path, ProgressPercent = 0 });
+            FileOperations.GetFiles(folder.Path,
+                (path) =>
+                {
+                    //=== Check the extension
+                    if (FileFormats.SupportedMediaExtensions.Contains(Path.GetExtension(path.ToLower())))
+                        totalFiles++;
+                },
+                () =>
+                {
+                    return !_shouldCancelIndexing;
+                },
+                (ex) =>{});
 
+            Logger.Debug("-->Reading file system...");
+            
             FileOperations.GetFiles(folder.Path,
                 (path) =>
                 {
                     stats.TotalChecked++;
-                       //=== Check the extension
+                    //=== Check the extension
                     if (!FileFormats.SupportedMediaExtensions.Contains(Path.GetExtension(path.ToLower())))
                         return;
                     stats.Checked++;
+                    IndexingStatusChanged(new IndexingStatusEventArgs() { IndexingAction = IndexingAction.UpdateTracks, ExtraInfo = folder.Path, ProgressPercent = 100 * stats.Checked / totalFiles });
                     //=== Check the DB for the path
                     TrackV trackV = trackVRepository.GetTrackWithPath(path, new QueryOptions() { WhereDeleted = QueryOptionsBool.Ignore, WhereInACollection = QueryOptionsBool.Ignore, WhereVisibleFolders = QueryOptionsBool.Ignore, WhereIgnored = QueryOptionsBool.Ignore });
                     long DateFileModified = FileUtils.DateModifiedTicks(path);

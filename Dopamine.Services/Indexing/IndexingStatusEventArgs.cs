@@ -7,5 +7,6 @@ namespace Dopamine.Services.Indexing
         public IndexingAction IndexingAction { get; set; }
         public long ProgressCurrent { get; set; }
         public int ProgressPercent { get; set; }
+        public string ExtraInfo { get; set; }
     }
 }
