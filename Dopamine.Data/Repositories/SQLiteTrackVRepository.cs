@@ -135,10 +135,11 @@ GROUP BY t.id
 #LIMIT#";
         }
 
-        public List<TrackV> GetTracksBySearch(string whereClause)
+        public List<TrackV> GetTracksBySearch(string whereClause, bool bGetHistory)
         {
             QueryOptions qo = new QueryOptions();
             qo.extraWhereClause.Add(whereClause);
+            qo.GetHistory = bGetHistory;
             return GetTracksInternal(qo);
         }
 
@@ -256,28 +257,31 @@ GROUP BY t.id
             throw new NotImplementedException();
         }
 
-        public List<TrackV> GetTracksOfArtists(IList<long> artistIds)
+        public List<TrackV> GetTracksOfArtists(IList<long> artistIds, bool bGetHistory)
         {
             QueryOptions qo = new QueryOptions();
             qo.extraWhereClause.Add("Artists.id in (" + string.Join(",", artistIds) + ")");
+            qo.GetHistory = bGetHistory;
             return GetTracksInternal(qo);
         }
 
-        public List<TrackV> GetTracksOfAlbums(IList<long> albumIds)
+        public List<TrackV> GetTracksOfAlbums(IList<long> albumIds, bool bGetHistory)
         {
             QueryOptions qo = new QueryOptions();
             qo.extraWhereClause.Add("Albums.id in (" + string.Join(",", albumIds) + ")");
+            qo.GetHistory = bGetHistory;
             return GetTracksInternal(qo);
         }
 
-        public List<TrackV> GetTracksWithGenres(IList<long> genreIds)
+        public List<TrackV> GetTracksWithGenres(IList<long> genreIds, bool bGetHistory)
         {
             QueryOptions qo = new QueryOptions();
             qo.extraWhereClause.Add("Genres.id in (" + string.Join(",", genreIds) + ")");
+            qo.GetHistory = bGetHistory;
             return GetTracksInternal(qo);
         }
 
-        public List<TrackV> GetTracksWithPaths(IList<string> paths)
+        public List<TrackV> GetTracksWithPaths(IList<string> paths, bool bGetHistory)
         {
             if (paths.Count == 0)
                 return new List<TrackV>();
@@ -295,6 +299,7 @@ GROUP BY t.id
             qo.extraWhereClause.Add(where + ")");
             */
             qo.extraWhereClause.Add("t.path in (" + string.Join(",", paths.Select(x => String.Format("\"{0}\"", x))) + ")");
+            qo.GetHistory = bGetHistory;
             return GetTracksInternal(qo);
             //return GetTracksInternal("t.path in (" + string.Join(",", paths.Select(x => String.Format("\"{0}\"", x))) + ")");
         }
@@ -427,6 +432,7 @@ GROUP BY t.id
             qo.WhereVisibleFolders = QueryOptionsBool.Ignore;
             qo.WhereDeleted = QueryOptionsBool.Ignore;
             qo.WhereIgnored = QueryOptionsBool.Ignore;
+            qo.GetHistory = true;
             return GetTracksInternal(qo);
         }
         public void SavePlaylistTracks(IList<TrackV> tracks)

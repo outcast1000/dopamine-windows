@@ -224,17 +224,17 @@ namespace Dopamine.ViewModels.Common.Base
             if (albums != null && albums.Count > 0)
             {
                 // First, check Albums. They topmost have priority.
-                tracks = trackRepository.GetTracksOfAlbums(albums.Select(x => x.Id).ToList());
+                tracks = trackRepository.GetTracksOfAlbums(albums.Select(x => x.Id).ToList(), true);
             }
             else if (!artists.IsNullOrEmpty())
             {
                 // Artists and Genres have the same priority
-                tracks = trackRepository.GetTracksOfArtists(artists.Select(x => x.Id).ToList());
+                tracks = trackRepository.GetTracksOfArtists(artists.Select(x => x.Id).ToList(), true);
             }
             else if (!genres.IsNullOrEmpty())
             {
                 // Artists and Genres have the same priority
-                tracks = trackRepository.GetTracksWithGenres(genres.Select(x => x.Id).ToList());
+                tracks = trackRepository.GetTracksWithGenres(genres.Select(x => x.Id).ToList(), true);
             }
             else
             {

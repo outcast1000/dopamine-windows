@@ -687,7 +687,7 @@ namespace Dopamine.Services.Playback
                 return;
             }
 
-            IList<TrackV> tracks = trackRepository.GetTracksOfArtists(artists.Select(x => x.Id).ToList());
+            IList<TrackV> tracks = trackRepository.GetTracksOfArtists(artists.Select(x => x.Id).ToList(), true);
             List<TrackViewModel> orderedTracks = await EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
             await this.PlayTracksAsync(orderedTracks, mode, shuffle, loopMode);
         }
@@ -699,7 +699,7 @@ namespace Dopamine.Services.Playback
                 return;
             }
 
-            IList<TrackV> tracks = trackRepository.GetTracksWithGenres(genres.Select(x => x.Id).ToList());
+            IList<TrackV> tracks = trackRepository.GetTracksWithGenres(genres.Select(x => x.Id).ToList(), true);
             List<TrackViewModel> orderedTracks = await EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
             await this.PlayTracksAsync(orderedTracks, mode, shuffle, loopMode);
         }
@@ -711,7 +711,7 @@ namespace Dopamine.Services.Playback
                 return;
             }
 
-            IList<TrackV> tracks = trackRepository.GetTracksOfAlbums(albumViewModels.Select(x => x.Id).ToList());
+            IList<TrackV> tracks = trackRepository.GetTracksOfAlbums(albumViewModels.Select(x => x.Id).ToList(), true);
             List<TrackViewModel> orderedTracks = await Utils.EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
             await this.PlayTracksAsync(orderedTracks, mode, shuffle, loopMode);
         }
@@ -778,21 +778,21 @@ namespace Dopamine.Services.Playback
 
         public async Task<EnqueueResult> AddArtistsToQueueAsync(IList<ArtistViewModel> artists)
         {
-            IList<TrackV> tracks = trackRepository.GetTracksOfArtists(artists.Select(x=>x.Id).ToList());
+            IList<TrackV> tracks = trackRepository.GetTracksOfArtists(artists.Select(x=>x.Id).ToList(), true);
             List<TrackViewModel> orederedTracks = await EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
             return await this.AddToQueueAsync(orederedTracks);
         }
 
         public async Task<EnqueueResult> AddGenresToQueueAsync(IList<GenreViewModel> genres)
         {
-            IList<TrackV> tracks = trackRepository.GetTracksWithGenres(genres.Select(x => x.Id).ToList());
+            IList<TrackV> tracks = trackRepository.GetTracksWithGenres(genres.Select(x => x.Id).ToList(), true);
             List<TrackViewModel> orederedTracks = await EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
             return await this.AddToQueueAsync(orederedTracks);
         }
 
         public async Task<EnqueueResult> AddAlbumsToQueueAsync(IList<AlbumViewModel> albums)
         {
-            IList<TrackV> tracks = trackRepository.GetTracksOfAlbums(albums.Select(x => x.Id).ToList());
+            IList<TrackV> tracks = trackRepository.GetTracksOfAlbums(albums.Select(x => x.Id).ToList(), true);
             List<TrackViewModel> orederedTracks = await EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
             return await this.AddToQueueAsync(orederedTracks);
         }

@@ -268,7 +268,7 @@ namespace Dopamine.Services.Metadata
             if (updateFileArtwork)
             {
                 // Get the tracks for this album
-                IList<TrackV> tracks = this.trackRepository.GetTracksOfAlbums(new List<long> { albumViewModel.Id});
+                IList<TrackV> tracks = this.trackRepository.GetTracksOfAlbums(new List<long> { albumViewModel.Id}, true);
                 IList<FileMetadata> fileMetadatas = new List<FileMetadata>();
 
                 foreach (TrackV track in tracks)

@@ -11,19 +11,19 @@ namespace Dopamine.Data.Repositories
 
         List<TrackV> GetTracksWithText(string text);
 
-        List<TrackV> GetTracksOfArtists(IList<long> artistIds);
+        List<TrackV> GetTracksOfArtists(IList<long> artistIds, bool bGetHistory);
 
-        List<TrackV> GetTracksOfAlbums(IList<long> albumIds);
+        List<TrackV> GetTracksOfAlbums(IList<long> albumIds, bool bGetHistory);
 
-        List<TrackV> GetTracksWithGenres(IList<long> genreIds);
+        List<TrackV> GetTracksWithGenres(IList<long> genreIds, bool bGetHistory);
 
         List<TrackV> GetTracksOfFolders(IList<long> folderIds, QueryOptions options = null);
 
-        List<TrackV> GetTracksWithPaths(IList<string> paths);
+        List<TrackV> GetTracksWithPaths(IList<string> paths, bool bGetHistory);
 
         TrackV GetTrackWithPath(string path, QueryOptions options = null);
 
-        List<TrackV> GetTracksBySearch(string searchText);
+        List<TrackV> GetTracksBySearch(string searchText, bool bGetHistory);
 
         RemoveTracksResult RemoveTracks(IList<long> tracksIds);
 

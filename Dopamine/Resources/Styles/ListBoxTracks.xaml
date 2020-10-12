@@ -278,6 +278,13 @@
                                             Visibility="{Binding DataContext.EnableLove, UpdateSourceTrigger=PropertyChanged, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}"
                                             Love="{Binding Love, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
                                         <TextBlock
+                                            Width="30"
+                                            Text="{Binding PlayCount}"
+                                            Foreground="{DynamicResource Brush_SecondaryText}"
+                                            TextAlignment="Right"
+                                            FontSize="13"
+                                            VerticalAlignment="Center" />
+                                        <TextBlock
                                             Width="60"
                                             Text="{Binding Duration}"
                                             Foreground="{DynamicResource Brush_SecondaryText}"
