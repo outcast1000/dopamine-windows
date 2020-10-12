@@ -16,7 +16,7 @@ namespace Dopamine.Data.Repositories
             throw new System.NotImplementedException();
         }
 
-        public List<AlbumV> GetAlbums(string searchString = null)
+        public List<AlbumV> GetAlbums(bool bGetHistory, string searchString = null)
         {
             return new List<AlbumV>() { 
                 new AlbumV() { Id = 1, Name = "album 1", TrackCount = 2, Genres = "Genre 1, Genre 2", MinYear = 1999, AlbumArtists="Album Artist 1", Artists="Artist 1" },
@@ -34,16 +34,16 @@ namespace Dopamine.Data.Repositories
             throw new System.NotImplementedException();
         }
 
-        public List<AlbumV> GetAlbumsWithArtists(List<long> artistIds)
+        public List<AlbumV> GetAlbumsWithArtists(List<long> artistIds, bool bGetHistory)
         {
-            return GetAlbums();
+            return GetAlbums(false);
         }
 
-        public List<AlbumV> GetAlbumsWithGenres(List<long> genreIds)
+        public List<AlbumV> GetAlbumsWithGenres(List<long> genreIds, bool bGetHistory)
         {
             throw new System.NotImplementedException();
         }
-        public AlbumV GetAlbumOfTrackId(long trackId)
+        public AlbumV GetAlbumOfTrackId(long trackId, bool bGetHistory)
         {
             throw new System.NotImplementedException();
         }

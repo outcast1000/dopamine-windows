@@ -159,7 +159,7 @@ namespace Dopamine.Services.Entities
             //=== Use the AlbumVRepository to get extra info
             await Task.Run(async () =>
             {
-                AlbumV album = albumVRepository.GetAlbumOfTrackId(Data.Id);
+                AlbumV album = albumVRepository.GetAlbumOfTrackId(Data.Id, true);
                 if (album == null)
                 {
                     Logger.Warn($"Album not found for track: {Data.Id} - {Data.FileName}");
@@ -190,7 +190,7 @@ namespace Dopamine.Services.Entities
             indexingService.AlbumInfoDownloaded -= IndexingService_AlbumInfoDownloaded;
             if (!success)
                 return;// Nothing to change
-            AlbumV album = albumVRepository.GetAlbumOfTrackId(Data.Id);
+            AlbumV album = albumVRepository.GetAlbumOfTrackId(Data.Id, true);
             if (album == null)
                 return;// Should not happen
             albumViewModel = new AlbumViewModel(album);

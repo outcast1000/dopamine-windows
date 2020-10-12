@@ -8,6 +8,7 @@ using Dopamine.Services.Indexing;
 using Dopamine.Services.Utils;
 using Prism.Mvvm;
 using System;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Dopamine.Services.Entities
@@ -49,29 +50,26 @@ namespace Dopamine.Services.Entities
         {
             get
             {
-                string info = "";
-
+                StringBuilder sb = new StringBuilder();
                 if (!string.IsNullOrEmpty(data.Genres))
-                    info += string.Format("\n{0}", data.Genres);
+                    sb.AppendLine(ResourceUtils.GetString("Language_Genres") + ": " + data.Genres);
                 if (!data.MinYear.HasValue)
                 {
-
+                    // Do nothing 
                 }
                 else if (data.MinYear == data.MaxYear)
-                    info += string.Format("\nYear: {0}", data.MinYear);
+                    sb.AppendLine(ResourceUtils.GetString("Language_Year") + ": " + data.MinYear);
                 else
-                    info += string.Format("\nYears: {0} - {1}", data.MinYear, data.MaxYear);
-                info += string.Format("\n{0} tracks", data.TrackCount);
-                info += string.Format("\n{0} albums", data.AlbumCount);
-                if (Data.PlayCount.HasValue && Data.PlayCount.Value > 0)
-                {
-                    long skipCount = 0;
-                    if (Data.SkipCount.HasValue && Data.SkipCount.Value > 0)
-                        skipCount = Data.SkipCount.Value;
-                    info += string.Format($"\nRank: {data.PlayCountRank.Value} ({data.PlayCount.Value}/{skipCount})");
-                }
+                    sb.AppendLine(ResourceUtils.GetString("Language_Year") + ": " + data.MinYear + " - " + data.MaxYear);
 
-                return info.Trim();
+                sb.AppendLine(ResourceUtils.GetString("Language_Songs") + ": " + data.TrackCount);
+                sb.AppendLine(ResourceUtils.GetString("Language_Albums") + ": " + data.AlbumCount);
+
+                if (Data.PlayCount.HasValue && Data.PlayCount.Value > 0)
+                    sb.AppendLine(ResourceUtils.GetString("Language_Plays") + ": " + data.PlayCount.Value);
+                if (Data.SkipCount.HasValue && Data.SkipCount.Value > 0)
+                    sb.AppendLine(ResourceUtils.GetString("Language_Skips") + ": " + data.SkipCount.Value);
+                return sb.ToString();
             }
         }
 

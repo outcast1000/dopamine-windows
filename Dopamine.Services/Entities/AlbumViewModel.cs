@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace Dopamine.Services.Entities
 {
@@ -43,21 +44,23 @@ namespace Dopamine.Services.Entities
         {
             get
             {
-                string info = "";
-                //info += string.Format("\n{0} tracks", data.TrackCount);
+                StringBuilder sb = new StringBuilder();
+                if (!string.IsNullOrEmpty(data.Genres))
+                    sb.AppendLine(ResourceUtils.GetString("Language_Genres") + ": " + data.Genres.Replace(",", ", "));
                 if (!data.MinYear.HasValue)
                 {
-
+                    // Do nothing 
                 }
                 else if (data.MinYear == data.MaxYear)
-                    info += string.Format("\nYear: {0}", data.MinYear);
+                    sb.AppendLine(ResourceUtils.GetString("Language_Year") + ": " + data.MinYear);
                 else
-                    info += string.Format("\nYears: {0} - {1}", data.MinYear, data.MaxYear);
-                if (!string.IsNullOrEmpty(data.Genres))
-                    info += string.Format("\n{0}", data.Genres);
-                //info += string.Format("\n{0}", data.DateAdded);
-                //info += string.Format("\n{0}", data.DateFileCreated);
-                return info.Trim();
+                    sb.AppendLine(ResourceUtils.GetString("Language_Year") + ": " + data.MinYear + " - " + data.MaxYear);
+                sb.AppendLine(ResourceUtils.GetString("Language_Songs") + ": " + data.TrackCount);
+                if (Data.PlayCount.HasValue && Data.PlayCount.Value > 0)
+                    sb.AppendLine(ResourceUtils.GetString("Language_Plays") + ": " + data.PlayCount.Value);
+                if (Data.SkipCount.HasValue && Data.SkipCount.Value > 0)
+                    sb.AppendLine(ResourceUtils.GetString("Language_Skips") + ": " + data.SkipCount.Value);
+                return sb.ToString();
             }
         }
 

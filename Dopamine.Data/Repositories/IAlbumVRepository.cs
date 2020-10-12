@@ -6,15 +6,15 @@ namespace Dopamine.Data.Repositories
 {
     public interface IAlbumVRepository
     {
-        List<AlbumV> GetAlbums(string searchString = null);
+        List<AlbumV> GetAlbums(bool bGetHistory, string searchString = null);
 
-        List<AlbumV> GetAlbumsWithArtists(List<long> artistIds);
+        List<AlbumV> GetAlbumsWithArtists(List<long> artistIds, bool bGetHistory);
 
-        List<AlbumV> GetAlbumsWithGenres(List<long> genreIds);
+        List<AlbumV> GetAlbumsWithGenres(List<long> genreIds, bool bGetHistory);
 
         List<AlbumV> GetAlbumsWithoutImages(bool incudeFailedDownloads);
 
-        AlbumV GetAlbumOfTrackId(long trackId);
+        AlbumV GetAlbumOfTrackId(long trackId, bool bGetHistory);
 
     }
 }

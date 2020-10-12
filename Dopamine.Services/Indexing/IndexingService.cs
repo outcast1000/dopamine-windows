@@ -701,7 +701,7 @@ namespace Dopamine.Services.Indexing
             {
                 try
                 {
-                    IList<AlbumV> albumDatasToIndex = rescanAll ? albumVRepository.GetAlbums() : albumVRepository.GetAlbumsWithoutImages(rescanFailed);
+                    IList<AlbumV> albumDatasToIndex = rescanAll ? albumVRepository.GetAlbums(true) : albumVRepository.GetAlbumsWithoutImages(rescanFailed);
                     IAlbumInfoProvider aip = infoProviderFactory.GetAlbumInfoProvider();
                     foreach (AlbumV album in albumDatasToIndex)
                     {

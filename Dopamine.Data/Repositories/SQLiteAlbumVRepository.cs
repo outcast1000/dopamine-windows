@@ -18,7 +18,7 @@ namespace Dopamine.Data.Repositories
             this.factory = factory;
         }
 
-        public List<AlbumV> GetAlbums(string searchString = null)
+        public List<AlbumV> GetAlbums(bool bGetHistory, string searchString = null)
         {
             QueryOptions qo = new QueryOptions();
             if (!string.IsNullOrEmpty(searchString))
@@ -27,6 +27,7 @@ namespace Dopamine.Data.Repositories
                 qo.extraWhereParams.Add("%" + searchString + "%");
                 qo.extraWhereParams.Add("%" + searchString + "%");
             }
+            qo.GetHistory = bGetHistory;
             return GetAlbumsInternal(qo);
         }
 
@@ -42,25 +43,28 @@ namespace Dopamine.Data.Repositories
             return GetAlbumsInternal(qo);
         }
 
-        public List<AlbumV> GetAlbumsWithArtists(List<long> artistIds)
+        public List<AlbumV> GetAlbumsWithArtists(List<long> artistIds, bool bGetHistory)
         {
             QueryOptions qo = new QueryOptions();
             qo.extraWhereClause.Add("Artists.id in (" + string.Join(",", artistIds) + ")");
+            qo.GetHistory = bGetHistory;
             return GetAlbumsInternal(qo);
         }
 
-        public List<AlbumV> GetAlbumsWithGenres(List<long> genreIds)
+        public List<AlbumV> GetAlbumsWithGenres(List<long> genreIds, bool bGetHistory)
         {
             QueryOptions qo = new QueryOptions();
             qo.extraWhereClause.Add("Genres.id in (" + string.Join(",", genreIds) + ")");
+            qo.GetHistory = bGetHistory;
             return GetAlbumsInternal(qo);
         }
 
-        public AlbumV GetAlbumOfTrackId(long trackId)
+        public AlbumV GetAlbumOfTrackId(long trackId, bool bGetHistory)
         {
             QueryOptions qo = new QueryOptions();
-            qo.extraWhereClause.Add("t.id=?");
+            qo.extraWhereClause.Add("Albums.id=(SELECT album_id FROM TrackAlbums WHERE track_id=?)");
             qo.extraWhereParams.Add(trackId);
+            qo.GetHistory = bGetHistory;
             List<AlbumV> result = GetAlbumsInternal(qo);
             if (result.Count == 0)
                 return null;
@@ -108,7 +112,7 @@ MIN(t.year) as MinYear,
 MAX(t.year) as MaxYear,
 AlbumImages.Location as Thumbnail,
 MIN(t.date_added) as DateAdded,
-MIN(t.date_file_created) as DateFileCreated
+MIN(t.date_file_created) as DateFileCreated #SELECT#
 from Tracks t
 LEFT JOIN TrackAlbums ON TrackAlbums.track_id = t.id
 LEFT JOIN Albums ON Albums.id = TrackAlbums.album_id
@@ -119,8 +123,7 @@ LEFT JOIN TrackGenres ON TrackGenres.track_id = t.id
 LEFT JOIN Genres ON TrackGenres.genre_id = Genres.id 
 LEFT JOIN TrackArtists ON TrackArtists.track_id = t.id
 LEFT JOIN Artists ON Artists.id = TrackArtists.artist_id
-LEFT JOIN Folders ON Folders.id = t.folder_id
-#JOIN#
+LEFT JOIN Folders ON Folders.id = t.folder_id #JOIN#
 #WHERE#
 GROUP BY Albums.id
 ORDER BY Albums.name

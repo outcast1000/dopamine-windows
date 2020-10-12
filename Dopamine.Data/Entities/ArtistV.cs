@@ -39,7 +39,6 @@ namespace Dopamine.Data.Entities
         // History
         public long? PlayCount { get; set; }
         public long? SkipCount { get; set; }// This is expensive
-        public long? PlayCountRank { get; set; }
         public long? DateLastPlayed { get; set; }
         public long? DateFirstPlayed { get; set; }
         // History END

@@ -215,7 +215,7 @@ namespace Dopamine.Services.Collection
             IList<AlbumViewModel> avm = new List<AlbumViewModel>();
             await Task.Run(() =>
             {
-                IList<AlbumV> items = albumVRepository.GetAlbums(searchString);
+                IList<AlbumV> items = albumVRepository.GetAlbums(false, searchString);
                 if (items == null)
                     Logger.Warn($"GetAlbumsAsync albumVRepository.GetAlbums({searchString}) return null");
                 else
@@ -229,7 +229,7 @@ namespace Dopamine.Services.Collection
             IList<AlbumViewModel> avm = null;
             await Task.Run(() =>
             {
-                IList<AlbumV> albums = albumVRepository.GetAlbumsWithArtists(selectedArtists.Select(x => x.Id).ToList());
+                IList<AlbumV> albums = albumVRepository.GetAlbumsWithArtists(selectedArtists.Select(x => x.Id).ToList(), true);
                 avm = albums.Select(x => new AlbumViewModel(x)).ToList();
             });
             return avm;
@@ -240,7 +240,7 @@ namespace Dopamine.Services.Collection
             IList<AlbumViewModel> avm = null;
             await Task.Run(() =>
             {
-                IList<AlbumV> albums = albumVRepository.GetAlbumsWithGenres(selectedGenres.Select(x => x.Id).ToList());
+                IList<AlbumV> albums = albumVRepository.GetAlbumsWithGenres(selectedGenres.Select(x => x.Id).ToList(), true);
                 avm = albums.Select(x => new AlbumViewModel(x)).ToList();
             });
             return avm;
