@@ -17,12 +17,14 @@ namespace Dopamine.Data.Repositories
     public class QueryOptions
     {
         public bool UseLimit = false;
+        public bool GetHistory = false;
         public long Limit = 0;
         public long Offset = 0;
         public QueryOptionsBool WhereVisibleFolders = QueryOptionsBool.True;
         public QueryOptionsBool WhereIgnored = QueryOptionsBool.False;
         public QueryOptionsBool WhereDeleted = QueryOptionsBool.False;
         public QueryOptionsBool WhereInACollection = QueryOptionsBool.True;
+        public List<string> extraSelectClause = new List<string>();
         public List<string> extraJoinClause = new List<string>();
         public List<object> extraJoinParams = new List<object>();
         public List<string> extraWhereClause = new List<string>();
@@ -76,8 +78,15 @@ namespace Dopamine.Data.Repositories
             StringBuilder sbJoin = new StringBuilder();
             foreach (string join in queryOptions.extraJoinClause)
             {
-                sbJoin.Append(join);
                 sbJoin.Append("\n");
+                sbJoin.Append(join);
+            }
+
+            StringBuilder sbSelect = new StringBuilder();
+            foreach (string item in queryOptions.extraSelectClause)
+            {
+                sbSelect.Append(",\n");
+                sbSelect.Append(item);
             }
 
             string limit = "";
@@ -87,6 +96,7 @@ namespace Dopamine.Data.Repositories
             }
 
             string sql = sqlTemplate.Replace("#WHERE#", sbWhere.ToString());
+            sql = sql.Replace("#SELECT#", sbSelect.ToString());
             sql = sql.Replace("#JOIN#", sbJoin.ToString());
             sql = sql.Replace("#ORDER#", queryOptions.OrderClause);
             sql = sql.Replace("#LIMIT#", limit);

@@ -79,42 +79,57 @@ namespace Dopamine.Data.Repositories
         {
             try
             {
-                //string sql = RepositoryCommon.CreateSQL(GetSQLTemplate(), queryOptions);
-                return RepositoryCommon.Query<TrackV>(connection, GetSQLTemplate(), queryOptions);
-            }
-            catch (Exception ex)
-            {
-                LogClient.Error("Query Failed. Exception: {0}", ex.Message);
-            }
-            return null;
-        }
-
-        private TrackV GetTrackInternal(QueryOptions queryOptions = null)
-        {
-            if (connection != null)
-                return GetTrackInternal(connection, queryOptions);
-            try
-            {
-                using (var conn = factory.GetConnection())
+                if (queryOptions?.GetHistory == true)
                 {
-                    return GetTrackInternal(conn, queryOptions);
-                }
-            }
-            catch (Exception ex)
-            {
-                LogClient.Error("Could not connect to the database. Exception: {0}", ex.Message);
-            }
-            return null;
-        }
+                    bool bUseExplicitPlayedDates = false;
+                    if (bUseExplicitPlayedDates)
+                    {
+                        /*
+                        This is expensive and needs 2 JOINS With the same table but gives the real (complete played) dates
+                        (...)
+                        SUM(CASE WHEN th_playcount.history_action_id=2 THEN 1 ELSE 0 END) as PlayCount, 
+                        SUM(CASE WHEN th_skipcount.history_action_id=3 THEN 1 ELSE 0 END) as SkipCount, 
+                        RANK () OVER (ORDER BY SUM(CASE WHEN th_playcount.history_action_id=2 THEN 1 ELSE 0 END) DESC) as PlayCountRank,
+                        MAX(th_playcount.date_happened) as DateLastPlayed,
+                        MIN(th_playcount.date_happened) as DateFirstPlayed
+                        (...)
+                        LEFT JOIN TrackHistory th_playcount on t.id=th_playcount.track_id AND th_playcount.history_action_id=2
+                        LEFT JOIN TrackHistory th_skipcount on t.id=th_skipcount.track_id AND th_skipcount.history_action_id=3
+                        (...)
+                        */
+                        queryOptions.extraSelectClause.Add("SUM(CASE WHEN th_playcount.history_action_id=2 THEN 1 ELSE 0 END) as PlayCount");
+                        queryOptions.extraSelectClause.Add("SUM(CASE WHEN th_skipcount.history_action_id=3 THEN 1 ELSE 0 END) as SkipCount");// Skip Count - Expensive
+                        queryOptions.extraSelectClause.Add("RANK () OVER (ORDER BY SUM(CASE WHEN th_playcount.history_action_id=2 THEN 1 ELSE 0 END) DESC) as PlayCountRank");
+                        queryOptions.extraSelectClause.Add("MAX(th_playcount.date_happened) as DateLastPlayed");
+                        queryOptions.extraSelectClause.Add("MIN(th_playcount.date_happened) as DateFirstPlayed");
+                        queryOptions.extraJoinClause.Add("LEFT JOIN TrackHistory th_playcount on t.id=th_playcount.track_id AND th_playcount.history_action_id=2");
+                        queryOptions.extraJoinClause.Add("LEFT JOIN TrackHistory th_skipcount on t.id=th_skipcount.track_id AND th_skipcount.history_action_id=3");// Skip Count - Expensive
+                    }
+                    else
+                    {
+                        /*
+                        This is less expensive, needs 1 JOIN but gives the skipped OR played dates
+                        (...)
+                        SUM(CASE WHEN th_playcount.history_action_id=2 THEN 1 ELSE 0 END) as PlayCount, 
+                        SUM(CASE WHEN th_playcount.history_action_id=3 THEN 1 ELSE 0 END) as SkipCount, 
+                        RANK () OVER (ORDER BY SUM(CASE WHEN th_playcount.history_action_id=2 THEN 1 ELSE 0 END) DESC) as PlayCountRank,
+                        MAX(th_playcount.date_happened) as DateLastPlayed,
+                        MIN(th_playcount.date_happened) as DateFirstPlayed
+                        (...)
+                        LEFT JOIN TrackHistory th_playcount on t.id=th_playcount.track_id AND th_playcount.history_action_id IN (2,3)
+                        (...)
+                        */
+                        queryOptions.extraSelectClause.Add("SUM(CASE WHEN th_playcount.history_action_id=2 THEN 1 ELSE 0 END) as PlayCount");
+                        queryOptions.extraSelectClause.Add("SUM(CASE WHEN th_playcount.history_action_id=3 THEN 1 ELSE 0 END) as SkipCount");// Skip Count - Expensive
+                        queryOptions.extraSelectClause.Add("RANK () OVER (ORDER BY SUM(CASE WHEN th_playcount.history_action_id=2 THEN 1 ELSE 0 END) DESC) as PlayCountRank");
+                        queryOptions.extraSelectClause.Add("MAX(th_playcount.date_happened) as DateLastPlayed");
+                        queryOptions.extraSelectClause.Add("MIN(th_playcount.date_happened) as DateFirstPlayed");
+                        queryOptions.extraJoinClause.Add("LEFT JOIN TrackHistory th_playcount on t.id=th_playcount.track_id AND th_playcount.history_action_id in (2,3)");
+                    }
 
-        private TrackV GetTrackInternal(SQLiteConnection connection, QueryOptions queryOptions = null)
-        {
-            try
-            {
-                IList<TrackV> tracks = RepositoryCommon.Query<TrackV>(connection, GetSQLTemplate(), queryOptions);
-                if (tracks == null || tracks.Count < 1)
-                    return null;
-                return tracks[0];
+
+                }
+                return RepositoryCommon.Query<TrackV>(connection, GetSQLTemplate(), queryOptions);
             }
             catch (Exception ex)
             {
@@ -150,12 +165,9 @@ t.date_file_modified as DateFileModified,
 t.date_file_deleted as DateFileDeleted, 
 t.rating as Rating, 
 t.love as Love, 
-0 as PlayCount, 
-0 as SkipCount, 
-0 as DateLastPlayed,
 t.folder_id as FolderID,
 COALESCE(MAX(AlbumImages.location), ArtistImages.location) as Thumbnail,
-AlbumImages.location as Thumbnail
+AlbumImages.location as Thumbnail #SELECT#
 FROM Tracks t
 LEFT JOIN TrackArtists ON TrackArtists.track_id =t.id 
 LEFT JOIN Artists ON Artists.id =TrackArtists.artist_id  
@@ -167,7 +179,7 @@ LEFT JOIN TrackGenres ON TrackGenres.track_id =t.id
 LEFT JOIN Genres ON Genres.id = TrackGenres.genre_id  
 LEFT JOIN Folders ON Folders.id = t.folder_id
 LEFT JOIN AlbumImages ON Albums.id=AlbumImages.album_id
-LEFT JOIN ArtistImages ON Artists.id=ArtistImages.artist_id
+LEFT JOIN ArtistImages ON Artists.id=ArtistImages.artist_id #JOIN#
 #WHERE#
 GROUP BY t.id
 #LIMIT#";
@@ -343,7 +355,14 @@ GROUP BY t.id
                 options = new QueryOptions();
             options.extraWhereClause.Add("t.path=?");
             options.extraWhereParams.Add(path);
-            return GetTrackInternal(options);
+            IList<TrackV> tracks = GetTracksInternal(options);
+            if (tracks == null || tracks.Count == 0)
+            {
+                Logger.Warn($"GetTrackWithPath not found: {path}");
+                return null;
+            }
+            Debug.Assert(tracks.Count == 1);
+            return tracks[0];
         }
 
 

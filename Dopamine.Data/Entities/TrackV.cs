@@ -66,12 +66,6 @@ namespace Dopamine.Data.Entities
 
         public long? Love { get; set; }
 
-        public long? PlayCount { get; set; }
-
-        public long? SkipCount { get; set; }
-
-        public long? DateLastPlayed { get; set; }
-
         public long? DateIgnored { get; set; }
 
         public long FolderID { get; set; }
@@ -79,6 +73,14 @@ namespace Dopamine.Data.Entities
         public string Language { get; set; }
 
         public string Thumbnail { get; set; }
+
+        // History
+        public long? PlayCount { get; set; }
+        public long? SkipCount { get; set; }// This is expensive
+        public long? PlayCountRank { get; set; }
+        public long? DateLastPlayed { get; set; }
+        public long? DateFirstPlayed { get; set; }
+        // History END
 
         public static TrackV CreateDefault(string path)
         {
