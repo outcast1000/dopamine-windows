@@ -79,56 +79,6 @@ namespace Dopamine.Data.Repositories
         {
             try
             {
-                if (queryOptions?.GetHistory == true)
-                {
-                    bool bUseExplicitPlayedDates = false;
-                    if (bUseExplicitPlayedDates)
-                    {
-                        /*
-                        This is expensive and needs 2 JOINS With the same table but gives the real (complete played) dates
-                        (...)
-                        SUM(CASE WHEN th_playcount.history_action_id=2 THEN 1 ELSE 0 END) as PlayCount, 
-                        SUM(CASE WHEN th_skipcount.history_action_id=3 THEN 1 ELSE 0 END) as SkipCount, 
-                        RANK () OVER (ORDER BY SUM(CASE WHEN th_playcount.history_action_id=2 THEN 1 ELSE 0 END) DESC) as PlayCountRank,
-                        MAX(th_playcount.date_happened) as DateLastPlayed,
-                        MIN(th_playcount.date_happened) as DateFirstPlayed
-                        (...)
-                        LEFT JOIN TrackHistory th_playcount on t.id=th_playcount.track_id AND th_playcount.history_action_id=2
-                        LEFT JOIN TrackHistory th_skipcount on t.id=th_skipcount.track_id AND th_skipcount.history_action_id=3
-                        (...)
-                        */
-                        queryOptions.extraSelectClause.Add("SUM(CASE WHEN th_playcount.history_action_id=2 THEN 1 ELSE 0 END) as PlayCount");
-                        queryOptions.extraSelectClause.Add("SUM(CASE WHEN th_skipcount.history_action_id=3 THEN 1 ELSE 0 END) as SkipCount");// Skip Count - Expensive
-                        queryOptions.extraSelectClause.Add("RANK () OVER (ORDER BY SUM(CASE WHEN th_playcount.history_action_id=2 THEN 1 ELSE 0 END) DESC) as PlayCountRank");
-                        queryOptions.extraSelectClause.Add("MAX(th_playcount.date_happened) as DateLastPlayed");
-                        queryOptions.extraSelectClause.Add("MIN(th_playcount.date_happened) as DateFirstPlayed");
-                        queryOptions.extraJoinClause.Add("LEFT JOIN TrackHistory th_playcount on t.id=th_playcount.track_id AND th_playcount.history_action_id=2");
-                        queryOptions.extraJoinClause.Add("LEFT JOIN TrackHistory th_skipcount on t.id=th_skipcount.track_id AND th_skipcount.history_action_id=3");// Skip Count - Expensive
-                    }
-                    else
-                    {
-                        /*
-                        This is less expensive, needs 1 JOIN but gives the skipped OR played dates
-                        (...)
-                        SUM(CASE WHEN th_playcount.history_action_id=2 THEN 1 ELSE 0 END) as PlayCount, 
-                        SUM(CASE WHEN th_playcount.history_action_id=3 THEN 1 ELSE 0 END) as SkipCount, 
-                        RANK () OVER (ORDER BY SUM(CASE WHEN th_playcount.history_action_id=2 THEN 1 ELSE 0 END) DESC) as PlayCountRank,
-                        MAX(th_playcount.date_happened) as DateLastPlayed,
-                        MIN(th_playcount.date_happened) as DateFirstPlayed
-                        (...)
-                        LEFT JOIN TrackHistory th_playcount on t.id=th_playcount.track_id AND th_playcount.history_action_id IN (2,3)
-                        (...)
-                        */
-                        queryOptions.extraSelectClause.Add("SUM(CASE WHEN th_playcount.history_action_id=2 THEN 1 ELSE 0 END) as PlayCount");
-                        queryOptions.extraSelectClause.Add("SUM(CASE WHEN th_playcount.history_action_id=3 THEN 1 ELSE 0 END) as SkipCount");// Skip Count - Expensive
-                        queryOptions.extraSelectClause.Add("RANK () OVER (ORDER BY SUM(CASE WHEN th_playcount.history_action_id=2 THEN 1 ELSE 0 END) DESC) as PlayCountRank");
-                        queryOptions.extraSelectClause.Add("MAX(th_playcount.date_happened) as DateLastPlayed");
-                        queryOptions.extraSelectClause.Add("MIN(th_playcount.date_happened) as DateFirstPlayed");
-                        queryOptions.extraJoinClause.Add("LEFT JOIN TrackHistory th_playcount on t.id=th_playcount.track_id AND th_playcount.history_action_id in (2,3)");
-                    }
-
-
-                }
                 return RepositoryCommon.Query<TrackV>(connection, GetSQLTemplate(), queryOptions);
             }
             catch (Exception ex)

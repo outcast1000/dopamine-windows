@@ -63,6 +63,14 @@ namespace Dopamine.Services.Entities
                     info += string.Format("\nYears: {0} - {1}", data.MinYear, data.MaxYear);
                 info += string.Format("\n{0} tracks", data.TrackCount);
                 info += string.Format("\n{0} albums", data.AlbumCount);
+                if (Data.PlayCount.HasValue && Data.PlayCount.Value > 0)
+                {
+                    long skipCount = 0;
+                    if (Data.SkipCount.HasValue && Data.SkipCount.Value > 0)
+                        skipCount = Data.SkipCount.Value;
+                    info += string.Format($"\nRank: {data.PlayCountRank.Value} ({data.PlayCount.Value}/{skipCount})");
+                }
+
                 return info.Trim();
             }
         }

@@ -196,12 +196,12 @@ namespace Dopamine.Services.Collection
             return viewModels;
         }
 
-        public async Task<IList<ArtistViewModel>> GetArtistsAsync(string searchString = null)
+        public async Task<IList<ArtistViewModel>> GetArtistsAsync(bool bGetHistory, string searchString = null)
         {
             List<ArtistViewModel> viewModels = new List<ArtistViewModel>();
             await Task.Run(() =>
             {
-               IList<ArtistV> items = artistVRepository.GetArtists(searchString);
+               IList<ArtistV> items = artistVRepository.GetArtists(bGetHistory, searchString);
                if (items == null)
                     Logger.Warn($"GetArtistsAsync artistVRepository.GetArtists({searchString}) return null");
                else

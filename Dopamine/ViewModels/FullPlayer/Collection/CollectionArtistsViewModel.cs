@@ -361,7 +361,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             try
             {
                 // Get the viewModels
-                var viewModels = new ObservableCollection<ArtistViewModel>(await this.collectionService.GetArtistsAsync(_searchString));
+                var viewModels = new ObservableCollection<ArtistViewModel>(await this.collectionService.GetArtistsAsync(true, _searchString));// Using history
                 // Unless we are in Search Mode, we should re-store the selected items. The cases are:
                 //  1. at the beginning of the application
                 //  2. after the search mode is finished 

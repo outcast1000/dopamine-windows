@@ -16,7 +16,7 @@ namespace Dopamine.Data.Repositories
             this.factory = factory;
         }
 
-        public List<ArtistV> GetArtists(string searchString = null)
+        public List<ArtistV> GetArtists(bool bGetHistory, string searchString = null)
         {
             QueryOptions qo = new QueryOptions();
             if (!string.IsNullOrEmpty(searchString))
@@ -24,6 +24,7 @@ namespace Dopamine.Data.Repositories
                 qo.extraWhereClause.Add("Artists.Name like ?");
                 qo.extraWhereParams.Add("%" + searchString + "%");
             }
+            qo.GetHistory = bGetHistory;
             return GetArtistsInternal(qo);
         }
 
@@ -93,7 +94,7 @@ MAX(t.year) as MaxYear,
 COALESCE(ArtistImages.location, MAX(AlbumImages.location)) as Thumbnail,
 ArtistImages.location as ArtistImage,
 MIN(t.date_added) as DateAdded,
-MIN(t.date_file_created) as DateFileCreated
+MIN(t.date_file_created) as DateFileCreated #SELECT#
 from Tracks t
 LEFT JOIN TrackArtists  ON TrackArtists.track_id = t.id
 LEFT JOIN Artists ON Artists.id = TrackArtists.artist_id
@@ -103,8 +104,7 @@ LEFT JOIN Albums ON Albums.id = TrackAlbums.album_id
 LEFT JOIN AlbumImages ON Albums.id = AlbumImages.album_id
 LEFT JOIN TrackGenres ON TrackGenres.track_id = t.id
 LEFT JOIN Genres ON TrackGenres.genre_id = Genres.id
-LEFT JOIN Folders ON Folders.id = t.folder_id
-#JOIN#
+LEFT JOIN Folders ON Folders.id = t.folder_id #JOIN#
 #WHERE#
 GROUP BY Artists.id
 ORDER BY Artists.name

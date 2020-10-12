@@ -40,6 +40,16 @@ namespace Dopamine.Data.Repositories
         {
             if (queryOptions == null)
                 queryOptions = new QueryOptions();
+            //=== History
+            if (queryOptions.GetHistory == true)
+            {
+                queryOptions.extraSelectClause.Add("SUM(CASE WHEN th_playcount.history_action_id=2 THEN 1 ELSE 0 END) as PlayCount");
+                queryOptions.extraSelectClause.Add("SUM(CASE WHEN th_playcount.history_action_id=3 THEN 1 ELSE 0 END) as SkipCount");// Skip Count - Expensive
+                queryOptions.extraSelectClause.Add("RANK () OVER (ORDER BY SUM(CASE WHEN th_playcount.history_action_id=2 THEN 1 ELSE 0 END) DESC) as PlayCountRank");
+                queryOptions.extraSelectClause.Add("MAX(th_playcount.date_happened) as DateLastPlayed");
+                queryOptions.extraSelectClause.Add("MIN(th_playcount.date_happened) as DateFirstPlayed");
+                queryOptions.extraJoinClause.Add("LEFT JOIN TrackHistory th_playcount on t.id=th_playcount.track_id AND th_playcount.history_action_id in (2,3)");
+            }
             //=== WhereVisibleFolders
             if (queryOptions.WhereVisibleFolders == QueryOptionsBool.True)
                 queryOptions.extraWhereClause.Add("Folders.show = 1");
