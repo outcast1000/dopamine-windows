@@ -138,6 +138,11 @@
                         <!--  Artist  -->
                         <Border BorderBrush="#8888" BorderThickness="0">
                             <Grid x:Name="FullItem">
+                                <Border Name="OverlayBorder">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="#0000" />
+                                    </Border.Background>
+                                </Border>
                                 <StackPanel>
                                     <Grid>
                                         <TextBlock
@@ -174,7 +179,7 @@
                                                 Orientation="Horizontal"
                                                 HorizontalAlignment="Right"
                                                 DockPanel.Dock="Right"
-                                                Opacity="1">
+                                                Opacity="0">
                                                 <Button
                                                     Style="{StaticResource TransparentRoundButton}"
                                                     x:Name="LoveButton"
@@ -265,11 +270,7 @@
                                     BorderThickness="3,0,0,0"
                                     Opacity="0"
                                     BorderBrush="{DynamicResource Brush_SelectedBorder}" />
-                                <Border Name="OverlayBorder">
-                                    <Border.Background>
-                                        <SolidColorBrush Color="#0000" />
-                                    </Border.Background>
-                                </Border>
+
                             </Grid>
                         </Border>
                     </DockPanel>
