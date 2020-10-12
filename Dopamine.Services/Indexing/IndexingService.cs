@@ -24,6 +24,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Animation;
 using Dopamine.Services.File;
+using System.Security.Cryptography;
 
 /* DESIGN (CALLERS)
 
@@ -61,7 +62,7 @@ using Dopamine.Services.File;
 	-> this.indexingService.RefreshCollectionAsync(false, false);
 
 */
- 
+
 
 namespace Dopamine.Services.Indexing
 {
@@ -438,11 +439,59 @@ namespace Dopamine.Services.Indexing
             }
         }
 
+        private class FolderStats
+        {
+            public FolderStats() { TotalFiles = LastModifiedDateTicks = 0;}
+            public string Hash;
+            public long TotalFiles;
+            public long LastModifiedDateTicks;
+        }
+
+        private FolderStats CalculateFolderStats(String folderPath)
+        {
+            FolderStats fs = new FolderStats();
+            using (var hasher = new SHA1CryptoServiceProvider())
+            {
+                hasher.Initialize();
+                FileOperations.GetFiles(folderPath,
+                    (path) =>
+                    {
+                        //=== Check the extension
+                        if (!FileFormats.SupportedMediaExtensions.Contains(Path.GetExtension(path.ToLower())))
+                            return;
+                        fs.TotalFiles++;
+                        long dateFileModified = FileUtils.DateModifiedTicks(path);
+                        if (dateFileModified > fs.LastModifiedDateTicks)
+                            fs.LastModifiedDateTicks = dateFileModified;
+                        hasher.TransformBlock(BitConverter.GetBytes(fs.LastModifiedDateTicks), 0, sizeof(long), null, 0);
+                    },
+                    () =>
+                    {
+                        return !_shouldCancelIndexing;
+                    },
+                    (ex) => { });
+                hasher.TransformFinalBlock(new byte[0], 0, 0);
+                fs.Hash = BitConverter.ToString(hasher.Hash);
+            }
+            return fs;
+
+
+        }
+
         private UpdateStatistics RefreshCollection(FolderV folder, bool bReReadTags)
         {
-            Logger.Debug($"Refreshing... {folder.Path}");
-            IndexingStatusChanged(new IndexingStatusEventArgs() { IndexingAction = IndexingAction.RemoveTracks, ExtraInfo = folder.Path });
+            Logger.Debug($"RefreshCollection: {folder.Path}. Reading FS...");
+            FolderStats folderStats = CalculateFolderStats(folder.Path);
+            if (!bReReadTags)
+            {
+                if (folder.Hash != null && folder.Hash.Equals(folderStats.Hash))
+                {
+                    Logger.Debug("RefreshCollection: Hash is the same => Nothing changed");
+                    return new UpdateStatistics();
+                }
+            }
 
+            IndexingStatusChanged(new IndexingStatusEventArgs() { IndexingAction = IndexingAction.RemoveTracks, ExtraInfo = folder.Path });
             UpdateStatistics stats = new UpdateStatistics();
             TimeCounter tcRefreshCollection = new TimeCounter();
             if (!SettingsClient.Get<bool>("Indexing", "IgnoreRemovedFiles"))
@@ -453,23 +502,7 @@ namespace Dopamine.Services.Indexing
                 Logger.Debug($"--> Removed files: {stats.Removed}");
             }
 
-            //=== Add OR Update the files that on disk
-            Logger.Debug("-->Counting Files...");
-            int totalFiles = 0;
             IndexingStatusChanged(new IndexingStatusEventArgs() { IndexingAction = IndexingAction.UpdateTracks, ExtraInfo = folder.Path, ProgressPercent = 0 });
-            FileOperations.GetFiles(folder.Path,
-                (path) =>
-                {
-                    //=== Check the extension
-                    if (FileFormats.SupportedMediaExtensions.Contains(Path.GetExtension(path.ToLower())))
-                        totalFiles++;
-                },
-                () =>
-                {
-                    return !_shouldCancelIndexing;
-                },
-                (ex) =>{});
-
             Logger.Debug("-->Reading file system...");
             
             FileOperations.GetFiles(folder.Path,
@@ -480,7 +513,7 @@ namespace Dopamine.Services.Indexing
                     if (!FileFormats.SupportedMediaExtensions.Contains(Path.GetExtension(path.ToLower())))
                         return;
                     stats.Checked++;
-                    IndexingStatusChanged(new IndexingStatusEventArgs() { IndexingAction = IndexingAction.UpdateTracks, ExtraInfo = folder.Path, ProgressPercent = 100 * stats.Checked / totalFiles });
+                    IndexingStatusChanged(new IndexingStatusEventArgs() { IndexingAction = IndexingAction.UpdateTracks, ExtraInfo = folder.Path, ProgressPercent = 100 * stats.Checked / (int)folderStats.TotalFiles });
                     //=== Check the DB for the path
                     TrackV trackV = trackVRepository.GetTrackWithPath(path, new QueryOptions() { WhereDeleted = QueryOptionsBool.Ignore, WhereInACollection = QueryOptionsBool.Ignore, WhereVisibleFolders = QueryOptionsBool.Ignore, WhereIgnored = QueryOptionsBool.Ignore });
                     long DateFileModified = FileUtils.DateModifiedTicks(path);
@@ -580,6 +613,14 @@ namespace Dopamine.Services.Indexing
                     Logger.Error(ex, $"Updating Collection {ex.Message}");
                 }
             );
+            folderVRepository.SetFolderIndexing(new FolderIndexing()
+            {
+                DateIndexed = DateTime.Now.Ticks,
+                MaxFileDateModified = folderStats.LastModifiedDateTicks,
+                TotalFiles = folderStats.TotalFiles,
+                FolderId = folder.Id,
+                Hash = folderStats.Hash
+            });
             Logger.Debug($"Refreshing collection finished in {tcRefreshCollection.GetMs(true)}. Stats: {stats}");
             return stats;
         }

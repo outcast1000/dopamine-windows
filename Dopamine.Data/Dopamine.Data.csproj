@@ -111,6 +111,7 @@
     <Compile Include="DataUtils.cs" />
     <Compile Include="DbMigrator.cs" />
     <Compile Include="Entities\AlbumReview.cs" />
+    <Compile Include="Entities\FolderIndexing.cs" />
     <Compile Include="Entities\TrackHistory.cs" />
     <Compile Include="Entities\General.cs" />
     <Compile Include="Entities\ArtistRole.cs" />

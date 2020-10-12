@@ -1,8 +1,10 @@
 ﻿using Digimezzo.Foundation.Core.Logging;
 using Dopamine.Core.Extensions;
 using Dopamine.Data.Entities;
+using SQLite;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -10,6 +12,7 @@ namespace Dopamine.Data.Repositories
 {
     public class SQLiteFolderVRepository : IFolderVRepository
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private readonly ISQLiteConnectionFactory factory;
 
         public SQLiteFolderVRepository(ISQLiteConnectionFactory factory)
@@ -22,6 +25,38 @@ namespace Dopamine.Data.Repositories
             return GetFoldersInternal();
         }
 
+        public bool SetFolderIndexing(FolderIndexing folderIndexing)
+        {
+            Debug.Assert(folderIndexing.FolderId > 0);
+            return ExecuteInternal("INSERT OR REPLACE INTO FolderIndexing (folder_id, date_indexed, max_file_date_modified, hash, total_files) VALUES (?,?,?,?,?)",
+                folderIndexing.FolderId,
+                folderIndexing.DateIndexed,
+                folderIndexing.MaxFileDateModified,
+                folderIndexing.Hash,
+                folderIndexing.TotalFiles) > 0;
+        }
+
+
+        private int ExecuteInternal(string sql, params object[] sqlParams)
+        {
+            using (var conn = factory.GetConnection())
+            {
+                return ExecuteInternalWithConnection(conn, sql, sqlParams);
+            }
+        }
+        private int ExecuteInternalWithConnection(SQLiteConnection connection, string sql, params object[] sqlParams)
+        {
+            try
+            {
+                return connection.Execute(sql, sqlParams);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, $"Execute Failed {sql}: {ex.Message}");
+            }
+            return 0;
+        }
+
 
         private List<FolderV> GetFoldersInternal()
         {
@@ -31,7 +66,15 @@ namespace Dopamine.Data.Repositories
                 {
                     try
                     {
-                        return RepositoryCommon.Query<FolderV>(conn, GetSQLTemplate());
+                        QueryOptions qo = new QueryOptions()
+                        {
+                            WhereDeleted = QueryOptionsBool.Ignore,
+                            WhereIgnored = QueryOptionsBool.Ignore,
+                            WhereInACollection = QueryOptionsBool.Ignore,
+                            WhereVisibleFolders = QueryOptionsBool.Ignore,
+                            GetHistory = false
+                        };
+                        return RepositoryCommon.Query<FolderV>(conn, GetSQLTemplate(), qo);
                     }
                     catch (Exception ex)
                     {
@@ -56,22 +99,24 @@ Folders.path as Path,
 Folders.show as Show,
 Folders.date_added as DateAdded,
 COUNT(DISTINCT t.id) as TrackCount,
-COUNT(DISTINCT Genres.id) as GenreCount,
-COUNT(DISTINCT Albums.id) as AlbumCount,
-COUNT(DISTINCT Artists.id) as ArtistsCount,
+COUNT(DISTINCT TrackGenres.genre_id) as GenreCount,
+COUNT(DISTINCT TrackAlbums.album_id) as AlbumCount,
+COUNT(DISTINCT TrackArtists.artist_id) as ArtistsCount,
 MIN(t.year) as MinYear,
 MAX(t.year) as MaxYear,
 SUM(t.duration) as TotalDuration,
 SUM(t.fileSize) as TotalFileSize,
-AVG(t.bitrate) as AverageBitrate
+AVG(t.bitrate) as AverageBitrate,
+FolderIndexing.date_indexed as DateIndexed,
+FolderIndexing.total_files as TotalFiles,
+FolderIndexing.max_file_date_modified as MaxFileDateModified,
+FolderIndexing.hash as Hash
 FROM Folders
 LEFT JOIN Tracks t ON Folders.id = t.folder_id
 LEFT JOIN TrackArtists  ON TrackArtists.track_id = t.id
-LEFT JOIN Artists ON Artists.id = TrackArtists.artist_id
 LEFT JOIN TrackAlbums ON TrackAlbums.track_id = t.id
-LEFT JOIN Albums ON Albums.id = TrackAlbums.album_id
 LEFT JOIN TrackGenres ON TrackGenres.track_id = t.id
-LEFT JOIN Genres ON TrackGenres.genre_id = Genres.id
+LEFT JOIN FolderIndexing ON FolderIndexing.folder_id=Folders.id
 GROUP BY Folders.id
 ";
         }

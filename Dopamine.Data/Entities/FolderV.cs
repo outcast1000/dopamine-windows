@@ -24,5 +24,13 @@ namespace Dopamine.Data.Entities
         public long TotalFileSize { get; set; }
         public long? AverageBitrate { get; set; }
 
+        // Indexing
+        public long? DateIndexed { get; set; }
+        public long? TotalFiles { get; set; }
+        public long? MaxFileDateModified { get; set; }
+        public string Hash { get; set; }
+
+
+
     }
 }

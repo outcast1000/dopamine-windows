@@ -194,6 +194,17 @@ namespace Dopamine.Data
 
                 conn.Execute("CREATE UNIQUE INDEX FoldersPath ON Folders(path);");
 
+                //=== FolderIndexing
+                conn.Execute("CREATE TABLE FolderIndexing (" +
+                    "folder_id              INTEGER PRIMARY KEY," +
+                    "date_indexed           INTEGER NOT NULL," +
+                    "total_files            INTEGER NOT NULL," +
+                    "max_file_date_modified INTEGER NOT NULL," +
+                    "hash                   TEXT NOT NULL," +
+                    "FOREIGN KEY (folder_id) REFERENCES Folders(id));");
+
+
+
                 //=== Tracks:
                 conn.Execute("CREATE TABLE Tracks (" +
                             "id	                INTEGER PRIMARY KEY AUTOINCREMENT," +
