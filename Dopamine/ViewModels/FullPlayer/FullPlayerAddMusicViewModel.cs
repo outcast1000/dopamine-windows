@@ -10,8 +10,9 @@ namespace Dopamine.ViewModels.FullPlayer
     public class FullPlayerAddMusicViewModel : BindableBase
     {
         private bool checkBoxRefreshCollectionAutomaticallyChecked;
-        private bool checkBoxIgnoreRemovedFilesChecked;
+        private bool checkBoxIgnoreRemovedFilesChecked = false;
         private bool checkBoxDownloadMissingAlbumCoversChecked;
+        private bool checkBoxRereadInfoChecked;
         private ITrackVRepository trackRepository;
         private IIndexingService indexingService;
 
@@ -19,7 +20,7 @@ namespace Dopamine.ViewModels.FullPlayer
         {
             this.trackRepository = trackRepository;
             this.indexingService = indexingService;
-            this.RefreshNowCommand = new DelegateCommand(() => this.indexingService.RefreshCollectionAsync(true, false));
+            this.RefreshNowCommand = new DelegateCommand(() => this.indexingService.RefreshCollectionAsync(true, checkBoxRereadInfoChecked));
             this.ReloadAllCoversCommand = new DelegateCommand(() => this.indexingService.RetrieveInfoAsync(true, true));
             this.ReloadMissingCoversCommand = new DelegateCommand(() => this.indexingService.RetrieveInfoAsync(true, false));
             this.GetCheckBoxesAsync();
@@ -54,6 +55,15 @@ namespace Dopamine.ViewModels.FullPlayer
                     // Fire and forget
                     trackRepository.ClearRemovedTrack(); 
                 }
+            }
+        }
+
+        public bool CheckBoxRereadInfoChecked
+        {
+            get { return this.checkBoxRereadInfoChecked; }
+            set
+            {
+                SetProperty<bool>(ref this.checkBoxRereadInfoChecked, value);
             }
         }
 

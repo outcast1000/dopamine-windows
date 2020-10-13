@@ -51,8 +51,8 @@ namespace Dopamine.Data.UnitOfWorks
             {
                 int added = conn.Insert(new Track2()
                 {
-                    Name = mediaFileData.Name,
-                    Path = mediaFileData.Path,
+                    Name = mediaFileData.Name.Trim(),
+                    Path = mediaFileData.Path.Trim(),
                     FolderId = folderId,
                     Filesize = mediaFileData.Filesize,
                     Bitrate = mediaFileData.Bitrate,
@@ -181,8 +181,8 @@ namespace Dopamine.Data.UnitOfWorks
             int success = conn.Update(new Track2()
             {
                 Id = track_id,
-                Name = mediaFileData.Name,
-                Path = mediaFileData.Path,
+                Name = mediaFileData.Name.Trim(),
+                Path = mediaFileData.Path.Trim(),
                 FolderId = folder_id,
                 Filesize = mediaFileData.Filesize,
                 Bitrate = mediaFileData.Bitrate,
@@ -311,6 +311,7 @@ namespace Dopamine.Data.UnitOfWorks
             //=== Normalization. Clean up "the " from artists
             if (entry.ToLower().StartsWith("the "))
                 entry = entry.Substring(4);
+            entry = entry.Trim();
             //=== END Normalization
             long? id = conn.ExecuteScalar<long?>("SELECT id FROM Artists WHERE name=?", entry);
             if (id != null)
@@ -350,6 +351,9 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
 
         private long GetAlbumID(String entry, long artist_collection_id)
         {
+            //=== Normalization
+            entry = entry.Trim();
+            //=== Normalization End
             long? id = conn.ExecuteScalar<long?>("SELECT id FROM Albums WHERE name=? AND artist_collection_ID=?", entry, artist_collection_id);
             if (id != null)
                 return (long) id;
@@ -367,6 +371,9 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
         }
         private long GetGenreID(String entry)
         {
+            //=== Normalization
+            entry = entry.Trim();
+            //=== Normalization End
             long? id = conn.ExecuteScalar<long?>("SELECT id FROM Genres WHERE name=?", entry);
             if (id != null)
                 return (long) id;

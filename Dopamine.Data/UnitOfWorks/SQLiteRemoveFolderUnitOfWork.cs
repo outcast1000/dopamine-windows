@@ -34,13 +34,15 @@ namespace Dopamine.Data.UnitOfWorks
                 rowsAffected = conn.Execute($"DELETE FROM TrackLyrics WHERE track_id in (SELECT id from tracks where folder_id={folderId});");
                 rowsAffected = conn.Execute($"DELETE FROM Tracks WHERE folder_id={folderId};");
                 */
-                rowsAffected = conn.Execute($"DELETE FROM Folders WHERE id={folderId};");
+                rowsAffected = conn.Execute("DELETE FROM FolderIndexing WHERE folder_id=?", folderId);
+                rowsAffected = conn.Execute("DELETE FROM Folders WHERE id=?", folderId);
                 Logger.Info("Removed the Folder with FolderID={0}", folderId);
             }
             catch (Exception ex)
             {
                 Logger.Error(ex, "Could not remove the Folder with FolderID={0}. Exception: {1}", folderId, ex.Message);
                 result = RemoveFolderResult.Error;
+                conn.Rollback();
             }
 
             return result;

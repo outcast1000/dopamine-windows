@@ -499,7 +499,6 @@ namespace Dopamine.Services.Indexing
                 //=== DELETE ALL THE FILES from the DB that have been deleted from the disk 
                 Logger.Debug($"--> Removing files...");
                 stats.Removed = UpdateRemovedFiles(folder.Id);
-                Logger.Debug($"--> Removed files: {stats.Removed}");
             }
 
             IndexingStatusChanged(new IndexingStatusEventArgs() { IndexingAction = IndexingAction.UpdateTracks, ExtraInfo = folder.Path, ProgressPercent = 0 });
@@ -539,68 +538,68 @@ namespace Dopamine.Services.Indexing
                     FileMetadata fileMetadata = GetFileMetadata(path);
                     MediaFileData mediaFileData = GetMediaFileData(fileMetadata, path);
 
-                        if (trackV == null)
+                    if (trackV == null)
+                    {
+                        AddMediaFileResult result;
+                        using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
                         {
-                            AddMediaFileResult result;
-                            using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
+                            result = uc.AddMediaFile(mediaFileData, folder.Id);
+                        }
+                        if (result.Success)
+                        {
+                            stats.Added++;
+                            OnCollectionFileChanged();
+                            if (fileMetadata != null)
                             {
-                                result = uc.AddMediaFile(mediaFileData, folder.Id);
-                            }
-                            if (result.Success)
-                            {
-                                stats.Added++;
-                                OnCollectionFileChanged();
-                                if (fileMetadata != null)
-                                {
-                                    //=== Add Album Image
-                                    if (result.AlbumId.HasValue)
-                                        AddAlbumImageIfNecessary((long)result.AlbumId, fileMetadata);
-                                    //=== Add Lyrics
-                                    AddTrackLyrics((long)result.TrackId, fileMetadata);
-                                }
-                            }
-                            else
-                            {
-                                stats.Failed++;
-                                Logger.Warn($">> Failed to add ({path})");
+                                //=== Add Album Image
+                                if (result.AlbumId.HasValue)
+                                    AddAlbumImageIfNecessary((long)result.AlbumId, fileMetadata);
+                                //=== Add Lyrics
+                                AddTrackLyrics((long)result.TrackId, fileMetadata);
                             }
                         }
                         else
                         {
-                            // If we update the file we do not want to change these Dates
-                            mediaFileData.DateAdded = trackV.DateAdded;
-                            mediaFileData.DateIgnored = trackV.DateIgnored;
-                            // If the file was previously deleted then now it seem that i re-emerged
-                            mediaFileData.DateFileDeleted = null;
-                            // Love / Rating/ Language are not saved in tags
-                            mediaFileData.Love = trackV.Love;
-                            mediaFileData.Rating = trackV.Rating;
-                            mediaFileData.Language = trackV.Language;
-                            UpdateMediaFileResult result;
-                            using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
-                            {
-                                result = uc.UpdateMediaFile(trackV, mediaFileData);
-                            }
-                            if (result.Success)
-                            {
-                                stats.Updated++;
-                                OnCollectionFileChanged();
-                                if (fileMetadata != null)
-                                {
-                                    //=== Add Album Image
-                                    if (result.AlbumId.HasValue)
-                                        AddAlbumImageIfNecessary((long)result.AlbumId, fileMetadata);
-                                    //=== Add Lyrics
-                                    AddTrackLyrics(trackV.Id, fileMetadata);
-                                }
-                            }
-                            else
-                            {
-                                stats.Failed++;
-                                Logger.Warn($">> Failed to update ({path})");
-                            }
-
+                            stats.Failed++;
+                            Logger.Warn($">> Failed to add ({path})");
                         }
+                    }
+                    else
+                    {
+                        // If we update the file we do not want to change these Dates
+                        mediaFileData.DateAdded = trackV.DateAdded;
+                        mediaFileData.DateIgnored = trackV.DateIgnored;
+                        // If the file was previously deleted then now it seem that i re-emerged
+                        mediaFileData.DateFileDeleted = null;
+                        // Love / Rating/ Language are not saved in tags
+                        mediaFileData.Love = trackV.Love;
+                        mediaFileData.Rating = trackV.Rating;
+                        mediaFileData.Language = trackV.Language;
+                        UpdateMediaFileResult result;
+                        using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
+                        {
+                            result = uc.UpdateMediaFile(trackV, mediaFileData);
+                        }
+                        if (result.Success)
+                        {
+                            stats.Updated++;
+                            OnCollectionFileChanged();
+                            if (fileMetadata != null)
+                            {
+                                //=== Add Album Image
+                                if (result.AlbumId.HasValue)
+                                    AddAlbumImageIfNecessary((long)result.AlbumId, fileMetadata);
+                                //=== Add Lyrics
+                                AddTrackLyrics(trackV.Id, fileMetadata);
+                            }
+                        }
+                        else
+                        {
+                            stats.Failed++;
+                            Logger.Warn($">> Failed to update ({path})");
+                        }
+
+                    }
                     
 
                 },
