@@ -260,7 +260,29 @@ GROUP BY t.id
         public List<TrackV> GetTracksOfArtists(IList<long> artistIds, bool bGetHistory)
         {
             QueryOptions qo = new QueryOptions();
-            qo.extraWhereClause.Add("Artists.id in (" + string.Join(",", artistIds) + ")");
+            bool bHasNull = false;
+            foreach(long artistId in artistIds)
+            {
+                if (artistId == 0)
+                {
+                    bHasNull = true;
+                    break;
+                }
+            }
+            if (bHasNull)
+            {
+                if (artistIds.Count == 1)
+                    qo.extraWhereClause.Add("Artists.id is null");
+                else
+                {
+                    artistIds.Remove(0);
+                    qo.extraWhereClause.Add("(Artists.id is null OR Artists.id in (" + string.Join(", ", artistIds) + "))");
+                }
+            }
+            else
+            {
+                qo.extraWhereClause.Add("Artists.id in (" + string.Join(",", artistIds) + ")");
+            }
             qo.GetHistory = bGetHistory;
             return GetTracksInternal(qo);
         }

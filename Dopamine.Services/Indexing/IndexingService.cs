@@ -428,17 +428,6 @@ namespace Dopamine.Services.Indexing
             }
         }
 
-        private int _collectionImagesChanged = 0;
-        private void OnCollectionImageChanged()
-        {
-            _collectionImagesChanged++;
-            if (_collectionImagesChanged > 5)
-            {
-                _collectionImagesChanged = 0;
-                RefreshLists(this, new EventArgs());
-            }
-        }
-
         private class FolderStats
         {
             public FolderStats() { TotalFiles = LastModifiedDateTicks = 0;}

@@ -38,6 +38,7 @@ namespace Dopamine.Services.Indexing
             lock (_jobs)
             {
                 _jobs.Enqueue(job);
+                Logger.Debug($"Enqueue (#{_jobs.Count}) - {job.Artist.Name}");
                 if (!_delegateQueuedOrRunning)
                 {
                     _delegateQueuedOrRunning = true;
