@@ -1,4 +1,5 @@
 ﻿using Digimezzo.Foundation.Core.Logging;
+using Digimezzo.Foundation.Core.Utils;
 using Dopamine.Core.Prism;
 using Dopamine.Services.Entities;
 using Dopamine.Services.Utils;
@@ -8,6 +9,7 @@ using Prism.Commands;
 using System;
 using System.Diagnostics;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace Dopamine.Views.FullPlayer.Collection
@@ -43,9 +45,15 @@ namespace Dopamine.Views.FullPlayer.Collection
             CollectionArtistsViewModel vm = (CollectionArtistsViewModel)DataContext;
             vm.EnsureItemVisible += (ArtistViewModel artist) =>
             {
-                //var item = ListBoxArtists.Items.GetItemAt(10);
-                ListBoxArtists.ScrollIntoView(artist);// ListBoxArtists.SelectedItem);
+                ListBoxArtists.ScrollIntoView(artist);
             };
+            vm.SelectionChanged += () =>
+            {
+                ScrollViewer scrollViewer = (ScrollViewer)VisualTreeUtils.GetDescendantByType(ListBoxTracks, typeof(ScrollViewer));
+                scrollViewer?.ScrollToTop();
+                // ListBoxTracks.ScrollIntoView(0);
+            };
+
         }
 
         private async void ListBoxArtists_MouseDoubleClick(object sender, MouseButtonEventArgs e)

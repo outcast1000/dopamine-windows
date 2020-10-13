@@ -101,6 +101,10 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         public delegate void EnsureSelectedItemVisibleAction(ArtistViewModel item);
         public event EnsureSelectedItemVisibleAction EnsureItemVisible;
 
+        public delegate void SelectionChangedAction();
+        public event SelectionChangedAction SelectionChanged;
+
+
         public DelegateCommand ToggleArtistOrderCommand { get; set; }
 
 
@@ -499,6 +503,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             this.SetTrackOrder("ArtistsTrackOrder");
             Task tracks = GetTracksAsync(this.SelectedArtists, null, null, this.TrackOrder);
             Task.WhenAll(tracks, saveSelectedArtists);
+            SelectionChanged?.Invoke();
 
         }
 
