@@ -6,7 +6,8 @@
     xmlns:dc="clr-namespace:Digimezzo.Foundation.WPF.Controls;assembly=Digimezzo.Foundation.WPF"
     xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
     xmlns:pc="clr-namespace:Dopamine.Controls"
-    xmlns:utils="clr-namespace:Dopamine.Utils">
+    xmlns:utils="clr-namespace:Dopamine.Utils"
+    xmlns:system="clr-namespace:System;assembly=System.Runtime">
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/Dopamine;component/Resources/Styles/FontStyles.xaml" />
         <ResourceDictionary Source="/Dopamine;component/Resources/Styles/Buttons.xaml" />
@@ -87,6 +88,9 @@
     <Style x:Key="ListBoxArtistsItem_v2" TargetType="{x:Type ListBoxItem}">
         <Style.Resources>
             <BitmapImage x:Key="NoArtistImage" UriSource="/Resources/Media/no_artist_image.jpg" />
+            <system:Double x:Key="ImageMaxWidth">220</system:Double>
+            <system:Double x:Key="ImageMinWidth">100</system:Double>
+            <system:Double x:Key="ImageHeight">80</system:Double>
         </Style.Resources>
 
         <Setter Property="ContextMenu" Value="{StaticResource ListBoxArtistsContextMenu}" />
@@ -138,15 +142,17 @@
                         <!--  Artist  -->
                         <Border BorderBrush="#8888" BorderThickness="0">
                             <Grid x:Name="FullItem">
-                                <Border Name="OverlayBorder">
-                                    <Border.Background>
-                                        <SolidColorBrush Color="#0000" />
-                                    </Border.Background>
-                                </Border>
+                                <Border
+                                    Name="OverlayBorder"
+                                    Opacity="0"
+                                    Background="{DynamicResource Brush_ItemHovered}" />
+                                <Border
+                                    Name="SelectionBorder"
+                                    Opacity="0"
+                                    Background="{DynamicResource Brush_ItemSelected}" />
                                 <StackPanel>
                                     <Grid>
                                         <TextBlock
-                                            Background="{DynamicResource Brush_MainWindowBackground}"
                                             Padding="5,0,5,0"
                                             HorizontalAlignment="Left"
                                             VerticalAlignment="Center"
@@ -157,7 +163,8 @@
                                             TextWrapping="Wrap" />
                                         <DockPanel x:Name="Buttons">
                                             <Button
-                                                Style="{StaticResource TransparentRoundButton}"
+                                                Style="{StaticResource TransparentButton}"
+                                                Background="Transparent"
                                                 x:Name="PlayButton"
                                                 Width="32"
                                                 Height="32"
@@ -181,7 +188,7 @@
                                                 DockPanel.Dock="Right"
                                                 Opacity="0">
                                                 <Button
-                                                    Style="{StaticResource TransparentRoundButton}"
+                                                    Style="{StaticResource TransparentButton}"
                                                     x:Name="LoveButton"
                                                     Width="32"
                                                     Height="32"
@@ -198,7 +205,7 @@
                                                         Text="&#xE0A5;" />
                                                 </Button>
                                                 <Button
-                                                    Style="{StaticResource TransparentRoundButton}"
+                                                    Style="{StaticResource TransparentButton}"
                                                     x:Name="EnqueueButton"
                                                     Width="32"
                                                     Height="32"
@@ -220,11 +227,11 @@
                                         </DockPanel>
 
                                     </Grid>
-                                    <DockPanel x:Name="HiddenInfo" Opacity="0.1">
+                                    <DockPanel x:Name="HiddenInfo" Opacity="1">
                                         <Grid
                                             x:Name="Image"
-                                            Width="200"
-                                            Height="80"
+                                            Width="{StaticResource ImageMaxWidth}"
+                                            Height="{StaticResource ImageHeight}"
                                             DockPanel.Dock="Left"
                                             HorizontalAlignment="Center">
                                             <pc:SourceChangedImage HorizontalAlignment="Center" Stretch="UniformToFill">
@@ -265,11 +272,7 @@
                                     </DockPanel>
                                 </StackPanel>
 
-                                <Border
-                                    Name="SelectionBorder"
-                                    BorderThickness="3,0,0,0"
-                                    Opacity="0"
-                                    BorderBrush="{DynamicResource Brush_SelectedBorder}" />
+
 
                             </Grid>
                         </Border>
@@ -306,6 +309,12 @@
                         <EventTrigger RoutedEvent="MouseEnter">
                             <BeginStoryboard>
                                 <Storyboard>
+                                    <DoubleAnimation
+                                        Storyboard.TargetName="OverlayBorder"
+                                        Storyboard.TargetProperty="Opacity"
+                                        To="1"
+                                        Duration="{x:Static base:Constants.MouseEnterDuration}" />
+                                    <!--
                                     <ColorAnimation
                                         Storyboard.TargetName="OverlayBorder"
                                         Storyboard.TargetProperty="Background.Color"
@@ -317,11 +326,11 @@
                                         From="0.1"
                                         To="1.0"
                                         Duration="0:0:0.3" />
+                                    -->
                                     <DoubleAnimation
                                         Storyboard.TargetName="Image"
                                         Storyboard.TargetProperty="Width"
-                                        From="200"
-                                        To="100"
+                                        To="{StaticResource ImageMinWidth}"
                                         Duration="0:0:0.3">
                                         <DoubleAnimation.EasingFunction>
                                             <BackEase />
@@ -345,6 +354,12 @@
                         <EventTrigger RoutedEvent="MouseLeave">
                             <BeginStoryboard>
                                 <Storyboard>
+                                    <DoubleAnimation
+                                        Storyboard.TargetName="OverlayBorder"
+                                        Storyboard.TargetProperty="Opacity"
+                                        To="0"
+                                        Duration="{x:Static base:Constants.MouseEnterDuration}" />
+                                    <!--
                                     <ColorAnimation
                                         Storyboard.TargetName="OverlayBorder"
                                         Storyboard.TargetProperty="Background.Color"
@@ -356,11 +371,11 @@
                                         From="1.0"
                                         To="0.1"
                                         Duration="0:0:0.3" />
+                                    -->
                                     <DoubleAnimation
                                         Storyboard.TargetName="Image"
                                         Storyboard.TargetProperty="Width"
-                                        From="100"
-                                        To="200"
+                                        To="{StaticResource ImageMaxWidth}"
                                         Duration="0:0:0.3">
                                         <DoubleAnimation.EasingFunction>
                                             <BackEase />
