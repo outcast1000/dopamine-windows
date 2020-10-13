@@ -421,7 +421,7 @@ namespace Dopamine.Services.Indexing
         private void OnCollectionFileChanged()
         {
             _collectionFilesChanged++;
-            if (_collectionFilesChanged > 50)
+            if (_collectionFilesChanged > 250)
             {
                 _collectionFilesChanged = 0;
                 RefreshLists(this, new EventArgs());
