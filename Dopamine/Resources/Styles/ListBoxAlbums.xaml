@@ -91,6 +91,9 @@
     </ContextMenu>
     <!--  ListBoxItem  -->
     <Style x:Key="ListBoxAlbumsItem" TargetType="{x:Type ListBoxItem}">
+        <Style.Resources>
+            <BitmapImage x:Key="NoAlbumImage" UriSource="/Resources/Media/no_album_image.png" />
+        </Style.Resources>
         <Setter Property="ContextMenu" Value="{StaticResource ListBoxAlbumsContextMenu}" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="Foreground" Value="{DynamicResource Brush_PrimaryText}" />
@@ -108,18 +111,6 @@
                             Grid.Row="0"
                             Grid.Column="0"
                             HorizontalAlignment="Left">
-                            <pc:Tile
-                                Width="{Binding Path=DataContext.CoverSize, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
-                                Height="{Binding Path=DataContext.CoverSize, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
-                                Panel.ZIndex="0"
-                                Background="{DynamicResource Brush_CoverTileBackground}"
-                                IconSizePercent="{x:Static base:Constants.HeadPhoneSmallSize}">
-                                <pc:Tile.Content>
-                                    <Viewbox>
-                                        <Path Data="{DynamicResource HeadPhone}" Fill="{DynamicResource Brush_CoverTileIcon}" />
-                                    </Viewbox>
-                                </pc:Tile.Content>
-                            </pc:Tile>
                             <pc:SourceChangedImage
                                 Width="{Binding Path=DataContext.CoverSize, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
                                 Height="{Binding Path=DataContext.CoverSize, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
@@ -129,6 +120,7 @@
                                     <MultiBinding Converter="{StaticResource PathToImageConverter}">
                                         <Binding
                                             Converter="{StaticResource KeyToPathConverter}"
+                                            ConverterParameter="{StaticResource NoAlbumImage}"
                                             IsAsync="True"
                                             Path="Thumbnail" />
                                         <Binding Path="DataContext.UpscaledCoverSize" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type UserControl}}" />

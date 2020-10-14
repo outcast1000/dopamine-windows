@@ -19,7 +19,7 @@ namespace Dopamine.Converters
         {
             if (value == null || (!object.ReferenceEquals(value.GetType(), typeof(string))))
             {
-                return parameter;// "/Resources/Media/no_artist_image.jpg";
+                return parameter;
             }
 
             return fileStorage.GetRealPath(value.ToString());

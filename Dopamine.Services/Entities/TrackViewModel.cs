@@ -115,7 +115,7 @@ namespace Dopamine.Services.Entities
 
         public string Year => this.Data.Year.HasValueLargerThan(0) ? this.Data.Year.Value.ToString() : string.Empty;
 
-        public string GroupHeader => this.Data.DiscCount.HasValueLargerThan(1) && this.Data.DiscNumber.HasValueLargerThan(0) ? $"{this.Data.AlbumTitle} ({this.Data.DiscNumber})" : this.Data.AlbumTitle;
+        public string GroupHeader => this.Data.DiscCount.HasValueLargerThan(1) && this.Data.DiscNumber.HasValueLargerThan(0) ? $"{this.Data.AlbumTitle} ({this.Data.DiscNumber})" : (string.IsNullOrEmpty(this.Data.AlbumTitle) ? ResourceUtils.GetString("Language_Unknown_Album") : Data.AlbumTitle);
 
         public string GroupSubHeader => this.AlbumArtist;
 
@@ -164,7 +164,7 @@ namespace Dopamine.Services.Entities
                 {
                     Logger.Warn($"Album not found for track: {Data.Id} - {Data.FileName}");
                     albumViewModel = new AlbumViewModel(null);
-                    _groupAlbumInfo = "";
+                    GroupAlbumInfo = _groupAlbumInfo = "";
                 }
                 else
                 {

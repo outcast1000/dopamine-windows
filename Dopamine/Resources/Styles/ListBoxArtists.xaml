@@ -87,7 +87,7 @@
 
     <Style x:Key="ListBoxArtistsItem_v2" TargetType="{x:Type ListBoxItem}">
         <Style.Resources>
-            <BitmapImage x:Key="NoArtistImage" UriSource="/Resources/Media/no_artist_image.jpg" />
+            <BitmapImage x:Key="NoArtistImage" UriSource="/Resources/Media/no_album_image.png" />
             <system:Double x:Key="ImageMaxWidth">220</system:Double>
             <system:Double x:Key="ImageMinWidth">100</system:Double>
             <system:Double x:Key="ImageHeight">80</system:Double>
@@ -153,7 +153,7 @@
                                 <StackPanel>
                                     <Grid>
                                         <TextBlock
-                                            Padding="5,0,5,0"
+                                            Padding="10,0,5,0"
                                             HorizontalAlignment="Left"
                                             VerticalAlignment="Center"
                                             FontSize="20"
@@ -233,13 +233,14 @@
                                             Width="{StaticResource ImageMaxWidth}"
                                             Height="{StaticResource ImageHeight}"
                                             DockPanel.Dock="Left"
-                                            Margin="5,0,5,0"
-                                            HorizontalAlignment="Center">
+                                            Margin="10,0,5,0"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center">
                                             <pc:SourceChangedImage HorizontalAlignment="Center" Stretch="UniformToFill">
                                                 <pc:SourceChangedImage.Source>
                                                     <Binding
                                                         Converter="{StaticResource KeyToPathConverter}"
-                                                        ConverterParameter="/Resources/Media/no_artist_image.jpg"
+                                                        ConverterParameter="{StaticResource NoArtistImage}"
                                                         IsAsync="True"
                                                         Path="Thumbnail" />
                                                 </pc:SourceChangedImage.Source>

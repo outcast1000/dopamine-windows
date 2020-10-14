@@ -73,9 +73,8 @@
     <!--  ListBoxItem  -->
     <Style x:Key="ListBoxGenresItem" TargetType="{x:Type ListBoxItem}">
         <Style.Resources>
-            <BitmapImage x:Key="NoGenreImage" UriSource="/Resources/Media/no_genre_image.jpg" />
+            <BitmapImage x:Key="NoGenreImage" UriSource="/Resources/Media/no_album_image.png" />
         </Style.Resources>
-
         <Setter Property="ContextMenu" Value="{StaticResource ListBoxGenresContextMenu}" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />

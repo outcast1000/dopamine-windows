@@ -132,6 +132,9 @@
 
     <!--  GroupItem  -->
     <Style x:Key="TracksHeader" TargetType="{x:Type GroupItem}">
+        <Style.Resources>
+            <BitmapImage x:Key="NoAlbumImage" UriSource="/Resources/Media/no_album_image.png" />
+        </Style.Resources>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate>
@@ -142,16 +145,13 @@
                                     DataContext="{Binding Items}"
                                     Width="128"
                                     Height="128"
-                                    Panel.ZIndex="1"
-                                    RenderOptions.BitmapScalingMode="HighQuality">
+                                    Panel.ZIndex="1">
                                     <pc:SourceChangedImage.Source>
-                                        <MultiBinding Converter="{StaticResource PathToImageConverter}">
-                                            <Binding
-                                                Converter="{StaticResource KeyToPathConverter}"
-                                                IsAsync="True"
-                                                Path="GroupThumbnailSource" />
-                                            <Binding Path="DataContext.UpscaledCoverSize" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type UserControl}}" />
-                                        </MultiBinding>
+                                        <Binding
+                                            Converter="{StaticResource KeyToPathConverter}"
+                                            ConverterParameter="{StaticResource NoAlbumImage}"
+                                            IsAsync="True"
+                                            Path="GroupThumbnailSource" />
                                     </pc:SourceChangedImage.Source>
                                     <pc:SourceChangedImage.Triggers>
                                         <EventTrigger RoutedEvent="pc:SourceChangedImage.SourceChanged">
