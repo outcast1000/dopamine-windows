@@ -121,10 +121,5 @@ namespace Dopamine.Views.FullPlayer.Collection
         {
             this.ListBoxGenres.SelectedItem = null;
         }
-
-        private void AlbumsButton_Click(object sender, RoutedEventArgs e)
-        {
-            this.ListBoxAlbums.SelectedItem = null;
-        }
     }
 }

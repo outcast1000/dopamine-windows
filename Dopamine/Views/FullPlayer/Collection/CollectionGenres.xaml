@@ -60,11 +60,10 @@
 
     <dc:MultiPanePanel
         ContentResizeDelay="25"
-        LeftPaneMinimumWidth="250"
+        IsRightPaneCollapsed="True"
         LeftPaneWidthPercent="{Binding LeftPaneWidthPercent, Mode=TwoWay}"
-        MiddlePaneMinimumWidth="250"
-        RightPaneMinimumWidth="250"
-        RightPaneWidthPercent="{Binding RightPaneWidthPercent, Mode=TwoWay}">
+        LeftPaneMinimumWidth="250"
+        MiddlePaneMinimumWidth="250">
         <dc:MultiPanePanel.LeftPaneContent>
             <Border Background="{DynamicResource Brush_PaneBackground}">
                 <DockPanel Margin="10,20,10,26">
@@ -108,54 +107,57 @@
                             Background="#00000000" />
                     </DockPanel>
                     <Grid>
-                        <Border Panel.ZIndex="0" Visibility="{Binding IsGenresZoomVisible,Converter={StaticResource InvertingBooleanToCollapsedConverter}}">
-                            <dc:MultiSelectListBox x:Name="ListBoxGenres"
-                                                       VirtualizingStackPanel.IsVirtualizing="True"
-                                                       VirtualizingPanel.IsVirtualizingWhenGrouping="True"
-                                                       VirtualizingStackPanel.VirtualizationMode="Recycling"    
-                                                       Style="{StaticResource ListBoxGenres}"
-                                                       ItemsSource="{Binding GenresCvs.View}"
-                                                       BorderThickness="0" 
-                                                       MouseDoubleClick="ListBoxGenres_MouseDoubleClick" 
-                                                       PreviewKeyDown="ListBoxGenres_PreviewKeyDown"
-                                                       SelectionMode="Extended">
+                        <Border Panel.ZIndex="0" Visibility="{Binding IsGenresZoomVisible, Converter={StaticResource InvertingBooleanToCollapsedConverter}}">
+                            <dc:MultiSelectListBox
+                                x:Name="ListBoxGenres"
+                                BorderThickness="0"
+                                ItemsSource="{Binding GenresCvs.View}"
+                                MouseDoubleClick="ListBoxGenres_MouseDoubleClick"
+                                PreviewKeyDown="ListBoxGenres_PreviewKeyDown"
+                                SelectionMode="Extended"
+                                Style="{StaticResource ListBoxGenres}"
+                                HorizontalContentAlignment="Stretch"
+                                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                VirtualizingPanel.IsVirtualizingWhenGrouping="True"
+                                VirtualizingStackPanel.IsVirtualizing="True"
+                                VirtualizingStackPanel.VirtualizationMode="Recycling">
                                 <i:Interaction.Triggers>
                                     <i:EventTrigger EventName="SelectionChanged">
-                                        <i:InvokeCommandAction Command="{Binding SelectedGenresCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=SelectedItems}"/>
+                                        <i:InvokeCommandAction Command="{Binding SelectedGenresCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=SelectedItems}" />
                                     </i:EventTrigger>
                                 </i:Interaction.Triggers>
                             </dc:MultiSelectListBox>
                         </Border>
-                        <Border 
-                            Panel.ZIndex="1" 
-                            Visibility="{Binding IsGenresZoomVisible,Converter={StaticResource BooleanToCollapsedConverter}}" 
-                            MaxWidth="300" 
-                            MaxHeight="600">
-                            <Border 
-                                Opacity="0"
+                        <Border
+                            MaxWidth="300"
+                            MaxHeight="600"
+                            Panel.ZIndex="1"
+                            Visibility="{Binding IsGenresZoomVisible, Converter={StaticResource BooleanToCollapsedConverter}}">
+                            <Border
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
                                 Panel.ZIndex="1"
                                 Background="#00000000"
-                                HorizontalAlignment="Stretch" 
-                                VerticalAlignment="Stretch">
+                                Opacity="0">
                                 <Border.Style>
                                     <Style>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsGenresZoomVisible}" Value="True">
                                                 <DataTrigger.EnterActions>
-                                                    <BeginStoryboard Storyboard ="{StaticResource ShowSemanticZoom}"/>
+                                                    <BeginStoryboard Storyboard="{StaticResource ShowSemanticZoom}" />
                                                 </DataTrigger.EnterActions>
                                                 <DataTrigger.ExitActions>
-                                                    <BeginStoryboard Storyboard ="{StaticResource HideSemanticZoom}"/>
+                                                    <BeginStoryboard Storyboard="{StaticResource HideSemanticZoom}" />
                                                 </DataTrigger.ExitActions>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Border.Style>
-                                <ListBox 
-                                         HorizontalAlignment="Stretch"
-                                         VerticalAlignment="Stretch"
-                                         Style="{StaticResource ListBoxSemanticZoom}"
-                                         ItemsSource="{Binding GenresZoomSelectors}"/>
+                                <ListBox
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Stretch"
+				    ItemsSource="{Binding GenresZoomSelectors}"
+                                    Style="{StaticResource ListBoxSemanticZoom}" />
                             </Border>
                         </Border>
                     </Grid>
@@ -163,78 +165,49 @@
             </Border>
         </dc:MultiPanePanel.LeftPaneContent>
         <dc:MultiPanePanel.MiddlePaneContent>
-            <DockPanel Margin="10,20,10,26">
-                <DockPanel DockPanel.Dock="Top" Margin="10,0,10,20">
-                    <TextBlock Text="{Binding AlbumsCount}" FontSize="13"
-                               Foreground="{DynamicResource Brush_Accent}" DockPanel.Dock="Left"/>
-                    <Button DockPanel.Dock="Right" Content="{Binding AlbumOrderText}" 
-                            Style="{StaticResource TransparentButton}"
-                            FontSize="13" 
-                            Margin="10,0,0,0"
-                            Foreground="{DynamicResource Brush_SecondaryText}"
-                            Command="{Binding ToggleAlbumOrderCommand}" ToolTip="{DynamicResource Language_Toggle_Album_Order}"/>
-                    <Button x:Name="AlbumsButton" Content="{DynamicResource Language_Albums}" FontSize="13" Margin="10,0,0,0"
-                            Style="{StaticResource TransparentButton}"
-                            Foreground="{DynamicResource Brush_PrimaryText}"
-                            Click="AlbumsButton_Click" ToolTip="{DynamicResource Language_Select_None}"/>
-                </DockPanel>
-                <dc:MultiSelectListBox
-                    x:Name="ListBoxAlbums"
-                    VerticalAlignment="Top"
-                    BorderThickness="0"
-                    ItemsSource="{Binding AlbumsCvs.View}"
-                    MouseDoubleClick="ListBoxAlbums_MouseDoubleClick"
-                    PreviewKeyDown="ListBoxAlbums_PreviewKeyDown"
-                    SelectionMode="Extended"
-                    Style="{StaticResource ListBoxAlbums}"
-                    VirtualizingPanel.IsVirtualizingWhenGrouping="True"
-                    VirtualizingStackPanel.IsVirtualizing="True"
-                    VirtualizingStackPanel.VirtualizationMode="Recycling">
-                    <i:Interaction.Triggers>
-                        <i:EventTrigger EventName="SelectionChanged">
-                            <i:InvokeCommandAction Command="{Binding SelectedAlbumsCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=SelectedItems}"/>
-                        </i:EventTrigger>
-                        <i:EventTrigger EventName="PreviewMouseRightButtonDown">
-                            <i:InvokeCommandAction Command="{Binding DelaySelectedAlbumsCommand}"/>
-                        </i:EventTrigger>
-                    </i:Interaction.Triggers>
-                </dc:MultiSelectListBox>
-            </DockPanel>
-        </dc:MultiPanePanel.MiddlePaneContent>
-        <dc:MultiPanePanel.RightPaneContent>
             <Border Background="{DynamicResource Brush_PaneBackground}">
                 <DockPanel Margin="10,20,10,26">
-                    <DockPanel DockPanel.Dock="Top" Margin="10,0,10,20">
-                        <TextBlock Text="{Binding TracksCount}" FontSize="13"
-                               Foreground="{DynamicResource Brush_Accent}" DockPanel.Dock="Left"/>
-                        <Button DockPanel.Dock="Right" Content="{Binding TrackOrderText}" 
-                            Style="{StaticResource TransparentButton}"
-                            FontSize="13" 
+                    <DockPanel Margin="10,0,10,20" DockPanel.Dock="Top">
+                        <TextBlock
+                            DockPanel.Dock="Left"
+                            FontSize="13"
+                            Foreground="{DynamicResource Brush_Accent}"
+                            Text="{Binding TracksCount}" />
+                        <Button
                             Margin="10,0,0,0"
+                            Command="{Binding ToggleTrackOrderCommand}"
+                            Content="{Binding TrackOrderText}"
+                            DockPanel.Dock="Right"
+                            FontSize="13"
                             Foreground="{DynamicResource Brush_SecondaryText}"
-                            Command="{Binding ToggleTrackOrderCommand}" ToolTip="{DynamicResource Language_Toggle_Track_Order}"/>
-                        <TextBlock Text="{DynamicResource Language_Songs}" FontSize="13" Margin="10,0,0,0"
-                               Foreground="{DynamicResource Brush_PrimaryText}" />
+                            Style="{StaticResource TransparentButton}"
+                            ToolTip="{DynamicResource Language_Toggle_Track_Order}" />
+                        <TextBlock
+                            Margin="10,0,0,0"
+                            FontSize="13"
+                            Foreground="{DynamicResource Brush_PrimaryText}"
+                            Text="{DynamicResource Language_Songs}" />
                     </DockPanel>
                     <DockPanel>
                         <pc:TotalsInformation
-                                DockPanel.Dock="Bottom"
-                                Margin="10,20,10,0" 
-                                Foreground="{DynamicResource Brush_SecondaryText}" 
-                                FontSize="13"
-                                TotalDurationInformation="{Binding TotalDurationInformation}"
-                                TotalSizeInformation="{Binding TotalSizeInformation}"/>
-                        <dc:MultiSelectListBox x:Name="ListBoxTracks"
-                                                             VirtualizingStackPanel.IsVirtualizing="True"
-                                                             VirtualizingPanel.IsVirtualizingWhenGrouping="True"
-                                                             VirtualizingStackPanel.VirtualizationMode="Recycling"                       
-                                                             Style="{StaticResource ListBoxTracks}"
-                                                             ItemsSource="{Binding TracksCvs.View}"
-                                                             MouseDoubleClick="ListBoxTracks_MouseDoubleClick"
-                                                             PreviewKeyDown="ListBoxTracks_PreviewKeyDown"
-                                                             KeyUp="ListBoxTracks_KeyUp" 
-                                                             BorderThickness="0"
-                                                             SelectionMode="Extended">
+                            Margin="10,20,10,0"
+                            DockPanel.Dock="Bottom"
+                            FontSize="13"
+                            Foreground="{DynamicResource Brush_SecondaryText}"
+                            TotalDurationInformation="{Binding TotalDurationInformation}"
+                            TotalSizeInformation="{Binding TotalSizeInformation}" />
+                        <dc:MultiSelectListBox
+                            x:Name="ListBoxTracks"
+                            BorderThickness="0"
+                            ItemsSource="{Binding TracksCvs.View}"
+                            KeyUp="ListBoxTracks_KeyUp"
+                            MouseDoubleClick="ListBoxTracks_MouseDoubleClick"
+                            PreviewKeyDown="ListBoxTracks_PreviewKeyDown"
+                            SelectionMode="Extended"
+                            Style="{StaticResource ListBoxTracks}"
+                            VirtualizingPanel.IsVirtualizingWhenGrouping="True"
+                            VirtualizingStackPanel.IsVirtualizing="True"
+                            VirtualizingStackPanel.VirtualizationMode="Recycling">
                             <dc:MultiSelectListBox.InputBindings>
                                 <KeyBinding Key="Delete" Command="{Binding RemoveSelectedTracksCommand}" />
                             </dc:MultiSelectListBox.InputBindings>
@@ -243,13 +216,13 @@
                             </dc:MultiSelectListBox.GroupStyle>
                             <i:Interaction.Triggers>
                                 <i:EventTrigger EventName="SelectionChanged">
-                                    <i:InvokeCommandAction Command="{Binding SelectedTracksCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=SelectedItems}"/>
+                                    <i:InvokeCommandAction Command="{Binding SelectedTracksCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=SelectedItems}" />
                                 </i:EventTrigger>
                             </i:Interaction.Triggers>
                         </dc:MultiSelectListBox>
                     </DockPanel>
                 </DockPanel>
             </Border>
-        </dc:MultiPanePanel.RightPaneContent>
+        </dc:MultiPanePanel.MiddlePaneContent>
     </dc:MultiPanePanel>
 </baseviews:TracksViewBase>
