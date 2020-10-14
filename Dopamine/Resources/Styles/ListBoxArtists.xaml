@@ -143,13 +143,13 @@
                         <Border BorderBrush="#8888" BorderThickness="0">
                             <Grid x:Name="FullItem">
                                 <Border
-                                    Name="OverlayBorder"
-                                    Opacity="0"
-                                    Background="{DynamicResource Brush_ItemHovered}" />
-                                <Border
                                     Name="SelectionBorder"
                                     Opacity="0"
                                     Background="{DynamicResource Brush_ItemSelected}" />
+                                <Border
+                                    Name="OverlayBorder"
+                                    Opacity="0"
+                                    Background="{DynamicResource Brush_ItemHovered}" />
                                 <StackPanel>
                                     <Grid>
                                         <TextBlock

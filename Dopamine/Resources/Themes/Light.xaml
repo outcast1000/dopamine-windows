@@ -89,8 +89,4 @@
         <GradientStop Color="{DynamicResource Color_LightGrey1Invisible}" Offset="1.0" />
     </LinearGradientBrush>
 
-    <LinearGradientBrush x:Key="Brush_FadeOutCaptionBackground" StartPoint="0,0" EndPoint="1,0">
-        <GradientStop Color="{DynamicResource Color_LightGrey3}" Offset="0.0" />
-        <GradientStop Color="{DynamicResource Color_LightGrey3Invisible}" Offset="1.0" />
-    </LinearGradientBrush>
 </ResourceDictionary>
