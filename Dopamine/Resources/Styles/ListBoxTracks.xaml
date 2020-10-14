@@ -133,7 +133,7 @@
     <!--  GroupItem  -->
     <Style x:Key="TracksHeader" TargetType="{x:Type GroupItem}">
         <Style.Resources>
-            <BitmapImage x:Key="NoAlbumImage" UriSource="/Resources/Media/no_album_image.png" />
+            <BitmapImage x:Key="DefaultImage" UriSource="/Resources/Media/no_album_image.png" />
         </Style.Resources>
         <Setter Property="Template">
             <Setter.Value>
@@ -149,7 +149,7 @@
                                     <pc:SourceChangedImage.Source>
                                         <Binding
                                             Converter="{StaticResource KeyToPathConverter}"
-                                            ConverterParameter="{StaticResource NoAlbumImage}"
+                                            ConverterParameter="{StaticResource DefaultImage}"
                                             IsAsync="True"
                                             Path="GroupThumbnailSource" />
                                     </pc:SourceChangedImage.Source>

@@ -1,9 +1,11 @@
-﻿using Dopamine.Core.Utils;
+﻿using Digimezzo.Foundation.Core.Utils;
+using Dopamine.Core.Utils;
 using Dopamine.Data;
 using Dopamine.Data.Entities;
 using Dopamine.Services.Utils;
 using Prism.Mvvm;
 using System;
+using System.Text;
 
 namespace Dopamine.Services.Entities
 {
@@ -54,19 +56,28 @@ namespace Dopamine.Services.Entities
         {
             get
             {
-                string info = "";
-
+                StringBuilder sb = new StringBuilder();
                 if (!string.IsNullOrEmpty(data.Artists))
-                    info += string.Format("\n{0} artists ({1})", data.ArtistCount, data.Artists);
-                info += string.Format("\n{0} albums", data.AlbumCount);
-                info += string.Format("\n{0} tracks", data.TrackCount);
-                /*
-                if (data.YearFrom == data.YearTo)
-                    info += string.Format("\nYear: {0}", data.YearFrom);
+                    sb.AppendLine(ResourceUtils.GetString("Language_Artists") + ": " + data.Artists);
+                if (!data.MinYean.HasValue)
+                {
+                    // Do nothing 
+                }
+                else if (data.MinYean == data.MaxYear)
+                    sb.AppendLine(ResourceUtils.GetString("Language_Year") + ": " + data.MinYean);
                 else
-                    info += string.Format("\nFrom {0} to {1}", data.YearFrom, data.YearTo);
+                    sb.AppendLine(ResourceUtils.GetString("Language_Year") + ": " + data.MinYean + " - " + data.MaxYear);
+
+                sb.AppendLine(ResourceUtils.GetString("Language_Songs") + ": " + data.TrackCount);
+                sb.AppendLine(ResourceUtils.GetString("Language_Albums") + ": " + data.AlbumCount);
+
+                /*
+                if (Data.PlayCount.HasValue && Data.PlayCount.Value > 0)
+                    sb.AppendLine(ResourceUtils.GetString("Language_Plays") + ": " + data.PlayCount.Value);
+                if (Data.SkipCount.HasValue && Data.SkipCount.Value > 0)
+                    sb.AppendLine(ResourceUtils.GetString("Language_Skips") + ": " + data.SkipCount.Value);
                 */
-                return info;
+                return sb.ToString();
             }
         }
 

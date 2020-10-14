@@ -18,9 +18,9 @@ namespace Dopamine.Data.Entities
 
         public string Artists { get; set; }
 
-        public long YearFrom { get; set; }
+        public long? MinYean { get; set; }
 
-        public long YearTo { get; set; }
+        public long? MaxYear { get; set; }
 
         public string Thumbnail { get; set; }
 

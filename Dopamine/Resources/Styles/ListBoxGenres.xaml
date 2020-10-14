@@ -6,7 +6,8 @@
     xmlns:dc="clr-namespace:Digimezzo.Foundation.WPF.Controls;assembly=Digimezzo.Foundation.WPF"
     xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
     xmlns:pc="clr-namespace:Dopamine.Controls"
-    xmlns:utils="clr-namespace:Dopamine.Utils">
+    xmlns:utils="clr-namespace:Dopamine.Utils"
+    xmlns:system="clr-namespace:System;assembly=System.Runtime">
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/Dopamine;component/Resources/Styles/FontStyles.xaml" />
         <ResourceDictionary Source="/Dopamine;component/Resources/Styles/Buttons.xaml" />
@@ -73,7 +74,10 @@
     <!--  ListBoxItem  -->
     <Style x:Key="ListBoxGenresItem" TargetType="{x:Type ListBoxItem}">
         <Style.Resources>
-            <BitmapImage x:Key="NoGenreImage" UriSource="/Resources/Media/no_album_image.png" />
+            <BitmapImage x:Key="DefaultImage" UriSource="/Resources/Media/no_album_image.png" />
+            <system:Double x:Key="ImageMaxWidth">220</system:Double>
+            <system:Double x:Key="ImageMinWidth">100</system:Double>
+            <system:Double x:Key="ImageHeight">80</system:Double>
         </Style.Resources>
         <Setter Property="ContextMenu" Value="{StaticResource ListBoxGenresContextMenu}" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
@@ -122,101 +126,149 @@
                             </Grid>
                         </Button>
                         <!--  Genre  -->
-                        <Grid
-                            Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}"
-                            HorizontalAlignment="Stretch"
-                            Background="{TemplateBinding Background}">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Grid
-                                Grid.Row="0"
-                                Grid.Column="0"
-                                Width="64"
-                                Margin="4"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Top">
-                                <pc:Tile
-                                    Width="64"
-                                    Height="64"
-                                    Panel.ZIndex="0"
-                                    Background="{DynamicResource Brush_CoverTileBackground}"
-                                    IconSizePercent="{x:Static base:Constants.HeadPhoneSmallSize}">
-                                    <pc:Tile.Content>
-                                        <Viewbox>
-                                            <Path Data="{DynamicResource HeadPhone}" Fill="{DynamicResource Brush_CoverTileIcon}" />
-                                        </Viewbox>
-                                    </pc:Tile.Content>
-                                </pc:Tile>
-                                <pc:SourceChangedImage
-                                    Panel.ZIndex="1"
-                                    RenderOptions.BitmapScalingMode="HighQuality"
-                                    Stretch="Uniform">
-                                    <pc:SourceChangedImage.Source>
-                                        <Binding
-                                            Converter="{StaticResource KeyToPathConverter}"
-                                            ConverterParameter="/Resources/Media/no_artist_image.jpg"
-                                            IsAsync="True"
-                                            Path="Thumbnail" />
-                                    </pc:SourceChangedImage.Source>
-                                    <pc:SourceChangedImage.Triggers>
-                                        <EventTrigger RoutedEvent="pc:SourceChangedImage.SourceChanged">
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <DoubleAnimation
-                                                        Storyboard.TargetProperty="Opacity"
-                                                        From="0"
-                                                        To="1"
-                                                        Duration="{x:Static base:Constants.SourceChangedImageChangedDuration}" />
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </EventTrigger>
-                                    </pc:SourceChangedImage.Triggers>
-                                </pc:SourceChangedImage>
-                                <Border Name="OverlayBorder">
-                                    <Border.Background>
-                                        <SolidColorBrush Color="#0000" />
-                                    </Border.Background>
-                                </Border>
+                        <Border BorderBrush="#8888" BorderThickness="0">
+                            <Grid x:Name="FullItem">
+                                <Border
+                                    Name="SelectionBorder"
+                                    Opacity="0"
+                                    Background="{DynamicResource Brush_ItemSelected}" />
+                                <Border
+                                    Name="OverlayBorder"
+                                    Opacity="0"
+                                    Background="{DynamicResource Brush_ItemHovered}" />
+                                <StackPanel>
+                                    <Grid>
+                                        <TextBlock
+                                            Padding="10,0,5,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            FontSize="20"
+                                            FontWeight="Light"
+                                            Text="{Binding Name}"
+                                            TextTrimming="CharacterEllipsis"
+                                            TextWrapping="Wrap" />
+                                        <DockPanel x:Name="Buttons">
+                                            <Button
+                                                Style="{StaticResource TransparentButton}"
+                                                Background="Transparent"
+                                                x:Name="PlayButton"
+                                                Width="32"
+                                                Height="32"
+                                                DockPanel.Dock="Right"
+                                                Margin="4,4,4,4"
+                                                HorizontalContentAlignment="Center"
+                                                VerticalContentAlignment="Center"
+                                                Command="{Binding DataContext.PlayGenreCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                                CommandParameter="{Binding .}"
+                                                ToolTip="{DynamicResource Language_Play}">
+                                                <TextBlock
+                                                    FontSize="16"
+                                                    Foreground="{DynamicResource Brush_PrimaryText}"
+                                                    Style="{StaticResource SegoeAssets}"
+                                                    Text="&#xE768;" />
+                                            </Button>
+                                            <StackPanel
+                                                x:Name="ExtraButtons"
+                                                Orientation="Horizontal"
+                                                HorizontalAlignment="Right"
+                                                DockPanel.Dock="Right"
+                                                Opacity="0">
+                                                <!--
+                                                <Button
+                                                    Style="{StaticResource TransparentButton}"
+                                                    x:Name="LoveButton"
+                                                    Width="32"
+                                                    Height="32"
+                                                    Margin="4,4,4,4"
+                                                    HorizontalContentAlignment="Center"
+                                                    VerticalContentAlignment="Center"
+                                                    Command="{Binding DataContext.LoveArtistCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                                    CommandParameter="{Binding .}"
+                                                    ToolTip="{DynamicResource Language_Love}">
+                                                    <TextBlock
+                                                        FontSize="16"
+                                                        Foreground="{DynamicResource Brush_PrimaryText}"
+                                                        Style="{StaticResource SegoeAssets}"
+                                                        Text="&#xE0A5;" />
+                                                </Button>
+                                                -->
+                                                <Button
+                                                    Style="{StaticResource TransparentButton}"
+                                                    x:Name="EnqueueButton"
+                                                    Width="32"
+                                                    Height="32"
+                                                    Margin="4,4,4,4"
+                                                    HorizontalContentAlignment="Center"
+                                                    VerticalContentAlignment="Center"
+                                                    Command="{Binding DataContext.EnqueueGenreCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                                    CommandParameter="{Binding .}"
+                                                    ToolTip="{DynamicResource Language_Add_To_Playlist}">
+                                                    <TextBlock
+                                                        FontSize="16"
+                                                        Foreground="{DynamicResource Brush_PrimaryText}"
+                                                        Style="{StaticResource SegoeAssets}"
+                                                        Text="&#xE710;" />
+                                                </Button>
+
+                                            </StackPanel>
+
+                                        </DockPanel>
+
+                                    </Grid>
+                                    <DockPanel x:Name="HiddenInfo" Opacity="1">
+                                        <Grid
+                                            x:Name="Image"
+                                            Width="{StaticResource ImageMaxWidth}"
+                                            Height="{StaticResource ImageHeight}"
+                                            DockPanel.Dock="Left"
+                                            Margin="10,0,5,0"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center">
+                                            <pc:SourceChangedImage
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Stretch="UniformToFill">
+                                                <pc:SourceChangedImage.Source>
+                                                    <Binding
+                                                        Converter="{StaticResource KeyToPathConverter}"
+                                                        ConverterParameter="{StaticResource DefaultImage}"
+                                                        IsAsync="True"
+                                                        Path="Thumbnail" />
+                                                </pc:SourceChangedImage.Source>
+                                                <pc:SourceChangedImage.Triggers>
+                                                    <EventTrigger RoutedEvent="pc:SourceChangedImage.SourceChanged">
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <DoubleAnimation
+                                                                    Storyboard.TargetProperty="Opacity"
+                                                                    From="0"
+                                                                    To="1"
+                                                                    Duration="{x:Static base:Constants.SourceChangedImageChangedDuration}" />
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </EventTrigger>
+                                                </pc:SourceChangedImage.Triggers>
+                                            </pc:SourceChangedImage>
+                                        </Grid>
+
+                                        <TextBlock
+                                            x:Name="ExtraInfo"
+                                            DockPanel.Dock="Left"
+                                            Margin="15,2,2,2"
+                                            VerticalAlignment="Top"
+                                            HorizontalAlignment="Left"
+                                            Foreground="{DynamicResource Brush_PrimaryText}"
+                                            Opacity="0"
+                                            Text="{Binding GenreItemInfo}"
+                                            TextTrimming="CharacterEllipsis"
+                                            TextWrapping="NoWrap" />
+                                    </DockPanel>
+                                </StackPanel>
+
+
+
                             </Grid>
-                            <Border
-                                Name="SelectionBorder"
-                                BorderThickness="3,0,0,0"
-                                Opacity="0">
-                                <Border.BorderBrush>
-                                    <SolidColorBrush Color="#00F" />
-                                </Border.BorderBrush>
-                            </Border>
-                            <Grid
-                                Grid.Row="0"
-                                Grid.Column="1"
-                                Margin="6"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Top">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="*" />
-                                </Grid.RowDefinitions>
-                                <TextBlock
-                                    Grid.Row="0"
-                                    Grid.Column="0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Top"
-                                    FontSize="20"
-                                    Foreground="{DynamicResource Brush_PrimaryText}"
-                                    Text="{Binding Name}"
-                                    TextTrimming="CharacterEllipsis" />
-                                <TextBlock
-                                    Grid.Row="1"
-                                    Grid.Column="0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Top"
-                                    Foreground="{DynamicResource Brush_SecondaryText}"
-                                    Text="{Binding GenreItemInfo}"
-                                    TextTrimming=" CharacterEllipsis" />
-                            </Grid>
-                        </Grid>
+                        </Border>
                     </DockPanel>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="True">
@@ -226,7 +278,6 @@
                                         <DoubleAnimation
                                             Storyboard.TargetName="SelectionBorder"
                                             Storyboard.TargetProperty="Opacity"
-                                            From="0"
                                             To="1"
                                             Duration="0:0:0.15" />
                                     </Storyboard>
@@ -238,7 +289,6 @@
                                         <DoubleAnimation
                                             Storyboard.TargetName="SelectionBorder"
                                             Storyboard.TargetProperty="Opacity"
-                                            From="1"
                                             To="0"
                                             Duration="0:0:0.3" />
                                     </Storyboard>
@@ -247,13 +297,34 @@
                         </Trigger>
                         <EventTrigger RoutedEvent="MouseEnter">
                             <BeginStoryboard>
-                                <Storyboard TargetProperty="Opacity" Storyboard.TargetName="OverlayBorder">
+                                <Storyboard>
+                                    <DoubleAnimation
+                                        Storyboard.TargetName="OverlayBorder"
+                                        Storyboard.TargetProperty="Opacity"
+                                        To="1"
+                                        Duration="{x:Static base:Constants.MouseEnterDuration}" />
+                                    <!--
                                     <ColorAnimation
                                         Storyboard.TargetName="OverlayBorder"
                                         Storyboard.TargetProperty="Background.Color"
-                                        To="#8000"
+                                        To="#0000"
                                         Duration="0:0:0.15" />
-                                    <!--
+                                    <DoubleAnimation
+                                        Storyboard.TargetName="HiddenInfo"
+                                        Storyboard.TargetProperty="Opacity"
+                                        From="0.1"
+                                        To="1.0"
+                                        Duration="0:0:0.3" />
+                                    -->
+                                    <DoubleAnimation
+                                        Storyboard.TargetName="Image"
+                                        Storyboard.TargetProperty="Width"
+                                        To="{StaticResource ImageMinWidth}"
+                                        Duration="0:0:0.3">
+                                        <DoubleAnimation.EasingFunction>
+                                            <BackEase />
+                                        </DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
                                     <DoubleAnimation
                                         Storyboard.TargetName="ExtraInfo"
                                         Storyboard.TargetProperty="Opacity"
@@ -266,19 +337,39 @@
                                         From="0"
                                         To="1"
                                         Duration="0:0:0.3" />
-                                    -->
                                 </Storyboard>
                             </BeginStoryboard>
                         </EventTrigger>
                         <EventTrigger RoutedEvent="MouseLeave">
                             <BeginStoryboard>
-                                <Storyboard TargetProperty="Opacity" Storyboard.TargetName="OverlayBorder">
+                                <Storyboard>
+                                    <DoubleAnimation
+                                        Storyboard.TargetName="OverlayBorder"
+                                        Storyboard.TargetProperty="Opacity"
+                                        To="0"
+                                        Duration="{x:Static base:Constants.MouseEnterDuration}" />
+                                    <!--
                                     <ColorAnimation
                                         Storyboard.TargetName="OverlayBorder"
                                         Storyboard.TargetProperty="Background.Color"
                                         To="#0000"
                                         Duration="0:0:0.3" />
-                                    <!--
+                                    <DoubleAnimation
+                                        Storyboard.TargetName="HiddenInfo"
+                                        Storyboard.TargetProperty="Opacity"
+                                        From="1.0"
+                                        To="0.1"
+                                        Duration="0:0:0.3" />
+                                    -->
+                                    <DoubleAnimation
+                                        Storyboard.TargetName="Image"
+                                        Storyboard.TargetProperty="Width"
+                                        To="{StaticResource ImageMaxWidth}"
+                                        Duration="0:0:0.3">
+                                        <DoubleAnimation.EasingFunction>
+                                            <BackEase />
+                                        </DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
                                     <DoubleAnimation
                                         Storyboard.TargetName="ExtraInfo"
                                         Storyboard.TargetProperty="Opacity"
@@ -291,7 +382,6 @@
                                         From="1"
                                         To="0"
                                         Duration="0:0:0.3" />
-                                    -->
                                 </Storyboard>
                             </BeginStoryboard>
                         </EventTrigger>
