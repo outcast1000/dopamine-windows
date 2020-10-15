@@ -219,7 +219,7 @@ namespace Dopamine.Services.Collection
                 if (items == null)
                     Logger.Warn($"GetAlbumsAsync albumVRepository.GetAlbums({searchString}) return null");
                 else
-                    avm = items.Select(a => new AlbumViewModel(a)).ToList();
+                    avm = items.Select(a => new AlbumViewModel(indexingService, albumVRepository, a)).ToList();
             });
             return avm;
         }
@@ -230,7 +230,7 @@ namespace Dopamine.Services.Collection
             await Task.Run(() =>
             {
                 IList<AlbumV> albums = albumVRepository.GetAlbumsWithArtists(selectedArtists.Select(x => x.Id).ToList(), true);
-                avm = albums.Select(x => new AlbumViewModel(x)).ToList();
+                avm = albums.Select(x => new AlbumViewModel(indexingService, albumVRepository, x)).ToList();
             });
             return avm;
         }
@@ -241,7 +241,7 @@ namespace Dopamine.Services.Collection
             await Task.Run(() =>
             {
                 IList<AlbumV> albums = albumVRepository.GetAlbumsWithGenres(selectedGenres.Select(x => x.Id).ToList(), true);
-                avm = albums.Select(x => new AlbumViewModel(x)).ToList();
+                avm = albums.Select(x => new AlbumViewModel(indexingService, albumVRepository, x)).ToList();
             });
             return avm;
         }
@@ -254,23 +254,26 @@ namespace Dopamine.Services.Collection
             {
                 switch (albumOrder)
                 {
-                    case AlbumOrder.Alphabetical:
+                    case AlbumOrder.AlphabeticalAscending:
                         orderedAlbums = albums.OrderBy((a) => FormatUtils.GetSortableString(a.Name)).ToList();
+                        break;
+                    case AlbumOrder.AlphabeticalDescending:
+                        orderedAlbums = albums.OrderByDescending((a) => FormatUtils.GetSortableString(a.Name)).ToList();
                         break;
                     case AlbumOrder.ByDateAdded:
                         orderedAlbums = albums.OrderByDescending((a) => a.DateAdded).ToList();
                         break;
-                    case AlbumOrder.ByDateCreated:
-                        orderedAlbums = albums.OrderByDescending((a) => a.DateFileCreated).ToList();
+                    case AlbumOrder.ByAlbumArtistAscending:
+                        orderedAlbums = albums.OrderBy((a) => FormatUtils.GetSortableString(a.AlbumArtists, true)).ToList();
                         break;
-                    case AlbumOrder.ByAlbumArtist:
+                    case AlbumOrder.ByAlbumArtistDescending:
                         orderedAlbums = albums.OrderBy((a) => FormatUtils.GetSortableString(a.AlbumArtists, true)).ToList();
                         break;
                     case AlbumOrder.ByYearAscending:
-                        orderedAlbums = albums.OrderBy((a) => a.MinYear).ToList();
+                        orderedAlbums = albums.OrderBy((a) => a.Year).ToList();
                         break;
                     case AlbumOrder.ByYearDescending:
-                        orderedAlbums = albums.OrderByDescending((a) => a.MinYear).ToList();
+                        orderedAlbums = albums.OrderByDescending((a) => a.Year).ToList();
                         break;
                     default:
                         // Alphabetical

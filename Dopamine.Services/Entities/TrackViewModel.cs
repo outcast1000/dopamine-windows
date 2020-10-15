@@ -163,12 +163,12 @@ namespace Dopamine.Services.Entities
                 if (album == null)
                 {
                     Logger.Warn($"Album not found for track: {Data.Id} - {Data.FileName}");
-                    albumViewModel = new AlbumViewModel(null);
+                    albumViewModel = new AlbumViewModel(indexingService, albumVRepository, null);
                     GroupAlbumInfo = _groupAlbumInfo = "";
                 }
                 else
                 {
-                    albumViewModel = new AlbumViewModel(album);
+                    albumViewModel = new AlbumViewModel(indexingService, albumVRepository, album);
                     if (!albumViewModel.HasCover)
                     {
                         indexingService.AlbumInfoDownloaded += IndexingService_AlbumInfoDownloaded;
@@ -193,7 +193,7 @@ namespace Dopamine.Services.Entities
             AlbumV album = albumVRepository.GetAlbumOfTrackId(Data.Id, true);
             if (album == null)
                 return;// Should not happen
-            albumViewModel = new AlbumViewModel(album);
+            albumViewModel = new AlbumViewModel(indexingService, albumVRepository, album);
             if (albumViewModel.HasCover)
                 GroupThumbnailSource = albumViewModel.Thumbnail;
             else

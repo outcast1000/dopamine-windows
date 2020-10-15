@@ -3,6 +3,10 @@ using Dopamine.Core.Prism;
 using Prism.Commands;
 using System.Windows;
 using System.Windows.Input;
+using Dopamine.ViewModels.FullPlayer.Collection;
+using Dopamine.Services.Entities;
+using System.Windows.Controls;
+using Digimezzo.Foundation.Core.Utils;
 
 namespace Dopamine.Views.FullPlayer.Collection
 {
@@ -18,6 +22,16 @@ namespace Dopamine.Views.FullPlayer.Collection
 
             // PubSub Events
             this.eventAggregator.GetEvent<ScrollToPlayingTrack>().Subscribe(async (_) => await this.ScrollToPlayingTrackAsync(this.ListBoxTracks));
+            CollectionAlbumsViewModel vm = (CollectionAlbumsViewModel)DataContext;
+            vm.EnsureItemVisible += (AlbumViewModel item) =>
+            {
+                ListBoxAlbums.ScrollIntoView(item);
+            };
+            vm.SelectionChanged += () =>
+            {
+                ScrollViewer scrollViewer = (ScrollViewer)VisualTreeUtils.GetDescendantByType(ListBoxTracks, typeof(ScrollViewer));
+                scrollViewer?.ScrollToTop();
+            };
         }
 
         private async void ListBoxAlbums_MouseDoubleClick(object sender, MouseButtonEventArgs e)

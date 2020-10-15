@@ -43,15 +43,14 @@ namespace Dopamine.Views.FullPlayer.Collection
             });
 
             CollectionArtistsViewModel vm = (CollectionArtistsViewModel)DataContext;
-            vm.EnsureItemVisible += (ArtistViewModel artist) =>
+            vm.EnsureItemVisible += (ArtistViewModel item) =>
             {
-                ListBoxArtists.ScrollIntoView(artist);
+                ListBoxArtists.ScrollIntoView(item);
             };
             vm.SelectionChanged += () =>
             {
                 ScrollViewer scrollViewer = (ScrollViewer)VisualTreeUtils.GetDescendantByType(ListBoxTracks, typeof(ScrollViewer));
                 scrollViewer?.ScrollToTop();
-                // ListBoxTracks.ScrollIntoView(0);
             };
 
         }

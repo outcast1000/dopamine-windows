@@ -14,6 +14,8 @@ namespace Dopamine.Data.Repositories
 
         List<AlbumV> GetAlbumsWithoutImages(bool incudeFailedDownloads);
 
+        AlbumV GetAlbum(long albumId, bool bGetHistory);
+
         AlbumV GetAlbumOfTrackId(long trackId, bool bGetHistory);
 
     }

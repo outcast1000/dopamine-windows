@@ -59,6 +59,18 @@ namespace Dopamine.Data.Repositories
             return GetAlbumsInternal(qo);
         }
 
+        public AlbumV GetAlbum(long albumId, bool bGetHistory)
+        {
+            QueryOptions qo = new QueryOptions();
+            qo.extraWhereClause.Add("Albums.id=?");
+            qo.extraWhereParams.Add(albumId);
+            qo.GetHistory = bGetHistory;
+            List<AlbumV> result = GetAlbumsInternal(qo);
+            if (result.Count == 0)
+                return null;
+            Debug.Assert(result.Count == 1);
+            return result[0];
+        }
         public AlbumV GetAlbumOfTrackId(long trackId, bool bGetHistory)
         {
             QueryOptions qo = new QueryOptions();

@@ -290,7 +290,29 @@ GROUP BY t.id
         public List<TrackV> GetTracksOfAlbums(IList<long> albumIds, bool bGetHistory)
         {
             QueryOptions qo = new QueryOptions();
-            qo.extraWhereClause.Add("Albums.id in (" + string.Join(",", albumIds) + ")");
+            bool bHasNull = false;
+            foreach (long id in albumIds)
+            {
+                if (id == 0)
+                {
+                    bHasNull = true;
+                    break;
+                }
+            }
+            if (bHasNull)
+            {
+                if (albumIds.Count == 1)
+                    qo.extraWhereClause.Add("Albums.id is null");
+                else
+                {
+                    albumIds.Remove(0);
+                    qo.extraWhereClause.Add("(Albums.id is null OR Albums.id in (" + string.Join(", ", albumIds) + "))");
+                }
+            }
+            else
+            {
+                qo.extraWhereClause.Add("Albums.id in (" + string.Join(",", albumIds) + ")");
+            }
             qo.GetHistory = bGetHistory;
             return GetTracksInternal(qo);
         }
@@ -298,7 +320,29 @@ GROUP BY t.id
         public List<TrackV> GetTracksWithGenres(IList<long> genreIds, bool bGetHistory)
         {
             QueryOptions qo = new QueryOptions();
-            qo.extraWhereClause.Add("Genres.id in (" + string.Join(",", genreIds) + ")");
+            bool bHasNull = false;
+            foreach (long id in genreIds)
+            {
+                if (id == 0)
+                {
+                    bHasNull = true;
+                    break;
+                }
+            }
+            if (bHasNull)
+            {
+                if (genreIds.Count == 1)
+                    qo.extraWhereClause.Add("Genres.id is null");
+                else
+                {
+                    genreIds.Remove(0);
+                    qo.extraWhereClause.Add("(Genres.id is null OR Genres.id in (" + string.Join(", ", genreIds) + "))");
+                }
+            }
+            else
+            {
+                qo.extraWhereClause.Add("Genres.id in (" + string.Join(",", genreIds) + ")");
+            }
             qo.GetHistory = bGetHistory;
             return GetTracksInternal(qo);
         }

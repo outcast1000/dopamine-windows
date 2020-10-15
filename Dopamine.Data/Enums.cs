@@ -26,12 +26,13 @@
 
     public enum AlbumOrder
     {
-        Alphabetical = 1,
-        ByDateAdded = 2,
-        ByDateCreated = 3,
-        ByAlbumArtist = 4,
-        ByYearDescending = 5,
-        ByYearAscending = 6
+        AlphabeticalAscending = 1,
+        AlphabeticalDescending = 2,
+        ByDateAdded = 3,
+        ByAlbumArtistAscending = 4,
+        ByAlbumArtistDescending = 5,
+        ByYearDescending = 6,
+        ByYearAscending = 7
     }
 
     public enum ArtistOrder

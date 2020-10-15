@@ -12,21 +12,6 @@
         <ResourceDictionary Source="/Dopamine;component/Resources/Styles/FontStyles.xaml" />
         <ResourceDictionary Source="/Dopamine;component/Resources/Styles/Buttons.xaml" />
     </ResourceDictionary.MergedDictionaries>
-    <Style x:Key="RoundedButtonStyle" TargetType="{x:Type Button}">
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Border
-                        Padding="2"
-                        Background="White"
-                        BorderThickness="1"
-                        CornerRadius="15">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
     <converters:BooleanToCollapsedConverter x:Key="BooleanToCollapsedConverter" />
     <converters:InvertingBooleanToCollapsedConverter x:Key="InvertingBooleanToCollapsedConverter" />
     <converters:InvertingBooleanToVisibilityConverter x:Key="InvertingBooleanToVisibilityConverter" />
@@ -40,6 +25,21 @@
             <utils:BindingProxy x:Key="NewPlaylistProxy" Data="{DynamicResource Language_New_Playlist}" />
             <CollectionViewSource x:Key="PlaylistsDataSource" Source="{Binding DataContext.ContextMenuPlaylists, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
         </ContextMenu.Resources>
+	<!--
+        <MenuItem Command="{Binding DataContext.EditAlbumCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" InputGestureText="">
+            <MenuItem.Header>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{DynamicResource Language_Edit}" />
+                    <pc:SyncRing
+                        Width="11"
+                        Margin="15,0,0,0"
+                        VerticalAlignment="Center"
+                        Visibility="{Binding DataContext.IsIndexing, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                </StackPanel>
+            </MenuItem.Header>
+        </MenuItem>
+        <Separator />
+	-->
         <MenuItem
             Command="{Binding DataContext.AddArtistsToNowPlayingCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
             Header="{DynamicResource Language_Add_To_Now_Playing}"

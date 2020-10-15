@@ -21,7 +21,7 @@ namespace Dopamine.Services.Utils
             return pieces.All((s) => 
             album.Name.ToLower().Contains(s.ToLower()) |
             (album.AlbumArtists != null ? album.AlbumArtists.ToLower().Contains(s.ToLower()) : true) | 
-            album.MinYear.ToString().ToLower().Contains(s.ToLower()));
+            album.Year.ToString().ToLower().Contains(s.ToLower()));
         }
 
         public static bool FilterArtists(ArtistViewModel artist, string filter)

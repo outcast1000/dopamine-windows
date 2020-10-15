@@ -19,6 +19,7 @@ namespace Dopamine.Services.Entities
         private bool isHeader;
         private IIndexingService _indexingService;
         private IArtistVRepository _artistVRepository;
+		
         public ArtistViewModel(IIndexingService indexingService, IArtistVRepository artistVRepository, ArtistV data)
         {
             this.data = data;
@@ -44,7 +45,7 @@ namespace Dopamine.Services.Entities
             }
         }
 
-        public ArtistV Data { get { return this.data; } }
+        public ArtistV Data { get { return data; } }
 
         public String ArtistItemInfo
         {
@@ -52,7 +53,7 @@ namespace Dopamine.Services.Entities
             {
                 StringBuilder sb = new StringBuilder();
                 if (!string.IsNullOrEmpty(data.Genres))
-                    sb.AppendLine(ResourceUtils.GetString("Language_Genres") + ": " + data.Genres);
+                    sb.AppendLine(ResourceUtils.GetString("Language_Genres") + ": " + data.Genres.Replace(",", ", "));
                 if (!data.MinYear.HasValue)
                 {
                     // Do nothing 
@@ -61,10 +62,8 @@ namespace Dopamine.Services.Entities
                     sb.AppendLine(ResourceUtils.GetString("Language_Year") + ": " + data.MinYear);
                 else
                     sb.AppendLine(ResourceUtils.GetString("Language_Year") + ": " + data.MinYear + " - " + data.MaxYear);
-
                 sb.AppendLine(ResourceUtils.GetString("Language_Songs") + ": " + data.TrackCount);
                 sb.AppendLine(ResourceUtils.GetString("Language_Albums") + ": " + data.AlbumCount);
-
                 if (Data.PlayCount.HasValue && Data.PlayCount.Value > 0)
                     sb.AppendLine(ResourceUtils.GetString("Language_Plays") + ": " + data.PlayCount.Value);
                 if (Data.SkipCount.HasValue && Data.SkipCount.Value > 0)
@@ -77,16 +76,16 @@ namespace Dopamine.Services.Entities
         public long TrackCount { get { return data.TrackCount; } }
 
         public string Genres { get { return data.Genres; } }
-
-
-        public bool HasCover
+		
+		public bool HasCover
         {
             get { return !string.IsNullOrEmpty(data.Thumbnail); }
         }
 
         public string Thumbnail { get {
-                if (Data.ArtistImage == null)
+                if (Data.ArtistImage == null && !_bImageRequested)
                 {
+                    _bImageRequested = true;
                     RequestImageDownload(false, false);
                 }
 
@@ -107,9 +106,10 @@ namespace Dopamine.Services.Entities
         }
 
         private string _thumbnail;
-        private void indexingService_ArtistInfoDownloaded(ArtistV requestedArtist, bool success)
+        private bool _bImageRequested = false;
+        private void indexingService_ArtistInfoDownloaded(ArtistV request, bool success)
         {
-            if (requestedArtist.Id != Data.Id)
+            if (request.Id != Data.Id)
                 return;// Belongs to a different view model
             _indexingService.ArtistInfoDownloaded -= indexingService_ArtistInfoDownloaded;
             if (!success)
@@ -124,7 +124,7 @@ namespace Dopamine.Services.Entities
 
         public DateTime DateAdded { get { return data.DateAdded; } }
 
-        public DateTime DateCreated { get { return data.DateFileCreated; } }
+        public DateTime DateFileCreated { get { return data.DateFileCreated; } }
 
         public long? Year { get { return data.MinYear; } }
 
@@ -147,7 +147,6 @@ namespace Dopamine.Services.Entities
             {
                 return false;
             }
-
             return string.Equals(data.Name, ((ArtistViewModel)obj).data.Name, StringComparison.CurrentCultureIgnoreCase);
         }
 

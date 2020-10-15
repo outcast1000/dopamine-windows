@@ -48,5 +48,9 @@ namespace Dopamine.Data.Repositories
             throw new System.NotImplementedException();
         }
 
+        public AlbumV GetAlbum(long albumId, bool bGetHistory)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

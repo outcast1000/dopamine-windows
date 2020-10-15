@@ -1,4 +1,5 @@
 ﻿using Digimezzo.Foundation.Core.Logging;
+using Digimezzo.Foundation.Core.Settings;
 using Digimezzo.Foundation.Core.Utils;
 using Dopamine.Core.Base;
 using Dopamine.Core.Extensions;
@@ -20,6 +21,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -32,27 +34,34 @@ namespace Dopamine.ViewModels.Common.Base
     public abstract class AlbumsViewModelBase : TracksViewModelBase
     {
         private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-        private IContainerProvider container;
-        private ICollectionService collectionService;
-        private IPlaybackService playbackService;
-        private IDialogService dialogService;
-        private ISearchService searchService;
-        private IPlaylistService playlistService;
-        private IIndexingService indexingService;
-        private ObservableCollection<AlbumViewModel> albums;
+        private IContainerProvider _container;
+        private ICollectionService _collectionService;
+        private IPlaybackService _playbackService;
+        private IDialogService _dialogService;
+        private ISearchService _searchService;
+        private IPlaylistService _playlistService;
+        private IIndexingService _indexingService;
+        //private ObservableCollection<AlbumViewModel> albums;
         private CollectionViewSource albumsCvs;
-        private IList<AlbumViewModel> selectedAlbums;
+        private IList<AlbumViewModel> _selectedItems;
         private bool delaySelectedAlbums;
-        private long albumsCount;
-        private AlbumOrder albumOrder;
-        private string albumOrderText;
+        private IList<long> _selectedIDs;
+        private long _albumsCount;
+		private string _searchString;
+       	private string _orderText;
+		private AlbumOrder _order;
         private double coverSize;
         private double albumWidth;
         private double albumHeight;
         private CoverSizeType selectedCoverSize;
-        private IList<ArtistViewModel> selectedArtists;
-        private string _searchText;
+        
+		
+		public delegate void EnsureSelectedItemVisibleAction(AlbumViewModel item);
+        public event EnsureSelectedItemVisibleAction EnsureItemVisible;
 
+        public delegate void SelectionChangedAction();
+        public event SelectionChangedAction SelectionChanged;
+		
         public DelegateCommand ToggleAlbumOrderCommand { get; set; }
 
         public DelegateCommand<string> AddAlbumsToPlaylistCommand { get; set; }
@@ -77,7 +86,7 @@ namespace Dopamine.ViewModels.Common.Base
 
         public bool IsLargeCoverSizeSelected => this.selectedCoverSize == CoverSizeType.Large;
 
-        public string AlbumOrderText => this.albumOrderText;
+        public string AlbumOrderText => this._orderText;
 
         public double CoverSize
         {
@@ -97,12 +106,6 @@ namespace Dopamine.ViewModels.Common.Base
             set { SetProperty<double>(ref this.albumHeight, value); }
         }
 
-        public ObservableCollection<AlbumViewModel> Albums
-        {
-            get { return this.albums; }
-            set { SetProperty<ObservableCollection<AlbumViewModel>>(ref this.albums, value); }
-        }
-
         public CollectionViewSource AlbumsCvs
         {
             get { return this.albumsCvs; }
@@ -111,26 +114,26 @@ namespace Dopamine.ViewModels.Common.Base
 
         public IList<AlbumViewModel> SelectedAlbums
         {
-            get { return this.selectedAlbums; }
+            get { return this._selectedItems; }
             set
             {
-                SetProperty<IList<AlbumViewModel>>(ref this.selectedAlbums, value);
+                SetProperty<IList<AlbumViewModel>>(ref this._selectedItems, value);
             }
         }
 
         public long AlbumsCount
         {
-            get { return this.albumsCount; }
-            set { SetProperty<long>(ref this.albumsCount, value); }
+            get { return this._albumsCount; }
+            set { SetProperty<long>(ref this._albumsCount, value); }
         }
 
         public AlbumOrder AlbumOrder
         {
-            get { return this.albumOrder; }
+            get { return this._order; }
             set
             {
-                SetProperty<AlbumOrder>(ref this.albumOrder, value);
-
+                SetProperty<AlbumOrder>(ref this._order, value);
+                OrderItems();
                 this.UpdateAlbumOrderText(value);
             }
         }
@@ -138,19 +141,19 @@ namespace Dopamine.ViewModels.Common.Base
         public AlbumsViewModelBase(IContainerProvider container) : base(container)
         {
             // Dependency injection
-            this.container = container;
-            this.collectionService = container.Resolve<ICollectionService>();
-            this.playbackService = container.Resolve<IPlaybackService>();
-            this.dialogService = container.Resolve<IDialogService>();
-            this.searchService = container.Resolve<ISearchService>();
-            this.playlistService = container.Resolve<IPlaylistService>();
-            this.indexingService = container.Resolve<IIndexingService>();
+            this._container = container;
+            this._collectionService = container.Resolve<ICollectionService>();
+            this._playbackService = container.Resolve<IPlaybackService>();
+            this._dialogService = container.Resolve<IDialogService>();
+            this._searchService = container.Resolve<ISearchService>();
+            this._playlistService = container.Resolve<IPlaylistService>();
+            this._indexingService = container.Resolve<IIndexingService>();
             //this.albumArtworkRepository = container.Resolve<IAlbumArtworkRepository>();
 
             // Commands
             this.ToggleAlbumOrderCommand = new DelegateCommand(() => this.ToggleAlbumOrder());
             this.ShuffleSelectedAlbumsCommand = new DelegateCommand(async () => {
-                await this.playbackService.PlayAlbumsAsync(this.SelectedAlbums, PlaylistMode.Play, true); 
+                await this._playbackService.PlayAlbumsAsync(this.SelectedAlbums, PlaylistMode.Play, true); 
             });
             this.AddAlbumsToPlaylistCommand = new DelegateCommand<string>(async (playlistName) => await this.AddAlbumsToPlaylistAsync(this.SelectedAlbums, playlistName));
             this.EditAlbumCommand = new DelegateCommand(() => this.EditSelectedAlbum(), () => !this.IsIndexing);
@@ -178,59 +181,35 @@ namespace Dopamine.ViewModels.Common.Base
                     await this.SetCoversizeAsync((CoverSizeType)selectedCoverSize);
                 }
             });
+            LoadSelectedItems();
         }
 
-        /*
-        public async Task LoadAlbumArtworkAsync(int delayMilliSeconds)
+
+        private void LoadSelectedItems()
         {
-            await Task.Delay(delayMilliSeconds);
-
-            IList<Αλβ> allAlbumArtwork = await this.albumArtworkRepository.GetAlbumArtworkAsync();
-
-            await this.SetAlbumArtwork(allAlbumArtwork);
-        }
-        */
-        /*
-        public async Task RefreshAlbumArtworkAsync(IList<string> albumsKeys = null)
-        {
-            IList<AlbumArtwork> allAlbumArtwork = await this.albumArtworkRepository.GetAlbumArtworkAsync();
-
-            await this.SetAlbumArtwork(allAlbumArtwork, albumsKeys);
-        }
-        */
-
-        /*
-        private async Task SetAlbumArtwork(IList<AlbumArtwork> allAlbumArtwork, IList<string> albumsKeys = null)
-        {
-            if (this.albums != null && this.albums.Count > 0)
+            try
             {
-                await Task.Run(() =>
+                string s = SettingsClient.Get<String>("State", "SelectedAlbumIDs");
+                if (!string.IsNullOrEmpty(s))
                 {
-                    foreach (AlbumViewModel alb in this.albums)
-                    {
-                        try
-                        {
-                            if (allAlbumArtwork != null && allAlbumArtwork.Count > 0 && albumsKeys != null ? albumsKeys.Contains(alb.Thumbnail) : true)
-                            {
-                                AlbumArtwork albumArtwork = allAlbumArtwork.Where(a => a.AlbumKey.Equals(alb.Thumbnail)).FirstOrDefault();
-
-                                if (albumArtwork != null)
-                                {
-                                    //ALEX Diaable
-                                    Debug.Assert(false, "TODO");
-                                    //alb.Thumbnail = this.cacheService.GetCachedArtworkPath(albumArtwork.ArtworkID);
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            LogClient.Error("Error while refreshing artwork for Album {0}/{1}. Exception: {2}", alb.Name, alb.AlbumArtists, ex.Message);
-                        }
-                    }
-                });
+                    _selectedIDs = s.Split(',').Select(x => long.Parse(x)).ToList();
+                    return;
+                }
             }
+            catch (Exception _)
+            {
+
+            }
+            _selectedIDs = new List<long>();
         }
-        */
+
+        private void SaveSelectedItems()
+        {
+            string s = string.Join(",", _selectedIDs);
+            SettingsClient.Set<String>("State", "SelectedAlbumIDs", s);
+        }
+
+
         private void EditSelectedAlbum()
         {
             if (this.SelectedAlbums == null || this.SelectedAlbums.Count == 0)
@@ -238,10 +217,10 @@ namespace Dopamine.ViewModels.Common.Base
                 return;
             }
 
-            EditAlbum view = this.container.Resolve<EditAlbum>();
-            view.DataContext = this.container.Resolve<Func<AlbumViewModel, EditAlbumViewModel>>()(this.SelectedAlbums.First());
+            EditAlbum view = this._container.Resolve<EditAlbum>();
+            view.DataContext = this._container.Resolve<Func<AlbumViewModel, EditAlbumViewModel>>()(this.SelectedAlbums.First());
 
-            this.dialogService.ShowCustomDialog(
+            this._dialogService.ShowCustomDialog(
                 0xe104,
                 14,
                 ResourceUtils.GetString("Language_Edit_Album"),
@@ -262,27 +241,30 @@ namespace Dopamine.ViewModels.Common.Base
         {
             switch (albumOrder)
             {
-                case AlbumOrder.Alphabetical:
-                    this.albumOrderText = ResourceUtils.GetString("Language_A_Z");
+                case AlbumOrder.AlphabeticalAscending:
+                    this._orderText = ResourceUtils.GetString("Language_A_Z");
+                    break;
+                case AlbumOrder.AlphabeticalDescending:
+                    this._orderText = ResourceUtils.GetString("Language_Z_A");
                     break;
                 case AlbumOrder.ByDateAdded:
-                    this.albumOrderText = ResourceUtils.GetString("Language_By_Date_Added");
+                    this._orderText = ResourceUtils.GetString("Language_By_Date_Added");
                     break;
-                case AlbumOrder.ByDateCreated:
-                    this.albumOrderText = ResourceUtils.GetString("Language_By_Date_Created");
+                case AlbumOrder.ByAlbumArtistAscending:
+                    this._orderText = ResourceUtils.GetString("Language_By_Album_Artist") + " (\u2191)";
                     break;
-                case AlbumOrder.ByAlbumArtist:
-                    this.albumOrderText = ResourceUtils.GetString("Language_By_Album_Artist");
+                case AlbumOrder.ByAlbumArtistDescending:
+                    this._orderText = ResourceUtils.GetString("Language_By_Album_Artist") + " (\u2193)";
                     break;
                 case AlbumOrder.ByYearDescending:
-                    this.albumOrderText = ResourceUtils.GetString("Language_By_Year_Descending");
+                    this._orderText = ResourceUtils.GetString("Language_By_Year_Descending");
                     break;
                 case AlbumOrder.ByYearAscending:
-                    this.albumOrderText = ResourceUtils.GetString("Language_By_Year_Ascending");
+                    this._orderText = ResourceUtils.GetString("Language_By_Year_Ascending");
                     break;
                 default:
                     // Cannot happen, but just in case.
-                    this.albumOrderText = ResourceUtils.GetString("Language_A_Z");
+                    this._orderText = ResourceUtils.GetString("Language_A_Z");
                     break;
             }
 
@@ -291,30 +273,29 @@ namespace Dopamine.ViewModels.Common.Base
 
         protected async Task GetArtistAlbumsAsync(IList<ArtistViewModel> selectedArtists, AlbumOrder albumOrder)
         {
-            this.selectedArtists = selectedArtists;
-            await this.GetAlbumsCommonAsync(await this.collectionService.GetArtistAlbumsAsync(selectedArtists), albumOrder);
+            await this.GetAlbumsCommonAsync(await this._collectionService.GetArtistAlbumsAsync(selectedArtists), albumOrder);
         }
 
         protected async Task GetFilteredAlbumsAsync(string searchFilter, AlbumOrder albumOrder)
         {
-            await this.GetAlbumsCommonAsync(await this.collectionService.GetAlbumsAsync(searchFilter), albumOrder);
+            await this.GetAlbumsCommonAsync(await this._collectionService.GetAlbumsAsync(searchFilter), albumOrder);
         }
 
         protected async Task GetGenreAlbumsAsync(IList<GenreViewModel> selectedGenres, AlbumOrder albumOrder)
         {
             if (!selectedGenres.IsNullOrEmpty())
             {
-                await this.GetAlbumsCommonAsync(await this.collectionService.GetGenreAlbumsAsync(selectedGenres), albumOrder);
+                await this.GetAlbumsCommonAsync(await this._collectionService.GetGenreAlbumsAsync(selectedGenres), albumOrder);
 
                 return;
             }
 
-            await this.GetAlbumsCommonAsync(await this.collectionService.GetAlbumsAsync(), albumOrder);
+            await this.GetAlbumsCommonAsync(await this._collectionService.GetAlbumsAsync(), albumOrder);
         }
 
         protected async Task GetAllAlbumsAsync(AlbumOrder albumOrder)
         {
-            await this.GetAlbumsCommonAsync(await this.collectionService.GetAlbumsAsync(), albumOrder);
+            await this.GetAlbumsCommonAsync(await this._collectionService.GetAlbumsAsync(), albumOrder);
         }
 
         protected void ClearAlbums()
@@ -323,49 +304,148 @@ namespace Dopamine.ViewModels.Common.Base
             {
                 this.AlbumsCvs = null;
             });
-
-            this.Albums = null;
         }
 
-        protected async Task GetAlbumsCommonAsync(IList<AlbumViewModel> albums, AlbumOrder albumOrder)
+        protected async Task GetAlbumsCommonAsync(IList<AlbumViewModel> viewModels, AlbumOrder albumOrder)
         {
+			ObservableCollection<AlbumViewModel> items;
             try
             {
-                // Order the incoming Albums
-                IList<AlbumViewModel> orderedAlbums = await this.collectionService.OrderAlbumsAsync(albums, albumOrder);
-
-                // Create new ObservableCollection
-                var albumViewModels = new ObservableCollection<AlbumViewModel>(orderedAlbums);
-
-                // Unbind to improve UI performance
-                //this.ClearAlbums();
-
-                // Populate ObservableCollection
-                this.Albums = albumViewModels;
+                // Get the viewModels
+                items = new ObservableCollection<AlbumViewModel>(viewModels);// Using history
+                // Unless we are in Search Mode, we should re-store the selected items. The cases are:
+                //  1. at the beginning of the application
+                //  2. after the search mode is finished 
+                if (string.IsNullOrEmpty(_searchString))
+                {
+                    _selectedItems = new List<AlbumViewModel>();
+                    foreach (long id in _selectedIDs)
+                    {
+                        AlbumViewModel vm = viewModels.Where(x => x.Id == id).FirstOrDefault();
+                        if (vm != null)
+                        {
+                            vm.IsSelected = true;
+                            _selectedItems.Add(vm);
+                        }
+                    }
+                    if (_selectedItems.Count == 0 && viewModels.Count > 0)
+                    {
+                        // This may happen when
+                        //  1. The collection was previously empty
+                        //  2. The collection with the previous selection has been removed
+                        //  3. The previous selection has been removed and the collection has been refreshed
+                        AlbumViewModel sel = viewModels[0];
+                        sel.IsSelected = true;
+                        _selectedItems.Add(sel);
+                        _selectedIDs.Add(sel.Id);
+                        SaveSelectedItems();
+                    }
+                }
             }
             catch (Exception ex)
             {
-                LogClient.Error("An error occurred while getting Albums. Exception: {0}", ex.Message);
-
-                // Failed getting Albums. Create empty ObservableCollection.
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    this.Albums = new ObservableCollection<AlbumViewModel>();
-                });
+                Logger.Error(ex, "An error occurred while getting Items. Exception: {0}", ex.Message);
+                items = new ObservableCollection<AlbumViewModel>();
             }
 
             Application.Current.Dispatcher.Invoke(() =>
             {
                 // Populate CollectionViewSource
-                this.AlbumsCvs = new CollectionViewSource { Source = this.Albums };
-                // Update count
-                this.AlbumsCount = this.AlbumsCvs.View.Cast<AlbumViewModel>().Count();
+                AlbumsCvs = new CollectionViewSource { Source = items };
+                OrderItems();
+                EnsureSelectedAlbumVisible();
+                AlbumsCount = AlbumsCvs.View.Cast<AlbumViewModel>().Count();
             });
 
             // Set Album artwork
             //this.LoadAlbumArtworkAsync(Constants.ArtworkLoadDelay);
         }
+		
+		private void OrderItems()
+        {
+            SortDescription sd = new SortDescription();
+            switch (AlbumOrder)
+            {
+                case AlbumOrder.AlphabeticalAscending:
+                    sd = new SortDescription("Name", ListSortDirection.Ascending);
+                    break;
+                case AlbumOrder.AlphabeticalDescending:
+                    sd = new SortDescription("Name", ListSortDirection.Descending);
+                    break;
+                case AlbumOrder.ByDateAdded:
+                    sd = new SortDescription("DateAdded", ListSortDirection.Descending);
+                    break;
+                case AlbumOrder.ByYearAscending:
+                    sd = new SortDescription("Year", ListSortDirection.Ascending);
+                    break;
+                case AlbumOrder.ByYearDescending:
+                    sd = new SortDescription("Year", ListSortDirection.Descending);
+                    break;
+                case AlbumOrder.ByAlbumArtistAscending:
+                    sd = new SortDescription("AlbumArtist", ListSortDirection.Ascending);
+                    break;
+                case AlbumOrder.ByAlbumArtistDescending:
+                    sd = new SortDescription("AlbumArtist", ListSortDirection.Descending);
+                    break;
+                default:
+                    break;
+            }
+            if (albumsCvs != null)
+            {
+                AlbumsCvs.SortDescriptions.Clear();
+                AlbumsCvs.SortDescriptions.Add(sd);
+            }
+        }
 
+        protected async virtual Task SelectedAlbumsHandlerAsync(object parameter)
+        {
+            // This happens when the user select an item
+            // We should also ignore it if we are in Search Mode AND the user does not selected anything. For example when we enter the search mode
+            if (!string.IsNullOrEmpty(_searchString) && ((IList)parameter).Count == 0)
+                return;
+            // We should also ignore it if we have an empty list (for example when we clear the list)
+            if (AlbumsCvs == null)
+                return;
+            bool bKeepOldSelections = true;
+            if (parameter != null && ((IList)parameter).Count > 0)
+            {
+				// This is the most usual case. The user has just selected one or more items
+                bKeepOldSelections = false;
+                List<AlbumViewModel> selectedAlbums = new List<AlbumViewModel>();
+                _selectedIDs.Clear();
+                foreach (AlbumViewModel item in (IList)parameter)
+                {
+                    selectedAlbums.Add(item);
+                    _selectedIDs.Add(item.Id);
+                    // Mark it as selected
+                    item.IsSelected = true;
+                }
+				SelectedAlbums = selectedAlbums;
+                SaveSelectedItems();
+            }
+            
+            if (bKeepOldSelections)
+            {
+                // Keep the previous selection if possible. Otherwise select All
+                // This is the case when we have refresh the collection etc.
+                List<long> validSelectedIDs = new List<long>();
+                _selectedItems.Clear();
+                IEnumerable<AlbumViewModel> albums = AlbumsCvs.View.Cast<AlbumViewModel>();
+                foreach (long id in _selectedIDs)
+                {
+                    AlbumViewModel sel = albums.Where(x => x.Id == id).FirstOrDefault();
+                    if (sel != null)
+                    {
+                        validSelectedIDs.Add(id);
+                        sel.IsSelected = true;
+                        _selectedItems.Add(sel);
+                    }
+                }
+                _selectedIDs = validSelectedIDs;
+
+            }
+    		SelectionChanged?.Invoke();
+        }
         protected async Task AddAlbumsToPlaylistAsync(IList<AlbumViewModel> albumViewModels, string playlistName)
         {
             CreateNewPlaylistResult addPlaylistResult = CreateNewPlaylistResult.Success; // Default Success
@@ -375,7 +455,7 @@ namespace Dopamine.ViewModels.Common.Base
             {
                 var responseText = ResourceUtils.GetString("Language_New_Playlist");
 
-                if (this.dialogService.ShowInputDialog(
+                if (this._dialogService.ShowInputDialog(
                     0xea37,
                     16,
                     ResourceUtils.GetString("Language_New_Playlist"),
@@ -385,7 +465,7 @@ namespace Dopamine.ViewModels.Common.Base
                     ref responseText))
                 {
                     playlistName = responseText;
-                    addPlaylistResult = await this.playlistService.CreateNewPlaylistAsync(new EditablePlaylistViewModel(playlistName, PlaylistType.Static));
+                    addPlaylistResult = await this._playlistService.CreateNewPlaylistAsync(new EditablePlaylistViewModel(playlistName, PlaylistType.Static));
                 }
             }
 
@@ -401,15 +481,15 @@ namespace Dopamine.ViewModels.Common.Base
                 case CreateNewPlaylistResult.Success:
                 case CreateNewPlaylistResult.Duplicate:
                     // Add items to playlist
-                    AddTracksToPlaylistResult result = await this.playlistService.AddAlbumsToStaticPlaylistAsync(albumViewModels, playlistName);
+                    AddTracksToPlaylistResult result = await this._playlistService.AddAlbumsToStaticPlaylistAsync(albumViewModels, playlistName);
 
                     if (result == AddTracksToPlaylistResult.Error)
                     {
-                        this.dialogService.ShowNotification(0xe711, 16, ResourceUtils.GetString("Language_Error"), ResourceUtils.GetString("Language_Error_Adding_Songs_To_Playlist").Replace("{playlistname}", "\"" + playlistName + "\""), ResourceUtils.GetString("Language_Ok"), true, ResourceUtils.GetString("Language_Log_File"));
+                        this._dialogService.ShowNotification(0xe711, 16, ResourceUtils.GetString("Language_Error"), ResourceUtils.GetString("Language_Error_Adding_Songs_To_Playlist").Replace("{playlistname}", "\"" + playlistName + "\""), ResourceUtils.GetString("Language_Ok"), true, ResourceUtils.GetString("Language_Log_File"));
                     }
                     break;
                 case CreateNewPlaylistResult.Error:
-                    this.dialogService.ShowNotification(
+                    this._dialogService.ShowNotification(
                         0xe711,
                         16,
                         ResourceUtils.GetString("Language_Error"),
@@ -419,7 +499,7 @@ namespace Dopamine.ViewModels.Common.Base
                         ResourceUtils.GetString("Language_Log_File"));
                     break;
                 case CreateNewPlaylistResult.Blank:
-                    this.dialogService.ShowNotification(
+                    this._dialogService.ShowNotification(
                         0xe711,
                         16,
                         ResourceUtils.GetString("Language_Error"),
@@ -436,28 +516,62 @@ namespace Dopamine.ViewModels.Common.Base
 
         protected async Task AddAlbumsToNowPlayingAsync(IList<AlbumViewModel> albumViewModel)
         {
-            await this.playbackService.PlayAlbumsAsync(albumViewModel, PlaylistMode.Enqueue);
+            await this._playbackService.PlayAlbumsAsync(albumViewModel, PlaylistMode.Enqueue);
+        }
+		
+		protected void EnsureSelectedAlbumVisible()
+        {
+            if (SelectedAlbums.Count > 0)
+                EnsureItemVisible?.Invoke(SelectedAlbums[0]);
         }
 
-        protected async virtual Task SelectedAlbumsHandlerAsync(object parameter)
+
+
+
+
+        protected override void FilterLists(string searchText)
         {
-            // This method needs to be awaitable for use in child classes
+            _searchString = searchText;
+            GetFilteredAlbumsAsync(_searchString, AlbumOrder);
+            base.FilterLists(searchText);
+        }
 
-            if (parameter != null)
+        protected virtual void ToggleAlbumOrder()
+        {
+            switch (this.AlbumOrder)
             {
-                this.SelectedAlbums = ((IList<object>)parameter).Select(x => (AlbumViewModel)x).ToList();
-                /*
-                this.SelectedAlbums = new List<AlbumViewModel>();
-
-                foreach (AlbumViewModel item in (IList)parameter)
-                {
-                    this.SelectedAlbums.Add(item);
-                }
-                */
+                case AlbumOrder.AlphabeticalAscending:
+                    this.AlbumOrder = AlbumOrder.AlphabeticalDescending;
+                    break;
+                case AlbumOrder.AlphabeticalDescending:
+                    this.AlbumOrder = AlbumOrder.ByDateAdded;
+                    break;
+                case AlbumOrder.ByDateAdded:
+                    this.AlbumOrder = AlbumOrder.ByAlbumArtistAscending;
+                    break;
+                case AlbumOrder.ByAlbumArtistAscending:
+                    this.AlbumOrder = AlbumOrder.ByAlbumArtistDescending;
+                    break;
+                case AlbumOrder.ByAlbumArtistDescending:
+                    this.AlbumOrder = AlbumOrder.ByYearAscending;
+                    break;
+                case AlbumOrder.ByYearAscending:
+                    this.AlbumOrder = AlbumOrder.ByYearDescending;
+                    break;
+                case AlbumOrder.ByYearDescending:
+                    this.AlbumOrder = AlbumOrder.AlphabeticalAscending;
+                    break;
+                default:
+                    // Cannot happen, but just in case.
+                    this.AlbumOrder = AlbumOrder.AlphabeticalAscending;
+                    break;
             }
         }
+		
 
-        protected override void SetEditCommands()
+
+		
+		protected override void SetEditCommands()
         {
             base.SetEditCommands();
 
@@ -466,15 +580,8 @@ namespace Dopamine.ViewModels.Common.Base
                 this.EditAlbumCommand.RaiseCanExecuteChanged();
             }
         }
-
-        protected override void FilterLists(string searchText)
-        {
-            _searchText = searchText;
-            GetFilteredAlbumsAsync(_searchText, albumOrder);
-            base.FilterLists(searchText);
-        }
-
-        protected virtual async Task SetCoversizeAsync(CoverSizeType coverSize)
+		
+		protected virtual async Task SetCoversizeAsync(CoverSizeType coverSize)
         {
             await Task.Run(() =>
             {
@@ -509,35 +616,6 @@ namespace Dopamine.ViewModels.Common.Base
                 RaisePropertyChanged(nameof(this.IsMediumCoverSizeSelected));
                 RaisePropertyChanged(nameof(this.IsLargeCoverSizeSelected));
             });
-        }
-
-        protected virtual void ToggleAlbumOrder()
-        {
-            switch (this.AlbumOrder)
-            {
-                case AlbumOrder.Alphabetical:
-                    this.AlbumOrder = AlbumOrder.ByDateAdded;
-                    break;
-                case AlbumOrder.ByDateAdded:
-                    this.AlbumOrder = AlbumOrder.ByDateCreated;
-                    break;
-                case AlbumOrder.ByDateCreated:
-                    this.AlbumOrder = AlbumOrder.ByAlbumArtist;
-                    break;
-                case AlbumOrder.ByAlbumArtist:
-                    this.AlbumOrder = AlbumOrder.ByYearAscending;
-                    break;
-                case AlbumOrder.ByYearAscending:
-                    this.AlbumOrder = AlbumOrder.ByYearDescending;
-                    break;
-                case AlbumOrder.ByYearDescending:
-                    this.AlbumOrder = AlbumOrder.Alphabetical;
-                    break;
-                default:
-                    // Cannot happen, but just in case.
-                    this.AlbumOrder = AlbumOrder.Alphabetical;
-                    break;
-            }
         }
     }
 }

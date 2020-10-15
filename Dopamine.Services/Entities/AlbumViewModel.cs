@@ -3,28 +3,34 @@ using Digimezzo.Foundation.Core.Utils;
 using Dopamine.Core.IO;
 using Dopamine.Data;
 using Dopamine.Data.Entities;
+using Dopamine.Data.Repositories;
 using Dopamine.Services.Cache;
+using Dopamine.Services.Indexing;
 using Prism.Mvvm;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Dopamine.Services.Entities
 {
     public class AlbumViewModel : BindableBase
     {
         private AlbumV data;
-
-        public AlbumViewModel(AlbumV data)
+        private IIndexingService _indexingService;
+        private IAlbumVRepository _albumVRepository;
+		
+        public AlbumViewModel(IIndexingService indexingService, IAlbumVRepository albumVRepository, AlbumV data)
         {
             this.data = data;
+            _indexingService = indexingService;
+            _albumVRepository = albumVRepository;
         }
 
-        public AlbumV Data { get { return data; } }
-
         public long Id { get { return data.Id; } }
+
         public string Name
         {
             get
@@ -40,6 +46,7 @@ namespace Dopamine.Services.Entities
             }
         }
 
+        public AlbumV Data { get { return data; } }
         public String AlbumItemInfo
         {
             get
@@ -64,18 +71,75 @@ namespace Dopamine.Services.Entities
             }
         }
 
-        public string AlbumArtistComplete
+
+        public long TrackCount { get { return data.TrackCount; } }
+
+        public string Genres { get { return data.Genres; } }
+		
+		public bool HasCover
+        {
+            get { return !string.IsNullOrEmpty(data.Thumbnail); }
+        }
+		
+        public string Thumbnail { get {
+                if (Data.Thumbnail == null && !_bImageRequested)
+                {
+                    _bImageRequested = true;
+                    RequestImageDownload(false, false);
+                }
+
+                return data.Thumbnail; 
+            }
+            private set { SetProperty<string>(ref _thumbnail, value); }
+        }
+
+        public async Task RequestImageDownload(bool bIgnorePreviousFailures, bool bForce)
+        {
+            await Task.Run(async () =>
+            {
+                _indexingService.AlbumInfoDownloaded += indexingService_InfoDownloaded;
+                bool bAccepted = await _indexingService.RequestAlbumInfoAsync(Data, bIgnorePreviousFailures, bForce);
+                if (!bAccepted)
+                    _indexingService.AlbumInfoDownloaded -= indexingService_InfoDownloaded;
+            });
+        }
+
+        private string _thumbnail;
+        private bool _bImageRequested = false;
+        private void indexingService_InfoDownloaded(AlbumV request, bool success)
+        {
+            if (request.Id != Data.Id)
+                return;// Belongs to a different view model
+            _indexingService.AlbumInfoDownloaded -= indexingService_InfoDownloaded;
+            if (!success)
+                return;// Nothing to change
+            AlbumV album = _albumVRepository.GetAlbum(Data.Id, true);
+            if (album == null)
+                return;// Should not happen
+            data = album;
+            if (album.Thumbnail != null)
+                Thumbnail = album.Thumbnail;
+        }
+
+		public string AlbumArtistComplete
         {
             get
             {
-                string result = "";
                 if (AlbumArtists.Equals(Artists))
-                    result += AlbumArtists;
-                else
-                    result += string.Format("{0} ({1})", AlbumArtists, Artists);
-                return result;
+                    return AlbumArtists;
+                return string.Format("{0} ({1})", AlbumArtists, Artists);
             }
         }
+		
+		public DateTime DateAdded { get { return data.DateAdded; } }
+
+        public DateTime DateFileCreated { get { return data.DateFileCreated; } }
+		
+		public string Year
+        {
+            get { return data.MinYear.HasValue ? data.MinYear.ToString() : ""; }
+        }
+
 
         public string AlbumArtists
         {
@@ -97,10 +161,6 @@ namespace Dopamine.Services.Entities
             }
         }
 
-        public bool HasCover
-        {
-            get { return !string.IsNullOrEmpty(data.Thumbnail); }
-        }
 
         public bool HasTitle
         {
@@ -112,16 +172,10 @@ namespace Dopamine.Services.Entities
             get { return !data.MinYear.HasValue ? "(" + data.MinYear + ")" : string.Empty; }
         }
 
-        public string MinYear
-        {
-            get { return data.MinYear.HasValue ? data.MinYear.ToString() : ""; }
-        }
 
-        public string Thumbnail { get { return data.Thumbnail; } }
 
-        public DateTime DateAdded { get { return data.DateAdded; } }
 
-        public DateTime DateFileCreated { get { return data.DateFileCreated; } }
+
 
 
         public override string ToString()
@@ -137,7 +191,6 @@ namespace Dopamine.Services.Entities
             }
             if (Name == null)
                 return ((AlbumViewModel)obj).Name == null;
-
             return Name.Equals(((AlbumViewModel)obj).Name) && Name.Equals(((AlbumViewModel)obj).Name);
         }
 
@@ -145,5 +198,7 @@ namespace Dopamine.Services.Entities
         {
             return (Name + Artists + AlbumArtists).GetHashCode();
         }
+
+        public bool IsSelected { get; set; }
     }
 }

@@ -106,7 +106,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         public delegate void SelectionChangedAction();
         public event SelectionChangedAction SelectionChanged;
 
-
         public DelegateCommand ToggleArtistOrderCommand { get; set; }
 
 
@@ -283,9 +282,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
             // Set width of the panels
             LeftPaneWidthPercent = SettingsClient.Get<int>("ColumnWidths", "ArtistsLeftPaneWidthPercent");
-            RightPaneWidthPercent = SettingsClient.Get<int>("ColumnWidths", "ArtistsRightPaneWidthPercent");
 
-            // Cover size
             LoadSelectedItems();
 
         }
@@ -469,7 +466,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 _selectedItems.Clear();
                 foreach (ArtistViewModel item in (IList)parameter)
                 {
-                    // Keep them in an array
                     _selectedIDs.Add(item.Id);
                     _selectedItems.Add(item);
                     // Mark it as selected
@@ -588,7 +584,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         private async Task ToggleOrderAsync()
         {
-
             ToggleArtistOrder();
             SettingsClient.Set<int>("Ordering", "ArtistsArtistOrder", (int)ArtistOrder);
             OrderItems();

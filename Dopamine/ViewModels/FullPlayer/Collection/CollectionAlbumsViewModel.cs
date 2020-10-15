@@ -18,21 +18,21 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 {
     public class CollectionAlbumsViewModel : AlbumsViewModelBase
     {
-        private ICollectionService collectionService;
-        private IIndexingService indexingService;
-        private IEventAggregator eventAggregator;
-        private double leftPaneWidthPercent;
-        private IList<long> selectedIDs;
+        private ICollectionService _collectionService;
+        private IIndexingService _indexingService;
+        private IEventAggregator _eventAggregator;
+        private double _leftPaneWidthPercent;
+        private IList<long> _selectedIDs;
         private bool _ignoreSelectionChangedEvent;
 
-        public delegate void EnsureSelectedItemVisibleAction(AlbumViewModel item);
-        public event EnsureSelectedItemVisibleAction EnsureItemVisible;
+        //public delegate void EnsureSelectedItemVisibleAction(AlbumViewModel item);
+        //public event EnsureSelectedItemVisibleAction EnsureItemVisible;
         public double LeftPaneWidthPercent
         {
-            get { return this.leftPaneWidthPercent; }
+            get { return _leftPaneWidthPercent; }
             set
             {
-                SetProperty<double>(ref this.leftPaneWidthPercent, value);
+                SetProperty<double>(ref _leftPaneWidthPercent, value);
                 SettingsClient.Set<int>("ColumnWidths", "AlbumsLeftPaneWidthPercent", Convert.ToInt32(value));
             }
         }
@@ -40,44 +40,45 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         public CollectionAlbumsViewModel(IContainerProvider container) : base(container)
         {
             // Dependency injection
-            this.collectionService = container.Resolve<ICollectionService>();
-            this.indexingService = container.Resolve<IIndexingService>();
-            this.eventAggregator = container.Resolve<IEventAggregator>();
+            _collectionService = container.Resolve<ICollectionService>();
+            _indexingService = container.Resolve<IIndexingService>();
+            _eventAggregator = container.Resolve<IEventAggregator>();
 
+            // Commands
+            ToggleTrackOrderCommand = new DelegateCommand(async () => await ToggleTrackOrderAsync());
+            ToggleAlbumOrderCommand = new DelegateCommand(async () => await ToggleOrderAsync());
+            RemoveSelectedTracksCommand = new DelegateCommand(async () => await RemoveTracksFromCollectionAsync(SelectedTracks), () => !IsIndexing);
             // Settings
             Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += async (_, e) =>
             {
                 if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableRating"))
                 {
-                    this.EnableRating = (bool)e.Entry.Value;
-                    this.SetTrackOrder("AlbumsTrackOrder");
-                    await this.GetTracksAsync(null, null, this.SelectedAlbums, this.TrackOrder);
+                    EnableRating = (bool)e.Entry.Value;
+                    SetTrackOrder("AlbumsTrackOrder");
+                    await GetTracksAsync(null, null, SelectedAlbums, TrackOrder);
                 }
 
                 if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableLove"))
                 {
-                    this.EnableLove = (bool)e.Entry.Value;
-                    this.SetTrackOrder("AlbumsTrackOrder");
-                    await this.GetTracksAsync(null, null, this.SelectedAlbums, this.TrackOrder);
+                    EnableLove = (bool)e.Entry.Value;
+                    SetTrackOrder("AlbumsTrackOrder");
+                    await GetTracksAsync(null, null, SelectedAlbums, TrackOrder);
                 }
             };
 
-            //  Commands
-            this.ToggleAlbumOrderCommand = new DelegateCommand(async () => await this.ToggleAlbumOrderAsync());
-            this.ToggleTrackOrderCommand = new DelegateCommand(async () => await this.ToggleTrackOrderAsync());
-            this.RemoveSelectedTracksCommand = new DelegateCommand(async () => await this.RemoveTracksFromCollectionAsync(this.SelectedTracks), () => !this.IsIndexing);
+
 
             // Set the initial AlbumOrder
-            this.AlbumOrder = (AlbumOrder)SettingsClient.Get<int>("Ordering", "AlbumsAlbumOrder");
+            AlbumOrder = (AlbumOrder)SettingsClient.Get<int>("Ordering", "AlbumsAlbumOrder");
 
             // Set the initial TrackOrder
-            this.SetTrackOrder("AlbumsTrackOrder");
+            SetTrackOrder("AlbumsTrackOrder");
 
             // Set width of the panels
-            this.LeftPaneWidthPercent = SettingsClient.Get<int>("ColumnWidths", "AlbumsLeftPaneWidthPercent");
+            LeftPaneWidthPercent = SettingsClient.Get<int>("ColumnWidths", "AlbumsLeftPaneWidthPercent");
 
             // Cover size
-            this.SetCoversizeAsync((CoverSizeType)SettingsClient.Get<int>("CoverSizes", "AlbumsCoverSize"));
+            SetCoversizeAsync((CoverSizeType)SettingsClient.Get<int>("CoverSizes", "AlbumsCoverSize"));
             LoadSelectedItems();
         }
 
@@ -88,7 +89,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 string s = SettingsClient.Get<String>("State", "SelectedAlbumIDs");
                 if (!string.IsNullOrEmpty(s))
                 {
-                    selectedIDs = s.Split(',').Select(x => long.Parse(x)).ToList();
+                    _selectedIDs = s.Split(',').Select(x => long.Parse(x)).ToList();
                     return;
                 }
             }
@@ -96,28 +97,27 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             {
 
             }
-            selectedIDs = new List<long>();
+            _selectedIDs = new List<long>();
         }
 
         private void SaveSelectedItems()
         {
-            string s = string.Join(",", selectedIDs);
+            string s = string.Join(",", _selectedIDs);
             SettingsClient.Set<String>("State", "SelectedAlbumIDs", s);
         }
         private async Task ToggleTrackOrderAsync()
         {
             base.ToggleTrackOrder();
 
-            SettingsClient.Set<int>("Ordering", "AlbumsTrackOrder", (int)this.TrackOrder);
-            await this.GetTracksCommonAsync(this.Tracks, this.TrackOrder);
+            SettingsClient.Set<int>("Ordering", "AlbumsTrackOrder", (int)TrackOrder);
+            await GetTracksCommonAsync(Tracks, TrackOrder);
         }
 
-        private async Task ToggleAlbumOrderAsync()
+        private async Task ToggleOrderAsync()
         {
-            base.ToggleAlbumOrder();
-
-            SettingsClient.Set<int>("Ordering", "AlbumsAlbumOrder", (int)this.AlbumOrder);
-            await this.GetAlbumsCommonAsync(this.Albums, this.AlbumOrder);
+            ToggleAlbumOrder();
+            SettingsClient.Set<int>("Ordering", "AlbumsAlbumOrder", (int)AlbumOrder);
+            EnsureSelectedAlbumVisible();
         }
 
         protected async override Task SetCoversizeAsync(CoverSizeType coverSize)
@@ -126,11 +126,13 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             SettingsClient.Set<int>("CoverSizes", "AlbumsCoverSize", (int)coverSize);
         }
 
+        /*
         private void EnsureVisible()
         {
             if (SelectedAlbums.Count > 0)
                 EnsureItemVisible?.Invoke(SelectedAlbums[0]);
         }
+        */
 
         protected async override Task FillListsAsync()
         {
@@ -138,30 +140,30 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             {
 
                 _ignoreSelectionChangedEvent = true;
-                await GetAllAlbumsAsync(this.AlbumOrder);
-                await GetTracksAsync(null, null, this.SelectedAlbums, this.TrackOrder);
+                await GetAllAlbumsAsync(AlbumOrder);
+                await GetTracksAsync(null, null, SelectedAlbums, TrackOrder);
                 _ignoreSelectionChangedEvent = false;
             });
         }
 
         protected async override Task EmptyListsAsync()
         {
-            this.ClearAlbums();
-            this.ClearTracks();
+            ClearAlbums();
+            ClearTracks();
         }
 
         protected async override Task SelectedAlbumsHandlerAsync(object parameter)
         {
             await base.SelectedAlbumsHandlerAsync(parameter);
 
-            this.SetTrackOrder("AlbumsTrackOrder");
-            await this.GetTracksAsync(null, null, this.SelectedAlbums, this.TrackOrder);
+            SetTrackOrder("AlbumsTrackOrder");
+            await GetTracksAsync(null, null, SelectedAlbums, TrackOrder);
         }
 
         protected override void RefreshLanguage()
         {
-            this.UpdateAlbumOrderText(this.AlbumOrder);
-            this.UpdateTrackOrderText(this.TrackOrder);
+            UpdateAlbumOrderText(AlbumOrder);
+            UpdateTrackOrderText(TrackOrder);
             base.RefreshLanguage();
         }
     }
