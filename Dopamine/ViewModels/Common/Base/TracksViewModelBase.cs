@@ -313,13 +313,13 @@ namespace Dopamine.ViewModels.Common.Base
                 {
                     this.TracksCvs.GroupDescriptions.Add(new PropertyGroupDescription("GroupHeader"));
                 }
+                this.CalculateSizeInformationAsync(this.TracksCvs);
+                this.ShowPlayingTrackAsync();
             });
 
             // Update duration and size
-            this.CalculateSizeInformationAsync(this.TracksCvs);
 
             // Show playing Track
-            this.ShowPlayingTrackAsync();
         }
 
         protected async Task RemoveTracksFromCollectionAsync(IList<TrackViewModel> selectedTracks)
@@ -372,8 +372,28 @@ namespace Dopamine.ViewModels.Common.Base
             }
         }
 
+        private class StatsData
+        {
+            public long totalDuration = 0;
+            public long totalSize = 0;
+        };
         protected async void CalculateSizeInformationAsync(CollectionViewSource source)
         {
+            if (source == null)
+            {
+                this.SetSizeInformation(0, 0);
+                return;
+            }
+            IList<TrackViewModel> vmList = (IList<TrackViewModel>)source.Source;
+            await Task.Run(() =>
+            {
+                long totalDuration = vmList.Select(x => x.Data.Duration.HasValue ? x.Data.Duration.Value : 0).Sum();
+                long totalSize = vmList.Select(x => x.Data.FileSize.HasValue ? x.Data.FileSize.Value : 0).Sum();
+                SetSizeInformation(totalDuration, totalSize);
+            });
+
+
+            /*
             // Reset duration and size
             this.SetSizeInformation(0, 0);
 
@@ -413,6 +433,7 @@ namespace Dopamine.ViewModels.Common.Base
 
                 });
             }
+            */
 
             RaisePropertyChanged(nameof(this.TotalDurationInformation));
             RaisePropertyChanged(nameof(this.TotalSizeInformation));
@@ -437,9 +458,11 @@ namespace Dopamine.ViewModels.Common.Base
         {
             _searchText = searchText;
             GetFilteredTracksAsync(_searchText, TrackOrder);
-
-            this.CalculateSizeInformationAsync(this.TracksCvs);
-            this.ShowPlayingTrackAsync();
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                this.CalculateSizeInformationAsync(this.TracksCvs);
+                this.ShowPlayingTrackAsync();
+            });
         }
 
         protected override void ConditionalScrollToPlayingTrack()

@@ -163,7 +163,7 @@ namespace Dopamine.Services.Entities
                 if (album == null)
                 {
                     Logger.Warn($"Album not found for track: {Data.Id} - {Data.FileName}");
-                    albumViewModel = new AlbumViewModel(indexingService, albumVRepository, null);
+                    albumViewModel = new AlbumViewModel(indexingService, albumVRepository, new AlbumV());
                     GroupAlbumInfo = _groupAlbumInfo = "";
                 }
                 else
