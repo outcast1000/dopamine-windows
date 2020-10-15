@@ -121,7 +121,7 @@ TrackAlbums.track_count as TrackCount,
 TrackAlbums.disc_count as DiscCount, 
 t.duration as Duration, 
 t.year as Year, 
-0 as HasLyrics, 
+TrackLyrics.track_id is not null as HasLyrics, 
 t.date_added as DateAdded, 
 t.date_ignored as DateIgnored, 
 t.date_file_created as DateFileCreated,
@@ -133,21 +133,46 @@ t.folder_id as FolderID,
 COALESCE(MAX(AlbumImages.location), ArtistImages.location) as Thumbnail,
 AlbumImages.location as Thumbnail #SELECT#
 FROM Tracks t
-LEFT JOIN TrackArtists ON TrackArtists.track_id =t.id 
-LEFT JOIN Artists ON Artists.id =TrackArtists.artist_id  
-LEFT JOIN TrackAlbums ON TrackAlbums.track_id =t.id 
-LEFT JOIN Albums ON Albums.id =TrackAlbums.album_id  
-LEFT JOIN ArtistCollectionsArtists ON ArtistCollectionsArtists.artist_collection_id = Albums.artist_collection_id 
-LEFT JOIN Artists as Artists2 ON Artists2.id = ArtistCollectionsArtists.artist_id 
-LEFT JOIN TrackGenres ON TrackGenres.track_id =t.id 
-LEFT JOIN Genres ON Genres.id = TrackGenres.genre_id  
-LEFT JOIN Folders ON Folders.id = t.folder_id
+LEFT JOIN TrackArtists ON TrackArtists.track_id=t.id 
+LEFT JOIN Artists ON Artists.id=TrackArtists.artist_id  
+LEFT JOIN TrackAlbums ON TrackAlbums.track_id=t.id 
+LEFT JOIN Albums ON Albums.id=TrackAlbums.album_id  
+LEFT JOIN ArtistCollectionsArtists ON ArtistCollectionsArtists.artist_collection_id=Albums.artist_collection_id 
+LEFT JOIN Artists as Artists2 ON Artists2.id=ArtistCollectionsArtists.artist_id 
+LEFT JOIN TrackGenres ON TrackGenres.track_id=t.id 
+LEFT JOIN Genres ON Genres.id=TrackGenres.genre_id  
+LEFT JOIN Folders ON Folders.id=t.folder_id
 LEFT JOIN AlbumImages ON Albums.id=AlbumImages.album_id
-LEFT JOIN ArtistImages ON Artists.id=ArtistImages.artist_id #JOIN#
+LEFT JOIN ArtistImages ON Artists.id=ArtistImages.artist_id 
+LEFT JOIN TrackLyrics ON TrackLyrics.track_id=t.id #JOIN#
 #WHERE#
 GROUP BY t.id
 #LIMIT#";
         }
+
+        /*EXPERIMENTAL Queries
+         
+SELECT
+t.id as track_id,
+t.name as name,
+SUM(CASE WHEN th_playcount.history_action_id=1 THEN 1 ELSE 0 END) as ExplicitCount,
+SUM(CASE WHEN th_playcount.history_action_id=2 THEN 1 ELSE 0 END) as PlayCount,
+SUM(CASE WHEN th_playcount.history_action_id=3 THEN 1 ELSE 0 END) as SkipCount,
+SUM(CASE 
+	WHEN th_playcount.history_action_id=1 THEN 10 
+	WHEN th_playcount.history_action_id=2 THEN 5
+	WHEN th_playcount.history_action_id=3 THEN -1 END) as Score,
+RANK () OVER (ORDER BY SUM(CASE WHEN th_playcount.history_action_id=2 THEN 1 ELSE 0 END) DESC) as PlayCountRank,
+RANK () OVER (ORDER BY SUM(CASE WHEN th_playcount.history_action_id=2 THEN 1 ELSE 0 END) DESC) as PlayCountRank,
+MAX(th_playcount.date_happened) as DateLastPlayed,
+MIN(th_playcount.date_happened) as DateFirstPlayed
+from Tracks t
+LEFT JOIN Artists
+LEFT JOIN TrackHistory th_playcount on t.id=th_playcount.track_id AND th_playcount.history_action_id in (1,2,3)
+GROUP BY ExplicitCount
+ORDER BY Score DESC
+         */
+
 
         public List<TrackV> GetTracksWithWhereClause(string whereClause, bool bGetHistory)
         {
