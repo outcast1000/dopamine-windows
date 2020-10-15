@@ -656,7 +656,7 @@ namespace Dopamine.Services.Playback
 
         public async Task PlayAllTracksAsync(PlaylistMode mode, bool? shuffle = null, LoopMode? loopMode = null)
         {
-            IList<TrackV> tracks = this.trackRepository.GetTracks();
+            IList<TrackV> tracks = this.trackRepository.GetTracks(false, null);
             List<TrackViewModel> orederedTracks = await EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
             await this.PlayTracksAsync(orederedTracks, PlaylistMode.Play, shuffle, loopMode);
         }

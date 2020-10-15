@@ -449,7 +449,7 @@ namespace Dopamine.Services.Playlist
                 return new List<TrackViewModel>();
             }
 
-            IList<TrackV> tracks = trackRepository.GetTracksBySearch(whereClause, true);
+            IList<TrackV> tracks = trackRepository.GetTracksWithWhereClause(whereClause, true);
             IList<TrackViewModel> trackViewModels = new List<TrackViewModel>();
 
             try

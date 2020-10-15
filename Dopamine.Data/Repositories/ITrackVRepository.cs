@@ -7,9 +7,9 @@ namespace Dopamine.Data.Repositories
     public interface ITrackVRepository
     {
 
-        List<TrackV> GetTracks(QueryOptions options = null);
+        List<TrackV> GetTracks(bool bGetHistory, QueryOptions options);
 
-        List<TrackV> GetTracksWithText(string text);
+        List<TrackV> GetTracksWithText(string text, bool bGetHistory);
 
         List<TrackV> GetTracksOfArtists(IList<long> artistIds, bool bGetHistory);
 
@@ -21,9 +21,11 @@ namespace Dopamine.Data.Repositories
 
         List<TrackV> GetTracksWithPaths(IList<string> paths, bool bGetHistory);
 
+        List<TrackV> GetTracksHistory();
+
         TrackV GetTrackWithPath(string path, QueryOptions options = null);
 
-        List<TrackV> GetTracksBySearch(string searchText, bool bGetHistory);
+        List<TrackV> GetTracksWithWhereClause(string searchText, bool bGetHistory);
 
         RemoveTracksResult RemoveTracks(IList<long> tracksIds);
 

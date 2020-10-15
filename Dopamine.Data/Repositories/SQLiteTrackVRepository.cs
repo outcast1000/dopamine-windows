@@ -29,12 +29,17 @@ namespace Dopamine.Data.Repositories
             this.connection = connection;
         }
 
-        public List<TrackV> GetTracks(QueryOptions options = null)
+        public List<TrackV> GetTracks(bool bGetHistory, QueryOptions options = null)
         {
+            if (options == null)
+            {
+                options = new QueryOptions();
+            }
+            options.GetHistory = bGetHistory;
             return GetTracksInternal(options);
         }
 
-        public List<TrackV> GetTracksWithText(string text)
+        public List<TrackV> GetTracksWithText(string text, bool bGetHistory)
         {
 
             QueryOptions qo = new QueryOptions();
@@ -45,6 +50,7 @@ namespace Dopamine.Data.Repositories
                 qo.extraWhereParams.Add("%" + text + "%");
                 qo.extraWhereParams.Add("%" + text + "%");
             }
+            qo.GetHistory = bGetHistory;
             return GetTracksInternal(qo);
         }
 
@@ -135,7 +141,7 @@ GROUP BY t.id
 #LIMIT#";
         }
 
-        public List<TrackV> GetTracksBySearch(string whereClause, bool bGetHistory)
+        public List<TrackV> GetTracksWithWhereClause(string whereClause, bool bGetHistory)
         {
             QueryOptions qo = new QueryOptions();
             qo.extraWhereClause.Add(whereClause);
@@ -532,6 +538,11 @@ GROUP BY t.id
             if (tracks.Count > 0)
                 return tracks[0];
             return null;
+        }
+
+        public List<TrackV> GetTracksHistory()
+        {
+            throw new NotImplementedException();
         }
 
         //=== PLAYLIST END
