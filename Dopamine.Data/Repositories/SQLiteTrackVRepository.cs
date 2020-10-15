@@ -247,16 +247,6 @@ GROUP BY t.id
             throw new NotImplementedException();
         }
 
-        public void UpdateRating(string path, int rating)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void UpdateLove(string path, int love)
-        {
-            throw new NotImplementedException();
-        }
-
         public List<TrackV> GetTracksOfArtists(IList<long> artistIds, bool bGetHistory)
         {
             QueryOptions qo = new QueryOptions();
@@ -407,6 +397,21 @@ GROUP BY t.id
             if (Delete)
                 return ExecuteSQL("UPDATE Tracks SET date_file_deleted = ? WHERE id = ?;", DateTime.Now.Ticks, trackId);
             return ExecuteSQL("UPDATE Tracks SET date_file_deleted = NULL WHERE id = ?;", trackId);
+        }
+
+
+        public bool UpdateRating(long trackId, long? Rating)
+        {
+            if (Rating.HasValue)
+                return ExecuteSQL("UPDATE Tracks SET rating = ? WHERE id = ?;", Rating.Value, trackId);
+            return ExecuteSQL("UPDATE Tracks SET rating = NULL WHERE id = ?;", trackId);
+        }
+
+        public bool UpdateLove(long trackId, long? Love)
+        {
+            if (Love.HasValue)
+                return ExecuteSQL("UPDATE Tracks SET love = ? WHERE id = ?;", Love.Value, trackId);
+            return ExecuteSQL("UPDATE Tracks SET love = NULL WHERE id = ?;", trackId);
         }
 
         private bool ExecuteSQL(string sql, params object[] args)

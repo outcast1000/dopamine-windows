@@ -33,16 +33,14 @@ namespace Dopamine.Data.Repositories
         bool UpdateFolderIdValue(long trackId, long? newFolderId);
         bool UpdateIgnoreValue(long trackId, bool Ignore);
         bool UpdateDeleteValue(long trackId, bool Delete);
+        bool UpdateRating(long trackId, long? Rating);
+        bool UpdateLove(long trackId, long? Love);
 
 
 
         bool UpdateTrackFileInformation(string path);
 
         void ClearRemovedTrack();
-
-        void UpdateRating(string path, int rating);
-
-        void UpdateLove(string path, int love);
 
         PlaybackCounter GetPlaybackCounters(string path);
 

@@ -75,7 +75,10 @@ namespace Dopamine.Services.Metadata
 
         public async Task UpdateTrackRatingAsync(string path, int rating)
         {
-            trackRepository.UpdateRating(path, rating);
+            TrackV track = trackRepository.GetTrackWithPath(path);
+            if (track == null)
+                return;
+            trackRepository.UpdateRating(track.Id, rating);
 
             // Update the rating in the file if the user selected this option
             if (SettingsClient.Get<bool>("Behaviour", "SaveRatingToAudioFiles"))
@@ -94,7 +97,14 @@ namespace Dopamine.Services.Metadata
 
         public async Task UpdateTrackLoveAsync(string path, bool love)
         {
-            await Task.Run(() => this.trackRepository.UpdateLove(path, love ? 1 : 0));
+            bool bSuccess = false;
+            await Task.Run(() => {
+                TrackV track = trackRepository.GetTrackWithPath(path);
+                if (track != null)
+                {
+                   bSuccess = trackRepository.UpdateLove(track.Id, love ? 1 : 0);
+                }
+                });
             this.LoveChanged(new LoveChangedEventArgs(path.ToSafePath(), love));
         }
 
