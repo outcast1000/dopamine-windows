@@ -128,7 +128,7 @@ namespace Dopamine.Services.Entities
                     _ = GetAlbumViewModel(); // Suppress warning cs4014 https://stackoverflow.com/questions/22629951/suppressing-warning-cs4014-because-this-call-is-not-awaited-execution-of-the
                     return null;
                 }
-                return _albumThumbnail;
+                return albumViewModel.Thumbnail;
             }
             set { SetProperty<string>(ref _albumThumbnail, value); }
         }
@@ -137,24 +137,24 @@ namespace Dopamine.Services.Entities
         {
             get
             {
-                if (_groupAlbumInfo == null)
+                if (albumViewModel == null)
                 {
                     _ = GetAlbumViewModel(); // Suppress warning cs4014 https://stackoverflow.com/questions/22629951/suppressing-warning-cs4014-because-this-call-is-not-awaited-execution-of-the
                     return "...";
                 }
-                return _groupAlbumInfo;
+                return albumViewModel.AlbumItemInfo;
             }
             set { SetProperty<string>(ref _groupAlbumInfo, value); }
         }
-        private string _albumViewModelRequested = "";
+        private object _albumViewModelRequested = false;// We do not use a boolean because booleans cannot work with lock
         private string _albumThumbnail;
         private async Task GetAlbumViewModel()
         {
             lock (_albumViewModelRequested)
             {
-                if (_albumViewModelRequested != "")
+                if ((bool)_albumViewModelRequested == true)
                     return;
-                _albumViewModelRequested = "ENTERED";
+                _albumViewModelRequested = true;
             }
             //=== Use the AlbumVRepository to get extra info
             await Task.Run(async () =>
@@ -171,6 +171,9 @@ namespace Dopamine.Services.Entities
                     albumViewModel = new AlbumViewModel(indexingService, albumVRepository, album);
                     if (!albumViewModel.HasCover)
                     {
+                        // We could have used the ...
+                        //  albumViewModel.RequestImageDownload(false, false);
+                        // ... but we would get the event that it have changed. Maybe there will be a better solution in the future.
                         indexingService.AlbumInfoDownloaded += IndexingService_AlbumInfoDownloaded;
                         bool bAccepted = await indexingService.RequestAlbumInfoAsync(album, false, false);
                         if (!bAccepted)

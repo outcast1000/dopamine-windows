@@ -77,7 +77,15 @@ namespace Dopamine.ViewModels.Common.Base
         public DelegateCommand DelaySelectedAlbumsCommand { get; set; }
 
         public DelegateCommand ShuffleSelectedAlbumsCommand { get; set; }
+		
+		public DelegateCommand<AlbumViewModel> DownloadImageAlbumCommand { get; set; }
 
+        public DelegateCommand<AlbumViewModel> PlayAlbumCommand { get; set; }
+		
+        public DelegateCommand<AlbumViewModel> EnqueueAlbumCommand { get; set; }
+        
+		public DelegateCommand<AlbumViewModel> LoveAlbumCommand { get; set; }
+		
         public double UpscaledCoverSize => this.CoverSize * Constants.CoverUpscaleFactor;
 
         public bool IsSmallCoverSizeSelected => this.selectedCoverSize == CoverSizeType.Small;
@@ -158,7 +166,18 @@ namespace Dopamine.ViewModels.Common.Base
             this.AddAlbumsToPlaylistCommand = new DelegateCommand<string>(async (playlistName) => await this.AddAlbumsToPlaylistAsync(this.SelectedAlbums, playlistName));
             this.EditAlbumCommand = new DelegateCommand(() => this.EditSelectedAlbum(), () => !this.IsIndexing);
             this.AddAlbumsToNowPlayingCommand = new DelegateCommand(async () => await this.AddAlbumsToNowPlayingAsync(this.SelectedAlbums));
-            this.DelaySelectedAlbumsCommand = new DelegateCommand(() => this.delaySelectedAlbums = true);
+
+            DownloadImageAlbumCommand = new DelegateCommand<AlbumViewModel>((album) =>
+            {
+                album.RequestImageDownload(true, true);
+            });
+            PlayAlbumCommand = new DelegateCommand<AlbumViewModel>(async (vm) => {
+                await _playbackService.PlayAlbumsAsync(new List<AlbumViewModel>() { vm }, PlaylistMode.Play);
+            });
+            EnqueueAlbumCommand = new DelegateCommand<AlbumViewModel>(async (vm) => await _playbackService.PlayAlbumsAsync(new List<AlbumViewModel>() { vm }, PlaylistMode.Enqueue));
+            LoveAlbumCommand = new DelegateCommand<AlbumViewModel>((avm) => Debug.Assert(false, "ALEX TODO"));
+			
+			this.DelaySelectedAlbumsCommand = new DelegateCommand(() => this.delaySelectedAlbums = true);
 
             // Events
             //this.indexingService.AlbumArtworkAdded += async (_, e) => await this.RefreshAlbumArtworkAsync(e.AlbumKeys);

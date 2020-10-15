@@ -124,9 +124,10 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         public DelegateCommand<ArtistViewModel> DownloadImageArtistsCommand { get; set; }
         
-
         public DelegateCommand<ArtistViewModel> PlayArtistCommand { get; set; }
+
         public DelegateCommand<ArtistViewModel> EnqueueArtistCommand { get; set; }
+
         public DelegateCommand<ArtistViewModel> LoveArtistCommand { get; set; }
 
         public double LeftPaneWidthPercent
