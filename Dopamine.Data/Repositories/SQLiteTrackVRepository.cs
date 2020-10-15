@@ -45,10 +45,18 @@ namespace Dopamine.Data.Repositories
             QueryOptions qo = new QueryOptions();
             if (!string.IsNullOrEmpty(text))
             {
-                qo.extraWhereClause.Add("(t.Name like ? OR Artists.Name like ? OR Albums.Name like ?)");
-                qo.extraWhereParams.Add("%" + text + "%");
-                qo.extraWhereParams.Add("%" + text + "%");
-                qo.extraWhereParams.Add("%" + text + "%");
+                string[] tokens = text.Split(' ');
+                foreach (string token in tokens)
+                {
+                    string cleanToken = token.Trim();
+                    if (cleanToken != string.Empty)
+                    {
+                        qo.extraWhereClause.Add("(t.Name like ? OR Artists.Name like ? OR Albums.Name like ?)");
+                        qo.extraWhereParams.Add("%" + cleanToken + "%");
+                        qo.extraWhereParams.Add("%" + cleanToken + "%");
+                        qo.extraWhereParams.Add("%" + cleanToken + "%");
+                    }
+                }
             }
             qo.GetHistory = bGetHistory;
             return GetTracksInternal(qo);

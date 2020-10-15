@@ -239,7 +239,7 @@ namespace Dopamine.ViewModels.Common.Base
             else
             {
                 // Tracks have lowest priority
-                tracks = trackRepository.GetTracks();
+                tracks = trackRepository.GetTracks(true, null);
             }
             await this.GetTracksCommonAsync(await this.container.ResolveTrackViewModelsAsync(tracks), trackOrder);
 
@@ -248,7 +248,7 @@ namespace Dopamine.ViewModels.Common.Base
 
         protected async Task GetFilteredTracksAsync(string searchFilter, TrackOrder trackOrder)
         {
-            IList<TrackV> tracks = trackRepository.GetTracksWithText(searchFilter);
+            IList<TrackV> tracks = trackRepository.GetTracksWithText(searchFilter, true);
             await this.GetTracksCommonAsync(await this.container.ResolveTrackViewModelsAsync(tracks), trackOrder);
         }
 
