@@ -122,7 +122,10 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ListBoxItem}">
                     <!--  Album  -->
-                    <Border BorderBrush="#8888" BorderThickness="0">
+                    <Border
+                        BorderBrush="#8888"
+                        BorderThickness="0"
+                        Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}, Path=ActualWidth}">
                         <Grid x:Name="FullItem">
                             <Border
                                 Name="SelectionBorder"
@@ -165,7 +168,7 @@
                                     </pc:SourceChangedImage>
                                 </Grid>
                                 <StackPanel>
-                                    <DockPanel>
+                                    <Grid>
                                         <TextBlock
                                             Padding="10,0,5,0"
                                             HorizontalAlignment="Left"
@@ -239,10 +242,10 @@
                                             </StackPanel>
 
                                         </DockPanel>
-                                    </DockPanel>
+                                    </Grid>
                                     <TextBlock
                                         Opacity="1"
-                                        Margin="15,2,2,2"
+                                        Margin="15,2,15,2"
                                         VerticalAlignment="Top"
                                         HorizontalAlignment="Left"
                                         Foreground="{DynamicResource Brush_SecondaryText}"
@@ -252,8 +255,8 @@
 
                                     <TextBlock
                                         x:Name="ExtraInfo"
-                                        Opacity="0"
-                                        Margin="15,2,2,2"
+                                        Opacity="1"
+                                        Margin="15,2,15,2"
                                         VerticalAlignment="Top"
                                         HorizontalAlignment="Left"
                                         Foreground="{DynamicResource Brush_SecondaryText}"
