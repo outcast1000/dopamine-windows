@@ -8,7 +8,7 @@ namespace Dopamine.Data.Repositories
     {
         void AddExplicitSelected(long trackId);
         void AddPlayedAction(long trackId);
-        void AddSkippedAction(long trackId, long position, long percentage, string reason);
+        void AddSkippedAction(long trackId, string reason);
         void AddRateAction(long trackId, long rate);
         void AddLoveAction(long trackId, bool love);
 

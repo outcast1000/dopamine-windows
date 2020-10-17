@@ -48,7 +48,7 @@ namespace Dopamine.Data.Repositories
                             {
                                 conn.Execute(@"
 INSERT INTO TrackHistoryStats 
-(track_id,plays,fist_played,last_played) 
+(track_id,plays,first_played,last_played) 
 VALUES (?,?,?,?)
 ON CONFLICT (track_id) DO UPDATE SET plays=excluded.plays, first_played=excluded.first_played, last_played=excluded.last_played"
                                 , trackId, actionStats.Actions, actionStats.FirstDate, actionStats.LastDate);
@@ -95,9 +95,9 @@ ON CONFLICT (track_id) DO UPDATE SET skips=excluded.explicits"
         {
             AddAction(HistoryRepositoryActions.Played, trackId, null);
         }
-        public void AddSkippedAction(long trackId, long position, long percentage, string reason)
+        public void AddSkippedAction(long trackId, string reason)
         {
-            AddAction(HistoryRepositoryActions.Skipped, trackId, $"{{\"position\":{position}, \"percentage\":{percentage}, \"reason\":\"{reason}\"}}");
+            AddAction(HistoryRepositoryActions.Skipped, trackId, $"{{\"reason\":\"{reason}\"}}");
         }
 
         public void AddRateAction(long trackId, long rate)

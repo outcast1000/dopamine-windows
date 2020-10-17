@@ -88,7 +88,6 @@ namespace Dopamine.Services.Playback
 
         public async Task SetPlaylistPositionAsync(int newPosition)
         {
-            await LogTrackHistoryAsync("set_position");
             queueManager.Position = newPosition;
             // NewPosition may be invalid
             if (queueManager.Position == newPosition)
@@ -524,7 +523,6 @@ namespace Dopamine.Services.Playback
                 {
                     // There are already tracks enqueued. Start playing immediately.
                     queueManager.Position = 0;
-                    await LogTrackHistoryAsync("play_or_pause");
                     await this.TryPlayAsync(this.queueManager.CurrentTrack);
                 }
                 else
@@ -602,7 +600,7 @@ namespace Dopamine.Services.Playback
         public async Task PlayNextAsync()
         {
             LogClient.Info("Request to play the next track.");
-            await LogTrackHistoryAsync("play_next");
+            trackHistoryRepository.AddSkippedAction(CurrentTrack.Id, "PlayNext");
             // We don't want interruptions when trying to play the next Track.
             // If the next Track cannot be played, keep skipping to the 
             // following Track until a working Track is found.
@@ -629,7 +627,6 @@ namespace Dopamine.Services.Playback
         public async Task PlayPreviousAsync()
         {
             LogClient.Info("Request to play the previous track.");
-            await LogTrackHistoryAsync("play_previous");
 
             // We don't want interruptions when trying to play the previous Track. 
             // If the previous Track cannot be played, keep skipping to the
@@ -667,7 +664,6 @@ namespace Dopamine.Services.Playback
             {
                 return;
             }
-            await LogTrackHistoryAsync("play_tracks_start_on");
             await Task.Run(() =>
             {
                 int idx = tracks.IndexOf(track);
@@ -743,7 +739,6 @@ namespace Dopamine.Services.Playback
             long newCurrentTrack = queueManager.CurrentTrack == null ? -1 : queueManager.CurrentTrack.Id;
             if (newCurrentTrack != currentTrack)
             {
-                await LogTrackHistoryAsync("track_removed");
                 if (queueManager.CurrentTrack != null)
                     await TryPlayAsync(queueManager.CurrentTrack);
                 else
@@ -911,6 +906,8 @@ namespace Dopamine.Services.Playback
             this.player.PlaybackFinished += this.PlaybackFinishedHandler;
         }
 
+
+        /*
         private async Task LogTrackHistoryAsync(string reason)
         {
             if (this.HasCurrentTrack)
@@ -926,7 +923,7 @@ namespace Dopamine.Services.Playback
                         {
                             // Do not log anything
                         }
-                        if (percentage < 95)
+                        if (percentage > 95)
                         {
                             trackHistoryRepository.AddSkippedAction(CurrentTrack.Id, (long)currentTime, (long)percentage, reason);
                         }
@@ -943,6 +940,7 @@ namespace Dopamine.Services.Playback
                 }
             }
         }
+        */
 
         private async Task<bool> TryPlayAsync(TrackViewModel track, bool isSilent = false)
         {
@@ -1215,7 +1213,6 @@ namespace Dopamine.Services.Playback
             {
                 LoopMode = loopMode.Value;
             }
-            await LogTrackHistoryAsync("play_tracks");
             await Task.Run(() =>
             {
                 switch (mode)
