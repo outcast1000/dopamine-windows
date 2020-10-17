@@ -75,6 +75,9 @@ namespace Dopamine.Services.Utils
                     case TrackOrder.ReverseAlphabetical:
                         orderedTracks = tracks.OrderByDescending((t) => !string.IsNullOrEmpty(FormatUtils.GetSortableString(t.TrackTitle)) ? FormatUtils.GetSortableString(t.TrackTitle) : FormatUtils.GetSortableString(t.FileName)).ToList();
                         break;
+                    case TrackOrder.Ranking:
+                        orderedTracks = tracks.OrderBy((t) => t.Rank).ToList();
+                        break;
                     case TrackOrder.None:
                         orderedTracks = tracks.ToList();
                         break;

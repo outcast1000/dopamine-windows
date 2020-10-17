@@ -83,6 +83,18 @@
                 </Style>
             </pc:DataGridEx.Resources>
             <pc:DataGridEx.Columns>
+                <!--  Rank  -->
+                <DataGridTextColumn
+                    SortMemberPath="Rank"
+                    Width="60"
+                    CellStyle="{StaticResource DataGridCellPrimaryWithEllipsis}"
+                    IsReadOnly="True"
+                    Binding="{Binding Rank}"
+                    Visibility="Visible">
+                    <DataGridTextColumn.Header>
+                        <TextBlock Text="{DynamicResource Language_Rank}" />
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
                 <!--  Song  -->
                 <DataGridTextColumn
                     SortMemberPath="TrackTitle"
@@ -166,6 +178,7 @@
                             <TextBlock
                                 Margin="0,3,0,0"
                                 Text="&#xE73E;"
+                                Foreground="{DynamicResource Brush_PrimaryText}"
                                 Style="{StaticResource SegoeAssets}"
                                 FontSize="15"
                                 Visibility="{Binding HasLyrics, Converter={StaticResource BooleanToVisibilityConverter}}" />

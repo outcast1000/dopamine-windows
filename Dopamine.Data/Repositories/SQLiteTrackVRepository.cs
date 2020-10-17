@@ -39,10 +39,10 @@ namespace Dopamine.Data.Repositories
             return GetTracksInternal(options);
         }
 
-        public List<TrackV> GetTracksWithText(string text, bool bGetHistory)
+        public List<TrackV> GetTracksWithText(string text, bool bGetHistory, QueryOptions qo = null)
         {
-
-            QueryOptions qo = new QueryOptions();
+            if (qo == null)
+                qo = new QueryOptions();
             if (!string.IsNullOrEmpty(text))
             {
                 string[] tokens = text.Split(' ');
@@ -89,6 +89,8 @@ namespace Dopamine.Data.Repositories
             return null;
         }
 
+
+
         private List<TrackV> GetTracksInternal(SQLiteConnection connection, QueryOptions queryOptions = null)
         {
             try
@@ -102,10 +104,29 @@ namespace Dopamine.Data.Repositories
             return null;
         }
 
+        private List<T> RawQueryInternal<T>(string sql, params object[] args) where T : new()
+        {
+            if (connection != null)
+                return RepositoryCommon.RawQuery<T>(connection, sql, args);
+            try
+            {
+                using (var conn = factory.GetConnection())
+                {
+                    return RepositoryCommon.RawQuery<T>(conn, sql, args);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogClient.Error("Could not connect to the database. Exception: {0}", ex.Message);
+            }
+
+            return null;
+        }
+
         private string GetSQLTemplate()
         {
             return @"
-SELECT DISTINCT t.id as Id, 
+SELECT t.id as Id, 
 GROUP_CONCAT(DISTINCT Artists.name) as Artists, 
 GROUP_CONCAT(DISTINCT Genres.name) as Genres, 
 GROUP_CONCAT(DISTINCT Albums.name) as AlbumTitle, 
@@ -182,94 +203,31 @@ ORDER BY Score DESC
             return GetTracksInternal(qo);
         }
 
- 
-
-        public async Task<RemoveTracksResult> RemoveTracksAsync(IList<TrackV> tracks)
+        private class HistoryRanking
         {
-            RemoveTracksResult result = RemoveTracksResult.Success;
+            public long Plays { get; set; }
+            public long Ranking { get; set; }
 
-            await Task.Run(() =>
-            {
-                try
-                {
-                    try
-                    {
-                        using (var conn = this.factory.GetConnection())
-                        {
-                            IList<string> pathsToRemove = tracks.Select((t) => t.Path).ToList();
-
-                            conn.Execute("BEGIN TRANSACTION");
-
-                            foreach (string path in pathsToRemove)
-                            {
-                                // Add to table RemovedTrack, only if not already present.
-                                conn.Execute("INSERT INTO RemovedTrack(DateRemoved, Path, SafePath) SELECT ?,?,? WHERE NOT EXISTS (SELECT 1 FROM RemovedTrack WHERE SafePath=?)", DateTime.Now.Ticks, path, path.ToSafePath(), path.ToSafePath());
-
-                                // Remove from QueuedTrack
-                                conn.Execute("DELETE FROM QueuedTrack WHERE SafePath=?", path.ToSafePath());
-
-                                // Remove from Track
-                                conn.Execute("DELETE FROM Track WHERE SafePath=?", path.ToSafePath());
-                            }
-
-                            conn.Execute("COMMIT");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        LogClient.Error("Could remove tracks from the database. Exception: {0}", ex.Message);
-                        result = RemoveTracksResult.Error;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogClient.Error("Could not connect to the database. Exception: {0}", ex.Message);
-                    result = RemoveTracksResult.Error;
-                }
-            });
-
-            return result;
         }
 
-        public async Task<bool> UpdateTrackFileInformationAsync(string path)
+        public Dictionary<long, long> GetRanking()
         {
-            bool updateSuccess = false;
-
-            await Task.Run(() =>
-            {
-                try
-                {
-                    using (var conn = this.factory.GetConnection())
-                    {
-                        try
-                        {
-                            Track dbTrack = conn.Query<Track>("SELECT * FROM Track WHERE SafePath=?", path.ToSafePath()).FirstOrDefault();
-
-                            if (dbTrack != null)
-                            {
-                                dbTrack.FileSize = FileUtils.SizeInBytes(path);
-                                dbTrack.DateFileModified = FileUtils.DateModifiedTicks(path);
-                                dbTrack.DateLastSynced = DateTime.Now.Ticks;
-
-                                conn.Update(dbTrack);
-
-                                updateSuccess = true;
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            LogClient.Error("Could not update file information for Track with Path='{0}'. Exception: {1}", path, ex.Message);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogClient.Error("Could not connect to the database. Exception: {0}", ex.Message);
-                }
-            });
-
-            return updateSuccess;
+            IList<HistoryRanking> ranking = RawQueryInternal<HistoryRanking>(@"
+SELECT plays, Ranking FROM
+(
+SELECT
+plays,
+RANK() OVER(ORDER BY plays DESC) as Ranking
+FROM TrackHistoryStats
+WHERE plays>0
+)
+GROUP BY plays
+");
+            return ranking.ToDictionary(x => x.Plays, x => x.Ranking);
         }
+
+
+
   
         public RemoveTracksResult RemoveTracks(IList<long> tracksIds)
         {

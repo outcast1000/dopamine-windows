@@ -8,6 +8,14 @@ using Prism.Commands;
 using Prism.Events;
 using Prism.Ioc;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using Dopamine.Data.Repositories;
+using Dopamine.Data.Entities;
+using Dopamine.Services.Scrobbling;
+using Dopamine.Services.Indexing;
+using Dopamine.Services.Entities;
+using System.Linq;
+using Dopamine.Services.Metadata;
 
 namespace Dopamine.ViewModels.FullPlayer.Collection
 {
@@ -32,6 +40,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private bool trackNumberVisible;
         private bool yearVisible;
         private bool bitrateVisible;
+        private string _searchText;
 
         public bool RatingVisible
         {
@@ -231,7 +240,34 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         protected async override Task FillListsAsync()
         {
-            await this.GetTracksAsync(null, null, null, TrackOrder.ByAlbum);
+            await this.GetHistoryTracksAsync();
+        }
+
+        protected async Task GetHistoryTracksAsync()
+        {
+            await Task.Run(() => {
+                IScrobblingService scrobblingService = container.Resolve<IScrobblingService>();
+                IAlbumVRepository albumVRepository = container.Resolve<IAlbumVRepository>();
+                ITrackVRepository trackVRepository = container.Resolve<ITrackVRepository>();
+                IIndexingService indexingService = container.Resolve<IIndexingService>();
+                IMetadataService metadataService = container.Resolve<IMetadataService>();
+
+                // Get The Ranking
+                Dictionary<long, long> ranking = trackVRepository.GetRanking();
+                // Get the tracks
+                QueryOptions qo = new QueryOptions();
+                qo.extraWhereClause.Add("plays>0");
+                IList<TrackV> tracks = trackVRepository.GetTracksWithText(_searchText, true, qo);
+
+                IList<TrackViewModel> trackViewModels = tracks.OrderByDescending(x => x.PlayCount).
+                                                                Select(x => new TrackViewModel(metadataService, scrobblingService, albumVRepository, indexingService, x)
+                                                                {
+                                                                    Rank = (x.PlayCount.HasValue && (long)x.PlayCount.Value > 0) ? ranking[(long)x.PlayCount.Value] : (long?)null
+                                                                }).ToList();
+                GetTracksCommonAsync(trackViewModels, TrackOrder.Ranking);
+            });
+
+
         }
 
         protected async override Task EmptyListsAsync()
@@ -242,6 +278,20 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         protected override void RefreshLanguage()
         {
             base.RefreshLanguage();
+        }
+
+        protected override void FilterLists(string searchText)
+        {
+            _searchText = searchText;
+            GetHistoryTracksAsync();
+            /*
+            GetFilteredTracksAsync(_searchText, TrackOrder);
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                this.CalculateSizeInformationAsync(this.TracksCvs);
+                this.ShowPlayingTrackAsync();
+            });
+            */
         }
     }
 }

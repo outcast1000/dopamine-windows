@@ -52,9 +52,9 @@ namespace Dopamine.Data
 
                 conn.Execute("DROP TABLE IF EXISTS PlaylistTracks;");
 
-                conn.Execute("DROP TABLE IF EXISTS TrackHistory;");
-                conn.Execute("DROP TABLE IF EXISTS HistoryActions;");
 
+                conn.Execute("DROP TABLE IF EXISTS TrackHistory;");
+                conn.Execute("DROP TABLE IF EXISTS TrackHistoryStats;");
                 conn.Execute("DROP TABLE IF EXISTS TrackArtists;");
                 conn.Execute("DROP TABLE IF EXISTS TrackAlbums;");
                 conn.Execute("DROP TABLE IF EXISTS TrackLyrics;");
@@ -79,6 +79,7 @@ namespace Dopamine.Data
                 conn.Execute("DROP TABLE IF EXISTS ArtistRoles;");
 
                 conn.Execute("DROP TABLE IF EXISTS Folders;");
+                conn.Execute("DROP TABLE IF EXISTS HistoryActions;");
 
                 Logger.Debug("CreateTablesAndIndexes_v2: CREATING TABLES");
 
@@ -311,6 +312,17 @@ namespace Dopamine.Data
                 conn.Execute("CREATE INDEX HistoryTrackIDIndex ON TrackHistory(track_id);");
                 conn.Execute("CREATE INDEX HistoryHistoryActionIDIndex ON TrackHistory(history_action_id);");
 
+                //=== TrackHistoryStats
+                conn.Execute("CREATE TABLE TrackHistoryStats (" +
+                            "track_id               INTEGER PRIMARY KEY," +
+                            "plays                  INTEGER," +
+                            "skips                  INTEGER," +
+                            "explicits              INTEGER," +
+                            "fist_played            INTEGER," +
+                            "last_played            INTEGER," +
+                            "FOREIGN KEY (track_id) REFERENCES Tracks(id));");
+
+                //=== Playlist
                 conn.Execute("CREATE TABLE PlaylistTracks (" +
                             "id                 INTEGER PRIMARY KEY AUTOINCREMENT," +
                             "track_id           INTEGER," +

@@ -30,6 +30,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using NLog;
+using Dopamine.Services.Scrobbling;
+using Dopamine.Services.Indexing;
 
 namespace Dopamine.ViewModels.Common.Base
 {
@@ -177,35 +179,7 @@ namespace Dopamine.ViewModels.Common.Base
 
 
 
-        /*
-        protected async Task GetTracksAsync(IList<string> artists, IList<string> genres, IList<AlbumViewModel> albumViewModels, TrackOrder trackOrder)
-        {
-            IList<Track> tracks = null;
 
-            if (albumViewModels != null && albumViewModels.Count > 0)
-            {
-                // First, check Albums. They topmost have priority.
-                tracks = await this.trackRepository.GetAlbumTracksAsync(albumViewModels.Select(x => x.Thumbnail).ToList());
-            }
-            else if (!artists.IsNullOrEmpty())
-            {
-                // Artists and Genres have the same priority
-                tracks = await this.trackRepository.GetArtistTracksAsync(artists.Select(x => x.Replace(ResourceUtils.GetString("Language_Unknown_Artist"), string.Empty)).ToList());
-            }
-            else if (!genres.IsNullOrEmpty())
-            {
-                // Artists and Genres have the same priority
-                tracks = await this.trackRepository.GetGenreTracksAsync(genres.Select(x => x.Replace(ResourceUtils.GetString("Language_Unknown_Genre"), string.Empty)).ToList());
-            }
-            else
-            {
-                // Tracks have lowest priority
-                tracks = await this.trackRepository.GetTracksAsync();
-            }
-
-            await this.GetTracksCommonAsync(await this.container.ResolveTrackViewModelsAsync(tracks), trackOrder);
-        }
-        */
 
         protected async Task GetTracksAsync(IList<ArtistViewModel> artists, IList<GenreViewModel> genres, IList<AlbumViewModel> albums, TrackOrder trackOrder)
         {

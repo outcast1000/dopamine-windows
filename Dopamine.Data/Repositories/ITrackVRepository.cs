@@ -4,12 +4,13 @@ using System.Threading.Tasks;
 
 namespace Dopamine.Data.Repositories
 {
+
     public interface ITrackVRepository
     {
 
         List<TrackV> GetTracks(bool bGetHistory, QueryOptions options);
 
-        List<TrackV> GetTracksWithText(string text, bool bGetHistory);
+        List<TrackV> GetTracksWithText(string text, bool bGetHistory, QueryOptions options = null);
 
         List<TrackV> GetTracksOfArtists(IList<long> artistIds, bool bGetHistory);
 
@@ -26,6 +27,8 @@ namespace Dopamine.Data.Repositories
         TrackV GetTrackWithPath(string path, QueryOptions options = null);
 
         List<TrackV> GetTracksWithWhereClause(string searchText, bool bGetHistory);
+
+        Dictionary<long, long> GetRanking();
 
         RemoveTracksResult RemoveTracks(IList<long> tracksIds);
 

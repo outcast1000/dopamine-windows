@@ -1122,6 +1122,8 @@ namespace Dopamine.Services.Playback
             {
                 Logger.Info("Getting saved queued tracks");
                 IList<TrackV> existingTracks = trackRepository.GetPlaylistTracks();
+                if (existingTracks == null)
+                    return;
                 int playListPosition = int.Parse(generalRepository.GetValue(GeneralRepositoryKeys.PlayListPosition, "-1"));
                 IList<TrackViewModel> existingTrackViewModels = await this.container.ResolveTrackViewModelsAsync(existingTracks);
 

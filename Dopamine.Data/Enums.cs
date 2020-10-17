@@ -21,7 +21,8 @@
         ByFileName = 3,
         ByRating = 4,
         ReverseAlphabetical = 5,
-        None = 6
+        Ranking = 6,
+        None = 7
     }
 
     public enum AlbumOrder

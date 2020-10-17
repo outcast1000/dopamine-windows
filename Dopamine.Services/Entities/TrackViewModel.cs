@@ -203,6 +203,9 @@ namespace Dopamine.Services.Entities
                 GroupAlbumInfo = albumViewModel.AlbumItemInfo;
         }
 
+        public long? Rank { get; set; }
+        public long? Score { get { return (long)Data.PlayCount * 3 + (long)Data.SkipCount * (-1); } }
+
         public string GetAlbumArtist()
         {
             if (!string.IsNullOrEmpty(this.Data.AlbumArtists))

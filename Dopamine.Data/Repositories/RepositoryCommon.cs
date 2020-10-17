@@ -43,13 +43,11 @@ namespace Dopamine.Data.Repositories
             //=== History
             if (queryOptions.GetHistory == true)
             {
-                queryOptions.extraSelectClause.Add("SUM(CASE WHEN th_playcount.history_action_id=2 THEN 1 ELSE 0 END) as PlayCount");
-                queryOptions.extraSelectClause.Add("SUM(CASE WHEN th_playcount.history_action_id=3 THEN 1 ELSE 0 END) as SkipCount");// Skip Count - Expensive
-                // This is disabled because it ranks on the filtered tracks (for example in an artist or in the search results) and not to the whole of tracks
-                //queryOptions.extraSelectClause.Add("RANK () OVER (ORDER BY SUM(CASE WHEN th_playcount.history_action_id=2 THEN 1 ELSE 0 END) DESC) as PlayCountRank");
-                queryOptions.extraSelectClause.Add("MAX(th_playcount.date_happened) as DateLastPlayed");
-                queryOptions.extraSelectClause.Add("MIN(th_playcount.date_happened) as DateFirstPlayed");
-                queryOptions.extraJoinClause.Add("LEFT JOIN TrackHistory th_playcount on t.id=th_playcount.track_id AND th_playcount.history_action_id in (2,3)");
+                queryOptions.extraSelectClause.Add("TrackHistoryStats.plays as PlayCount");
+                queryOptions.extraSelectClause.Add("TrackHistoryStats.skips as SkipCount");
+                queryOptions.extraSelectClause.Add("TrackHistoryStats.first_played as DateLastPlayed");
+                queryOptions.extraSelectClause.Add("TrackHistoryStats.last_played as DateFirstPlayed");
+                queryOptions.extraJoinClause.Add("LEFT JOIN TrackHistoryStats on t.id=TrackHistoryStats.track_id");
             }
             //=== WhereVisibleFolders
             if (queryOptions.WhereVisibleFolders == QueryOptionsBool.True)
@@ -117,20 +115,21 @@ namespace Dopamine.Data.Repositories
                 allParams.AddRange(queryOptions.extraJoinParams);
             if (queryOptions?.extraWhereParams?.Count > 0)
                 allParams.AddRange(queryOptions.extraWhereParams);
+            return RawQuery<T>(connection, sql, allParams.ToArray());
+        }
+
+        public static List<T> RawQuery<T>(SQLiteConnection connection, string sql, params object[] args) where T : new()
+        {
             try
             {
-                List<T> list = connection.Query<T>(sql, allParams.ToArray());
-                //Logger.Trace($"Query ({++sQueryCounter}) {typeof(T).ToString()} {list.Count} records");
+                List<T> list = connection.Query<T>(sql, args);
                 return list;
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Query Failed. {++sQueryCounter} Message:{ex.Message} Type: {typeof(T).ToString()} SQL:\n{sql.Replace("\n"," ")}");
+                Logger.Error(ex, $"Query Failed. {++sQueryCounter} Message:{ex.Message} Type: {typeof(T).ToString()} SQL:\n{sql.Replace("\n", " ")}");
             }
             return null;
-            
-                
-
         }
 
     }
