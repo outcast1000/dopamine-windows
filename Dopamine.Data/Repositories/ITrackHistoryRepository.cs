@@ -6,7 +6,7 @@ namespace Dopamine.Data.Repositories
 {
     public interface ITrackHistoryRepository
     {
-        void AddExplicitSelected(long trackId);
+        void AddExecuted(long trackId);
         void AddPlayedAction(long trackId);
         void AddSkippedAction(long trackId, string reason);
         void AddRateAction(long trackId, long rate);

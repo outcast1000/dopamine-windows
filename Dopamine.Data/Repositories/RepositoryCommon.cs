@@ -30,6 +30,13 @@ namespace Dopamine.Data.Repositories
         public List<string> extraWhereClause = new List<string>();
         public List<object> extraWhereParams = new List<object>();
         public string OrderClause = String.Empty;
+        public void ResetToIncludeAll()
+        {
+            WhereVisibleFolders = QueryOptionsBool.Ignore;
+            WhereIgnored = QueryOptionsBool.Ignore;
+            WhereDeleted = QueryOptionsBool.Ignore;
+            WhereInACollection = QueryOptionsBool.Ignore;
+        }
     }
 
     class RepositoryCommon

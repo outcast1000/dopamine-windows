@@ -66,14 +66,9 @@ namespace Dopamine.Data.Repositories
                 {
                     try
                     {
-                        QueryOptions qo = new QueryOptions()
-                        {
-                            WhereDeleted = QueryOptionsBool.Ignore,
-                            WhereIgnored = QueryOptionsBool.Ignore,
-                            WhereInACollection = QueryOptionsBool.Ignore,
-                            WhereVisibleFolders = QueryOptionsBool.Ignore,
-                            GetHistory = false
-                        };
+                        QueryOptions qo = new QueryOptions();
+                        qo.ResetToIncludeAll();
+                        qo.GetHistory = false;
                         return RepositoryCommon.Query<FolderV>(conn, GetSQLTemplate(), qo);
                     }
                     catch (Exception ex)

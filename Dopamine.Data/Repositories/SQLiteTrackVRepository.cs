@@ -496,10 +496,8 @@ GROUP BY plays
         public List<TrackV> GetPlaylistTracks()
         {
             QueryOptions qo = new QueryOptions();
+            qo.ResetToIncludeAll();
             qo.extraWhereClause.Add("t.id in (SELECT track_id from PlaylistTracks)");
-            qo.WhereVisibleFolders = QueryOptionsBool.Ignore;
-            qo.WhereDeleted = QueryOptionsBool.Ignore;
-            qo.WhereIgnored = QueryOptionsBool.Ignore;
             qo.GetHistory = true;
             return GetTracksInternal(qo);
         }
@@ -520,21 +518,109 @@ GROUP BY plays
         public TrackV GetPlaylistCurrentTrack()
         {
             QueryOptions qo = new QueryOptions();
+            qo.ResetToIncludeAll();
             qo.extraWhereClause.Add("t.id in (SELECT value from General WHERE key=?)");
             qo.extraWhereParams.Add(GeneralRepositoryKeys.PlayListPosition);
-            qo.WhereVisibleFolders = QueryOptionsBool.Ignore;
-            qo.WhereDeleted = QueryOptionsBool.Ignore;
-            qo.WhereIgnored = QueryOptionsBool.Ignore;
             IList<TrackV> tracks = GetTracksInternal(qo);
             if (tracks.Count > 0)
                 return tracks[0];
             return null;
         }
 
-        public List<TrackV> GetTracksHistory()
+        public List<TrackV> GetTracksHistoryLog()
         {
-            throw new NotImplementedException();
+            QueryOptions qo = new QueryOptions();
+            qo.ResetToIncludeAll();
+            qo.GetHistory = true;
+            return GetTracksHistoryLogInternal(qo);
         }
+
+        private List<TrackV> GetTracksHistoryLogInternal(QueryOptions queryOptions = null)
+        {
+            if (connection != null)
+                return GetTracksHistoryLogInternal(connection, queryOptions);
+            try
+            {
+                using (var conn = factory.GetConnection())
+                {
+                    return GetTracksHistoryLogInternal(conn, queryOptions);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogClient.Error("Could not connect to the database. Exception: {0}", ex.Message);
+            }
+
+            return null;
+        }
+
+
+        private List<TrackV> GetTracksHistoryLogInternal(SQLiteConnection connection, QueryOptions queryOptions = null)
+        {
+            try
+            {
+                return RepositoryCommon.Query<TrackV>(connection, GetSQLHistoryLogTemplate(), queryOptions);
+            }
+            catch (Exception ex)
+            {
+                LogClient.Error("Query Failed. Exception: {0}", ex.Message);
+            }
+            return null;
+        }
+
+        private string GetSQLHistoryLogTemplate()
+        {
+            return @"
+SELECT t.id as Id, 
+GROUP_CONCAT(DISTINCT Artists.name) as Artists, 
+GROUP_CONCAT(DISTINCT Genres.name) as Genres, 
+GROUP_CONCAT(DISTINCT Albums.name) as AlbumTitle, 
+GROUP_CONCAT(DISTINCT Artists2.name) as AlbumArtists, 
+t.path as Path, 
+t.filesize as FileSize, 
+t.bitrate as BitRate, 
+t.samplerate as SampleRate, 
+t.name as TrackTitle, 
+TrackAlbums.track_number as TrackNumber, 
+TrackAlbums.disc_number as DiscCount, 
+TrackAlbums.track_count as TrackCount, 
+TrackAlbums.disc_count as DiscCount, 
+t.duration as Duration, 
+t.year as Year, 
+TrackLyrics.track_id is not null as HasLyrics, 
+t.date_added as DateAdded, 
+t.date_ignored as DateIgnored, 
+t.date_file_created as DateFileCreated,
+t.date_file_modified as DateFileModified, 
+t.date_file_deleted as DateFileDeleted, 
+t.rating as Rating, 
+t.love as Love, 
+t.folder_id as FolderID,
+COALESCE(MAX(AlbumImages.location), ArtistImages.location) as Thumbnail,
+AlbumImages.location as Thumbnail,
+th.date_happened as DateHappened, 
+th.history_action_id as HistoryActionId #SELECT#
+FROM TrackHistory th
+LEFT JOIN Tracks t ON t.id=th.track_id 
+LEFT JOIN TrackArtists ON TrackArtists.track_id=t.id 
+LEFT JOIN Artists ON Artists.id=TrackArtists.artist_id  
+LEFT JOIN TrackAlbums ON TrackAlbums.track_id=t.id 
+LEFT JOIN Albums ON Albums.id=TrackAlbums.album_id  
+LEFT JOIN ArtistCollectionsArtists ON ArtistCollectionsArtists.artist_collection_id=Albums.artist_collection_id 
+LEFT JOIN Artists as Artists2 ON Artists2.id=ArtistCollectionsArtists.artist_id 
+LEFT JOIN TrackGenres ON TrackGenres.track_id=t.id 
+LEFT JOIN Genres ON Genres.id=TrackGenres.genre_id  
+LEFT JOIN Folders ON Folders.id=t.folder_id
+LEFT JOIN AlbumImages ON Albums.id=AlbumImages.album_id
+LEFT JOIN ArtistImages ON Artists.id=ArtistImages.artist_id 
+LEFT JOIN TrackLyrics ON TrackLyrics.track_id=t.id #JOIN#
+#WHERE#
+GROUP BY th.id
+ORDER BY th.id DESC
+#LIMIT#";
+        }
+
+
 
         //=== PLAYLIST END
     }

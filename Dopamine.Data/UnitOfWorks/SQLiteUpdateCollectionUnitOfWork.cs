@@ -303,7 +303,9 @@ namespace Dopamine.Data.UnitOfWorks
 
         public TrackV GetTrackWithPath(string path)
         {
-            return sQLiteTrackVRepository.GetTrackWithPath(path, new QueryOptions() {WhereDeleted = QueryOptionsBool.Ignore, WhereIgnored = QueryOptionsBool.Ignore, WhereVisibleFolders = QueryOptionsBool.Ignore, UseLimit=false });
+            QueryOptions qo = new QueryOptions();
+            qo.ResetToIncludeAll();
+            return sQLiteTrackVRepository.GetTrackWithPath(path, qo);
         }
 
         private long GetArtistID(String entry)

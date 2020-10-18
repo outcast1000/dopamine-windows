@@ -275,6 +275,35 @@ namespace Dopamine.Services.Entities
             }
         }
 
+        //=== History Log
+        public string DateHappened => this.Data.DateHappened.HasValueLargerThan(0) ? new DateTime(this.Data.DateHappened.Value).ToString("g") : string.Empty;
+
+        public string HistoryAction
+        {
+            get
+            {
+                if (Data.HistoryActionId.HasValue)
+                {
+                    //=== ALEX TODO. Make translations
+                    switch (Data.HistoryActionId.Value)
+                    {
+                        case 1:
+                            return ResourceUtils.GetString("Language_Executed");
+                        case 2:
+                            return ResourceUtils.GetString("Language_Played");
+                        case 3:
+                            return ResourceUtils.GetString("Language_Skipped");
+                    }
+                }
+                return String.Empty;
+
+            }
+
+        }
+        // History Log End } }
+
+        //=== History Log End
+
         public bool IsPlaying
         {
             get { return this.isPlaying; }

@@ -7,7 +7,7 @@ namespace Dopamine.Data.Repositories
 {
     public enum HistoryRepositoryActions
     {
-        ExplicitSelected = 1,
+        Executed = 1,
         Played = 2,
         Skipped = 3,
         Rated = 4,
@@ -40,7 +40,7 @@ namespace Dopamine.Data.Repositories
                     conn.Insert(new TrackHistory { TrackId = trackId, DateHappened = DateTime.Now.Ticks, HistoryActionId = (int) action, HistoryActionExtra = jsonExtra });
                     switch (action)
                     {
-                        case HistoryRepositoryActions.ExplicitSelected:
+                        case HistoryRepositoryActions.Executed:
                         case HistoryRepositoryActions.Played:
                         case HistoryRepositoryActions.Skipped:
                             ActionStats actionStats = conn.FindWithQuery<ActionStats>("SELECT COUNT(*) as Actions, MAX(date_happened) as LastDate, MIN(date_happened) as FirstDate FROM TrackHistory WHERE track_id=? AND history_action_id=? GROUP BY track_id", trackId, (int)action);
@@ -62,13 +62,13 @@ VALUES (?,?)
 ON CONFLICT (track_id) DO UPDATE SET skips=excluded.skips"
                                 , trackId, actionStats.Actions);
                             }
-                            else if (action == HistoryRepositoryActions.ExplicitSelected)
+                            else if (action == HistoryRepositoryActions.Executed)
                             {
                                 conn.Execute(@"
 INSERT OR IGNORE INTO TrackHistoryStats 
-(track_id,explicits) 
+(track_id,executes) 
 VALUES (?,?)
-ON CONFLICT (track_id) DO UPDATE SET skips=excluded.explicits"
+ON CONFLICT (track_id) DO UPDATE SET skips=excluded.executes"
                                 , trackId, actionStats.Actions, actionStats.Actions, trackId);
                             }
                             break;
@@ -87,9 +87,9 @@ ON CONFLICT (track_id) DO UPDATE SET skips=excluded.explicits"
         }
 
 
-        public void AddExplicitSelected(long trackId)
+        public void AddExecuted(long trackId)
         {
-            AddAction(HistoryRepositoryActions.ExplicitSelected, trackId);
+            AddAction(HistoryRepositoryActions.Executed, trackId);
         }
         public void AddPlayedAction(long trackId)
         {
@@ -108,6 +108,9 @@ ON CONFLICT (track_id) DO UPDATE SET skips=excluded.explicits"
         {
             AddAction(HistoryRepositoryActions.Loved, trackId, $"{{\"love\":{love}}}");
         }
+
+
+
 
 
     }

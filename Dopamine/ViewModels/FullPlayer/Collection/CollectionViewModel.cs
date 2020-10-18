@@ -55,7 +55,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                     this.regionManager.RequestNavigate(RegionNames.CollectionRegion, typeof(CollectionFolders).FullName);
                     break;
                 case CollectionPage.History:
-                    this.regionManager.RequestNavigate(RegionNames.CollectionRegion, typeof(CollectionHistory).FullName);
+                    this.regionManager.RequestNavigate(RegionNames.CollectionRegion, typeof(CollectionHistoryLog).FullName);
+                    // ALEX TODO. Re-enable this in the same tab // this.regionManager.RequestNavigate(RegionNames.CollectionRegion, typeof(CollectionHistory).FullName);
                     break;
                 default:
                     break;

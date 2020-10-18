@@ -80,6 +80,9 @@ namespace Dopamine.Data.Entities
         public long? DateLastPlayed { get; set; }
         public long? DateFirstPlayed { get; set; }
         // History END
+        // History Log
+        public long? DateHappened { get; set; }
+        public long? HistoryActionId { get; set; }
 
         public static TrackV CreateDefault(string path)
         {

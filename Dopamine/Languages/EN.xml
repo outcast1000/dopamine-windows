@@ -455,6 +455,11 @@
   <Text Key="Reread_Info_Slower">Reread info (Slower)</Text>
   <Text Key="History">History</Text>
   <Text Key="Rank">Rank</Text>
+  <Text Key="Happened">Happened</Text>
+  <Text Key="Action">Action</Text>
+  <Text Key="Executed">Executed</Text>
+  <Text Key="Played">Played</Text>
+  <Text Key="Skipped">Skipped</Text>
 
 
 </Language>

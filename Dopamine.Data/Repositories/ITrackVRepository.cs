@@ -22,7 +22,7 @@ namespace Dopamine.Data.Repositories
 
         List<TrackV> GetTracksWithPaths(IList<string> paths, bool bGetHistory);
 
-        List<TrackV> GetTracksHistory();
+        List<TrackV> GetTracksHistoryLog();
 
         TrackV GetTrackWithPath(string path, QueryOptions options = null);
 

@@ -668,7 +668,7 @@ namespace Dopamine.Services.Playback
             {
                 int idx = tracks.IndexOf(track);
                 queueManager.Play(tracks, idx);
-                trackHistoryRepository.AddExplicitSelected(track.Id);
+                trackHistoryRepository.AddExecuted(track.Id);
             });
             await TryPlayAsync(track);
 

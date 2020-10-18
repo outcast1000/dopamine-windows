@@ -296,7 +296,7 @@ namespace Dopamine.Data
                             "id                 INTEGER PRIMARY KEY AUTOINCREMENT," +
                             "name               TEXT NOT NULL);");
 
-                conn.Execute("INSERT INTO HistoryActions (name) VALUES ('ExplicitSelected'), ('Played'), ('Skipped'), ('Rated'), ('Loved');");
+                conn.Execute("INSERT INTO HistoryActions (name) VALUES ('Executed'), ('Played'), ('Skipped'), ('Rated'), ('Loved');");
 
 
                 //=== History:
@@ -317,7 +317,7 @@ namespace Dopamine.Data
                             "track_id               INTEGER PRIMARY KEY," +
                             "plays                  INTEGER," +
                             "skips                  INTEGER," +
-                            "explicits              INTEGER," +
+                            "executes               INTEGER," +
                             "fist_played            INTEGER," +
                             "last_played            INTEGER," +
                             "FOREIGN KEY (track_id) REFERENCES Tracks(id));");
