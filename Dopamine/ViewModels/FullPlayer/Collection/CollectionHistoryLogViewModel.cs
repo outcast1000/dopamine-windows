@@ -26,6 +26,14 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 {
     public class CollectionHistoryLogViewModel : CommonViewModelBase
     {
+        private enum HistoryListMode
+        {
+            LogAll,
+            LogPlayed,
+            Tracks
+        }
+
+
         private IContainerProvider container;
         private IDialogService dialogService;
         private IEventAggregator eventAggregator;
@@ -48,6 +56,16 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private string _searchText;
         private ObservableCollection<TrackViewModel> tracks;
         private CollectionViewSource tracksCvs;
+        private HistoryListMode _historyListMode;
+        private string _historyListModeText;
+
+        public DelegateCommand ToggleModeCommand { get; set; }
+
+        public string HistoryListModeText
+        {
+            get { return _historyListModeText; }
+            set { SetProperty<string>(ref _historyListModeText, value); }
+        }
 
         public bool RatingVisible
         {
@@ -170,12 +188,16 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 }
             };
 
+            this.ToggleModeCommand = new DelegateCommand(() => this.ToggleHistoryListMode());
+            UpdateHistoryListModeText();
+
             // Commands
             this.ChooseColumnsCommand = new DelegateCommand(this.ChooseColumns);
             //this.RemoveSelectedTracksCommand = new DelegateCommand(async () => await this.RemoveTracksFromCollectionAsync(this.SelectedTracks), () => !this.IsIndexing);
             
             // Show only the columns which are visible
             this.GetVisibleColumns();
+
         }
 
         private void ChooseColumns()
@@ -260,7 +282,14 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 IMetadataService metadataService = container.Resolve<IMetadataService>();
 
                 // Get The Ranking
-                IList<TrackV> tracks = trackVRepository.GetTracksHistoryLog();// (_searchText, true, qo);
+                IList<TrackV> tracks = null;
+                if (_historyListMode == HistoryListMode.LogAll)
+                {
+                    tracks = trackVRepository.GetTracksHistoryLog(TracksHistoryLogMode.All);// (_searchText, true, qo);
+                }
+                else
+                    tracks = trackVRepository.GetTracksHistoryLog(TracksHistoryLogMode.Played);// (_searchText, true, qo);
+
 
                 IList<TrackViewModel> trackViewModels = tracks.Select(x => new TrackViewModel(metadataService, scrobblingService, albumVRepository, indexingService, x)).ToList();
                 try
@@ -316,7 +345,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         protected async override Task EmptyListsAsync()
         {
-            //this.ClearTracks();
+            TracksCvs = null;
+            tracks = null;
         }
 
         protected override void FilterLists(string searchText)
@@ -386,5 +416,40 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         {
             throw new System.NotImplementedException();
         }
+
+        private void ToggleHistoryListMode()
+        {
+            switch (_historyListMode)
+            {
+                case HistoryListMode.LogAll:
+                    _historyListMode = HistoryListMode.LogPlayed;
+                    break;
+                case HistoryListMode.LogPlayed:
+                    _historyListMode = HistoryListMode.LogAll;
+                    break;
+                default:
+                    _historyListMode = HistoryListMode.LogAll;
+                    break;
+            }
+            UpdateHistoryListModeText();
+            FillListsAsync();
+        }
+
+        private void UpdateHistoryListModeText()
+        {
+            switch (_historyListMode)
+            {
+                case HistoryListMode.LogAll:
+                    HistoryListModeText = "History";// ResourceUtils.GetString("Language_History");
+                    break;
+                case HistoryListMode.LogPlayed:
+                    HistoryListModeText = "History (Played)";//ResourceUtils.GetString("Language_History_Played");
+                    break;
+                default:
+                    HistoryListModeText = "???";
+                    break;
+            }
+        }
+
     }
 }

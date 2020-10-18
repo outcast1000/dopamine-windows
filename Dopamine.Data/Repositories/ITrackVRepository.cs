@@ -5,6 +5,14 @@ using System.Threading.Tasks;
 namespace Dopamine.Data.Repositories
 {
 
+    public enum TracksHistoryLogMode
+    {
+        All,
+        Played,
+        Explicit,
+        Skipped
+    };
+
     public interface ITrackVRepository
     {
 
@@ -22,7 +30,7 @@ namespace Dopamine.Data.Repositories
 
         List<TrackV> GetTracksWithPaths(IList<string> paths, bool bGetHistory);
 
-        List<TrackV> GetTracksHistoryLog();
+        List<TrackV> GetTracksHistoryLog(TracksHistoryLogMode tracksHistoryLogMode);
 
         TrackV GetTrackWithPath(string path, QueryOptions options = null);
 

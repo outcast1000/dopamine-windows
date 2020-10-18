@@ -527,11 +527,30 @@ GROUP BY plays
             return null;
         }
 
-        public List<TrackV> GetTracksHistoryLog()
+        public List<TrackV> GetTracksHistoryLog(TracksHistoryLogMode tracksHistoryLogMode)
         {
             QueryOptions qo = new QueryOptions();
             qo.ResetToIncludeAll();
             qo.GetHistory = true;
+            if (tracksHistoryLogMode != TracksHistoryLogMode.All)
+            {
+                qo.extraWhereClause.Add("th.history_action_id=?");
+                switch (tracksHistoryLogMode)
+                {
+                    case TracksHistoryLogMode.Played:
+                        qo.extraWhereParams.Add(2);
+                        break;
+                    case TracksHistoryLogMode.Skipped:
+                        qo.extraWhereParams.Add(3);
+                        break;
+                    case TracksHistoryLogMode.Explicit:
+                        qo.extraWhereParams.Add(1);
+                        break;
+                    case TracksHistoryLogMode.All:
+                    default:
+                        break;
+                }
+            }
             return GetTracksHistoryLogInternal(qo);
         }
 
