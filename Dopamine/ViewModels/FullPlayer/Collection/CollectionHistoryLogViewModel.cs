@@ -37,6 +37,10 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private IContainerProvider container;
         private IDialogService dialogService;
         private IEventAggregator eventAggregator;
+        private bool _rankVisible;
+        private bool _happenedVisible;
+        private bool _historyActionVisible;
+
         private bool ratingVisible;
         private bool loveVisible;
         private bool lyricsVisible;
@@ -74,7 +78,29 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             set { SetProperty<long>(ref _recordCount, value); }
         }
 
-        
+
+
+
+        public bool RankVisible // Only when in charts mode
+        {
+            get { return _rankVisible; }
+            set { SetProperty<bool>(ref _rankVisible, value); }
+        }
+
+        public bool HappenedVisible // Only when in history (all + played) mode
+        {
+            get { return _happenedVisible; }
+            set { SetProperty<bool>(ref _happenedVisible, value); }
+        }
+
+        public bool HistoryActionVisible // Only when in history (all) mode
+        {
+            get { return _historyActionVisible; }
+            set { SetProperty<bool>(ref _historyActionVisible, value); }
+        }
+
+
+
 
         public bool RatingVisible
         {
@@ -430,9 +456,15 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             {
                 case HistoryListMode.LogAll:
                     _historyListMode = HistoryListMode.LogPlayed;
+                    HappenedVisible = true;
+                    HistoryActionVisible = true;
+                    RankVisible = false;
                     break;
                 case HistoryListMode.LogPlayed:
                     _historyListMode = HistoryListMode.LogAll;
+                    HappenedVisible = true;
+                    HistoryActionVisible = false;
+                    RankVisible = false;
                     break;
                 default:
                     _historyListMode = HistoryListMode.LogAll;

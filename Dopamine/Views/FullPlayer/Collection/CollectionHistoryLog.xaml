@@ -92,20 +92,33 @@
                     CellStyle="{StaticResource DataGridCellPrimaryWithEllipsis}"
                     IsReadOnly="True"
                     Binding="{Binding DateHappened}"
-                    Visibility="Visible">
+                    Visibility="{Binding (FrameworkElement.DataContext).DateHappenedVisible, RelativeSource={x:Static RelativeSource.Self}, Converter={StaticResource BooleanToCollapsedConverter}}">
                     <DataGridTextColumn.Header>
                         <TextBlock Text="{DynamicResource Language_Happened}" />
                     </DataGridTextColumn.Header>
                 </DataGridTextColumn>
+                <!--  HistoryAction  -->
                 <DataGridTextColumn
                     SortMemberPath="Data.HistoryActionId"
                     Width="2*"
                     CellStyle="{StaticResource DataGridCellPrimaryWithEllipsis}"
                     IsReadOnly="True"
                     Binding="{Binding HistoryAction}"
-                    Visibility="Visible">
+                    Visibility="{Binding (FrameworkElement.DataContext).HistoryActionVisible, RelativeSource={x:Static RelativeSource.Self}, Converter={StaticResource BooleanToCollapsedConverter}}">
                     <DataGridTextColumn.Header>
                         <TextBlock Text="{DynamicResource Language_Action}" />
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <!--  Rank  -->
+                <DataGridTextColumn
+                    SortMemberPath="Rank"
+                    Width="2*"
+                    CellStyle="{StaticResource DataGridCellPrimaryWithEllipsis}"
+                    IsReadOnly="True"
+                    Binding="{Binding Rank}"
+                    Visibility="{Binding (FrameworkElement.DataContext).RankVisible, RelativeSource={x:Static RelativeSource.Self}, Converter={StaticResource BooleanToCollapsedConverter}}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock Text="{DynamicResource Language_Rank}" />
                     </DataGridTextColumn.Header>
                 </DataGridTextColumn>
                 <!--  Song  -->
