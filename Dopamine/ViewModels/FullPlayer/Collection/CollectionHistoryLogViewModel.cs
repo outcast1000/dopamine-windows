@@ -58,6 +58,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private CollectionViewSource tracksCvs;
         private HistoryListMode _historyListMode;
         private string _historyListModeText;
+        private long _recordCount = 0;
 
         public DelegateCommand ToggleModeCommand { get; set; }
 
@@ -66,6 +67,14 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             get { return _historyListModeText; }
             set { SetProperty<string>(ref _historyListModeText, value); }
         }
+
+        public long RecordCount
+        {
+            get { return _recordCount; }
+            set { SetProperty<long>(ref _recordCount, value); }
+        }
+
+        
 
         public bool RatingVisible
         {
@@ -286,6 +295,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 if (_historyListMode == HistoryListMode.LogPlayed)
                     tracksHistoryLogMode = TracksHistoryLogMode.Played;
                 IList<TrackV> tracks = trackVRepository.GetTracksHistoryLog(tracksHistoryLogMode, _searchText);// (_searchText, true, qo);
+                RecordCount = tracks.Count();
 
 
                 IList<TrackViewModel> trackViewModels = tracks.Select(x => new TrackViewModel(metadataService, scrobblingService, albumVRepository, indexingService, x)).ToList();
