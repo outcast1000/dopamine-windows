@@ -301,7 +301,6 @@
     <Compile Include="ViewModels\FullPlayer\Collection\CollectionPlaylistEditorViewModel.cs" />
     <Compile Include="ViewModels\FullPlayer\Collection\CollectionPlaylistsViewModel.cs" />
     <Compile Include="ViewModels\FullPlayer\Collection\CollectionTracksColumnsViewModel.cs" />
-    <Compile Include="ViewModels\FullPlayer\Collection\CollectionHistoryViewModel.cs" />
     <Compile Include="ViewModels\FullPlayer\Collection\CollectionTracksViewModel.cs" />
     <Compile Include="ViewModels\FullPlayer\Collection\CollectionViewModel.cs" />
     <Compile Include="ViewModels\FullPlayer\Collection\CollectionUtils.cs" />
@@ -491,9 +490,6 @@
     </Compile>
     <Compile Include="Views\FullPlayer\Collection\CollectionStaticPlaylistEditor.xaml.cs">
       <DependentUpon>CollectionStaticPlaylistEditor.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\FullPlayer\Collection\CollectionHistory.xaml.cs">
-      <DependentUpon>CollectionHistory.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\FullPlayer\Collection\CollectionTracks.xaml.cs">
       <DependentUpon>CollectionTracks.xaml</DependentUpon>
@@ -1355,10 +1351,6 @@
     <Page Include="Views\FullPlayer\Collection\CollectionStaticPlaylistEditor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\FullPlayer\Collection\CollectionHistory.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\FullPlayer\Collection\CollectionTracks.xaml">
       <SubType>Designer</SubType>

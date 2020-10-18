@@ -224,7 +224,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             };
 
             this.ToggleModeCommand = new DelegateCommand(() => this.ToggleHistoryListMode());
-            UpdateHistoryListModeText();
+            _historyListMode = HistoryListMode.LogAll;
+            UpdateHistoryListMode();
 
             // Commands
             this.ChooseColumnsCommand = new DelegateCommand(this.ChooseColumns);
@@ -316,15 +317,30 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 IIndexingService indexingService = container.Resolve<IIndexingService>();
                 IMetadataService metadataService = container.Resolve<IMetadataService>();
 
-                // Get The Ranking
-                TracksHistoryLogMode tracksHistoryLogMode = TracksHistoryLogMode.All;
-                if (_historyListMode == HistoryListMode.LogPlayed)
-                    tracksHistoryLogMode = TracksHistoryLogMode.Played;
-                IList<TrackV> tracks = trackVRepository.GetTracksHistoryLog(tracksHistoryLogMode, _searchText);// (_searchText, true, qo);
-                RecordCount = tracks.Count();
+                IList<TrackViewModel> trackViewModels;
+                if (_historyListMode == HistoryListMode.Tracks)
+                {
+                    Dictionary<long, long> ranking = trackVRepository.GetRanking();
+                    // Get the tracks
+                    QueryOptions qo = new QueryOptions();
+                    qo.extraWhereClause.Add("plays>0");
+                    IList<TrackV> tracks = trackVRepository.GetTracksWithText(_searchText, true, qo);
+                    trackViewModels = tracks.OrderByDescending(x => x.PlayCount).
+                                                                    Select(x => new TrackViewModel(metadataService, scrobblingService, albumVRepository, indexingService, x)
+                                                                    {
+                                                                        Rank = (x.PlayCount.HasValue && (long)x.PlayCount.Value > 0) ? ranking[(long)x.PlayCount.Value] : (long?)null
+                                                                    }).ToList();
+                }
+                else
+                {
+                    TracksHistoryLogMode tracksHistoryLogMode = TracksHistoryLogMode.All;
+                    if (_historyListMode == HistoryListMode.LogPlayed)
+                        tracksHistoryLogMode = TracksHistoryLogMode.Played;
+                    IList<TrackV> tracks = trackVRepository.GetTracksHistoryLog(tracksHistoryLogMode, _searchText);// (_searchText, true, qo);
+                    RecordCount = tracks.Count();
+                    trackViewModels = tracks.Select(x => new TrackViewModel(metadataService, scrobblingService, albumVRepository, indexingService, x)).ToList();
+                }
 
-
-                IList<TrackViewModel> trackViewModels = tracks.Select(x => new TrackViewModel(metadataService, scrobblingService, albumVRepository, indexingService, x)).ToList();
                 try
                 {
                     // Do we need to show the TrackNumber?
@@ -456,33 +472,43 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             {
                 case HistoryListMode.LogAll:
                     _historyListMode = HistoryListMode.LogPlayed;
-                    HappenedVisible = true;
-                    HistoryActionVisible = true;
-                    RankVisible = false;
                     break;
                 case HistoryListMode.LogPlayed:
+                    _historyListMode = HistoryListMode.Tracks;
+                    break;
+                case HistoryListMode.Tracks:
                     _historyListMode = HistoryListMode.LogAll;
-                    HappenedVisible = true;
-                    HistoryActionVisible = false;
-                    RankVisible = false;
                     break;
                 default:
                     _historyListMode = HistoryListMode.LogAll;
                     break;
             }
-            UpdateHistoryListModeText();
+            UpdateHistoryListMode();
             FillListsAsync();
         }
 
-        private void UpdateHistoryListModeText()
+
+        private void UpdateHistoryListMode()
         {
             switch (_historyListMode)
             {
                 case HistoryListMode.LogAll:
-                    HistoryListModeText = "History";// ResourceUtils.GetString("Language_History");
+                    HistoryListModeText = ResourceUtils.GetString("Language_History");
+                    HappenedVisible = true;
+                    HistoryActionVisible = true;
+                    RankVisible = false;
                     break;
                 case HistoryListMode.LogPlayed:
-                    HistoryListModeText = "History (Played)";//ResourceUtils.GetString("Language_History_Played");
+                    HistoryListModeText = String.Format($"{ResourceUtils.GetString("Language_History")} / {ResourceUtils.GetString("Language_Played")}");
+                    HappenedVisible = true;
+                    HistoryActionVisible = false;
+                    RankVisible = false;
+                    break;
+                case HistoryListMode.Tracks:
+                    HistoryListModeText = ResourceUtils.GetString("Language_Rank");
+                    HappenedVisible = false;
+                    HistoryActionVisible = false;
+                    RankVisible = true;
                     break;
                 default:
                     HistoryListModeText = "???";

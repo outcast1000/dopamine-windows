@@ -88,11 +88,11 @@
                 <!--  DateHappened  -->
                 <DataGridTextColumn
                     SortMemberPath="Data.DateHappened"
-                    Width="2*"
+                    Width="1.5*"
                     CellStyle="{StaticResource DataGridCellPrimaryWithEllipsis}"
                     IsReadOnly="True"
                     Binding="{Binding DateHappened}"
-                    Visibility="{Binding (FrameworkElement.DataContext).DateHappenedVisible, RelativeSource={x:Static RelativeSource.Self}, Converter={StaticResource BooleanToCollapsedConverter}}">
+                    Visibility="{Binding (FrameworkElement.DataContext).HappenedVisible, RelativeSource={x:Static RelativeSource.Self}, Converter={StaticResource BooleanToCollapsedConverter}}">
                     <DataGridTextColumn.Header>
                         <TextBlock Text="{DynamicResource Language_Happened}" />
                     </DataGridTextColumn.Header>
@@ -100,7 +100,7 @@
                 <!--  HistoryAction  -->
                 <DataGridTextColumn
                     SortMemberPath="Data.HistoryActionId"
-                    Width="2*"
+                    Width="1.5*"
                     CellStyle="{StaticResource DataGridCellPrimaryWithEllipsis}"
                     IsReadOnly="True"
                     Binding="{Binding HistoryAction}"
@@ -112,7 +112,7 @@
                 <!--  Rank  -->
                 <DataGridTextColumn
                     SortMemberPath="Rank"
-                    Width="2*"
+                    Width="60"
                     CellStyle="{StaticResource DataGridCellPrimaryWithEllipsis}"
                     IsReadOnly="True"
                     Binding="{Binding Rank}"
