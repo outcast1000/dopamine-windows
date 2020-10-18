@@ -30,7 +30,7 @@ namespace Dopamine.Data.Repositories
 
         List<TrackV> GetTracksWithPaths(IList<string> paths, bool bGetHistory);
 
-        List<TrackV> GetTracksHistoryLog(TracksHistoryLogMode tracksHistoryLogMode);
+        List<TrackV> GetTracksHistoryLog(TracksHistoryLogMode tracksHistoryLogMode, string searchText = null);
 
         TrackV GetTrackWithPath(string path, QueryOptions options = null);
 

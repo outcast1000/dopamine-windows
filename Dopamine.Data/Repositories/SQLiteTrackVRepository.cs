@@ -527,7 +527,7 @@ GROUP BY plays
             return null;
         }
 
-        public List<TrackV> GetTracksHistoryLog(TracksHistoryLogMode tracksHistoryLogMode)
+        public List<TrackV> GetTracksHistoryLog(TracksHistoryLogMode tracksHistoryLogMode, string searchText = null)
         {
             QueryOptions qo = new QueryOptions();
             qo.ResetToIncludeAll();
@@ -549,6 +549,21 @@ GROUP BY plays
                     case TracksHistoryLogMode.All:
                     default:
                         break;
+                }
+            }
+            if (!string.IsNullOrEmpty(searchText))
+            {
+                string[] tokens = searchText.Split(' ');
+                foreach (string token in tokens)
+                {
+                    string cleanToken = token.Trim();
+                    if (cleanToken != string.Empty)
+                    {
+                        qo.extraWhereClause.Add("(t.Name like ? OR Artists.Name like ? OR Albums.Name like ?)");
+                        qo.extraWhereParams.Add("%" + cleanToken + "%");
+                        qo.extraWhereParams.Add("%" + cleanToken + "%");
+                        qo.extraWhereParams.Add("%" + cleanToken + "%");
+                    }
                 }
             }
             return GetTracksHistoryLogInternal(qo);

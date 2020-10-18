@@ -282,13 +282,10 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 IMetadataService metadataService = container.Resolve<IMetadataService>();
 
                 // Get The Ranking
-                IList<TrackV> tracks = null;
-                if (_historyListMode == HistoryListMode.LogAll)
-                {
-                    tracks = trackVRepository.GetTracksHistoryLog(TracksHistoryLogMode.All);// (_searchText, true, qo);
-                }
-                else
-                    tracks = trackVRepository.GetTracksHistoryLog(TracksHistoryLogMode.Played);// (_searchText, true, qo);
+                TracksHistoryLogMode tracksHistoryLogMode = TracksHistoryLogMode.All;
+                if (_historyListMode == HistoryListMode.LogPlayed)
+                    tracksHistoryLogMode = TracksHistoryLogMode.Played;
+                IList<TrackV> tracks = trackVRepository.GetTracksHistoryLog(tracksHistoryLogMode, _searchText);// (_searchText, true, qo);
 
 
                 IList<TrackViewModel> trackViewModels = tracks.Select(x => new TrackViewModel(metadataService, scrobblingService, albumVRepository, indexingService, x)).ToList();
