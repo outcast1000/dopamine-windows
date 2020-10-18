@@ -276,7 +276,8 @@ namespace Dopamine.Services.Entities
         }
 
         //=== History Log
-        public string DateHappened => this.Data.DateHappened.HasValueLargerThan(0) ? new DateTime(this.Data.DateHappened.Value).ToString("g") : string.Empty;
+        //public string DateHappened => this.Data.DateHappened.HasValueLargerThan(0) ? new DateTime(this.Data.DateHappened.Value).ToString("g") : string.Empty;
+        public string DateHappened => this.Data.DateHappened.HasValueLargerThan(0) ? FormatUtils.GetPrettyDate(Data.DateHappened.Value) : string.Empty;
 
         public string HistoryAction
         {
