@@ -22,4 +22,8 @@
     <local:BooleanToCenterTextAlignmentConverter x:Key="BooleanToCenterTextAlignmentConverter" />
     <local:BooleanToCenterHorizontalAlignmentConverter x:Key="BooleanToCenterHorizontalAlignmentConverter" />
     <local:KeyToPathConverter x:Key="KeyToPathConverter" />
+    <local:HistoryActionIdToSegoeConverter x:Key="HistoryActionIdToSegoeConverter" />
+    <local:HistoryActionIdToStringConverter x:Key="HistoryActionIdToStringConverter" />
+    <local:TicksToDateTimeConverter x:Key="TicksToDateTimeConverter" />
+
 </ResourceDictionary>

@@ -4,6 +4,15 @@ using System;
 
 namespace Dopamine.Data.Entities
 {
+
+    public enum HistoryActionEnum
+    {
+        Executed = 1,
+        Played,
+        Skipped,
+        Loved,
+        Rated
+    }
     public class TrackV
     {
         public long Id { get; set; }
@@ -82,7 +91,7 @@ namespace Dopamine.Data.Entities
         // History END
         // History Log
         public long? DateHappened { get; set; }
-        public long? HistoryActionId { get; set; }
+        public HistoryActionEnum? HistoryActionId { get; set; }
 
         public static TrackV CreateDefault(string path)
         {

@@ -83,8 +83,54 @@
                 <Style TargetType="{x:Type DataGridRow}" BasedOn="{StaticResource DataGridRowStyle}">
                     <EventSetter Event="MouseDoubleClick" Handler="DataGridRow_MouseDoubleClick" />
                 </Style>
+                <!--  DataTemplate for Published Date column defined in Grid.Resources.  PublishDate is a property on the ItemsSource of type DateTime  -->
+                <DataTemplate x:Key="HappenedTemplate">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock
+                            Foreground="{DynamicResource Brush_SecondaryText}"
+                            Margin="0,0,8,0"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Left"
+                            Text="{Binding Data.HistoryActionId, Converter={StaticResource HistoryActionIdToSegoeConverter}}"
+                            FontSize="15"
+                            Style="{StaticResource SegoeAssets}" />
+                        <TextBlock
+                            Foreground="{DynamicResource Brush_PrimaryText}"
+                            Margin="0,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="{Binding DateHappened}"
+                            HorizontalAlignment="Left" />
+                    </StackPanel>
+                </DataTemplate>
             </pc:DataGridEx.Resources>
             <pc:DataGridEx.Columns>
+                <!--  DateHappenedEx  -->
+                <DataGridTemplateColumn
+                    SortMemberPath="Data.DateHappened"
+                    Width="1.5*"
+                    IsReadOnly="True"
+                    CellTemplate="{StaticResource HappenedTemplate}"
+                    Visibility="{Binding (FrameworkElement.DataContext).HappenedExVisible, RelativeSource={x:Static RelativeSource.Self}, Converter={StaticResource BooleanToCollapsedConverter}}">
+                    <DataGridTemplateColumn.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="ToolTip">
+                                <Setter.Value>
+                                    <TextBlock>
+                                        <TextBlock.Text>
+                                            <MultiBinding StringFormat="{}{0:g} ({1})">
+                                                <Binding Path="Data.DateHappened" Converter="{StaticResource TicksToDateTimeConverter}" />
+                                                <Binding Path="Data.HistoryActionId" Converter="{StaticResource HistoryActionIdToStringConverter}" />
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </DataGridTemplateColumn.CellStyle>
+                    <DataGridTemplateColumn.Header>
+                        <TextBlock Text="{DynamicResource Language_Happened}" />
+                    </DataGridTemplateColumn.Header>
+                </DataGridTemplateColumn>
                 <!--  DateHappened  -->
                 <DataGridTextColumn
                     SortMemberPath="Data.DateHappened"
@@ -95,18 +141,6 @@
                     Visibility="{Binding (FrameworkElement.DataContext).HappenedVisible, RelativeSource={x:Static RelativeSource.Self}, Converter={StaticResource BooleanToCollapsedConverter}}">
                     <DataGridTextColumn.Header>
                         <TextBlock Text="{DynamicResource Language_Happened}" />
-                    </DataGridTextColumn.Header>
-                </DataGridTextColumn>
-                <!--  HistoryAction  -->
-                <DataGridTextColumn
-                    SortMemberPath="Data.HistoryActionId"
-                    Width="1.5*"
-                    CellStyle="{StaticResource DataGridCellPrimaryWithEllipsis}"
-                    IsReadOnly="True"
-                    Binding="{Binding HistoryAction}"
-                    Visibility="{Binding (FrameworkElement.DataContext).HistoryActionVisible, RelativeSource={x:Static RelativeSource.Self}, Converter={StaticResource BooleanToCollapsedConverter}}">
-                    <DataGridTextColumn.Header>
-                        <TextBlock Text="{DynamicResource Language_Action}" />
                     </DataGridTextColumn.Header>
                 </DataGridTextColumn>
                 <!--  Rank  -->

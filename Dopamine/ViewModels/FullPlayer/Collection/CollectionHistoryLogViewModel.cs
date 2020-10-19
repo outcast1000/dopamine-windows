@@ -39,7 +39,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private IEventAggregator eventAggregator;
         private bool _rankVisible;
         private bool _happenedVisible;
-        private bool _historyActionVisible;
+        private bool _happenedExVisible;
 
         private bool ratingVisible;
         private bool loveVisible;
@@ -93,14 +93,11 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             set { SetProperty<bool>(ref _happenedVisible, value); }
         }
 
-        public bool HistoryActionVisible // Only when in history (all) mode
+        public bool HappenedExVisible // Only when in history (all + played) mode
         {
-            get { return _historyActionVisible; }
-            set { SetProperty<bool>(ref _historyActionVisible, value); }
+            get { return _happenedExVisible; }
+            set { SetProperty<bool>(ref _happenedExVisible, value); }
         }
-
-
-
 
         public bool RatingVisible
         {
@@ -466,8 +463,10 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             throw new System.NotImplementedException();
         }
 
-        private void ToggleHistoryListMode()
+        private async Task ToggleHistoryListMode()
         {
+            
+            await EmptyListsAsync();
             switch (_historyListMode)
             {
                 case HistoryListMode.LogAll:
@@ -483,31 +482,31 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                     _historyListMode = HistoryListMode.LogAll;
                     break;
             }
-            UpdateHistoryListMode();
-            FillListsAsync();
+            await UpdateHistoryListMode();
+            await FillListsAsync();
         }
 
 
-        private void UpdateHistoryListMode()
+        private async Task UpdateHistoryListMode()
         {
             switch (_historyListMode)
             {
                 case HistoryListMode.LogAll:
                     HistoryListModeText = ResourceUtils.GetString("Language_History");
-                    HappenedVisible = true;
-                    HistoryActionVisible = true;
+                    HappenedExVisible = true;
+                    HappenedVisible = false;
                     RankVisible = false;
                     break;
                 case HistoryListMode.LogPlayed:
                     HistoryListModeText = String.Format($"{ResourceUtils.GetString("Language_History")} / {ResourceUtils.GetString("Language_Played")}");
+                    HappenedExVisible = false;
                     HappenedVisible = true;
-                    HistoryActionVisible = false;
                     RankVisible = false;
                     break;
                 case HistoryListMode.Tracks:
                     HistoryListModeText = ResourceUtils.GetString("Language_Rank");
+                    HappenedExVisible = false;
                     HappenedVisible = false;
-                    HistoryActionVisible = false;
                     RankVisible = true;
                     break;
                 default:

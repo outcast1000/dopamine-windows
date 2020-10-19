@@ -214,6 +214,9 @@
     <Compile Include="Controls\TotalsInformation.cs" />
     <Compile Include="Controls\TransitioningContentControl.cs" />
     <Compile Include="Controls\ZoomInContentControl.cs" />
+    <Compile Include="Converters\TicksToDateTimeConverter.cs" />
+    <Compile Include="Converters\HistoryActionIdToStringConverter.cs" />
+    <Compile Include="Converters\HistoryActionIdToSegoeConverter.cs" />
     <Compile Include="Converters\KeyToPathConverter.cs" />
     <Compile Include="Converters\AddEllipsisConverter.cs" />
     <Compile Include="Converters\AddValueConverter.cs" />

@@ -288,11 +288,11 @@ namespace Dopamine.Services.Entities
                     //=== ALEX TODO. Make translations
                     switch (Data.HistoryActionId.Value)
                     {
-                        case 1:
+                        case HistoryActionEnum.Executed:
                             return ResourceUtils.GetString("Language_Executed");
-                        case 2:
+                        case HistoryActionEnum.Played:
                             return ResourceUtils.GetString("Language_Played");
-                        case 3:
+                        case HistoryActionEnum.Skipped:
                             return ResourceUtils.GetString("Language_Skipped");
                     }
                 }
