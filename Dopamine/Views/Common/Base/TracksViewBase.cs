@@ -36,7 +36,7 @@ namespace Dopamine.Views.Common.Base
             }
         }
 
-        protected override async Task ActionHandler(Object sender, DependencyObject source, bool enqueue)
+        protected override async Task ActionHandler(Object sender, DependencyObject source, bool enqueue, bool includeTheRestOfTheList)
         {
             try
             {
@@ -67,7 +67,10 @@ namespace Dopamine.Views.Common.Base
                 // The user wants to enqueue tracks for the selected item
                 if (lb.SelectedItem.GetType().Name == typeof(TrackViewModel).Name)
                 {
-                    await this.playbackService.PlayTracksAndStartOnTrack(lb.Items.OfType<TrackViewModel>().ToList(), (TrackViewModel)lb.SelectedItem, enqueue ? PlaylistMode.Enqueue : PlaylistMode.Play);
+                    if (includeTheRestOfTheList)
+                        await this.playbackService.PlayTracksAndStartOnTrack(lb.Items.OfType<TrackViewModel>().ToList(), (TrackViewModel)lb.SelectedItem, enqueue ? PlaylistMode.Enqueue : PlaylistMode.Play);
+                    else 
+                        await this.playbackService.PlayTracksAsync(new List<TrackViewModel>() { (TrackViewModel)lb.SelectedItem }, enqueue ? PlaylistMode.Enqueue : PlaylistMode.Play);
                 }
                 else if (lb.SelectedItem.GetType().Name == typeof(ArtistViewModel).Name)
                 {

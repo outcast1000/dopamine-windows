@@ -28,15 +28,15 @@ namespace Dopamine.Views.Common
       
         private async void ListBoxTracks_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            await this.ActionHandler(sender, e.OriginalSource as DependencyObject, false);
+            await this.ActionHandler(sender, e.OriginalSource as DependencyObject, false, false);
         }
 
-        protected override async Task ActionHandler(Object sender, DependencyObject source, bool enqueue)
+        protected override async Task ActionHandler(Object sender, DependencyObject source, bool enqueue, bool includeTheRestOfTheList)
         {
             NowPlayingControlViewModel vm = (NowPlayingControlViewModel)this.DataContext;
             if (vm.InSearchMode)
             {
-                base.ActionHandler(sender, source, enqueue);
+                base.ActionHandler(sender, source, enqueue, false);
             }
             else
             {
@@ -70,7 +70,7 @@ namespace Dopamine.Views.Common
         {
             if (e.Key == Key.Enter)
             {
-                this.ActionHandler(sender, e.OriginalSource as DependencyObject, false);
+                this.ActionHandler(sender, e.OriginalSource as DependencyObject, false, true);
             }
         }
     }

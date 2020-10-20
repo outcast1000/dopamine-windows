@@ -38,7 +38,7 @@ namespace Dopamine.Views.FullPlayer.Collection
 
         private async void DataGridRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            await this.ActionHandler(sender, null, false);
+            await this.ActionHandler(sender, null, false, true);
         }
 
         private async void DataGridTracks_KeyUp(object sender, KeyEventArgs e)
@@ -64,7 +64,7 @@ namespace Dopamine.Views.FullPlayer.Collection
             }
         }
 
-        protected async override Task ActionHandler(Object sender, DependencyObject source, bool enqueue)
+        protected async override Task ActionHandler(Object sender, DependencyObject source, bool enqueue, bool includeTheRestOfTheList)
         {
             try
             {
