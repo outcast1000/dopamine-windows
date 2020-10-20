@@ -189,7 +189,7 @@ namespace Dopamine.Services.Notification
 
                 if (this.playbackService.HasCurrentTrack)
                 {
-                    artworkData = await this.metadataService.GetArtworkAsync(this.playbackService.CurrentTrack.Path);
+                    artworkData = await this.metadataService.GetArtworkAsync(this.playbackService.CurrentTrack);
                 }
 
                 Application.Current.Dispatcher.Invoke(() =>

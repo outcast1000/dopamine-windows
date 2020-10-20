@@ -331,7 +331,7 @@ namespace Dopamine.Services.Appearance
                 }
                 else if (followAlbumCoverColor)
                 {
-                    byte[] artwork = await this.metadataService.GetArtworkAsync(this.playbackService.CurrentTrack.Path);
+                    byte[] artwork = await this.metadataService.GetArtworkAsync(this.playbackService.CurrentTrack);
 
                     if (artwork?.Length > 0)
                     {

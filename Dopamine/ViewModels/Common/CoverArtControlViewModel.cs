@@ -83,7 +83,7 @@ namespace Dopamine.ViewModels.Common
 
                 try
                 {
-                    artwork = await this.metadataService.GetArtworkAsync(track.Path);
+                    artwork = await this.metadataService.GetArtworkAsync(track);
                 }
                 catch (Exception ex)
                 {

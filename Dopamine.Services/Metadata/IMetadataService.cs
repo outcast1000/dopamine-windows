@@ -20,7 +20,7 @@ namespace Dopamine.Services.Metadata
 
         Task<FileMetadata> GetFileMetadataAsync(string path);
 
-        Task<byte[]> GetArtworkAsync(string path, int size = 0);
+        Task<byte[]> GetArtworkAsync(TrackViewModel trackViewModel);
         
         Task ForceSaveFileMetadataAsync();
 

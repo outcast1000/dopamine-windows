@@ -1,20 +1,20 @@
 ﻿<UserControl
-  x:Class="Dopamine.Views.Common.LyricsControl"
-  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-  xmlns:commonviewmodels="clr-namespace:Dopamine.ViewModels.Common"
-  xmlns:commonviews="clr-namespace:Dopamine.Views.Common"
-  xmlns:cp="clr-namespace:Dopamine.Core.Prism;assembly=Dopamine.Core"
-  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-  xmlns:dc="clr-namespace:Digimezzo.Foundation.WPF.Controls;assembly=Digimezzo.Foundation.WPF"
-  xmlns:lyrics="clr-namespace:Dopamine.Core.Api.Lyrics;assembly=Dopamine.Core"
-  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-  xmlns:prismMvvm="clr-namespace:Prism.Mvvm;assembly=Prism.Wpf"
-  xmlns:utils="clr-namespace:Dopamine.Utils"
-  d:DesignHeight="300"
-  d:DesignWidth="300"
-  prismMvvm:ViewModelLocator.AutoWireViewModel="True"
-  mc:Ignorable="d">
+    x:Class="Dopamine.Views.Common.LyricsControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:commonviewmodels="clr-namespace:Dopamine.ViewModels.Common"
+    xmlns:commonviews="clr-namespace:Dopamine.Views.Common"
+    xmlns:cp="clr-namespace:Dopamine.Core.Prism;assembly=Dopamine.Core"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dc="clr-namespace:Digimezzo.Foundation.WPF.Controls;assembly=Digimezzo.Foundation.WPF"
+    xmlns:lyrics="clr-namespace:Dopamine.Core.Api.Lyrics;assembly=Dopamine.Core"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:prismMvvm="clr-namespace:Prism.Mvvm;assembly=Prism.Wpf"
+    xmlns:utils="clr-namespace:Dopamine.Utils"
+    d:DesignHeight="300"
+    d:DesignWidth="300"
+    prismMvvm:ViewModelLocator.AutoWireViewModel="True"
+    mc:Ignorable="d">
 
     <UserControl.Resources>
         <!--  Setting this CollectionViewSource as a ContextMenu resource doesn't work. Binding with ContextMenuPlaylists fails. No idea why.  -->
@@ -24,80 +24,80 @@
                 <Border Panel.ZIndex="1" Visibility="{Binding IsNoLyricsTextVisible, Converter={StaticResource BooleanToCollapsedConverter}}">
                     <StackPanel Visibility="{Binding DataContext.IsDownloadingLyrics, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource InvertingBooleanToVisibilityConverter}}">
                         <TextBlock
-              FontSize="18"
-              Foreground="{DynamicResource Brush_PrimaryText}"
-              Text="{DynamicResource Language_No_Lyrics_Found}" />
+                            FontSize="18"
+                            Foreground="{DynamicResource Brush_PrimaryText}"
+                            Text="{DynamicResource Language_No_Lyrics_Found}" />
                         <Button
-              Margin="0,10,0,0"
-              HorizontalAlignment="Left"
-              Command="{Binding EditCommand}"
-              Content="{DynamicResource Language_Add_Lyrics}"
-              Style="{StaticResource LinkButton}" />
+                            Margin="0,10,0,0"
+                            HorizontalAlignment="Left"
+                            Command="{Binding EditCommand}"
+                            Content="{DynamicResource Language_Add_Lyrics}"
+                            Style="{StaticResource LinkButton}" />
                     </StackPanel>
                 </Border>
                 <DockPanel Panel.ZIndex="0" Visibility="{Binding IsEditing, Converter={StaticResource BooleanToCollapsedConverter}}">
                     <TextBlock
-            Margin="0,0,0,10"
-            DockPanel.Dock="Top"
-            Foreground="{DynamicResource Brush_Accent}"
-            Text="{DynamicResource Language_Play_Song_And_Insert_Timestamp}"
-            TextWrapping="Wrap" />
+                        Margin="0,0,0,10"
+                        DockPanel.Dock="Top"
+                        Foreground="{DynamicResource Brush_Accent}"
+                        Text="{DynamicResource Language_Play_Song_And_Insert_Timestamp}"
+                        TextWrapping="Wrap" />
                     <StackPanel
-            Margin="0,10,0,0"
-            HorizontalAlignment="Right"
-            DockPanel.Dock="Bottom"
-            Orientation="Horizontal">
+                        Margin="0,10,0,0"
+                        HorizontalAlignment="Right"
+                        DockPanel.Dock="Bottom"
+                        Orientation="Horizontal">
                         <Button
-              Command="{Binding SaveCommand}"
-              Content="{DynamicResource Language_Save_In_Audio_File}"
-              Style="{StaticResource RegularButton}" />
+                            Command="{Binding SaveCommand}"
+                            Content="{DynamicResource Language_Save_In_Audio_File}"
+                            Style="{StaticResource RegularButton}" />
                         <Button
-              Margin="10,0,0,0"
-              Command="{Binding CancelEditCommand}"
-              Content="{DynamicResource Language_Cancel_Edit}"
-              Style="{StaticResource RegularButton}" />
+                            Margin="10,0,0,0"
+                            Command="{Binding CancelEditCommand}"
+                            Content="{DynamicResource Language_Cancel_Edit}"
+                            Style="{StaticResource RegularButton}" />
                     </StackPanel>
                     <Border Background="{DynamicResource Brush_ItemHovered}">
                         <TextBox
-              x:Name="LyricsTextBox"
-              AcceptsReturn="True"
-              Background="{DynamicResource Brush_TextBoxBackgroundInvisible}"
-              KeyDown="TextBox_KeyDown"
-              Loaded="LyricsTextBox_Loaded"
-              Style="{StaticResource LargeMetroTextBox}"
-              Text="{Binding Lyrics.Text}"
-              VerticalScrollBarVisibility="Auto" />
+                            x:Name="LyricsTextBox"
+                            AcceptsReturn="True"
+                            Background="{DynamicResource Brush_TextBoxBackgroundInvisible}"
+                            KeyDown="TextBox_KeyDown"
+                            Loaded="LyricsTextBox_Loaded"
+                            Style="{StaticResource LargeMetroTextBox}"
+                            Text="{Binding Lyrics.Text}"
+                            VerticalScrollBarVisibility="Auto" />
                     </Border>
                 </DockPanel>
                 <Grid Panel.ZIndex="0">
                     <ListBox
-            x:Name="LyricsListBox"
-            Padding="0,0,10,0"
-            Panel.ZIndex="0"
-            Background="Transparent"
-            BorderThickness="0"
-            ItemsSource="{Binding LyricsLines}"
-            Loaded="LyricsListBox_Loaded"
-            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-            ScrollViewer.VerticalScrollBarVisibility="Auto"
-            Visibility="{Binding IsEditing, Converter={StaticResource InvertingBooleanToCollapsedConverter}}">
+                        x:Name="LyricsListBox"
+                        Padding="0,0,10,0"
+                        Panel.ZIndex="0"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        ItemsSource="{Binding LyricsLines}"
+                        Loaded="LyricsListBox_Loaded"
+                        ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                        ScrollViewer.VerticalScrollBarVisibility="Auto"
+                        Visibility="{Binding IsEditing, Converter={StaticResource InvertingBooleanToCollapsedConverter}}">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <Grid Margin="0,0,10,0">
                                     <TextBlock
-                    FontSize="{Binding DataContext.FontSize, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}}"
-                    Foreground="{DynamicResource Brush_Accent}"
-                    Text="{Binding Text}"
-                    TextAlignment="{Binding DataContext.CenterLyrics, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}, Converter={StaticResource BooleanToCenterTextAlignmentConverter}}"
-                    TextWrapping="Wrap"
-                    Visibility="{Binding IsHighlighted, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        FontSize="{Binding DataContext.FontSize, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}}"
+                                        Foreground="{DynamicResource Brush_Accent}"
+                                        Text="{Binding Text}"
+                                        TextAlignment="{Binding DataContext.CenterLyrics, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}, Converter={StaticResource BooleanToCenterTextAlignmentConverter}}"
+                                        TextWrapping="Wrap"
+                                        Visibility="{Binding IsHighlighted, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                     <TextBlock
-                    FontSize="{Binding DataContext.FontSize, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}}"
-                    Foreground="{DynamicResource Brush_PrimaryText}"
-                    Text="{Binding Text}"
-                    TextAlignment="{Binding DataContext.CenterLyrics, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}, Converter={StaticResource BooleanToCenterTextAlignmentConverter}}"
-                    TextWrapping="Wrap"
-                    Visibility="{Binding IsHighlighted, Converter={StaticResource InvertingBooleanToVisibilityConverter}}" />
+                                        FontSize="{Binding DataContext.FontSize, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}}"
+                                        Foreground="{DynamicResource Brush_PrimaryText}"
+                                        Text="{Binding Text}"
+                                        TextAlignment="{Binding DataContext.CenterLyrics, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}, Converter={StaticResource BooleanToCenterTextAlignmentConverter}}"
+                                        TextWrapping="Wrap"
+                                        Visibility="{Binding IsHighlighted, Converter={StaticResource InvertingBooleanToVisibilityConverter}}" />
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -114,27 +114,27 @@
                                     <MenuItem.Header>
                                         <DockPanel>
                                             <TextBlock
-                        HorizontalAlignment="Left"
-                        DockPanel.Dock="Left"
-                        Text="{DynamicResource Language_Font_Size}" />
+                                                HorizontalAlignment="Left"
+                                                DockPanel.Dock="Left"
+                                                Text="{DynamicResource Language_Font_Size}" />
                                             <StackPanel
-                        Margin="50,0,0,0"
-                        DockPanel.Dock="Right"
-                        Orientation="Horizontal">
+                                                Margin="50,0,0,0"
+                                                DockPanel.Dock="Right"
+                                                Orientation="Horizontal">
                                                 <Button
-                          Command="{Binding DecreaseFontSizeCommand}"
-                          Content="-"
-                          Style="{StaticResource ContextMenuButton}" />
+                                                    Command="{Binding DecreaseFontSizeCommand}"
+                                                    Content="-"
+                                                    Style="{StaticResource ContextMenuButton}" />
                                                 <Border Width="60">
                                                     <TextBlock
-                            Margin="5,0,5,0"
-                            HorizontalAlignment="Center"
-                            Text="{Binding FontSizePixels}" />
+                                                        Margin="5,0,5,0"
+                                                        HorizontalAlignment="Center"
+                                                        Text="{Binding FontSizePixels}" />
                                                 </Border>
                                                 <Button
-                          Command="{Binding IncreaseFontSizeCommand}"
-                          Content="+"
-                          Style="{StaticResource ContextMenuButton}" />
+                                                    Command="{Binding IncreaseFontSizeCommand}"
+                                                    Content="+"
+                                                    Style="{StaticResource ContextMenuButton}" />
                                             </StackPanel>
                                             <ContentControl />
                                         </DockPanel>
@@ -142,21 +142,21 @@
                                 </MenuItem>
                                 <Separator />
                                 <MenuItem
-                  Header="{DynamicResource Language_Automatic_Scrolling}"
-                  IsCheckable="True"
-                  IsChecked="{Binding AutomaticScrolling}" />
+                                    Header="{DynamicResource Language_Automatic_Scrolling}"
+                                    IsCheckable="True"
+                                    IsChecked="{Binding AutomaticScrolling}" />
                                 <MenuItem
-                  Header="{DynamicResource Language_Center_Lyrics}"
-                  IsCheckable="True"
-                  IsChecked="{Binding CenterLyrics}" />
+                                    Header="{DynamicResource Language_Center_Lyrics}"
+                                    IsCheckable="True"
+                                    IsChecked="{Binding CenterLyrics}" />
                                 <Separator />
                                 <MenuItem Command="{x:Static cp:ApplicationCommands.RefreshLyricsCommand}" Header="{DynamicResource Language_Search_Again}" />
                                 <Separator />
                                 <MenuItem
-                  DisplayMemberPath="Name"
-                  Header="{DynamicResource Language_Search_Online}"
-                  IsEnabled="{Binding HasContextMenuSearchProviders}"
-                  ItemsSource="{Binding ContextMenuSearchProviders}">
+                                    DisplayMemberPath="Name"
+                                    Header="{DynamicResource Language_Search_Online}"
+                                    IsEnabled="{Binding HasContextMenuSearchProviders}"
+                                    ItemsSource="{Binding ContextMenuSearchProviders}">
                                     <MenuItem.ItemContainerStyle>
                                         <Style TargetType="MenuItem">
                                             <Setter Property="Foreground" Value="{DynamicResource Brush_ContextMenuText}" />
@@ -167,37 +167,37 @@
                                 </MenuItem>
                                 <Separator />
                                 <MenuItem
-                  Click="EditMenuItem_Click"
-                  Command="{Binding EditCommand}"
-                  Header="{DynamicResource Language_Edit}" />
+                                    Click="EditMenuItem_Click"
+                                    Command="{Binding EditCommand}"
+                                    Header="{DynamicResource Language_Edit}" />
                                 <Separator />
                                 <MenuItem Command="{Binding SaveIfNotEmptyCommand}" Header="{DynamicResource Language_Save_In_Audio_File}" />
                             </ContextMenu>
                         </ListBox.ContextMenu>
                     </ListBox>
                     <dc:ProgressRing
-            Width="60"
-            Height="60"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Panel.ZIndex="1"
-            Foreground="{DynamicResource Brush_Accent}"
-            IsActive="{Binding DataContext.IsDownloadingLyrics, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
-            Visibility="{Binding DataContext.IsDownloadingLyrics, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
+                        Width="60"
+                        Height="60"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Panel.ZIndex="1"
+                        Foreground="{DynamicResource Brush_Accent}"
+                        IsActive="{Binding DataContext.IsDownloadingLyrics, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                        Visibility="{Binding DataContext.IsDownloadingLyrics, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
                 </Grid>
             </Grid>
         </DataTemplate>
     </UserControl.Resources>
 
     <DockPanel
-    x:Name="PlaylistPanel"
-    HorizontalAlignment="Stretch"
-    VerticalAlignment="Stretch">
+        x:Name="PlaylistPanel"
+        HorizontalAlignment="Stretch"
+        VerticalAlignment="Stretch">
         <!--  Cover  -->
         <StackPanel
-      Width="290"
-      VerticalAlignment="Top"
-      DockPanel.Dock="Left">
+            Width="290"
+            VerticalAlignment="Top"
+            DockPanel.Dock="Left">
             <StackPanel.ContextMenu>
                 <ContextMenu>
                     <ContextMenu.Resources>
@@ -221,45 +221,78 @@
                 </ContextMenu>
             </StackPanel.ContextMenu>
             <Border
-        x:Name="CoverArt"
-        Width="250"
-        Height="250"
-        Margin="20"
-        DockPanel.Dock="Left">
+                x:Name="CoverArt"
+                Width="250"
+                Height="250"
+                Margin="20"
+                DockPanel.Dock="Left">
                 <commonviews:CoverArtControl />
                 <Border.Effect>
                     <DropShadowEffect
-            BlurRadius="20"
-            Opacity="{DynamicResource Opacity_CoverArtShadow}"
-            ShadowDepth="0"
-            Color="{DynamicResource Color_Black}" />
+                        BlurRadius="20"
+                        Opacity="{DynamicResource Opacity_CoverArtShadow}"
+                        ShadowDepth="0"
+                        Color="{DynamicResource Color_Black}" />
                 </Border.Effect>
             </Border>
             <commonviews:PlaybackInfoControl
-        Height="50"
-        Margin="20,0,20,0"
-        ShowAlbumInfo="False"
-        TitleFontSize="22"
-        TitleFontWeight="Light" />
-            <!-- Lyrics source -->
+                Height="50"
+                Margin="20,0,20,0"
+                ShowAlbumInfo="False"
+                TitleFontSize="22"
+                TitleFontWeight="Light" />
+            <!--  Lyrics source  -->
             <Grid Visibility="{Binding LyricsViewModel.ShowSource, TargetNullValue=Hidden, FallbackValue=Hidden, Converter={StaticResource BooleanToVisibilityConverter}}">
-                <!-- Source: audio file -->
-                <StackPanel Margin="20,0,0,0" Orientation="Horizontal" 
-                            Visibility="{Binding LyricsViewModel.SourceType, Converter={StaticResource LyricSourceVisibilityConverter}, ConverterParameter={x:Static lyrics:SourceTypeEnum.Audio}}">
-                    <TextBlock VerticalAlignment="Center" FontSize="17" Foreground="{DynamicResource Brush_SecondaryText}" Style="{StaticResource SegoeAssets}" Text="&#xE73E;" />
-                    <TextBlock Margin="5,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource Brush_SecondaryText}" Text="{DynamicResource Language_Audio_File}" />
+                <!--  Source: audio file  -->
+                <StackPanel
+                    Margin="20,0,0,0"
+                    Orientation="Horizontal"
+                    Visibility="{Binding LyricsViewModel.SourceType, Converter={StaticResource LyricSourceVisibilityConverter}, ConverterParameter={x:Static lyrics:SourceTypeEnum.Audio}}">
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontSize="17"
+                        Foreground="{DynamicResource Brush_SecondaryText}"
+                        Style="{StaticResource SegoeAssets}"
+                        Text="&#xE73E;" />
+                    <TextBlock
+                        Margin="5,0,0,0"
+                        VerticalAlignment="Center"
+                        Foreground="{DynamicResource Brush_SecondaryText}"
+                        Text="{DynamicResource Language_Audio_File}" />
                 </StackPanel>
-                <!-- Source: LRC file -->
-                <StackPanel Margin="20,0,0,0" Orientation="Horizontal" 
-                            Visibility="{Binding LyricsViewModel.SourceType, Converter={StaticResource LyricSourceVisibilityConverter}, ConverterParameter={x:Static lyrics:SourceTypeEnum.Lrc}}">
-                    <TextBlock VerticalAlignment="Center" FontSize="17" Foreground="{DynamicResource Brush_SecondaryText}" Style="{StaticResource SegoeAssets}" Text="&#xE73E;" />
-                    <TextBlock Margin="5,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource Brush_SecondaryText}" Text="{DynamicResource Language_Lyrics_File}" />
+                <!--  Source: LRC file  -->
+                <StackPanel
+                    Margin="20,0,0,0"
+                    Orientation="Horizontal"
+                    Visibility="{Binding LyricsViewModel.SourceType, Converter={StaticResource LyricSourceVisibilityConverter}, ConverterParameter={x:Static lyrics:SourceTypeEnum.Lrc}}">
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontSize="17"
+                        Foreground="{DynamicResource Brush_SecondaryText}"
+                        Style="{StaticResource SegoeAssets}"
+                        Text="&#xE73E;" />
+                    <TextBlock
+                        Margin="5,0,0,0"
+                        VerticalAlignment="Center"
+                        Foreground="{DynamicResource Brush_SecondaryText}"
+                        Text="{DynamicResource Language_Lyrics_File}" />
                 </StackPanel>
-                <!-- Source: online -->
-                <StackPanel Margin="20,0,0,0" Orientation="Horizontal" 
-                            Visibility="{Binding LyricsViewModel.SourceType, Converter={StaticResource LyricSourceVisibilityConverter}, ConverterParameter={x:Static lyrics:SourceTypeEnum.Online}}">
-                    <TextBlock VerticalAlignment="Center" FontSize="17" Foreground="{DynamicResource Brush_SecondaryText}" Style="{StaticResource SegoeAssets}"  Text="&#xE753;" />
-                    <TextBlock Margin="5,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource Brush_SecondaryText}" Text="{Binding LyricsViewModel.Lyrics.Source}" />
+                <!--  Source: online  -->
+                <StackPanel
+                    Margin="20,0,0,0"
+                    Orientation="Horizontal"
+                    Visibility="{Binding LyricsViewModel.SourceType, Converter={StaticResource LyricSourceVisibilityConverter}, ConverterParameter={x:Static lyrics:SourceTypeEnum.Online}}">
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontSize="17"
+                        Foreground="{DynamicResource Brush_SecondaryText}"
+                        Style="{StaticResource SegoeAssets}"
+                        Text="&#xE753;" />
+                    <TextBlock
+                        Margin="5,0,0,0"
+                        VerticalAlignment="Center"
+                        Foreground="{DynamicResource Brush_SecondaryText}"
+                        Text="{Binding LyricsViewModel.Lyrics.Source}" />
                 </StackPanel>
             </Grid>
         </StackPanel>

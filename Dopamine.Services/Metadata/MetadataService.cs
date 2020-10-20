@@ -130,15 +130,14 @@ namespace Dopamine.Services.Metadata
             return artwork;
         }
 
-        private byte[] GetAlbumArtwork(string filename, int size)
+        private byte[] GetAlbumArtwork(TrackViewModel trackViewModel, int size)
         {
             byte[] artwork = null;
 
-            AlbumImage albumImage = infoRepository.GetAlbumImageForTrackWithPath(filename);
+            AlbumImage albumImage = infoRepository.GetAlbumImage(trackViewModel.Id);
             if (albumImage != null)
             {
                 string artworkPath = fileStorage.GetRealPath(albumImage.Location);
-
                 if (!string.IsNullOrEmpty(artworkPath))
                 {
                     artwork = ImageUtils.Image2ByteArray(artworkPath, size, size);
@@ -148,42 +147,30 @@ namespace Dopamine.Services.Metadata
             return artwork;
         }
 
-        public async Task<byte[]> GetArtworkAsync(string filename, int size = 0)
+        public async Task<byte[]> GetArtworkAsync(TrackViewModel trackViewModel)
         {
+
             byte[] artwork = null;
 
-            if (System.IO.File.Exists(filename))
+            if (System.IO.File.Exists(trackViewModel.Path))
             {
                 await Task.Run(() =>
                 {
                     lock (artworkCacheLock)
                     {
                         // First, try to find artwork in the memory cache
-                        artwork = this.artworkCache[filename] as byte[];
-
+                        artwork = this.artworkCache[trackViewModel.Path] as byte[];
+                        //if (artwork == null) // Disable Embedded Artwork
+                        //    artwork = this.GetEmbeddedArtwork(trackViewModel.Path, 0);
                         if (artwork == null)
+                            artwork = GetExternalArtwork(trackViewModel.Path, 0); // Get it from the folder
+                        if (artwork == null)
+                            artwork = GetAlbumArtwork(trackViewModel, 0);// If no external artwork was found, try to find from the cache
+                        if (artwork != null)
                         {
-                            // If no artwork was found in the cache, try to find embedded artwork.
-                            artwork = this.GetEmbeddedArtwork(filename, size);
-
-                            if (artwork == null)
-                            {
-                                // If no embedded artwork was found, try to find external artwork.
-                                artwork = this.GetExternalArtwork(filename, size);
-                            }
-
-                            if (artwork == null)
-                            {
-                                // If no external artwork was found, try to find album artwork.
-                                artwork = this.GetAlbumArtwork(filename, size);
-                            }
-
-                            if (artwork != null)
-                            {
-                                // If artwork was found, add it to the cache.
-                                CacheItemPolicy policy = new CacheItemPolicy() { AbsoluteExpiration = DateTimeOffset.Now.AddSeconds(5.0) };
-                                this.artworkCache.Set(filename, artwork, policy);
-                            }
+                            // If artwork was found, add it to the cache.
+                            CacheItemPolicy policy = new CacheItemPolicy() { AbsoluteExpiration = DateTimeOffset.Now.AddSeconds(5.0) };
+                            this.artworkCache.Set(trackViewModel.Path, artwork, policy);
                         }
                     }
                 });
