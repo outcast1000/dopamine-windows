@@ -115,14 +115,16 @@ namespace Dopamine.Services.Entities
 
         public string Year => this.Data.Year.HasValueLargerThan(0) ? this.Data.Year.Value.ToString() : string.Empty;
 
-        public string GroupHeader => this.Data.DiscCount.HasValueLargerThan(1) && this.Data.DiscNumber.HasValueLargerThan(0) ? $"{this.Data.AlbumTitle} ({this.Data.DiscNumber})" : (string.IsNullOrEmpty(this.Data.AlbumTitle) ? ResourceUtils.GetString("Language_Unknown_Album") : Data.AlbumTitle);
+        public string GroupAlbumHeader => this.Data.DiscCount.HasValueLargerThan(1) && this.Data.DiscNumber.HasValueLargerThan(0) ? $"{this.Data.AlbumTitle} ({this.Data.DiscNumber})" : (string.IsNullOrEmpty(this.Data.AlbumTitle) ? ResourceUtils.GetString("Language_Unknown_Album") : Data.AlbumTitle);
 
-        public string GroupSubHeader => this.AlbumArtist;
+        public string GroupAlbumSubHeader => this.AlbumArtist;
 
-        public string GroupThumbnailSource
+        public string GroupAlbumThumbnailSource
         {
             get
             {
+                if (Data.AlbumImage != null)
+                    return Data.AlbumImage;
                 if (albumViewModel == null)
                 {
                     _ = GetAlbumViewModel(); // Suppress warning cs4014 https://stackoverflow.com/questions/22629951/suppressing-warning-cs4014-because-this-call-is-not-awaited-execution-of-the
@@ -180,7 +182,7 @@ namespace Dopamine.Services.Entities
                             indexingService.AlbumInfoDownloaded -= IndexingService_AlbumInfoDownloaded;
                     }
                     else
-                        GroupThumbnailSource = albumViewModel.Thumbnail;
+                        GroupAlbumThumbnailSource = albumViewModel.Thumbnail;
                     GroupAlbumInfo = albumViewModel.AlbumItemInfo;
                 }
             });
@@ -198,7 +200,7 @@ namespace Dopamine.Services.Entities
                 return;// Should not happen
             albumViewModel = new AlbumViewModel(indexingService, albumVRepository, album);
             if (albumViewModel.HasCover)
-                GroupThumbnailSource = albumViewModel.Thumbnail;
+                GroupAlbumThumbnailSource = albumViewModel.Thumbnail;
             else
                 GroupAlbumInfo = albumViewModel.AlbumItemInfo;
         }

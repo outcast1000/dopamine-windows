@@ -151,7 +151,8 @@ t.date_file_deleted as DateFileDeleted,
 t.rating as Rating, 
 t.love as Love, 
 t.folder_id as FolderID,
-COALESCE(MAX(AlbumImages.location), ArtistImages.location) as Thumbnail,
+MAX(AlbumImages.location) as AlbumImage,
+MAX(ArtistImages.location) as ArtistImage,
 AlbumImages.location as Thumbnail #SELECT#
 FROM Tracks t
 LEFT JOIN TrackArtists ON TrackArtists.track_id=t.id 
@@ -604,6 +605,8 @@ GROUP BY plays
 
         private string GetSQLHistoryLogTemplate()
         {
+            //=== OLD: COALESCE(MAX(AlbumImages.location), MAX(ArtistImages.location)) as Thumbnail,
+
             return @"
 SELECT t.id as Id, 
 GROUP_CONCAT(DISTINCT Artists.name) as Artists, 
@@ -630,8 +633,8 @@ t.date_file_deleted as DateFileDeleted,
 t.rating as Rating, 
 t.love as Love, 
 t.folder_id as FolderID,
-COALESCE(MAX(AlbumImages.location), ArtistImages.location) as Thumbnail,
-AlbumImages.location as Thumbnail,
+MAX(AlbumImages.location) as AlbumImage,
+MAX(ArtistImages.location) as ArtistImage,
 th.date_happened as DateHappened, 
 th.history_action_id as HistoryActionId #SELECT#
 FROM TrackHistory th

@@ -134,10 +134,9 @@ namespace Dopamine.Services.Metadata
         {
             byte[] artwork = null;
 
-            AlbumImage albumImage = infoRepository.GetAlbumImage(trackViewModel.Id);
-            if (albumImage != null)
+            if (trackViewModel.Data.AlbumImage != null)
             {
-                string artworkPath = fileStorage.GetRealPath(albumImage.Location);
+                string artworkPath = fileStorage.GetRealPath(trackViewModel.Data.AlbumImage);
                 if (!string.IsNullOrEmpty(artworkPath))
                 {
                     artwork = ImageUtils.Image2ByteArray(artworkPath, size, size);

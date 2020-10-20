@@ -151,7 +151,7 @@
                                             Converter="{StaticResource KeyToPathConverter}"
                                             ConverterParameter="{StaticResource DefaultImage}"
                                             IsAsync="True"
-                                            Path="GroupThumbnailSource" />
+                                            Path="GroupAlbumThumbnailSource" />
                                     </pc:SourceChangedImage.Source>
                                     <pc:SourceChangedImage.Triggers>
                                         <EventTrigger RoutedEvent="pc:SourceChangedImage.SourceChanged">
@@ -169,7 +169,7 @@
                                 </pc:SourceChangedImage>
                                 <StackPanel>
                                     <TextBlock
-                                        Text="{Binding GroupHeader}"
+                                        Text="{Binding GroupAlbumHeader}"
                                         DataContext="{Binding Items}"
                                         Margin="10,5,10,0"
                                         HorizontalAlignment="Stretch"
@@ -178,7 +178,7 @@
                                         TextTrimming="CharacterEllipsis"
                                         Foreground="{DynamicResource Brush_PrimaryText}" />
                                     <TextBlock
-                                        Text="{Binding GroupSubHeader}"
+                                        Text="{Binding GroupAlbumSubHeader}"
                                         DataContext="{Binding Items}"
                                         Margin="10,0,10,10"
                                         HorizontalAlignment="Stretch"
@@ -208,10 +208,10 @@
                             <ToolTip>
                                 <StackPanel>
                                     <TextBlock
-                                        Text="{Binding GroupHeader}"
+                                        Text="{Binding GroupAlbumHeader}"
                                         DataContext="{Binding Items}"
                                         FontWeight="Bold" />
-                                    <TextBlock Text="{Binding GroupSubHeader}" DataContext="{Binding Items}" />
+                                    <TextBlock Text="{Binding GroupAlbumSubHeader}" DataContext="{Binding Items}" />
                                 </StackPanel>
                             </ToolTip>
                         </Border.ToolTip>

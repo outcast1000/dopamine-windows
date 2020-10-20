@@ -81,7 +81,9 @@ namespace Dopamine.Data.Entities
 
         public string Language { get; set; }
 
-        public string Thumbnail { get; set; }
+        public string AlbumImage { get; set; }
+
+        public string ArtistImage { get; set; }
 
         // History
         public long? PlayCount { get; set; }
