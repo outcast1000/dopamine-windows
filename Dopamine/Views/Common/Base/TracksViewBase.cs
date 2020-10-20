@@ -64,39 +64,26 @@ namespace Dopamine.Views.Common.Base
                     return;
                 }
 
-                // The user double clicked a valid item
-                if (!enqueue)
-                {
-                    // The user just wants to play the selected item. Don't enqueue.
-                    if (lb.SelectedItem.GetType().Name == typeof(TrackViewModel).Name)
-                    {
-                        await this.playbackService.SetPlaylistPositionAsync(lb.SelectedIndex);
-                        //await this.playbackService.PlaySelectedAsync((TrackViewModel)lb.SelectedItem);
-                    }
-
-                    return;
-                };
-
                 // The user wants to enqueue tracks for the selected item
                 if (lb.SelectedItem.GetType().Name == typeof(TrackViewModel).Name)
                 {
-                    await this.playbackService.PlayTracksAndStartOnTrack(lb.Items.OfType<TrackViewModel>().ToList(), (TrackViewModel)lb.SelectedItem, PlaylistMode.Play);
+                    await this.playbackService.PlayTracksAndStartOnTrack(lb.Items.OfType<TrackViewModel>().ToList(), (TrackViewModel)lb.SelectedItem, enqueue ? PlaylistMode.Enqueue : PlaylistMode.Play);
                 }
                 else if (lb.SelectedItem.GetType().Name == typeof(ArtistViewModel).Name)
                 {
-                    await this.playbackService.PlayArtistsAsync(new List<ArtistViewModel> { ((ArtistViewModel)lb.SelectedItem) }, PlaylistMode.Play);
+                    await this.playbackService.PlayArtistsAsync(new List<ArtistViewModel> { ((ArtistViewModel)lb.SelectedItem) }, enqueue ? PlaylistMode.Enqueue : PlaylistMode.Play);
                 }
                 else if (lb.SelectedItem.GetType().Name == typeof(GenreViewModel).Name)
                 {
-                    await this.playbackService.PlayGenresAsync(new List<GenreViewModel> { ((GenreViewModel)lb.SelectedItem) }, PlaylistMode.Play);
+                    await this.playbackService.PlayGenresAsync(new List<GenreViewModel> { ((GenreViewModel)lb.SelectedItem) }, enqueue ? PlaylistMode.Enqueue : PlaylistMode.Play);
                 }
                 else if (lb.SelectedItem.GetType().Name == typeof(AlbumViewModel).Name)
                 {
-                    await this.playbackService.PlayAlbumsAsync(new List<AlbumViewModel> { (AlbumViewModel)lb.SelectedItem }, PlaylistMode.Play);
+                    await this.playbackService.PlayAlbumsAsync(new List<AlbumViewModel> { (AlbumViewModel)lb.SelectedItem }, enqueue ? PlaylistMode.Enqueue : PlaylistMode.Play);
                 }
                 else if (lb.SelectedItem.GetType().Name == typeof(PlaylistViewModel).Name)
                 {
-                    await this.playbackService.PlayPlaylistsAsync(new List<PlaylistViewModel> { (PlaylistViewModel)lb.SelectedItem }, PlaylistMode.Play);
+                    await this.playbackService.PlayPlaylistsAsync(new List<PlaylistViewModel> { (PlaylistViewModel)lb.SelectedItem }, enqueue ? PlaylistMode.Enqueue : PlaylistMode.Play);
                 }
             }
             catch (Exception ex)

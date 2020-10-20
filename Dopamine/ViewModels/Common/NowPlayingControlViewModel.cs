@@ -40,6 +40,22 @@ namespace Dopamine.ViewModels.Common
             await this.GetTracksCommonAsync(this.playbackService.Queue, TrackOrder.None);
         }
 
+        protected override void FilterLists(string searchText)
+        {
+            if (string.IsNullOrEmpty(searchText))
+            {
+                InSearchMode = false;
+                GetTracksAsync();
+            }
+            else
+            {
+                InSearchMode = true;
+                base.FilterLists(searchText);
+            }
+        }
+
+        public bool InSearchMode { get; set; }
+
         protected override async Task FillListsAsync()
         {
             // Not implemented here. We use our own LoadedCommandAsync here, because we need our own delay and tracks source.
