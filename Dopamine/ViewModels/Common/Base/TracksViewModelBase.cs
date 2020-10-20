@@ -285,7 +285,7 @@ namespace Dopamine.ViewModels.Common.Base
                 // Group by Album if needed
                 if (this.TrackOrder == TrackOrder.ByAlbum)
                 {
-                    this.TracksCvs.GroupDescriptions.Add(new PropertyGroupDescription("GroupHeader"));
+                    this.TracksCvs.GroupDescriptions.Add(new PropertyGroupDescription("GroupAlbumHeader"));
                 }
                 this.CalculateSizeInformationAsync(this.TracksCvs);
                 this.ShowPlayingTrackAsync();
