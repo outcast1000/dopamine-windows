@@ -606,8 +606,15 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             {
 
                 _ignoreSelectionChangedEvent = true;
-	            await GetItemsAsync();
-                await GetTracksAsync(SelectedArtists, null, null, TrackOrder);
+                if (string.IsNullOrEmpty(_searchString))
+                {
+                    await GetItemsAsync();
+                    await GetTracksAsync(SelectedArtists, null, null, TrackOrder);
+                }
+                else
+                {
+                    FilterLists(_searchString);
+                }
                 _ignoreSelectionChangedEvent = false;
             });
             
