@@ -14,6 +14,7 @@
     prismMvvm:ViewModelLocator.AutoWireViewModel="True">
 
     <UserControl.Resources>
+        <BitmapImage x:Key="DefaultImage" UriSource="/Resources/Media/no_album_image.png" />
         <DataTemplate DataType="{x:Type pv:CoverArtViewModel}">
             <Grid>
                 <Border
@@ -28,10 +29,15 @@
                             Fill="{DynamicResource Brush_CoverTileIcon}" />
                     </Viewbox>
                 </Border>
-                <Image
-                    Source="{Binding CoverArt, Converter={StaticResource NullImageConverter}}"
-                    Stretch="Fill"
-                    RenderOptions.BitmapScalingMode="HighQuality" />
+                <Image Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality">
+                    <Image.Source>
+                        <Binding
+                            Converter="{StaticResource KeyToPathConverter}"
+                            ConverterParameter="{StaticResource DefaultImage}"
+                            IsAsync="True"
+                            Path="CoverArt" />
+                    </Image.Source>
+                </Image>
             </Grid>
         </DataTemplate>
     </UserControl.Resources>
