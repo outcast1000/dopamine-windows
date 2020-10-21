@@ -17,11 +17,12 @@ namespace Dopamine.Converters
         }
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value == null || (!object.ReferenceEquals(value.GetType(), typeof(string))))
+            if (value == null || !(object.ReferenceEquals(value.GetType(), typeof(string)) || object.ReferenceEquals(value.GetType(), typeof(Byte[]))))
             {
                 return parameter;
             }
-
+            if (object.ReferenceEquals(value.GetType(), typeof(Byte[])))
+                return value;
             return fileStorage.GetRealPath(value.ToString());
         }
 
