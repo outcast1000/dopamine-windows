@@ -140,6 +140,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
         }
 
+
         public double RightPaneWidthPercent
         {
             get { return _rightPaneWidthPercent; }
@@ -149,6 +150,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 SettingsClient.Set<int>("ColumnWidths", Setting_RightPaneWidthPercent, Convert.ToInt32(value));
             }
         }
+
+        public bool InSearchMode { get { return !string.IsNullOrEmpty(_searchString); } }
 
         public CollectionViewSource ArtistsCvs
         {

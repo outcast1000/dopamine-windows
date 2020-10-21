@@ -49,14 +49,16 @@ namespace Dopamine.Views.FullPlayer.Collection
 
         private async void ListBoxTracks_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            await this.ActionHandler(sender, e.OriginalSource as DependencyObject, true, true);
+            CollectionAlbumsViewModel vm = (CollectionAlbumsViewModel)DataContext;
+            await this.ActionHandler(sender, e.OriginalSource as DependencyObject, false, !vm.InSearchMode);
         }
 
         private async void ListBoxTracks_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
-                await this.ActionHandler(sender, e.OriginalSource as DependencyObject, true, true);
+                CollectionAlbumsViewModel vm = (CollectionAlbumsViewModel)DataContext;
+                await this.ActionHandler(sender, e.OriginalSource as DependencyObject, false, !vm.InSearchMode);
             }
         }
 

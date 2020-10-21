@@ -114,6 +114,8 @@ namespace Dopamine.ViewModels.Common.Base
             set { SetProperty<double>(ref this.albumHeight, value); }
         }
 
+        public bool InSearchMode { get { return !string.IsNullOrEmpty(_searchString); } }
+
         public CollectionViewSource AlbumsCvs
         {
             get { return this.albumsCvs; }

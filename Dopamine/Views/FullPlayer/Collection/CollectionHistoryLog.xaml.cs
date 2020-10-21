@@ -19,6 +19,7 @@ using System.Reflection;
 using System.ComponentModel;
 using Dopamine.ViewModels.FullPlayer.Collection;
 using Dopamine.Services.Playback;
+using System.Collections.Generic;
 
 namespace Dopamine.Views.FullPlayer.Collection
 {
@@ -38,7 +39,7 @@ namespace Dopamine.Views.FullPlayer.Collection
 
         private async void DataGridRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            await this.ActionHandler(sender, null, false, true);
+            await this.ActionHandler(sender, null, false, false);
         }
 
         private async void DataGridTracks_KeyUp(object sender, KeyEventArgs e)
@@ -69,7 +70,11 @@ namespace Dopamine.Views.FullPlayer.Collection
             try
             {
                 var dg = VisualTreeUtils.FindAncestor<DataGrid>((DataGridRow)sender);
-                await this.playbackService.PlayTracksAndStartOnTrack(dg.Items.OfType<TrackViewModel>().ToList(), (TrackViewModel)dg.SelectedItem, enqueue ? PlaylistMode.Enqueue : PlaylistMode.Play);
+                if (includeTheRestOfTheList)
+                    await this.playbackService.PlayTracksAndStartOnTrack(dg.Items.OfType<TrackViewModel>().ToList(), (TrackViewModel)dg.SelectedItem, enqueue ? PlaylistMode.Enqueue : PlaylistMode.Play);
+                else
+                    await this.playbackService.PlayTracksAsync(new List<TrackViewModel>() { (TrackViewModel)dg.SelectedItem }, enqueue ? PlaylistMode.Enqueue : PlaylistMode.Play);
+
             }
             catch (Exception ex)
             {

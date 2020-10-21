@@ -78,7 +78,8 @@ namespace Dopamine.Views.FullPlayer.Collection
 
         private async void ListBoxTracks_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            await this.ActionHandler(sender, e.OriginalSource as DependencyObject, true, true);
+            CollectionArtistsViewModel vm = (CollectionArtistsViewModel)DataContext;
+            await this.ActionHandler(sender, e.OriginalSource as DependencyObject, false, !vm.InSearchMode);
         }
 
         private async void ListBoxTracks_KeyUp(object sender, KeyEventArgs e)
@@ -90,7 +91,8 @@ namespace Dopamine.Views.FullPlayer.Collection
         {
             if (e.Key == Key.Enter)
             {
-                await this.ActionHandler(sender, e.OriginalSource as DependencyObject, true, true);
+                CollectionArtistsViewModel vm = (CollectionArtistsViewModel)DataContext;
+                await this.ActionHandler(sender, e.OriginalSource as DependencyObject, false, !vm.InSearchMode);
             }
         }
 

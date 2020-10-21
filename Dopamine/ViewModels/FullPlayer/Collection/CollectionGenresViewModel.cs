@@ -98,6 +98,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
         }
 
+        public bool InSearchMode { get { return !string.IsNullOrEmpty(_searchString); } }
+
         public CollectionViewSource GenresCvs
         {
             get { return _collectionViewSource; }
