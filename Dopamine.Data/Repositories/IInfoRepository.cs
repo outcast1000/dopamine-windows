@@ -26,9 +26,10 @@ namespace Dopamine.Data.Repositories
         bool SetArtistBiography(ArtistBiography artistBiography);
 
         // GENRE
-        IList<GenreImage> GetGenreImages();
+        //IList<GenreImage> GetGenreImages(long artist_id);
 
         // TRACK
+        TrackLyrics GetTrackLyrics(long track_id);
         bool SetTrackLyrics(TrackLyrics lyrics, bool bReplaceMode);
         bool RemoveTrackLyrics(long track_id);
 

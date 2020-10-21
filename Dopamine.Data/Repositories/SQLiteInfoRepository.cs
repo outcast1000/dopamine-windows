@@ -231,6 +231,24 @@ namespace Dopamine.Data.Repositories
 
         }
 
+
+        public TrackLyrics GetTrackLyrics(long track_id)
+        {
+            IList<TrackLyrics> list = GetInternal<TrackLyrics>(@"
+SELECT 
+track_id, 
+lyrics, 
+source, 
+language,
+date_added
+from TrackLyrics
+WHERE track_id = ?
+                ", track_id);
+            if (list.Count == 1)
+                return list[0];
+            return null;
+        }
+
         public bool SetTrackLyrics(TrackLyrics lyrics, bool bReplaceMode)
         {
             Debug.Assert(lyrics.TrackId > 0);
