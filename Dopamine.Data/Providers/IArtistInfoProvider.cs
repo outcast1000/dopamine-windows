@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dopamine.Data.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,6 +11,7 @@ namespace Dopamine.Data.Providers
     {
         public T Data;
         public string Origin;
+        public OriginType OriginType = OriginType.Unknown; 
     }
 
     public enum InfoProviderResult{

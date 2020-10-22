@@ -218,7 +218,6 @@ namespace Dopamine.ViewModels.Common
             {
                 await Task.Run(async () =>
                 {
-                    Lyrics lyrics = null;
                     bool bLyricsAlreadyInDatabase = false;
                     TrackLyrics trackLyrics = infoRepository.GetTrackLyrics(track.Id);
                     // No FileMetadata available: clear the lyrics.
@@ -228,7 +227,6 @@ namespace Dopamine.ViewModels.Common
                     }
                     else
                     {
-                        lyrics = new Lyrics(trackLyrics.Lyrics, trackLyrics.Source, SourceTypeEnum.Online);
                         bLyricsAlreadyInDatabase = true;
                     }
 
@@ -236,7 +234,7 @@ namespace Dopamine.ViewModels.Common
                     //lyrics = new Lyrics(trackLyrics.Lyrics, trackLyrics.Source, SourceTypeEnum.Online);
 
                     // If the audio file has no lyrics, try to find lyrics in a local lyrics file.
-                    if (lyrics == null)
+                    if (trackLyrics == null)
                     {
                         var lrcFile = Path.Combine(Path.GetDirectoryName(track.Path), Path.GetFileNameWithoutExtension(track.Path) + FileFormats.LRC);
 
@@ -249,13 +247,13 @@ namespace Dopamine.ViewModels.Common
                                     string lyricstext = await sr.ReadToEndAsync();
                                     if (!string.IsNullOrEmpty(lyricstext))
                                     {
-                                        lyrics = new Lyrics(await sr.ReadToEndAsync(), String.Empty, SourceTypeEnum.Lrc);
+                                        trackLyrics = new TrackLyrics() { Lyrics = await sr.ReadToEndAsync(), Origin = String.Empty, OriginType = OriginType.ExternalFile };
                                     }
                                 }
                             }
                         }
                     }
-                    if (lyrics == null)
+                    if (trackLyrics == null)
                     {
                         // If we still don't have lyrics and the user enabled automatic download of lyrics: try to download them online.
                         if (SettingsClient.Get<bool>("Lyrics", "DownloadLyrics"))
@@ -263,8 +261,11 @@ namespace Dopamine.ViewModels.Common
                             this.IsDownloadingLyrics = true;
                             try
                             {
-                                lyrics = await this.lyricsFactory.GetLyricsAsync(track.ArtistName, track.TrackTitle);
-                                lyrics.SourceType = SourceTypeEnum.Online;
+                                Lyrics lyrics = await this.lyricsFactory.GetLyricsAsync(track.ArtistName, track.TrackTitle);
+                                if (lyrics != null && lyrics.HasText)
+                                {
+                                    trackLyrics = new TrackLyrics() { Lyrics = lyrics.Text, Origin = lyrics.Source, OriginType = OriginType.Internet };
+                                }
                             }
                             catch (Exception ex)
                             {
@@ -274,13 +275,13 @@ namespace Dopamine.ViewModels.Common
                             this.IsDownloadingLyrics = false;
                         }
                     }
-                    if (lyrics != null)
+                    if (trackLyrics != null)
                     {
                         this.LyricsViewModel = new LyricsViewModel(container, track);
-                        this.LyricsViewModel.SetLyrics(lyrics);
+                        this.LyricsViewModel.SetLyrics(new Lyrics(trackLyrics.Lyrics, trackLyrics.Origin));
                         if (!bLyricsAlreadyInDatabase)
                         {
-                            infoRepository.SetTrackLyrics(new TrackLyrics() { TrackId = track.Id, Lyrics = lyrics.Text, Source = lyrics.Source, DateAdded = DateTime.Now.Ticks }, true);
+                            infoRepository.SetTrackLyrics(trackLyrics, true);
                         }
                     }
                 });

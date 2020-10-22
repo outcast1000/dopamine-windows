@@ -256,7 +256,8 @@ namespace Dopamine.Services.Metadata
                     AlbumId = albumViewModel.Id,
                     //Location = "cache://" + artworkID,
                     DateAdded = DateTime.Now.Ticks,
-                    Source = "[EDIT]"
+                    Origin = String.Empty,
+                    OriginType = OriginType.User
                 }, true);
                 //albumViewModel.Id, "cache://" + artworkID, len, null, "[file]", true);
             }

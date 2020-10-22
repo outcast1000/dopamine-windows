@@ -155,14 +155,17 @@ namespace Dopamine.Data.UnitOfWorks
             {
                 try
                 {
-                    conn.Insert(new TrackLyrics()
+                    int ret = conn.Insert(new TrackLyrics()
                     {
                         TrackId = (long)result.TrackId,
                         Lyrics = mediaFileData.Lyrics.Text,
-                        Source = mediaFileData.Lyrics.Source,
+                        Origin = mediaFileData.Lyrics.Source,
+                        OriginType = OriginType.File,
                         DateAdded = DateTime.Now.Ticks,
                         Language = mediaFileData.Lyrics.Language
-                    }); ;
+                    });
+                    Debug.Assert(ret > 0, "Insert Failed");
+
                 }
                 catch (SQLiteException ex)
                 {
@@ -283,14 +286,16 @@ namespace Dopamine.Data.UnitOfWorks
             {
                 try
                 {
-                    conn.Insert(new TrackLyrics()
+                    int ret = conn.Insert(new TrackLyrics()
                     {
                         TrackId = track_id,
                         Lyrics = mediaFileData.Lyrics.Text,
-                        Source = mediaFileData.Lyrics.Source,
+                        Origin = mediaFileData.Lyrics.Source,
+                        OriginType = OriginType.File,
                         DateAdded = DateTime.Now.Ticks,
                         Language = mediaFileData.Lyrics.Language
-                    }); ;
+                    });
+                    Debug.Assert(ret > 0, "Insert Failed");
                 }
                 catch (SQLite.SQLiteException ex)
                 {

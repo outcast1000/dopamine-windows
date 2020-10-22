@@ -14,17 +14,17 @@ namespace Dopamine.Converters
         {
             if (value == null)
                 return null;
-            switch ((HistoryActionEnum)value)
+            switch ((HistoryActionType)value)
             {
-                case HistoryActionEnum.Executed:
+                case HistoryActionType.Executed:
                     return "\uE8B0";
-                case HistoryActionEnum.Played:
+                case HistoryActionType.Played:
                     return "\uE768";
-                case HistoryActionEnum.Skipped:
+                case HistoryActionType.Skipped:
                     return "\uE711";
-                case HistoryActionEnum.Loved:
+                case HistoryActionType.Loved:
                     return "\uEB51";
-                case HistoryActionEnum.Rated:
+                case HistoryActionType.Rated:
                     return "\uF0E8";
                 default:
                     Debug.Assert(false, "Out of bounds - Should not happen");

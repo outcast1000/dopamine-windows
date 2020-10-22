@@ -80,6 +80,7 @@ namespace Dopamine.Data
 
                 conn.Execute("DROP TABLE IF EXISTS Folders;");
                 conn.Execute("DROP TABLE IF EXISTS HistoryActions;");
+                conn.Execute("DROP TABLE IF EXISTS OriginTypes;");
 
                 Logger.Debug("CreateTablesAndIndexes_v2: CREATING TABLES");
 
@@ -101,17 +102,21 @@ namespace Dopamine.Data
                 conn.Execute("CREATE TABLE ArtistBiographies (" +
                             "artist_id          INTEGER PRIMARY KEY," +
                             "biography          TEXT NOT NULL," +
-                            "source             TEXT," +
+                            "origin             TEXT," +
+                            "origin_type_id     INTEGER," +
                             "language           TEXT," +
                             "date_added         INTEGER NOT NULL," +
+                            "FOREIGN KEY(origin_type_id) REFERENCES OriginTypes(id)," +
                             "FOREIGN KEY (artist_id) REFERENCES Artists(id));");
 
                 //=== ArtistImages: (One 2 many) Each artist may have multiple images (but only one primary)
                 conn.Execute("CREATE TABLE ArtistImages (" +
                             "artist_id          INTEGER NOT NULL PRIMARY KEY," +
                             "location           TEXT NOT NULL," + //=== May be cache://
-                            "source             TEXT," +
+                            "origin             TEXT," +
+                            "origin_type_id     INTEGER," +
                             "date_added         INTEGER NOT NULL," +
+                            "FOREIGN KEY(origin_type_id) REFERENCES OriginTypes(id)," +
                             "FOREIGN KEY(artist_id) REFERENCES Artists(id));");
 
                 //conn.Execute("CREATE INDEX AlbumImagesIsPrimaryIndex ON AlbumImages(is_primary);"); //=== ALEX: FOR SOME REASON WHEN THIS IS ENABLED many queries that have is_primary=1 becomes 1000 times more slow
@@ -152,17 +157,21 @@ namespace Dopamine.Data
                 conn.Execute("CREATE TABLE AlbumReviews (" +
                             "album_id           INTEGER PRIMARY KEY," +
                             "review             TEXT NOT NULL," +
-                            "source             TEXT," +
+                            "origin             TEXT," +
+                            "origin_type_id     INTEGER," +
                             "language           TEXT," +
                             "date_added         INTEGER NOT NULL," +
+                            "FOREIGN KEY(origin_type_id) REFERENCES OriginTypes(id)," +
                             "FOREIGN KEY(album_id) REFERENCES Albums(id));");
 
                 //=== AlbumImages: (One 2 many) Each album may have multiple images
                 conn.Execute("CREATE TABLE AlbumImages (" +
                             "album_id           INTEGER PRIMARY KEY," +
                             "location           TEXT NOT NULL," + //=== May be cache://
-                            "source             TEXT," +
+                            "origin             TEXT," +
+                            "origin_type_id     INTEGER," +
                             "date_added         INTEGER NOT NULL," +
+                            "FOREIGN KEY(origin_type_id) REFERENCES OriginTypes(id)," + 
                             "FOREIGN KEY(album_id) REFERENCES Albums(id));");
 
                 //=== AlbumImageFailed: (One 2 many) Each Album may have mutltipe failed indexing record (one per provider)
@@ -182,8 +191,10 @@ namespace Dopamine.Data
                 conn.Execute("CREATE TABLE GenreImages (" +
                             "genre_id           INTEGER PRIMARY KEY," +
                             "location           TEXT NOT NULL," +
-                            "source             TEXT," +
+                            "origin             TEXT," +
+                            "origin_type_id     INTEGER," +
                             "date_added         INTEGER NOT NULL," +
+                            "FOREIGN KEY(origin_type_id) REFERENCES OriginTypes(id)," +
                             "FOREIGN KEY (genre_id) REFERENCES Genres(id));");
 
                 //=== Folders:
@@ -238,7 +249,7 @@ namespace Dopamine.Data
                             "id                 INTEGER PRIMARY KEY AUTOINCREMENT," +
                             "name               TEXT NOT NULL);");
 
-                conn.Execute("INSERT INTO ArtistRoles (name) VALUES ('Composer'), ('Producer'), ('Mixing');");
+                conn.Execute("INSERT INTO ArtistRoles (name) VALUES ('General'),('Composer'), ('Producer'), ('Mixing');");
 
                 //=== TrackArtists: (Many 2 Many) Many Tracks may belong to the same Artist. Many Artists may have collaborate to the same track
                 conn.Execute("CREATE TABLE TrackArtists (" +
@@ -285,9 +296,11 @@ namespace Dopamine.Data
                 conn.Execute("CREATE TABLE TrackLyrics (" +
                             "track_id           INTEGER PRIMARY KEY," +
                             "lyrics             TEXT NOT NULL COLLATE NOCASE," +
-                            "source             TEXT," +
+                            "origin             TEXT," +
+                            "origin_type_id     INTEGER," +
                             "language           TEXT," +
                             "date_added         INTEGER NOT NULL," +
+                            "FOREIGN KEY(origin_type_id) REFERENCES OriginTypes(id)," +
                             "FOREIGN KEY (track_id) REFERENCES Tracks(id));");
 
 
@@ -297,6 +310,13 @@ namespace Dopamine.Data
                             "name               TEXT NOT NULL);");
 
                 conn.Execute("INSERT INTO HistoryActions (name) VALUES ('Executed'), ('Played'), ('Skipped'), ('Rated'), ('Loved');");
+
+                //=== HistoryActions: Should include Added, Deleted, Modified, Played, AutoPlayed, Skipped, Rated, Loved
+                conn.Execute("CREATE TABLE OriginTypes (" +
+                            "id                 INTEGER PRIMARY KEY AUTOINCREMENT," +
+                            "name               TEXT NOT NULL);");
+
+                conn.Execute("INSERT INTO OriginTypes (name) VALUES ('Unknown'), ('File'), ('ExternalFile'), ('Internet'), ('User');");
 
 
                 //=== History:
@@ -318,7 +338,7 @@ namespace Dopamine.Data
                             "plays                  INTEGER," +
                             "skips                  INTEGER," +
                             "executes               INTEGER," +
-                            "fist_played            INTEGER," +
+                            "first_played           INTEGER," +
                             "last_played            INTEGER," +
                             "FOREIGN KEY (track_id) REFERENCES Tracks(id));");
 
@@ -437,7 +457,7 @@ namespace Dopamine.Data
                                         AlbumId = (long)addMediaFileResult.AlbumId,
                                         DateAdded = DateTime.Now.Ticks,
                                         Location = location,
-                                        Source = "[MIGRATION]"
+                                        OriginType = OriginType.Unknown
                                     };
                                     infoRepository.SetAlbumImage(albumImage, false);
                                 }

@@ -13,17 +13,17 @@ namespace Dopamine.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            switch ((HistoryActionEnum)value)
+            switch ((HistoryActionType)value)
             {
-                case HistoryActionEnum.Executed:
+                case HistoryActionType.Executed:
                     return ResourceUtils.GetString("Language_Executed");
-                case HistoryActionEnum.Played:
+                case HistoryActionType.Played:
                     return ResourceUtils.GetString("Language_Played");
-                case HistoryActionEnum.Skipped:
+                case HistoryActionType.Skipped:
                     return ResourceUtils.GetString("Language_Skipped");
-                case HistoryActionEnum.Loved:
+                case HistoryActionType.Loved:
                     return ResourceUtils.GetString("Language_Loved");
-                case HistoryActionEnum.Rated:
+                case HistoryActionType.Rated:
                     return ResourceUtils.GetString("Language_Rated");
                 default:
                     Debug.Assert(false, "Out of bounds - Should not happen");

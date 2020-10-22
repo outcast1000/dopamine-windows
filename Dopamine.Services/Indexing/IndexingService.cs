@@ -216,7 +216,8 @@ namespace Dopamine.Services.Indexing
                         ArtistId = requestedArtist.Id,
                         DateAdded = DateTime.Now.Ticks,
                         Location = cacheId,
-                        Source = data.Images[0].Origin
+                        Origin = data.Images[0].Origin,
+                        OriginType = OriginType.Internet
                     });
                     bImageAdded = true;
                 }
@@ -227,7 +228,8 @@ namespace Dopamine.Services.Indexing
                         ArtistId = requestedArtist.Id,
                         DateAdded = DateTime.Now.Ticks,
                         Biography = data.Biography.Data,
-                        Source = data.Biography.Origin
+                        Origin = data.Biography.Origin,
+                        OriginType = OriginType.Internet
                     });
                 }
 
@@ -251,7 +253,8 @@ namespace Dopamine.Services.Indexing
                         AlbumId = requestedAlbum.Id,
                         DateAdded = DateTime.Now.Ticks,
                         Location = cacheId,
-                        Source = data.Images[0].Origin
+                        Origin = data.Images[0].Origin,
+                        OriginType = OriginType.Internet
                     }, true);
                     bImageAdded = true;
                 }
@@ -262,7 +265,8 @@ namespace Dopamine.Services.Indexing
                         AlbumId = requestedAlbum.Id,
                         DateAdded = DateTime.Now.Ticks,
                         Review = data.Review.Data,
-                        Source = data.Review.Origin
+                        Origin = data.Review.Origin,
+                        OriginType = OriginType.Internet
                     });
                 }
             }
@@ -398,7 +402,8 @@ namespace Dopamine.Services.Indexing
                 AlbumId = albumId,
                 DateAdded = DateTime.Now.Ticks,
                 Location = location,
-                Source = "[TAG]"
+                Origin = String.Empty,
+                OriginType = OriginType.File
             }, false);
         }
 
@@ -412,7 +417,8 @@ namespace Dopamine.Services.Indexing
             {
                 TrackId = trackId,
                 DateAdded = DateTime.Now.Ticks,
-                Source = "[TAG]",
+                OriginType = OriginType.File,
+                Origin = String.Empty,
                 Lyrics = fileMetadata.Lyrics.Value
             }, false);
         }
@@ -544,7 +550,8 @@ namespace Dopamine.Services.Indexing
                                 if (result.AlbumId.HasValue)
                                     AddAlbumImageIfNecessary((long)result.AlbumId, fileMetadata);
                                 //=== Add Lyrics
-                                AddTrackLyrics((long)result.TrackId, fileMetadata);
+                                // Lyrics are already added in uc.AddMediaFile
+                                //AddTrackLyrics((long)result.TrackId, fileMetadata);
                             }
                         }
                         else

@@ -30,7 +30,8 @@ namespace Dopamine.Data.Repositories
             return GetInternal<AlbumImage>(@"SELECT 
                 album_id, 
                 location, 
-                source, 
+                origin, 
+                origin_type_id, 
                 date_added
                 from AlbumImages
                 ");
@@ -41,7 +42,8 @@ namespace Dopamine.Data.Repositories
             IList<AlbumImage> images = GetInternal<AlbumImage>(@"SELECT 
                 album_id, 
                 location, 
-                source, 
+                origin, 
+                origin_type_id, 
                 date_added
                 from AlbumImages
                 WHERE album_id=?
@@ -58,7 +60,8 @@ namespace Dopamine.Data.Repositories
                         SELECT
                         AlbumImages.album_id, 
                         AlbumImages.location, 
-                        AlbumImages.source, 
+                        AlbumImages.origin, 
+                        AlbumImages.origin_type_id, 
                         AlbumImages.date_added
                         FROM AlbumImages
                         INNER JOIN TrackAlbums ON TrackAlbums.album_id = AlbumImages.album_id
@@ -122,7 +125,8 @@ namespace Dopamine.Data.Repositories
             return GetInternal<ArtistImage>(@"SELECT 
                 artist_id, 
                 location, 
-                source, 
+                origin, 
+                origin_type_id, 
                 date_added
                 from ArtistImages
                 ");
@@ -133,7 +137,8 @@ namespace Dopamine.Data.Repositories
             return GetInternal<GenreImage>(@"SELECT 
                 genre_id, 
                 location, 
-                source, 
+                origin, 
+                origin_type_id, 
                 date_added
                 from GenreImages
                 ");
@@ -170,14 +175,22 @@ namespace Dopamine.Data.Repositories
             string insert = "INSERT";
             if (bReplaceMode)
                 insert = "INSERT OR REPLACE";
-            return ExecuteInternal(insert + " INTO AlbumImages (album_id, location, source, date_added) VALUES (?,?,?,?)", image.AlbumId, image.Location, image.Source, DateTime.Now.Ticks) > 0;
+            if (image.DateAdded == 0)
+                image.DateAdded = DateTime.Now.Ticks;
+            bool ret = ExecuteInternal(insert + " INTO AlbumImages (album_id, location, origin, origin_type_id, date_added) VALUES (?,?,?,?,?)", image.AlbumId, image.Location, image.Origin, image.OriginType, image.DateAdded) > 0;
+            Debug.Assert(ret, "Insert Failed");
+            return ret;
         }
         public bool SetArtistImage(ArtistImage image)
         {
             Debug.Assert(image.ArtistId > 0);
             Debug.Assert(image.Location.Length > 10);
             Logger.Debug("SetArtistImage {0}", image.Location);
-            return ExecuteInternal("INSERT OR REPLACE INTO ArtistImages (artist_id, location, source, date_added) VALUES (?,?,?,?)", image.ArtistId, image.Location, image.Source, DateTime.Now.Ticks) > 0;
+            if (image.DateAdded == 0)
+                image.DateAdded = DateTime.Now.Ticks;
+            bool ret = ExecuteInternal("INSERT OR REPLACE INTO ArtistImages (artist_id, location, origin, origin_type_id, date_added) VALUES (?,?,?,?,?)", image.ArtistId, image.Location, image.Origin, image.OriginType, image.DateAdded) > 0;
+            Debug.Assert(ret, "Insert Failed");
+            return ret;
         }
 
         public bool SetAlbumImageFailed(AlbumV album)
@@ -217,8 +230,11 @@ namespace Dopamine.Data.Repositories
             Debug.Assert(albumReview.AlbumId > 0);
             Debug.Assert(albumReview.Review.Length > 0);
             Logger.Debug($"SetAlbumReview albumID:{albumReview.AlbumId}");
-            return ExecuteInternal("INSERT OR REPLACE INTO AlbumReviews (album_id, review, source, language, date_added) VALUES (?,?,?,?,?)",
-                albumReview.AlbumId, albumReview.Review, albumReview.Source, albumReview.Language, albumReview.DateAdded) > 0;
+            bool ret = ExecuteInternal("INSERT OR REPLACE INTO AlbumReviews (album_id, review, origin, origin_type_id, language, date_added) VALUES (?,?,?,?,?,?)",
+                albumReview.AlbumId, albumReview.Review, albumReview.Origin, albumReview.OriginType, albumReview.Language, albumReview.DateAdded) > 0;
+            Debug.Assert(ret, "Insert Failed");
+            return ret;
+
         }
 
         public bool SetArtistBiography(ArtistBiography artistBiography)
@@ -226,8 +242,10 @@ namespace Dopamine.Data.Repositories
             Debug.Assert(artistBiography.ArtistId > 0);
             Debug.Assert(artistBiography.Biography.Length > 0);
             Logger.Debug($"SetArtistBiography artistID:{artistBiography.ArtistId}");
-            return ExecuteInternal("INSERT OR REPLACE INTO ArtistBiographies (artist_id, biography, source, language, date_added) VALUES (?,?,?,?,?)", 
-                artistBiography.ArtistId, artistBiography.Biography, artistBiography.Source, artistBiography.Language, artistBiography.DateAdded) > 0;
+            bool ret = ExecuteInternal("INSERT OR REPLACE INTO ArtistBiographies (artist_id, biography, origin, origin_type_id, language, date_added) VALUES (?,?,?,?,?,?)", 
+                artistBiography.ArtistId, artistBiography.Biography, artistBiography.Origin, artistBiography.OriginType, artistBiography.Language, artistBiography.DateAdded) > 0;
+            Debug.Assert(ret, "Insert Failed");
+            return ret;
 
         }
 
@@ -238,7 +256,8 @@ namespace Dopamine.Data.Repositories
 SELECT 
 track_id, 
 lyrics, 
-source, 
+origin,
+origin_type_id, 
 language,
 date_added
 from TrackLyrics
@@ -257,8 +276,12 @@ WHERE track_id = ?
             string insert = "INSERT";
             if (bReplaceMode)
                 insert = "INSERT OR REPLACE";
-            return ExecuteInternal(insert + " INTO TrackLyrics (track_id, lyrics, source, language, date_added) VALUES (?,?,?,?,?)",
-                lyrics.TrackId, lyrics.Lyrics, lyrics.Source, lyrics.Language, lyrics.DateAdded) > 0;
+            if (lyrics.DateAdded == 0)
+                lyrics.DateAdded = DateTime.Now.Ticks;
+            bool ret = ExecuteInternal(insert + " INTO TrackLyrics (track_id, lyrics, origin, origin_type_id, language, date_added) VALUES (?,?,?,?,?,?)",
+                lyrics.TrackId, lyrics.Lyrics, lyrics.Origin, lyrics.OriginType, lyrics.Language, lyrics.DateAdded) > 0;
+            Debug.Assert(ret, "Insert Failed");
+            return ret;
         }
 
 

@@ -13,8 +13,11 @@ namespace Dopamine.Data.Entities
         [Column("lyrics"), NotNull()]
         public string Lyrics { get; set; }
 
-        [Column("source")]
-        public string Source { get; set; }
+        [Column("origin")]
+        public string Origin { get; set; }
+
+        [Column("origin_type_id")]
+        public OriginType OriginType { get; set; }
 
         [Column("language")]
         public string Language { get; set; }

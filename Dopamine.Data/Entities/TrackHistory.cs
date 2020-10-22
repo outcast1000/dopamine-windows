@@ -16,7 +16,7 @@ namespace Dopamine.Data.Entities
         public long TrackId { get; set; }
 
         [Column("history_action_id"), Indexed(), NotNull()]
-        public long HistoryActionId { get; set; }
+        public HistoryActionType HistoryActionId { get; set; }
 
         [Column("history_action_extra")]
         public string HistoryActionExtra{ get; set; }

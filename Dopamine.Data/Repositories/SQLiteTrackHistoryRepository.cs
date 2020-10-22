@@ -5,14 +5,6 @@ using System.Threading.Tasks;
 
 namespace Dopamine.Data.Repositories
 {
-    public enum HistoryRepositoryActions
-    {
-        Executed = 1,
-        Played = 2,
-        Skipped = 3,
-        Rated = 4,
-        Loved = 5
-    };
     public class SQLiteTrackHistoryRepository: ITrackHistoryRepository
     {
         private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
@@ -30,21 +22,21 @@ namespace Dopamine.Data.Repositories
             public long FirstDate { get; set; }
     }
 
-        private void AddAction(HistoryRepositoryActions action, long trackId, string jsonExtra = null)
+        private void AddAction(HistoryActionType action, long trackId, string jsonExtra = null)
         {
             using (var conn = this.factory.GetConnection())
             {
                 try
                 {
                     conn.BeginTransaction();
-                    conn.Insert(new TrackHistory { TrackId = trackId, DateHappened = DateTime.Now.Ticks, HistoryActionId = (int) action, HistoryActionExtra = jsonExtra });
+                    conn.Insert(new TrackHistory { TrackId = trackId, DateHappened = DateTime.Now.Ticks, HistoryActionId = action, HistoryActionExtra = jsonExtra });
                     switch (action)
                     {
-                        case HistoryRepositoryActions.Executed:
-                        case HistoryRepositoryActions.Played:
-                        case HistoryRepositoryActions.Skipped:
+                        case HistoryActionType.Executed:
+                        case HistoryActionType.Played:
+                        case HistoryActionType.Skipped:
                             ActionStats actionStats = conn.FindWithQuery<ActionStats>("SELECT COUNT(*) as Actions, MAX(date_happened) as LastDate, MIN(date_happened) as FirstDate FROM TrackHistory WHERE track_id=? AND history_action_id=? GROUP BY track_id", trackId, (int)action);
-                            if (action == HistoryRepositoryActions.Played)
+                            if (action == HistoryActionType.Played)
                             {
                                 conn.Execute(@"
 INSERT INTO TrackHistoryStats 
@@ -53,7 +45,7 @@ VALUES (?,?,?,?)
 ON CONFLICT (track_id) DO UPDATE SET plays=excluded.plays, first_played=excluded.first_played, last_played=excluded.last_played"
                                 , trackId, actionStats.Actions, actionStats.FirstDate, actionStats.LastDate);
                             }
-                            else if (action == HistoryRepositoryActions.Skipped)
+                            else if (action == HistoryActionType.Skipped)
                             {
                                 conn.Execute(@"
 INSERT INTO TrackHistoryStats 
@@ -62,7 +54,7 @@ VALUES (?,?)
 ON CONFLICT (track_id) DO UPDATE SET skips=excluded.skips"
                                 , trackId, actionStats.Actions);
                             }
-                            else if (action == HistoryRepositoryActions.Executed)
+                            else if (action == HistoryActionType.Executed)
                             {
                                 conn.Execute(@"
 INSERT OR IGNORE INTO TrackHistoryStats 
@@ -89,24 +81,24 @@ ON CONFLICT (track_id) DO UPDATE SET skips=excluded.executes"
 
         public void AddExecuted(long trackId)
         {
-            AddAction(HistoryRepositoryActions.Executed, trackId);
+            AddAction(HistoryActionType.Executed, trackId);
         }
         public void AddPlayedAction(long trackId)
         {
-            AddAction(HistoryRepositoryActions.Played, trackId, null);
+            AddAction(HistoryActionType.Played, trackId, null);
         }
         public void AddSkippedAction(long trackId, string reason)
         {
-            AddAction(HistoryRepositoryActions.Skipped, trackId, $"{{\"reason\":\"{reason}\"}}");
+            AddAction(HistoryActionType.Skipped, trackId, $"{{\"reason\":\"{reason}\"}}");
         }
 
         public void AddRateAction(long trackId, long rate)
         {
-            AddAction(HistoryRepositoryActions.Rated, trackId, $"{{\"rate\":{rate}}}");
+            AddAction(HistoryActionType.Rated, trackId, $"{{\"rate\":{rate}}}");
         }
         public void AddLoveAction(long trackId, bool love)
         {
-            AddAction(HistoryRepositoryActions.Loved, trackId, $"{{\"love\":{love}}}");
+            AddAction(HistoryActionType.Loved, trackId, $"{{\"love\":{love}}}");
         }
 
 
