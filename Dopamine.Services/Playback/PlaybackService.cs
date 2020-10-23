@@ -1124,10 +1124,12 @@ namespace Dopamine.Services.Playback
                     return;
                 int playListPosition = int.Parse(generalRepository.GetValue(GeneralRepositoryKeys.PlayListPosition, "-1"));
                 IList<TrackViewModel> existingTrackViewModels = await this.container.ResolveTrackViewModelsAsync(existingTracks);
-
-                await this.PlayTracksAsync(existingTrackViewModels, PlaylistMode.Play);
-                if (playListPosition != -1)
+                
+                await this.PlayTracksAsync(existingTrackViewModels, PlaylistMode.Enqueue);
+                if (playListPosition >= 0 && playListPosition < existingTrackViewModels.Count)
+                {
                     queueManager.Position = playListPosition;
+                }
 
                 if (!SettingsClient.Get<bool>("Startup", "RememberLastPlayedTrack"))
                 {
