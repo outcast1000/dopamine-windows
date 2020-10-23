@@ -68,7 +68,7 @@ namespace Dopamine.Services.Indexing
                 catch
                 {
                     ThreadPool.UnsafeQueueUserWorkItem(ProcessQueuedItems, null);
-                    InfoDownloaded(item.Album, null);
+                    InfoDownloaded(item.Album, new AlbumInfoProviderData() { result = InfoProviderResult.Fail_Generic });
                     throw;
                 }
             }

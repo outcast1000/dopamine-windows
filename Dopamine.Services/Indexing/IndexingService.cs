@@ -344,17 +344,17 @@ namespace Dopamine.Services.Indexing
             return null;
         }
 
-        private MediaFileData GetMediaFileData(FileMetadata fileMetadata, string path)
+        private MediaFileData GetMediaFileData(FileMetadata fileMetadata)
         {
             MediaFileData mediaFileData = new MediaFileData()
             {
-                Path = path,
-                Filesize = FileUtils.SizeInBytes(path),
+                Path = fileMetadata.Path,
+                Filesize = FileUtils.SizeInBytes(fileMetadata.Path),
                 Language = null,
                 DateAdded = DateTime.Now.Ticks,
                 Love = null,
-                DateFileCreated = FileUtils.DateCreatedTicks(path),
-                DateFileModified = FileUtils.DateModifiedTicks(path),
+                DateFileCreated = FileUtils.DateCreatedTicks(fileMetadata.Path),
+                DateFileModified = FileUtils.DateModifiedTicks(fileMetadata.Path),
                 DateFileDeleted = null,
                 DateIgnored = null
             };
@@ -378,10 +378,10 @@ namespace Dopamine.Services.Indexing
             }
             else
             {
-                mediaFileData.Name = Path.GetFileNameWithoutExtension(path);
+                mediaFileData.Name = Path.GetFileNameWithoutExtension(fileMetadata.Path);
             }
             if (string.IsNullOrEmpty(mediaFileData.Name))
-                mediaFileData.Name = Path.GetFileNameWithoutExtension(path);
+                mediaFileData.Name = Path.GetFileNameWithoutExtension(fileMetadata.Path);
             return mediaFileData;
         }
 
@@ -531,7 +531,7 @@ namespace Dopamine.Services.Indexing
                     }
                     //=== Get File Info
                     FileMetadata fileMetadata = GetFileMetadata(path);
-                    MediaFileData mediaFileData = GetMediaFileData(fileMetadata, path);
+                    MediaFileData mediaFileData = GetMediaFileData(fileMetadata);
 
                     if (trackV == null)
                     {
@@ -618,6 +618,49 @@ namespace Dopamine.Services.Indexing
             });
             Logger.Debug($"Refreshing collection finished in {tcRefreshCollection.GetMs(true)}. Stats: {stats}");
             return stats;
+        }
+
+        public bool UpdateFile(FileMetadata fileMetadata)
+        {
+            //=== Check the DB for the path
+            TrackV trackV = trackVRepository.GetTrackWithPath(fileMetadata.Path, new QueryOptions() { WhereDeleted = QueryOptionsBool.Ignore, WhereInACollection = QueryOptionsBool.Ignore, WhereVisibleFolders = QueryOptionsBool.Ignore, WhereIgnored = QueryOptionsBool.Ignore });
+            if (trackV == null)
+            {
+                Logger.Warn($"UpdateFile. File not found in DB {fileMetadata.Path}");
+                return false;
+            }
+            MediaFileData mediaFileData = GetMediaFileData(fileMetadata);
+            // If we update the file we do not want to change these Dates
+            mediaFileData.DateAdded = trackV.DateAdded;
+            mediaFileData.DateIgnored = trackV.DateIgnored;
+            // If the file was previously deleted then now it seem that i re-emerged
+            mediaFileData.DateFileDeleted = null;
+            // Love / Rating/ Language are not saved in tags
+            mediaFileData.Love = trackV.Love;
+            mediaFileData.Rating = trackV.Rating;
+            mediaFileData.Language = trackV.Language;
+            UpdateMediaFileResult result;
+            using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
+            {
+                result = uc.UpdateMediaFile(trackV, mediaFileData);
+            }
+            if (result.Success)
+            {
+                if (fileMetadata != null)
+                {
+                    //=== Add Album Image
+                    if (result.AlbumId.HasValue)
+                        AddAlbumImageIfNecessary((long)result.AlbumId, fileMetadata);
+                    //=== Add Lyrics
+                    AddTrackLyrics(trackV.Id, fileMetadata);
+                }
+            }
+            else
+            {
+                Logger.Warn($">> Failed to update ({fileMetadata.Path})");
+                return false;
+            }
+            return true;
         }
 
         private long DeleteUnusedImagesFromDB()

@@ -273,14 +273,17 @@ WHERE track_id = ?
             Debug.Assert(lyrics.TrackId > 0);
             Debug.Assert(lyrics.Lyrics.Length > 0);
             Logger.Debug($"SetTrackLyrics TrackId:{lyrics.TrackId}");
+            if (lyrics.TrackId <= 0)
+                return false;
+            if (lyrics.DateAdded == 0)
+                lyrics.DateAdded = DateTime.Now.Ticks;
+            if (lyrics.Origin == null)
+                lyrics.Origin = string.Empty;
             string insert = "INSERT";
             if (bReplaceMode)
                 insert = "INSERT OR REPLACE";
-            if (lyrics.DateAdded == 0)
-                lyrics.DateAdded = DateTime.Now.Ticks;
             bool ret = ExecuteInternal(insert + " INTO TrackLyrics (track_id, lyrics, origin, origin_type_id, language, date_added) VALUES (?,?,?,?,?,?)",
                 lyrics.TrackId, lyrics.Lyrics, lyrics.Origin, lyrics.OriginType, lyrics.Language, lyrics.DateAdded) > 0;
-            Debug.Assert(ret, "Insert Failed");
             return ret;
         }
 

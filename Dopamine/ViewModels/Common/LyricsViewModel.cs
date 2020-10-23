@@ -13,6 +13,7 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows;
 using Dopamine.Services.Entities;
+using Dopamine.Data.Repositories;
 
 namespace Dopamine.ViewModels.Common
 {
@@ -29,6 +30,7 @@ namespace Dopamine.ViewModels.Common
         private IMetadataService metadataService;
         private IProviderService providerService;
         private ILyricsService lyricsService;
+        private IInfoRepository infoRepository;
 
         public DelegateCommand DecreaseFontSizeCommand { get; set; }
         public DelegateCommand IncreaseFontSizeCommand { get; set; }
@@ -133,6 +135,7 @@ namespace Dopamine.ViewModels.Common
             var lyricsMetaDataValue = new MetadataValue(this.lyrics.Text);
             lyricsMetaDataValue.Value = this.lyrics.Text;
             fmd.Lyrics = lyricsMetaDataValue;
+            infoRepository.SetTrackLyrics(new TrackLyrics() { TrackId = track.Id, Lyrics = this.lyrics.Text, OriginType = OriginType.User }, true);
             await this.metadataService.UpdateTracksAsync(new List<FileMetadata> { fmd }, false);
         }
 
@@ -141,6 +144,7 @@ namespace Dopamine.ViewModels.Common
             this.metadataService = container.Resolve<IMetadataService>();
             this.providerService = container.Resolve<IProviderService>();
             this.lyricsService = container.Resolve<ILyricsService>();
+            this.infoRepository = container.Resolve<IInfoRepository>();
 
             this.track = track;
 

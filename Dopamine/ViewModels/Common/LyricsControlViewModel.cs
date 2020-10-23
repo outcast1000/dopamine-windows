@@ -21,11 +21,13 @@ using System.Timers;
 using Prism.Ioc;
 using Dopamine.Services.Entities;
 using Dopamine.Data.Repositories;
+using Dopamine.Views.Common.Base;
 
 namespace Dopamine.ViewModels.Common
 {
     public class LyricsControlViewModel : ContextMenuViewModelBase
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private IContainerProvider container;
         private ILocalizationInfo info;
         private IMetadataService metadataService;
@@ -126,7 +128,17 @@ namespace Dopamine.ViewModels.Common
                 this.RestartRefreshTimer();
             });
 
-            this.RefreshLyricsCommand = new DelegateCommand(() => this.RestartRefreshTimer(), () => !this.IsDownloadingLyrics);
+            this.RefreshLyricsCommand = new DelegateCommand(async () => {
+                TrackViewModel track = playbackService.CurrentTrack;
+                if (track == null)
+                    return;
+                Logger.Debug($"RefreshLyricsCommand. Lyrics downloaded TrackID: {track.Id}");
+                TrackLyrics trackLyrics = await DownloadLyricsFromInternet(track);
+                if (trackLyrics != null)
+                    ApplyLyrics(track, trackLyrics, true, false);
+
+            }, () => !this.IsDownloadingLyrics && playbackService.CurrentTrack != null);
+
             ApplicationCommands.RefreshLyricsCommand.RegisterCommand(this.RefreshLyricsCommand);
 
             this.playbackService.PlaybackSuccess += (_, e) =>
@@ -188,69 +200,71 @@ namespace Dopamine.ViewModels.Common
             this.LyricsViewModel = new LyricsViewModel(this.container, track);
         }
 
-        private object inRefreshLyricsAsync = false;
+        private object _inRefreshLyricsAsync = false;
+        private long _lastTrackIdOnRefreshLyrics = 0;
 
         private async void RefreshLyricsAsync(TrackViewModel track)
         {
-            if (!this.isNowPlayingPageActive || !this.isNowPlayingLyricsPageActive) 
+            lock (_inRefreshLyricsAsync)
+            {
+                if (_inRefreshLyricsAsync.Equals(true))
+                {
+                    Logger.Debug("EXIT RefreshLyricsAsync (Avoid reentry)");
+                    return;
+                }
+                _inRefreshLyricsAsync = true;
+            }
+            if (!this.isNowPlayingPageActive || !this.isNowPlayingLyricsPageActive)
+            {
+                Logger.Debug("EXIT RefreshLyricsAsync (Now Playing is not active)");
+                _inRefreshLyricsAsync = false;
                 return;
-            if (track == null) 
+            }
+            if (track == null)
+            {
+                Logger.Debug("EXIT RefreshLyricsAsync (No current track)");
+                _inRefreshLyricsAsync = false;
                 return;
+            }
+            if (track.Id == _lastTrackIdOnRefreshLyrics)
+            {
+                Logger.Debug("EXIT RefreshLyricsAsync (Already did this track)");
+                _inRefreshLyricsAsync = false;
+                return;
+            }
+            _lastTrackIdOnRefreshLyrics = track.Id;
             if (this.LyricsViewModel != null && this.LyricsViewModel.IsEditing)
             {
                 // If we're in editing mode, delay changing the lyrics.
                 this.updateLyricsAfterEditingTimer.Start();
+                Logger.Debug("EXIT RefreshLyricsAsync (Editing mode, delay changing the lyrics.)");
+                _inRefreshLyricsAsync = false;
                 return;
-            }
-            lock (inRefreshLyricsAsync)
-            {
-                if (inRefreshLyricsAsync.Equals(true))
-                    return;
-                inRefreshLyricsAsync = true;
             }
 
             this.previousTrack = track;
             this.StopHighlighting();
-
-
+            ClearLyrics(track);
             //FileMetadata fmd = await this.metadataService.GetFileMetadataAsync(track.Path);
             try
             {
                 await Task.Run(async () =>
                 {
-                    bool bLyricsAlreadyInDatabase = false;
-                    TrackLyrics trackLyrics = infoRepository.GetTrackLyrics(track.Id);
-                    // No FileMetadata available: clear the lyrics.
-                    if (trackLyrics == null)
-                    {
-                        this.ClearLyrics(track);
-                    }
-                    else
-                    {
-                        bLyricsAlreadyInDatabase = true;
-                    }
-
                     // Try to get lyrics from the DB
-                    //lyrics = new Lyrics(trackLyrics.Lyrics, trackLyrics.Source, SourceTypeEnum.Online);
-
-                    // If the audio file has no lyrics, try to find lyrics in a local lyrics file.
+                    TrackLyrics trackLyrics = infoRepository.GetTrackLyrics(track.Id);
+                    if (trackLyrics != null)
+                    {
+                        Logger.Debug($"RefreshLyricsAsync. Lyrics added from the DB TrackID: {track.Id}");
+                        ApplyLyrics(track, trackLyrics, false, false);
+                    }
                     if (trackLyrics == null)
                     {
-                        var lrcFile = Path.Combine(Path.GetDirectoryName(track.Path), Path.GetFileNameWithoutExtension(track.Path) + FileFormats.LRC);
-
-                        if (File.Exists(lrcFile))
+                        // If the audio file has no lyrics, try to find lyrics in a local lyrics file.
+                        trackLyrics = await GetLyricsFromExternalFileAsync(track);
+                        if (trackLyrics != null)
                         {
-                            using (var fs = new FileStream(lrcFile, FileMode.Open, FileAccess.Read))
-                            {
-                                using (var sr = new StreamReader(fs, Encoding.Default))
-                                {
-                                    string lyricstext = await sr.ReadToEndAsync();
-                                    if (!string.IsNullOrEmpty(lyricstext))
-                                    {
-                                        trackLyrics = new TrackLyrics() { Lyrics = await sr.ReadToEndAsync(), Origin = String.Empty, OriginType = OriginType.ExternalFile };
-                                    }
-                                }
-                            }
+                            Logger.Debug($"RefreshLyricsAsync. Lyrics added from an external file TrackID: {track.Id}");
+                            ApplyLyrics(track, trackLyrics, true, false);
                         }
                     }
                     if (trackLyrics == null)
@@ -258,42 +272,92 @@ namespace Dopamine.ViewModels.Common
                         // If we still don't have lyrics and the user enabled automatic download of lyrics: try to download them online.
                         if (SettingsClient.Get<bool>("Lyrics", "DownloadLyrics"))
                         {
-                            this.IsDownloadingLyrics = true;
-                            try
-                            {
-                                Lyrics lyrics = await this.lyricsFactory.GetLyricsAsync(track.ArtistName, track.TrackTitle);
-                                if (lyrics != null && lyrics.HasText)
-                                {
-                                    trackLyrics = new TrackLyrics() { Lyrics = lyrics.Text, Origin = lyrics.Source, OriginType = OriginType.Internet };
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                LogClient.Error("Could not get lyrics online {0}. Exception: {1}", track.Path, ex.Message);
-                            }
-
-                            this.IsDownloadingLyrics = false;
-                        }
-                    }
-                    if (trackLyrics != null)
-                    {
-                        this.LyricsViewModel = new LyricsViewModel(container, track);
-                        this.LyricsViewModel.SetLyrics(new Lyrics(trackLyrics.Lyrics, trackLyrics.Origin));
-                        if (!bLyricsAlreadyInDatabase)
-                        {
-                            infoRepository.SetTrackLyrics(trackLyrics, true);
+                            Logger.Debug($"RefreshLyricsAsync. Lyrics downloaded TrackID: {track.Id}");
+                            trackLyrics = await DownloadLyricsFromInternet(track);
+                            if (trackLyrics != null)
+                                ApplyLyrics(track, trackLyrics, true, false);
                         }
                     }
                 });
             }
             catch (Exception ex)
             {
-                LogClient.Error("Could not show lyrics for Track {0}. Exception: {1}", track.Path, ex.Message);
+                Logger.Error(ex, "RefreshLyricsAsync: Could not show lyrics for Track {0}. Exception: {1}", track.Path, ex.Message);
                 this.ClearLyrics(track);
             }
 
             this.StartHighlighting();
-            inRefreshLyricsAsync = false;
+            _inRefreshLyricsAsync = false;
+        }
+
+        private SourceTypeEnum OriginTypeToSourceType(OriginType originType)
+        {
+            switch (originType)
+            {
+                case OriginType.Internet:
+                    return SourceTypeEnum.Online;
+                case OriginType.ExternalFile:
+                    return SourceTypeEnum.Lrc;
+                case OriginType.User:
+                case OriginType.File:
+                case OriginType.Unknown:
+                default:
+                    return SourceTypeEnum.Audio;
+            }
+        }
+
+        private void ApplyLyrics(TrackViewModel track, TrackLyrics trackLyrics, bool applyToDB, bool applyToFile)
+        {
+            this.LyricsViewModel = new LyricsViewModel(container, track);
+            this.LyricsViewModel.SetLyrics(new Lyrics(trackLyrics.Lyrics, trackLyrics.Origin, OriginTypeToSourceType(trackLyrics.OriginType)));
+            if (applyToDB)
+            {
+                trackLyrics.TrackId = track.Id;
+                infoRepository.SetTrackLyrics(trackLyrics, true);
+            }
+            if (applyToFile)
+            {
+                // TODO
+            }
+        }
+
+        private async Task<TrackLyrics> GetLyricsFromExternalFileAsync(TrackViewModel track)
+        {
+            var lrcFile = Path.Combine(Path.GetDirectoryName(track.Path), Path.GetFileNameWithoutExtension(track.Path) + FileFormats.LRC);
+
+            if (File.Exists(lrcFile))
+            {
+                using (var fs = new FileStream(lrcFile, FileMode.Open, FileAccess.Read))
+                {
+                    using (var sr = new StreamReader(fs, Encoding.Default))
+                    {
+                        string lyricstext = await sr.ReadToEndAsync();
+                        if (!string.IsNullOrEmpty(lyricstext))
+                        {
+                            return new TrackLyrics() {TrackId = track.Id, Lyrics = await sr.ReadToEndAsync(), Origin = String.Empty, OriginType = OriginType.ExternalFile };
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        private async Task<TrackLyrics> DownloadLyricsFromInternet(TrackViewModel track)
+        {
+            TrackLyrics trackLyrics = null;
+            this.IsDownloadingLyrics = true;
+            try
+            {
+                Lyrics lyrics = await this.lyricsFactory.GetLyricsAsync(track.ArtistName, track.TrackTitle);
+                if (lyrics != null && lyrics.HasText)
+                    trackLyrics = new TrackLyrics() { TrackId = track.Id, Lyrics = lyrics.Text, Origin = lyrics.Source, OriginType = OriginType.Internet };
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Could not get lyrics online {0}. Exception: {1}", track.Path, ex.Message);
+            }
+            this.IsDownloadingLyrics = false;
+            return trackLyrics;
         }
 
         private async Task HighlightLyricsLineAsync()

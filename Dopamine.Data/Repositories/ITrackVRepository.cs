@@ -50,9 +50,6 @@ namespace Dopamine.Data.Repositories
         bool UpdateLove(long trackId, long? Love);
 
 
-
-        bool UpdateTrackFileInformation(string path);
-
         void ClearRemovedTrack();
 
         PlaybackCounter GetPlaybackCounters(string path);

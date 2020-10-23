@@ -38,7 +38,7 @@ namespace Dopamine.Services.Metadata
         public event Action<LoveChangedEventArgs> LoveChanged = delegate { };
 
         public MetadataService(IPlaybackService playbackService, ITrackVRepository trackRepository, IInfoRepository infoRepository, 
-            IUnitOfWorksFactory unitOfWorksFactory, IFileStorage fileStorage)
+            IUnitOfWorksFactory unitOfWorksFactory, IFileStorage fileStorage, IIndexingService indexingService)
         {
             this.playbackService = playbackService;
             this.trackRepository = trackRepository;
@@ -46,7 +46,7 @@ namespace Dopamine.Services.Metadata
             this.unitOfWorksFactory = unitOfWorksFactory;
             this.fileStorage = fileStorage;
 
-            this.updater = new FileMetadataUpdater(this.playbackService, this.trackRepository);
+            this.updater = new FileMetadataUpdater(this.playbackService, this.trackRepository, indexingService);
         }
 
         public FileMetadata GetFileMetadata(string path)

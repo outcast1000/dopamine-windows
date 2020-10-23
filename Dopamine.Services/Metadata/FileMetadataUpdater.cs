@@ -1,7 +1,9 @@
 ﻿using Digimezzo.Foundation.Core.Logging;
 using Dopamine.Core.Extensions;
+using Dopamine.Data;
 using Dopamine.Data.Metadata;
 using Dopamine.Data.Repositories;
+using Dopamine.Services.Indexing;
 using Dopamine.Services.Playback;
 using System;
 using System.Collections.Generic;
@@ -16,6 +18,7 @@ namespace Dopamine.Services.Metadata
     {
         private IPlaybackService playbackService;
         private ITrackVRepository trackRepository;
+        IIndexingService indexingService;
         private Timer updateFileMetadataTimer = new Timer();
         private int updateMetadataShortTimeout = 50; // 50 milliseconds
         private int updateMetadataLongTimeout = 15000; // 15 seconds
@@ -23,10 +26,11 @@ namespace Dopamine.Services.Metadata
         private object fileMetadataToUpdateLock = new object();
         private bool isUpdatingFileMetadata;
 
-        public FileMetadataUpdater(IPlaybackService playbackService, ITrackVRepository trackRepository)
+        public FileMetadataUpdater(IPlaybackService playbackService, ITrackVRepository trackRepository, IIndexingService indexingService)
         {
             this.playbackService = playbackService;
             this.trackRepository = trackRepository;
+            this.indexingService = indexingService;
 
             this.updateFileMetadataTimer.Interval = this.updateMetadataLongTimeout;
             this.updateFileMetadataTimer.Elapsed += async (_, __) => await this.UpdateFileMetadataAsync(true);
@@ -149,9 +153,9 @@ namespace Dopamine.Services.Metadata
             });
 
             // Sync file size and last modified date in the database
-            foreach (FileMetadata fmd in filesToSync)
+            foreach (FileMetadata fmd in filesToSync) 
             {
-                trackRepository.UpdateTrackFileInformation(fmd.SafePath);
+                indexingService.UpdateFile(fmd);
             }
 
             // The next time, wait longer.

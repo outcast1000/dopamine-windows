@@ -235,10 +235,6 @@ GROUP BY plays
             throw new NotImplementedException();
         }
 
-        public bool UpdateTrackFileInformation(string path)
-        {
-            throw new NotImplementedException();
-        }
 
         public void ClearRemovedTrack()
         {
@@ -367,7 +363,7 @@ GROUP BY plays
             IList<TrackV> tracks = GetTracksInternal(options);
             if (tracks == null || tracks.Count == 0)
             {
-                Logger.Warn($"GetTrackWithPath not found: {path}");
+                //Logger.Warn($"GetTrackWithPath not found: {path}");
                 return null;
             }
             Debug.Assert(tracks.Count == 1);

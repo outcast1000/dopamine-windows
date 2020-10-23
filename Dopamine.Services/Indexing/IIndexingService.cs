@@ -1,4 +1,5 @@
 ﻿using Dopamine.Data.Entities;
+using Dopamine.Data.Metadata;
 using System;
 using System.Threading.Tasks;
 
@@ -16,6 +17,7 @@ namespace Dopamine.Services.Indexing
         bool IsIndexing { get; }
 
         Task RefreshCollectionAsync(bool bForce, bool bReadTags);
+        bool UpdateFile(FileMetadata fileMetadata);
 
         Task RetrieveInfoAsync(bool rescanFailed, bool rescanAll);
 
