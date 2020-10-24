@@ -10,17 +10,21 @@ using System;
 using System.Threading.Tasks;
 using System.Timers;
 using Dopamine.Services.Entities;
+using Dopamine.Core.Alex;
+using System.Windows;
+using GongSolutions.Wpf.DragDrop.Utilities;
 
 namespace Dopamine.ViewModels.Common
 {
     public class CoverArtControlViewModel : BindableBase
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         protected CoverArtViewModel coverArtViewModel;
         protected IPlaybackService playbackService;
         private IMetadataService metadataService;
         private SlideDirection slideDirection;
-        private byte[] previousArtwork;
-        private byte[] artwork;
+        private string previousArtwork;
+        private string artwork;
 
         public CoverArtViewModel CoverArtViewModel
         {
@@ -58,75 +62,87 @@ namespace Dopamine.ViewModels.Common
             this.RefreshCoverArtAsync(this.playbackService.CurrentTrack);
         }
 
-        private void RefreshTimer_Elapsed(object sender, ElapsedEventArgs e)
-        {
-            this.RefreshCoverArtAsync(this.playbackService.CurrentTrack);
-        }
+
+        object _lockObject = new object();
 
         protected async virtual void RefreshCoverArtAsync(TrackViewModel track)
         {
-            if (track == null)
+            using (var tryLock = new TryLock(_lockObject))
             {
-                this.ClearArtwork();
-                return;
-            }
-            await Task.Delay(250);
-
-            await Task.Run(async () =>
-            {
-                this.previousArtwork = this.artwork;
-
-                // No track selected: clear cover art.
+                if (!tryLock.HasLock)
+                {
+                    Logger.Warn("EXIT RefreshCoverArtAsync (Reentrance lock)");
+                    return;
+                }
                 if (track == null)
                 {
                     this.ClearArtwork();
                     return;
                 }
+                await Task.Delay(250);
 
-                // Try to find artwork
-                byte[] artwork = null;
+                await Task.Run(async () =>
+                {
+                    this.previousArtwork = this.artwork;
 
-                try
-                {
-                    artwork = await this.metadataService.GetArtworkAsync(track);
-                }
-                catch (Exception ex)
-                {
-                    LogClient.Error("Could not get artwork for Track {0}. Exception: {1}", track.Path, ex.Message);
-                }
-
-                this.artwork = artwork;
-
-                // Verify if the artwork changed
-                if ((this.artwork != null & this.previousArtwork != null) && (this.artwork.LongLength == this.previousArtwork.LongLength))
-                {
-                    return;
-                }
-                else if (this.artwork == null & this.previousArtwork == null & this.CoverArtViewModel != null)
-                {
-                    return;
-                }
-
-                if (artwork != null)
-                {
-                    try
+                    this.artwork = track.Data.AlbumImage == null ? track.Data.ArtistImage : track.Data.AlbumImage;
+                    if (this.artwork  == null)
                     {
-                        this.CoverArtViewModel = new CoverArtViewModel { CoverArt = artwork };
+                        this.artwork = track.GroupAlbumThumbnailSource;
+                        track.PropertyChanged += Track_PropertyChanged;
                     }
-                    catch (Exception ex)
+
+
+                    // Verify if the artwork changed
+                    if (this.artwork != null & this.previousArtwork != null)
                     {
-                        LogClient.Error("Could not show file artwork for Track {0}. Exception: {1}", track.Path, ex.Message);
+                        return;
+                    }
+                    else if (this.artwork == null & this.previousArtwork == null & this.CoverArtViewModel != null)
+                    {
                         this.ClearArtwork();
+                        return;
                     }
 
-                    return;
-                }
-                else
+                    if (artwork != null)
+                    {
+                        try
+                        {
+                            this.CoverArtViewModel = new CoverArtViewModel { CoverArt = artwork };
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Error(ex, "Could not show file artwork for Track {0}. Exception: {1}", track.Path, ex.Message);
+                            this.ClearArtwork();
+                        }
+
+                        return;
+                    }
+                    else
+                    {
+                        this.ClearArtwork();
+                        return;
+                    }
+                });
+            }
+        }
+
+        private void Track_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            string s = sender.GetType().ToString();
+            if (sender.GetType().ToString().Equals("Dopamine.Services.Entities.TrackViewModel") && e.PropertyName.Equals("GroupAlbumThumbnailSource"))
+            {
+                TrackViewModel track = (TrackViewModel)sender;
+                // Remove the callback
+                track.PropertyChanged -= Track_PropertyChanged;
+                // Check if we still have the same Track
+                if (playbackService?.CurrentTrack != null && playbackService.CurrentTrack.Id == track.Id)
                 {
-                    this.ClearArtwork();
-                    return;
+                    // We still have the same track. Lets Update the CoverArtViewModel
+                    if (CoverArtViewModel != null && track.GroupAlbumThumbnailSource != null)
+                        CoverArtViewModel.CoverArt = track.GroupAlbumThumbnailSource;
                 }
-            });
+            }
         }
     }
 }

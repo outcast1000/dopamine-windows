@@ -115,6 +115,7 @@
     </Compile>
     <Compile Include="Alex\LogClient.cs" />
     <Compile Include="Alex\SettingsClient.cs" />
+    <Compile Include="Alex\TryLock.cs" />
     <Compile Include="Api\Fanart\FanartApi.cs" />
     <Compile Include="Api\Lastfm\LastFmAlbum.cs" />
     <Compile Include="Api\Lastfm\LastFmArtist.cs" />

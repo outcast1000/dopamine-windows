@@ -4,12 +4,12 @@ namespace Dopamine.ViewModels
 {
     public class CoverArtViewModel : BindableBase
     {
-        private byte[] coverArt;
+        private string coverArt;
 
-        public byte[] CoverArt
+        public string CoverArt
         {
             get { return this.coverArt; }
-            set { SetProperty<byte[]>(ref this.coverArt, value); }
+            set { SetProperty<string>(ref this.coverArt, value); }
         }
     }
 }
