@@ -82,26 +82,32 @@ namespace Dopamine.ViewModels.Common
                 {
                     this.previousArtwork = this.artwork;
 
-                    this.artwork = track.Data.AlbumImage == null ? track.Data.ArtistImage : track.Data.AlbumImage;
-                    if (this.artwork  == null)
+                    // Try to show the album Image
+                    this.artwork = track.Data.AlbumImage;// == null ? track.Data.ArtistImage : track.Data.AlbumImage;
+                    if (this.artwork == null)
                     {
+                        // Album image again but now you will do a request to download it
                         this.artwork = track.GroupAlbumThumbnailSource;
                         track.PropertyChanged += Track_PropertyChanged;
                     }
-
+                    if (this.artwork == null)
+                    {
+                        // Temporary show the artist image
+                        this.artwork = track.Data.ArtistImage;
+                    }
+                    //this.CoverArtViewModel = new CoverArtViewModel { CoverArt = artwork };
 
                     // Verify if the artwork changed
-                    if (this.artwork != null & this.previousArtwork != null)
+                    if (this.artwork == previousArtwork)
                     {
                         return;
                     }
-                    else if (this.artwork == null & this.previousArtwork == null & this.CoverArtViewModel != null)
+                    else if (this.artwork == null)
                     {
                         this.ClearArtwork();
                         return;
                     }
-
-                    if (artwork != null)
+                    else //if (artwork != null)
                     {
                         try
                         {
@@ -113,11 +119,6 @@ namespace Dopamine.ViewModels.Common
                             this.ClearArtwork();
                         }
 
-                        return;
-                    }
-                    else
-                    {
-                        this.ClearArtwork();
                         return;
                     }
                 });
