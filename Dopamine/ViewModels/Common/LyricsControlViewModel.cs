@@ -202,18 +202,14 @@ namespace Dopamine.ViewModels.Common
 
         private long _lastTrackIdOnRefreshLyrics = 0;
 
-        object _lockObject = new object();
+        private System.Threading.SemaphoreSlim _semaphore = new System.Threading.SemaphoreSlim(1);
 
         private async void RefreshLyricsAsync(TrackViewModel track)
         {
-            using (var tryLock = new TryLock(_lockObject))
+            //Logger.Debug($"ENTERING RefreshLyricsAsync Thread: {System.Threading.Thread.CurrentThread.ManagedThreadId} _semaphore count {_semaphore.CurrentCount}");
+            await _semaphore.WaitAsync();
+            try
             {
-                if (!tryLock.HasLock)
-                {
-                    Logger.Warn("EXIT RefreshLyricsAsync (Avoid reentry)");
-                    return;
-                }
-
                 if (!this.isNowPlayingPageActive || !this.isNowPlayingLyricsPageActive)
                 {
                     Logger.Debug("EXIT RefreshLyricsAsync (Now Playing is not active)");
@@ -241,7 +237,7 @@ namespace Dopamine.ViewModels.Common
                 this.previousTrack = track;
                 this.StopHighlighting();
                 ClearLyrics(track);
-                //FileMetadata fmd = await this.metadataService.GetFileMetadataAsync(track.Path);
+
                 try
                 {
                     await Task.Run(async () =>
@@ -283,6 +279,14 @@ namespace Dopamine.ViewModels.Common
                 }
 
                 this.StartHighlighting();
+
+                
+            }
+            finally
+            {
+                //Logger.Debug($"EXITING RefreshLyricsAsync (1) Thread: {System.Threading.Thread.CurrentThread.ManagedThreadId} _semaphore count {_semaphore.CurrentCount}");
+                _semaphore.Release();
+                //Logger.Debug($"EXITING RefreshLyricsAsync (2) Thread: {System.Threading.Thread.CurrentThread.ManagedThreadId} _semaphore count {_semaphore.CurrentCount}");
             }
         }
 

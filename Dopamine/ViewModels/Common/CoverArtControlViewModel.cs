@@ -63,17 +63,14 @@ namespace Dopamine.ViewModels.Common
         }
 
 
-        object _lockObject = new object();
+        private System.Threading.SemaphoreSlim _semaphore = new System.Threading.SemaphoreSlim(1);
+
 
         protected async virtual void RefreshCoverArtAsync(TrackViewModel track)
         {
-            using (var tryLock = new TryLock(_lockObject))
+            await _semaphore.WaitAsync();
+            try 
             {
-                if (!tryLock.HasLock)
-                {
-                    Logger.Warn("EXIT RefreshCoverArtAsync (Reentrance lock)");
-                    return;
-                }
                 if (track == null)
                 {
                     this.ClearArtwork();
@@ -124,6 +121,10 @@ namespace Dopamine.ViewModels.Common
                         return;
                     }
                 });
+            }
+            finally
+            {
+                _semaphore.Release();
             }
         }
 
