@@ -23,6 +23,8 @@ namespace Dopamine.Data.Repositories
         bool SetArtistImageFailed(ArtistV artist);
         bool HasArtistImageFailed(ArtistV artist);
         bool ClearArtistImageFailed(ArtistV artist);
+
+        ArtistBiography GetArtistBiography(long artist_id);
         bool SetArtistBiography(ArtistBiography artistBiography);
 
         // GENRE

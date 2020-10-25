@@ -16,9 +16,10 @@ namespace Dopamine.ViewModels
 {
     public class ArtistInfoViewModel : BindableBase
     {
-        private LastFmArtist lfmArtist;
         private ObservableCollection<SimilarArtistViewModel> similarArtists;
-        private string image;
+        private string _image;
+        private string _biography;
+        private string _artistName;
 
         public DelegateCommand<string> OpenLinkCommand { get; set; }
 
@@ -26,7 +27,7 @@ namespace Dopamine.ViewModels
         {
             get
             {
-                return this.Biography != null && !string.IsNullOrWhiteSpace(this.Biography.Content);
+                return !string.IsNullOrWhiteSpace(_biography);
             }
         }
 
@@ -37,7 +38,7 @@ namespace Dopamine.ViewModels
 
         public bool HasImage
         {
-            get { return !string.IsNullOrEmpty(this.image); }
+            get { return !string.IsNullOrEmpty(this._image); }
         }
 
         public ObservableCollection<SimilarArtistViewModel> SimilarArtists
@@ -46,6 +47,7 @@ namespace Dopamine.ViewModels
             set { SetProperty<ObservableCollection<SimilarArtistViewModel>>(ref this.similarArtists, value); }
         }
 
+        /*
         public async Task SetArtistInformation(LastFmArtist lfmArtist, string artistImageUrl)
         {
             this.lfmArtist = lfmArtist;
@@ -60,25 +62,21 @@ namespace Dopamine.ViewModels
             await this.FillSimilarArtistsAsync();
             await this.FillImageAsync(artistImageUrl);
         }
+        */
 
-        public string Image
+        public string ArtistImage
         {
-            get
-            {
-                return this.image;
-            }
+            get { return this._image; }
+            set { SetProperty<string>(ref this._image, value); }
         }
 
         public string ArtistName
         {
-            get
-            {
-                if (this.lfmArtist == null) return string.Empty;
-
-                return this.lfmArtist.Name;
-            }
+            get { return this._artistName; }
+            set { SetProperty<string>(ref this._artistName, value); }
         }
 
+        /*
         public string Url
         {
             get
@@ -108,27 +106,15 @@ namespace Dopamine.ViewModels
                 }
             }
         }
+        */
 
-        public LastFmBiography Biography
+        public string Biography
         {
-            get
+            get { return this._biography; }
+            set 
             {
-                if (this.lfmArtist == null) return null;
-
-                return this.lfmArtist.Biography;
-            }
-        }
-
-        public string CleanedBiographyContent
-        {
-            get
-            {
-                if (this.Biography == null) return string.Empty;
-
-                // Removes the URL from the Biography content
-                string cleanedBiography = Regex.Replace(this.Biography.Content, @"(<a.*$)", "").Trim();
-                return cleanedBiography;
-            }
+                string cleanedBiography = Regex.Replace(value, @"(<a.*$)", "").Trim();
+                SetProperty<string>(ref this._biography, cleanedBiography); }
         }
 
         public ArtistInfoViewModel()
@@ -145,7 +131,8 @@ namespace Dopamine.ViewModels
                 }
             });
         }
-
+        
+        /*
         private async Task FillSimilarArtistsAsync()
         {
             if (this.lfmArtist != null && this.lfmArtist.SimilarArtists != null && this.lfmArtist.SimilarArtists.Count > 0)
@@ -179,14 +166,7 @@ namespace Dopamine.ViewModels
             RaisePropertyChanged(nameof(this.SimilarArtists));
             RaisePropertyChanged(nameof(this.HasSimilarArtists));
         }
+        */
 
-        private async Task FillImageAsync(string artistImageUrl)
-        {
-            Debug.Assert(false, "ALEX TODO");
-            //this.image = await this.cacheService.DownloadFileToTemporaryCacheAsync(artistImageUrl);
-
-            RaisePropertyChanged(nameof(this.Image));
-            RaisePropertyChanged(nameof(this.HasImage));
-        }
     }
 }

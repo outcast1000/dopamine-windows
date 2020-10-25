@@ -252,17 +252,8 @@ namespace Dopamine.Data.Repositories
 
         public TrackLyrics GetTrackLyrics(long track_id)
         {
-            IList<TrackLyrics> list = GetInternal<TrackLyrics>(@"
-SELECT 
-track_id, 
-lyrics, 
-origin,
-origin_type_id, 
-language,
-date_added
-from TrackLyrics
-WHERE track_id = ?
-                ", track_id);
+            Debug.Assert(track_id > 0);
+            IList<TrackLyrics> list = GetInternal<TrackLyrics>("SELECT * FROM TrackLyrics WHERE track_id=?", track_id);
             if (list.Count == 1)
                 return list[0];
             return null;
@@ -298,6 +289,14 @@ WHERE track_id = ?
         {
             Debug.Assert(track_id > 0);
             return ExecuteInternal("DELETE FROM TrackLyrics WHERE track_id=?", track_id) > 0;
+        }
+
+        public ArtistBiography GetArtistBiography(long artist_id)
+        {
+            IList<ArtistBiography> list = GetInternal<ArtistBiography>(@"SELECT * from ArtistBiographies WHERE artist_id = ?", artist_id);
+            if (list.Count == 1)
+                return list[0];
+            return null;
         }
     }
 }

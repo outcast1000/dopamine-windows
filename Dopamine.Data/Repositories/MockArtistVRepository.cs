@@ -19,6 +19,11 @@ namespace Dopamine.Data.Repositories
             };
         }
 
+        public List<ArtistV> GetArtistsOfTrack(long track_id)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public List<ArtistV> GetArtistsWithoutImages(bool incudeFailedDownloads)
         {
             throw new System.NotImplementedException();

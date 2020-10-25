@@ -8,6 +8,8 @@ namespace Dopamine.Data.Repositories
     {
         List<ArtistV> GetArtists(bool bGetHistory = false, string searchString = null);
 
+        List<ArtistV> GetArtistsOfTrack(long track_id);
+
         List<ArtistV> GetArtistsWithoutImages(bool incudeFailedDownloads);
 
         ArtistV GetArtist(long artistID);

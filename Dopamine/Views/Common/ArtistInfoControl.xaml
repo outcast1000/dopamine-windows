@@ -35,6 +35,9 @@
             </Storyboard>
         </Storyboard>
         <DataTemplate DataType="{x:Type pv:ArtistInfoViewModel}">
+            <DataTemplate.Resources>
+                <BitmapImage x:Key="DefaultImage" UriSource="/Resources/Media/no_album_image.png" />
+            </DataTemplate.Resources>
             <DockPanel>
                 <StackPanel DockPanel.Dock="Left" HorizontalAlignment="Center">
                     <Grid>
@@ -42,9 +45,14 @@
                             Margin="20"
                             MaxHeight="300"
                             MaxWidth="300"
-                            Source="{Binding Image}"
                             Visibility="{Binding HasImage, Converter={StaticResource BooleanToCollapsedConverter}}"
                             RenderOptions.BitmapScalingMode="HighQuality">
+                            <Image.Source>
+                                <Binding
+                                    Converter="{StaticResource KeyToPathConverter}"
+                                    ConverterParameter="{StaticResource DefaultImage}"
+                                    Path="ArtistImage" />
+                            </Image.Source>
                             <Image.Effect>
                                 <DropShadowEffect
                                     ShadowDepth="0"
@@ -97,7 +105,7 @@
                                 <TextBlock
                                     TextWrapping="Wrap"
                                     Foreground="{DynamicResource Brush_PrimaryText}"
-                                    Text="{Binding Path=CleanedBiographyContent}"
+                                    Text="{Binding Path=Biography}"
                                     Visibility="{Binding HasBiography, Converter={StaticResource BooleanToCollapsedConverter}}" />
                                 <Button
                                     Margin="0,10,0,0"
@@ -112,6 +120,7 @@
                                 Text="{DynamicResource Language_Not_Available}"
                                 Visibility="{Binding HasBiography, Converter={StaticResource InvertingBooleanToCollapsedConverter}}" />
                         </Grid>
+                        <!--
                         <Label
                             Margin="0,20,0,20"
                             Style="{StaticResource TitleLabel}"
@@ -126,6 +135,7 @@
                                 Text="{DynamicResource Language_Not_Available}"
                                 Visibility="{Binding HasSimilarArtists, Converter={StaticResource InvertingBooleanToCollapsedConverter}}" />
                         </Grid>
+                        -->
                     </StackPanel>
                 </ScrollViewer>
             </DockPanel>

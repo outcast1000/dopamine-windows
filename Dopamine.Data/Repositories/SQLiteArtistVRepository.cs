@@ -54,6 +54,15 @@ namespace Dopamine.Data.Repositories
             return GetArtistsInternal(qo);
         }
 
+        public List<ArtistV> GetArtistsOfTrack(long track_id)
+        {
+            QueryOptions qo = new QueryOptions();
+            qo.extraWhereClause.Add("t.id=?");
+            qo.extraWhereParams.Add(track_id);
+            qo.GetHistory = false;
+            return GetArtistsInternal(qo);
+        }
+
         private List<ArtistV> GetArtistsInternal(QueryOptions queryOptions = null)
         {
             try
