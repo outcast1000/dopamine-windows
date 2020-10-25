@@ -113,7 +113,7 @@ namespace Dopamine.ViewModels
             get { return this._biography; }
             set 
             {
-                string cleanedBiography = Regex.Replace(value, @"(<a.*$)", "").Trim();
+                string cleanedBiography = string.IsNullOrEmpty(value) ? string.Empty : Regex.Replace(value, @"(<a.*$)", "").Trim();
                 SetProperty<string>(ref this._biography, cleanedBiography); }
         }
 

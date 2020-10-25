@@ -79,7 +79,7 @@ namespace Dopamine.ViewModels.Common
             this.playbackService.PlaybackSuccess += async (_, e) =>
             {
                 this.SlideDirection = e.IsPlayingPreviousTrack ? SlideDirection.RightToLeft : SlideDirection.LeftToRight;
-                await this.ShowArtistInfoAsync(this.playbackService.CurrentTrack, false);
+                await this.ShowArtistInfoAsync(this.playbackService.CurrentTrack, true);
             };
 
             this.i18nService.LanguageChanged += async (_, __) =>
@@ -144,7 +144,7 @@ namespace Dopamine.ViewModels.Common
         private void IndexingService_ArtistInfoDownloaded(ArtistV requestedArtist, bool success)
         {
             RefreshInfo(requestedArtist);
-            isBusy = false;
+            this.IsBusy = false;
         }
 
         private void RefreshInfo(ArtistV artist)

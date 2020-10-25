@@ -219,6 +219,7 @@ namespace Dopamine.Services.Indexing
                         Origin = data.Images[0].Origin,
                         OriginType = OriginType.Internet
                     });
+                    requestedArtist.Thumbnail = cacheId;
                     bImageAdded = true;
                 }
                 if (data.Biography?.Data?.Length > 0)
@@ -256,6 +257,7 @@ namespace Dopamine.Services.Indexing
                         Origin = data.Images[0].Origin,
                         OriginType = OriginType.Internet
                     }, true);
+                    requestedAlbum.Thumbnail = cacheId;
                     bImageAdded = true;
                 }
                 if (data?.Review?.Data?.Length > 0)
