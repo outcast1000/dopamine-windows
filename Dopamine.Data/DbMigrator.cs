@@ -52,6 +52,7 @@ namespace Dopamine.Data
 
                 conn.Execute("DROP TABLE IF EXISTS PlaylistTracks;");
 
+                conn.Execute("DROP TABLE IF EXISTS FolderIndexing;");
 
                 conn.Execute("DROP TABLE IF EXISTS TrackHistory;");
                 conn.Execute("DROP TABLE IF EXISTS TrackHistoryStats;");
@@ -412,7 +413,7 @@ namespace Dopamine.Data
                         string imagePath = System.IO.Path.Combine(coverArtCacheFolderPath, track.AlbumImage + ".jpg");
                         AddMediaFileResult addMediaFileResult = uc.AddMediaFile(new MediaFileData()
                         {
-                            Name = track.TrackTitle,
+                            Name = track.TrackTitle?? Path.GetFileNameWithoutExtension(track.Path),
                             Path = track.Path,
                             Filesize = track.FileSize,
                             Bitrate = track.BitRate,

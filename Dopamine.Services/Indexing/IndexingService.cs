@@ -346,17 +346,17 @@ namespace Dopamine.Services.Indexing
             return null;
         }
 
-        private MediaFileData GetMediaFileData(FileMetadata fileMetadata)
+        private MediaFileData GetMediaFileData(string path, FileMetadata fileMetadata)
         {
             MediaFileData mediaFileData = new MediaFileData()
             {
-                Path = fileMetadata.Path,
-                Filesize = FileUtils.SizeInBytes(fileMetadata.Path),
+                Path = path,
+                Filesize = FileUtils.SizeInBytes(path),
                 Language = null,
                 DateAdded = DateTime.Now.Ticks,
                 Love = null,
-                DateFileCreated = FileUtils.DateCreatedTicks(fileMetadata.Path),
-                DateFileModified = FileUtils.DateModifiedTicks(fileMetadata.Path),
+                DateFileCreated = FileUtils.DateCreatedTicks(path),
+                DateFileModified = FileUtils.DateModifiedTicks(path),
                 DateFileDeleted = null,
                 DateIgnored = null
             };
@@ -378,12 +378,8 @@ namespace Dopamine.Services.Indexing
                 mediaFileData.Album = FormatUtils.TrimValue(fileMetadata.Album.Value);
                 mediaFileData.AlbumArtists = fileMetadata.AlbumArtists.Values;
             }
-            else
-            {
-                mediaFileData.Name = Path.GetFileNameWithoutExtension(fileMetadata.Path);
-            }
             if (string.IsNullOrEmpty(mediaFileData.Name))
-                mediaFileData.Name = Path.GetFileNameWithoutExtension(fileMetadata.Path);
+                mediaFileData.Name = Path.GetFileNameWithoutExtension(path);
             return mediaFileData;
         }
 
@@ -533,7 +529,7 @@ namespace Dopamine.Services.Indexing
                     }
                     //=== Get File Info
                     FileMetadata fileMetadata = GetFileMetadata(path);
-                    MediaFileData mediaFileData = GetMediaFileData(fileMetadata);
+                    MediaFileData mediaFileData = GetMediaFileData(path, fileMetadata);
 
                     if (trackV == null)
                     {
@@ -631,7 +627,7 @@ namespace Dopamine.Services.Indexing
                 Logger.Warn($"UpdateFile. File not found in DB {fileMetadata.Path}");
                 return false;
             }
-            MediaFileData mediaFileData = GetMediaFileData(fileMetadata);
+            MediaFileData mediaFileData = GetMediaFileData(fileMetadata.Path, fileMetadata);
             // If we update the file we do not want to change these Dates
             mediaFileData.DateAdded = trackV.DateAdded;
             mediaFileData.DateIgnored = trackV.DateIgnored;
