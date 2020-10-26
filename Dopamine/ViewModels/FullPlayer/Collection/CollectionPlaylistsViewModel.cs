@@ -149,11 +149,11 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
                 if (value != null)
                 {
-                    this.GetTracksAsync();
+                    Task unAwaitedTask = this.GetTracksAsync();
                 }
                 else
                 {
-                    this.ClearTracks();
+                    Task unAwaitedTask = this.ClearTracks();
                 }
             }
         }
@@ -237,7 +237,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
         }
 
-        private async Task ClearTracks()
+        public async Task ClearTracks()
         {
             await this.GetTracksCommonAsync(new List<TrackViewModel>(), TrackOrder.None);
         }
@@ -266,7 +266,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         protected async override Task EmptyListsAsync()
         {
             this.ClearPlaylists();
-            this.ClearTracks();
+            await this.ClearTracks();
         }
 
         private async Task ConfirmDeletePlaylistAsync(PlaylistViewModel playlist)

@@ -86,7 +86,7 @@ namespace Dopamine.ViewModels.Common.Base
         
 		public DelegateCommand<AlbumViewModel> LoveAlbumCommand { get; set; }
 		
-        public double UpscaledCoverSize => this.CoverSize * Constants.CoverUpscaleFactor;
+        public new double UpscaledCoverSize => this.CoverSize * Constants.CoverUpscaleFactor;
 
         public bool IsSmallCoverSizeSelected => this.selectedCoverSize == CoverSizeType.Small;
 
@@ -171,7 +171,7 @@ namespace Dopamine.ViewModels.Common.Base
 
             DownloadImageAlbumCommand = new DelegateCommand<AlbumViewModel>((album) =>
             {
-                album.RequestImageDownload(true, true);
+                Task unwaitedTask = album.RequestImageDownload(true, true);
             });
             PlayAlbumCommand = new DelegateCommand<AlbumViewModel>(async (vm) => {
                 await _playbackService.PlayAlbumsAsync(new List<AlbumViewModel>() { vm }, PlaylistMode.Play);
@@ -217,7 +217,7 @@ namespace Dopamine.ViewModels.Common.Base
                     return;
                 }
             }
-            catch (Exception _)
+            catch (Exception)
             {
 
             }
@@ -550,11 +550,11 @@ namespace Dopamine.ViewModels.Common.Base
 
 
 
-        protected override void FilterLists(string searchText)
+        protected override async void FilterListsAsync(string searchText)
         {
             _searchString = searchText;
-            GetFilteredAlbumsAsync(_searchString, AlbumOrder);
-            base.FilterLists(searchText);
+            await GetFilteredAlbumsAsync(_searchString, AlbumOrder);
+            base.FilterListsAsync(searchText);
         }
 
         protected virtual void ToggleAlbumOrder()

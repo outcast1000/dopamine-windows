@@ -40,17 +40,17 @@ namespace Dopamine.ViewModels.Common
             await this.GetTracksCommonAsync(this.playbackService.Queue, TrackOrder.None);
         }
 
-        protected override void FilterLists(string searchText)
+        protected override async void FilterListsAsync(string searchText)
         {
             if (string.IsNullOrEmpty(searchText))
             {
                 InSearchMode = false;
-                GetTracksAsync();
+                await GetTracksAsync();
             }
             else
             {
                 InSearchMode = true;
-                base.FilterLists(searchText);
+                base.FilterListsAsync(searchText);
             }
         }
 

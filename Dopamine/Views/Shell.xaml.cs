@@ -245,7 +245,7 @@ namespace Dopamine.Views
             {
                 if (e.IsPlaylistVisible)
                 {
-                    this.miniPlayerPlaylist.Show(e.MiniPlayerType);
+                    var unAwaitedTask = this.miniPlayerPlaylist.Show(e.MiniPlayerType);
                 }
                 else
                 {

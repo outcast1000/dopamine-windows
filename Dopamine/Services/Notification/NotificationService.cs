@@ -89,7 +89,7 @@ namespace Dopamine.Services.Notification
             }
         }
 
-        private async void SMCShuffleEnabledChanged(SystemMediaTransportControls sender, ShuffleEnabledChangeRequestedEventArgs args)
+        private void SMCShuffleEnabledChanged(SystemMediaTransportControls sender, ShuffleEnabledChangeRequestedEventArgs args)
         {
             this.PlaybackService.Shuffle = args.RequestedShuffleEnabled;
         }

@@ -231,9 +231,9 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             {
                 await _playbackService.PlayArtistsAsync(SelectedArtists, PlaylistMode.Play, true);
             });
-            DownloadImageArtistsCommand = new DelegateCommand<ArtistViewModel>((artist) =>
+            DownloadImageArtistsCommand = new DelegateCommand<ArtistViewModel>(async (artist) =>
             {
-                artist.RequestImageDownload(true, true);
+                await artist.RequestImageDownload(true, true);
             });
             PlayArtistCommand = new DelegateCommand<ArtistViewModel>(async (vm) => {
                 await _playbackService.PlayArtistsAsync(new List<ArtistViewModel>() { vm }, PlaylistMode.Play);
@@ -302,7 +302,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                     return;
                 }
             }
-            catch (Exception _)
+            catch (Exception)
             {
 
             }
@@ -503,7 +503,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             // Update the tracks
             SetTrackOrder("ArtistsTrackOrder");
             Task tracks = GetTracksAsync(SelectedArtists, null, null, TrackOrder);
-            Task.WhenAll(tracks, saveSelection);
+            await Task.WhenAll(tracks, saveSelection);
             SelectionChanged?.Invoke();
 
         }
@@ -602,7 +602,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         protected async override Task FillListsAsync()
         {
-            Application.Current.Dispatcher.Invoke(async () =>
+            await Application.Current.Dispatcher.Invoke(async () =>
             {
 
                 _ignoreSelectionChangedEvent = true;
@@ -613,7 +613,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 }
                 else
                 {
-                    FilterLists(_searchString);
+                    FilterListsAsync(_searchString);
                 }
                 _ignoreSelectionChangedEvent = false;
             });
@@ -626,15 +626,15 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             ClearTracks();
         }
 
-        protected override void FilterLists(string searchText)
+        protected override async void FilterListsAsync(string searchText)
         {
             if (!_searchString.Equals(searchText))
             {
                 _searchString = searchText;
-                GetItemsAsync();
+                await GetItemsAsync();
             }
             if (!string.IsNullOrEmpty(searchText))
-                base.FilterLists(searchText);
+                base.FilterListsAsync(searchText);
         }
 
         protected override void RefreshLanguage()

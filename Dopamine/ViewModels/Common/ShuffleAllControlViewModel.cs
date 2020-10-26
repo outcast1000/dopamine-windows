@@ -1,5 +1,4 @@
 ﻿using Dopamine.Services.Playback;
-using Dopamine.Services.Playback;
 using Prism.Commands;
 using Prism.Mvvm;
 

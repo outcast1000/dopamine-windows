@@ -53,8 +53,6 @@ namespace Dopamine.ViewModels.Common.Base
         private ObservableCollection<TrackViewModel> tracks;
         private CollectionViewSource tracksCvs;
         private IList<TrackViewModel> selectedTracks;
-        private IList<ArtistViewModel> selectedArtists;
-        private IList<AlbumViewModel> selectedAlbums;
         private string _searchText;
 
         public TrackViewModel PreviousPlayingTrack { get; set; }
@@ -288,7 +286,7 @@ namespace Dopamine.ViewModels.Common.Base
                     this.TracksCvs.GroupDescriptions.Add(new PropertyGroupDescription("GroupAlbumHeader"));
                 }
                 this.CalculateSizeInformationAsync(this.TracksCvs);
-                this.ShowPlayingTrackAsync();
+                Task unAwaitedTask = this.ShowPlayingTrackAsync();
             });
 
             // Update duration and size
@@ -428,14 +426,14 @@ namespace Dopamine.ViewModels.Common.Base
             await this.playbackService.PlayTracksAsync(SelectedTracks, PlaylistMode.Enqueue);
         }
 
-        protected override void FilterLists(string searchText)
+        protected override async void FilterListsAsync(string searchText)
         {
             _searchText = searchText;
-            GetFilteredTracksAsync(_searchText, TrackOrder);
+            await GetFilteredTracksAsync(_searchText, TrackOrder);
             Application.Current.Dispatcher.Invoke(() =>
             {
                 this.CalculateSizeInformationAsync(this.TracksCvs);
-                this.ShowPlayingTrackAsync();
+                Task unAwaitedTask = this.ShowPlayingTrackAsync();
             });
         }
 
@@ -547,7 +545,7 @@ namespace Dopamine.ViewModels.Common.Base
 
         protected async override Task UnloadedCommandAsync()
         {
-            this.EmptyListsAsync(); // Empty all the lists
+            await this.EmptyListsAsync(); // Empty all the lists
             GC.Collect(); // For the memory maniacs
         }
 

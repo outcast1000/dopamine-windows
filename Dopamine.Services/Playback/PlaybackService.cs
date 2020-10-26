@@ -291,7 +291,7 @@ namespace Dopamine.Services.Playback
 
             // Event handlers
             this.fileService.ImportingTracks += (_, __) => this.canGetSavedQueuedTracks = false;
-            this.fileService.TracksImported += (tracks, track) => this.PlayTracksAndStartOnTrack(tracks, track, PlaylistMode.Play, null, null);
+            this.fileService.TracksImported += async (tracks, track) => await this.PlayTracksAndStartOnTrack(tracks, track, PlaylistMode.Play, null, null);
             this.i18nService.LanguageChanged += (_, __) => this.UpdateQueueLanguageAsync();
 
             // Set up timers

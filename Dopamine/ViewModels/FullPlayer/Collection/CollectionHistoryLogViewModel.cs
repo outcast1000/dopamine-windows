@@ -220,9 +220,9 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 }
             };
 
-            this.ToggleModeCommand = new DelegateCommand(() => this.ToggleHistoryListMode());
+            this.ToggleModeCommand = new DelegateCommand(async () => await this.ToggleHistoryListMode());
             _historyListMode = HistoryListMode.LogAll;
-            UpdateHistoryListMode();
+            Task unAwaitedTask = UpdateHistoryListMode();
 
             // Commands
             this.ChooseColumnsCommand = new DelegateCommand(this.ChooseColumns);
@@ -352,7 +352,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                     // Populate ObservableCollection
                     this.tracks = new ObservableCollection<TrackViewModel>(trackViewModels);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     //LogClient.Error("An error occurred while getting Tracks. Exception: {0}", ex.Message);
 
@@ -395,10 +395,10 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             tracks = null;
         }
 
-        protected override void FilterLists(string searchText)
+        protected override async void FilterListsAsync(string searchText)
         {
             _searchText = searchText;
-            GetTracksAsync();
+            await GetTracksAsync();
             /*
             GetFilteredTracksAsync(_searchText, TrackOrder);
             Application.Current.Dispatcher.Invoke(() =>
@@ -443,7 +443,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         protected async override Task UnloadedCommandAsync()
         {
-            this.EmptyListsAsync(); // Empty all the lists
+            await this.EmptyListsAsync(); // Empty all the lists
             GC.Collect(); // For the memory maniacs
         }
 

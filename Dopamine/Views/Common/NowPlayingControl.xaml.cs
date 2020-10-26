@@ -20,7 +20,7 @@ namespace Dopamine.Views.Common
             InitializeComponent();
 
             this.ViewInExplorerCommand = new DelegateCommand(() => this.ViewInExplorer(this.ListBoxTracks));
-            this.JumpToPlayingTrackCommand = new DelegateCommand(() => this.ScrollToPlayingTrackAsync(this.ListBoxTracks));
+            this.JumpToPlayingTrackCommand = new DelegateCommand(async () => await this.ScrollToPlayingTrackAsync(this.ListBoxTracks));
 
             // PubSub Events
             this.eventAggregator.GetEvent<ScrollToPlayingTrack>().Subscribe(async (_) => await this.ScrollToPlayingTrackAsync(this.ListBoxTracks));
@@ -36,7 +36,7 @@ namespace Dopamine.Views.Common
             NowPlayingControlViewModel vm = (NowPlayingControlViewModel)this.DataContext;
             if (vm.InSearchMode)
             {
-                base.ActionHandler(sender, source, enqueue, false);
+                await base.ActionHandler(sender, source, enqueue, false);
             }
             else
             {
@@ -63,14 +63,14 @@ namespace Dopamine.Views.Common
 
         private void ListBoxTracks_KeyUp(object sender, KeyEventArgs e)
         {
-            this.KeyUpHandlerAsync(sender, e);
+            Task unAwaitedTask = this.KeyUpHandlerAsync(sender, e);
         }
 
         private void ListBoxTracks_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
-                this.ActionHandler(sender, e.OriginalSource as DependencyObject, false, true);
+                Task unAwaitedTask = this.ActionHandler(sender, e.OriginalSource as DependencyObject, false, true);
             }
         }
     }

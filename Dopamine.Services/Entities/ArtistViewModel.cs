@@ -86,7 +86,7 @@ namespace Dopamine.Services.Entities
                 if (Data.ArtistImage == null && !_bImageRequested)
                 {
                     _bImageRequested = true;
-                    RequestImageDownload(false, false);
+                    Task unAwaitedTask = RequestImageDownload(false, false);
                 }
 
                 return data.Thumbnail; 

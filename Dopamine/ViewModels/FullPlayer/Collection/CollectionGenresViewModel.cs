@@ -241,7 +241,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                     return;
                 }
             }
-            catch (Exception _)
+            catch (Exception)
             {
 
             }
@@ -430,7 +430,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             // Update the tracks
             SetTrackOrder("GenresTrackOrder");
             Task tracks = GetTracksAsync(null, SelectedGenres, null, TrackOrder);
-            Task.WhenAll(tracks, saveSelection);
+            await Task.WhenAll(tracks, saveSelection);
             SelectionChanged?.Invoke();
 
         }
@@ -529,7 +529,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         }
         protected async override Task FillListsAsync()
         {
-            Application.Current.Dispatcher.Invoke(async () =>
+            await Application.Current.Dispatcher.Invoke(async () =>
             {
 
                 _ignoreSelectionChangedEvent = true;
@@ -546,15 +546,15 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             ClearTracks();
         }
 
-        protected override void FilterLists(string searchText)
+        protected override async void FilterListsAsync(string searchText)
         {
             if (!_searchString.Equals(searchText))
             {
                 _searchString = searchText;
-                GetItemsAsync();
+                await GetItemsAsync();
             }
             if (!string.IsNullOrEmpty(searchText))
-                base.FilterLists(searchText);
+                base.FilterListsAsync(searchText);
         }
 
         protected override void RefreshLanguage()

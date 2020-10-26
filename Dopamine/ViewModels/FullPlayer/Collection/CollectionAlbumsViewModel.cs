@@ -78,7 +78,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             LeftPaneWidthPercent = SettingsClient.Get<int>("ColumnWidths", "AlbumsLeftPaneWidthPercent");
 
             // Cover size
-            SetCoversizeAsync((CoverSizeType)SettingsClient.Get<int>("CoverSizes", "AlbumsCoverSize"));
+            Task unAwaitedTask = SetCoversizeAsync((CoverSizeType)SettingsClient.Get<int>("CoverSizes", "AlbumsCoverSize"));
             LoadSelectedItems();
         }
 
@@ -93,7 +93,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                     return;
                 }
             }
-            catch (Exception _)
+            catch (Exception)
             {
 
             }
@@ -136,9 +136,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         protected async override Task FillListsAsync()
         {
-            Application.Current.Dispatcher.Invoke(async () =>
+            await Application.Current.Dispatcher.Invoke(async () =>
             {
-
                 _ignoreSelectionChangedEvent = true;
                 await GetAllAlbumsAsync(AlbumOrder);
                 await GetTracksAsync(null, null, SelectedAlbums, TrackOrder);

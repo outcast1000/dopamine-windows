@@ -11,6 +11,7 @@ using Prism.Ioc;
 using Prism.Mvvm;
 using Prism.Regions;
 using System;
+using System.Threading.Tasks;
 
 namespace Dopamine.ViewModels.FullPlayer
 {
@@ -107,7 +108,7 @@ namespace Dopamine.ViewModels.FullPlayer
                 null);
 
             await this.foldersService.SaveToggledFoldersAsync();
-            this.indexingService.RefreshCollectionAsync(false, false);
+            Task unAwaitedTask = this.indexingService.RefreshCollectionAsync(false, false);
         }
     }
 }

@@ -89,7 +89,7 @@ namespace Dopamine.ViewModels.Common
 
             // Defaults
             this.SlideDirection = SlideDirection.LeftToRight;
-            this.ShowArtistInfoAsync(this.playbackService.CurrentTrack, true);
+            Task unAwaitedTask = this.ShowArtistInfoAsync(this.playbackService.CurrentTrack, true);
         }
 
         private async Task ShowArtistInfoAsync(TrackViewModel track, bool forceReload)

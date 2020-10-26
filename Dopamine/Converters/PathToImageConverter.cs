@@ -14,8 +14,6 @@ namespace Dopamine.Converters
             {
                 string path = values[0] as string;
                 int width = Int32.Parse(values[1].ToString());
-                int height = 0;// Int32.Parse(values[2].ToString());
-
                 if (!string.IsNullOrEmpty(path) & System.IO.File.Exists(path))
                 {
                     var info = new FileInfo(path);

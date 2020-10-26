@@ -67,7 +67,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             {
                 SetProperty<FolderViewModel>(ref this.selectedFolder, value);
                 SettingsClient.Set<string>("Selections", "SelectedFolder", value != null ? value.Path : string.Empty);
-                this.GetSubfoldersAsync(null);
+                Task unAwaitedTask = this.GetSubfoldersAsync(null);
             }
         }
 
@@ -80,7 +80,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             this.eventAggregator = eventAggregator;
 
             // Commands
-            this.JumpSubfolderCommand = new DelegateCommand<string>((subfolderPath) => this.GetSubfoldersAsync(new SubfolderViewModel(subfolderPath, false)));
+            this.JumpSubfolderCommand = new DelegateCommand<string>(async (subfolderPath) => await this.GetSubfoldersAsync(new SubfolderViewModel(subfolderPath, false)));
 
             // Load settings
             this.LeftPaneWidthPercent = SettingsClient.Get<int>("ColumnWidths", "FoldersLeftPaneWidthPercent");
@@ -93,9 +93,9 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             this.playbackService.PlaybackSuccess += (async (_, __) => await this.foldersService.SetPlayingSubFolderAsync(this.Subfolders));
             this.playbackService.PlaybackStopped += (async (_, __) => await this.foldersService.SetPlayingSubFolderAsync(this.Subfolders));
 
-            this.eventAggregator.GetEvent<ActiveSubfolderChanged>().Subscribe((activeSubfolder) =>
+            this.eventAggregator.GetEvent<ActiveSubfolderChanged>().Subscribe(async (activeSubfolder) =>
             {
-                this.GetSubfoldersAsync(activeSubfolder as SubfolderViewModel);
+                await this.GetSubfoldersAsync(activeSubfolder as SubfolderViewModel);
             });
         }
 

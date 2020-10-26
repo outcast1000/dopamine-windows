@@ -135,7 +135,7 @@ namespace Dopamine.ViewModels.Common.Base
             this.indexingService.RefreshLists += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when the indexer has finished indexing
             this.indexingService.IndexingStarted += (_, __) => this.SetEditCommands();
             this.indexingService.IndexingStopped += (_, __) => this.SetEditCommands();
-            this.searchService.DoSearch += (searchText) => this.FilterLists(searchText);
+            this.searchService.DoSearch += (searchText) => this.FilterListsAsync(searchText);
             this.metadataService.RatingChanged += MetadataService_RatingChangedAsync;
             this.metadataService.LoveChanged += MetadataService_LoveChangedAsync;
             //=== ALEX TODO. CHECK IF WE NEED THIS SOMEHOW AFTER THE REFACTORING WHICH ASKS THE Images ON demand
@@ -277,7 +277,7 @@ namespace Dopamine.ViewModels.Common.Base
         protected abstract Task ShowPlayingTrackAsync();
         protected abstract Task FillListsAsync();
         protected abstract Task EmptyListsAsync();
-        protected abstract void FilterLists(string searchText);
+        protected abstract void FilterListsAsync(string searchText);
         protected abstract void ConditionalScrollToPlayingTrack();
         protected abstract void MetadataService_RatingChangedAsync(RatingChangedEventArgs e);
         protected abstract void MetadataService_LoveChangedAsync(LoveChangedEventArgs e);
