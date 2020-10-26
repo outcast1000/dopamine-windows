@@ -8,9 +8,9 @@ namespace Dopamine.Views.Common
     public partial class PlaybackInfoControl : UserControl
     {
         public static readonly DependencyProperty LoveFontSizeProperty =
-            DependencyProperty.Register(nameof(LoveFontSize), typeof(double), typeof(PlaybackInfoControl), new PropertyMetadata(null));
+            DependencyProperty.Register(nameof(LoveFontSize), typeof(double), typeof(PlaybackInfoControl), new PropertyMetadata(Constants.GlobalFontSize));
         public static readonly DependencyProperty RatingFontSizeProperty =
-           DependencyProperty.Register(nameof(RatingFontSize), typeof(double), typeof(PlaybackInfoControl), new PropertyMetadata(null));
+           DependencyProperty.Register(nameof(RatingFontSize), typeof(double), typeof(PlaybackInfoControl), new PropertyMetadata(Constants.GlobalFontSize));
         public static readonly DependencyProperty TextAlignmentProperty = 
             DependencyProperty.Register(nameof(TextAlignment), typeof(TextAlignment), typeof(PlaybackInfoControl), new PropertyMetadata(TextAlignment.Left));
         public static readonly DependencyProperty TitleFontSizeProperty = 
