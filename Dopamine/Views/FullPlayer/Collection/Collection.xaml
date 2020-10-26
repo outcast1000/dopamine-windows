@@ -43,7 +43,7 @@
         <Grid HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
-                <ColumnDefinition Width="250"/>
+                <ColumnDefinition Width="350"/>
             </Grid.ColumnDefinitions>
             <controls:TransitioningContentControl
                     Grid.Column="0"
@@ -57,11 +57,7 @@
                     SlideInTo="0"
                     x:Name="CollectionRegion"
                     prism:RegionManager.RegionName="{x:Static cp:RegionNames.CollectionRegion}" />
-            <TextBlock
-                Grid.Column="1"
-                    Width="300"
-                    Text="PLAYLIST"
-                    Background="Red"/>
+            <commonviews:PlaylistControl Grid.Column="1" Margin="5,5,5,5"/>
         </Grid>
         <!--
         <dc:MultiPanePanel

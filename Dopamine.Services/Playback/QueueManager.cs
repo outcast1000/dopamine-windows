@@ -118,7 +118,7 @@ namespace Dopamine.Services.Playback
                 Enqueue(tracks);
             else
             {
-                _playList.InsertRange(_position, tracks);
+                _playList.InsertRange(_position + 1, tracks);
                 _nextCounter = 0;
                 _playlistOrder = CreatePlayListOrder();
             }

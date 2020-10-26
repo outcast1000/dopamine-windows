@@ -206,7 +206,11 @@ namespace Dopamine.Services.Entities
         }
 
         public long? Rank { get; set; }
-        public long? Score { get { return (long)Data.PlayCount * 3 + (long)Data.SkipCount * (-1); } }
+        public long? Score { get { 
+                return 
+                    (Data.PlayCount.HasValue ? Data.PlayCount.Value : 0) * 3 + 
+                    (Data.SkipCount.HasValue ? Data.SkipCount.Value : 0) * (-1); 
+            } }
 
         public string GetAlbumArtist()
         {

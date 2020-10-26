@@ -859,7 +859,7 @@ namespace Dopamine.Services.Indexing
 
         public async Task<bool> RequestAlbumInfoAsync(AlbumV album, bool bIgnorePreviousFailures, bool bForce)
         {
-            if (string.IsNullOrEmpty(album.Name))
+            if (string.IsNullOrEmpty(album.Name) || album.ArtistCount == 0)
             {
                 Logger.Warn("RequestAlbumInfoAsync. Name is empty. Exiting");
                 return false;
