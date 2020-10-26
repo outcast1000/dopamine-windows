@@ -78,7 +78,7 @@ namespace Dopamine.ViewModels.Common
                 }
                 await Task.Delay(250);
 
-                await Task.Run(async () =>
+                await Task.Run(() =>
                 {
                     this.previousArtwork = this.artwork;
 

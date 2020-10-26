@@ -20,7 +20,6 @@ namespace Dopamine.ViewModels.Common
         private AlbumViewModel albumViewModel;
         private IMetadataService metadataService;
         private IDialogService dialogService;
-        private ICacheService cacheService;
         private IInfoDownloadService infoDownloadService;
         private bool updateFileArtwork;
 
@@ -52,7 +51,6 @@ namespace Dopamine.ViewModels.Common
             this.albumViewModel = albumViewModel;
             this.metadataService = metadataService;
             this.dialogService = dialogService;
-            this.cacheService = cacheService;
             this.infoDownloadService = infoDownloadService;
 
             this.LoadedCommand = new DelegateCommand(async () => await this.GetAlbumArtworkAsync());

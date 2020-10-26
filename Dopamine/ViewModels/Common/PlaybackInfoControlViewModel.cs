@@ -129,7 +129,7 @@ namespace Dopamine.ViewModels.Common
             };
 
             // Settings
-            Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += async (_, e) =>
+            Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += (_, e) =>
             {
                 if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableRating"))
                 {
