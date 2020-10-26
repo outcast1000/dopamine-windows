@@ -15,5 +15,6 @@
         <ResourceDictionary Source="/Dopamine;component/Themes/SyncRing.xaml" />
         <ResourceDictionary Source="/Dopamine;component/Themes/Tile.xaml" />
         <ResourceDictionary Source="/Dopamine;component/Themes/TotalsInformation.xaml" />
+        <ResourceDictionary Source="/Dopamine;component/Themes/MultiPanePanel.xaml" />
     </ResourceDictionary.MergedDictionaries>
 </ResourceDictionary>
