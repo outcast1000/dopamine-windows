@@ -40,16 +40,19 @@ namespace Dopamine.Data
             string sha1 = CalculateSHA1(bytes);
             string location = Path.Combine("cache://", fileStorageItemType.ToString().ToLower() + "-" + sha1);// "cache://" + type + "//" + sha1;
             string realPath = GetRealPath(location);
+            if (File.Exists(realPath))
+            {
+                Logger.Info($"SaveImageToCache File Exists: {realPath}");
+                return location;
+            }
             try
             {
-                Logger.Debug($"SaveImageToCache: {bytes.Length} - {location}");
                 File.WriteAllBytes(realPath, bytes);
             }
             catch (Exception ex)
             {
                 Logger.Error(ex, $"SaveImageToCache: {ex.Message} - {location}");
-                if (!File.Exists(realPath))
-                    return null; // It seems that even if it could not write the file actually exists
+                return null;
             }
             return location;
         }
