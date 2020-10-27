@@ -25,5 +25,8 @@
     <local:HistoryActionIdToSegoeConverter x:Key="HistoryActionIdToSegoeConverter" />
     <local:HistoryActionIdToStringConverter x:Key="HistoryActionIdToStringConverter" />
     <local:TicksToDateTimeConverter x:Key="TicksToDateTimeConverter" />
+    <local:IntegerAddOneConverter x:Key="IntegerAddOneConverter" />
+
+    
 
 </ResourceDictionary>
