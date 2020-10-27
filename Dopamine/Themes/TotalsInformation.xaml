@@ -1,24 +1,78 @@
-﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="clr-namespace:Dopamine.Converters"
     xmlns:controls="clr-namespace:Dopamine.Controls">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/Dopamine;component/Resources/Styles/FontStyles.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+
+    <converters:StringEmptyToInvisibleConverter x:Key="StringEmptyToInvisibleConverter" />
 
     <Style x:Key="{x:Type controls:TotalsInformation}" TargetType="{x:Type controls:TotalsInformation}">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type controls:TotalsInformation}">
-                    <DockPanel>
-                        <TextBlock 
+                    <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                        <TextBlock
                             DockPanel.Dock="Left"
-                            Text="{TemplateBinding TotalSizeInformation}" 
-                            FontSize="{TemplateBinding FontSize}" 
-                            Foreground="{TemplateBinding Foreground}"/>
-                        <TextBlock 
-                            DockPanel.Dock="Right"
-                            Text="{TemplateBinding TotalDurationInformation}" 
-                            FontSize="{TemplateBinding FontSize}" 
-                            Foreground="{TemplateBinding Foreground}"/>
-                        <ContentControl/>
-                    </DockPanel>
+                            VerticalAlignment="Center"
+                            Margin="0,0,5,0"
+                            Text="&#xEC4F;"
+                            Style="{StaticResource SegoeAssets}" 
+                            Visibility="{TemplateBinding TotalTracksInformation, Converter={StaticResource StringEmptyToInvisibleConverter}}"
+                            FontSize="{TemplateBinding FontSize}"
+                            Foreground="{TemplateBinding Foreground}" />
+                        <TextBlock
+                            DockPanel.Dock="Left"
+                            VerticalAlignment="Center"
+                            Text="{TemplateBinding TotalTracksInformation}"
+                            Visibility="{TemplateBinding TotalTracksInformation, Converter={StaticResource StringEmptyToInvisibleConverter}}"
+                            FontSize="{TemplateBinding FontSize}"
+                            Foreground="{TemplateBinding Foreground}" />
+                        <TextBlock
+                            Margin="10,0,10,0"
+                            DockPanel.Dock="Left"
+                            VerticalAlignment="Center"
+                            Text="|"
+                            Visibility="{TemplateBinding TotalTracksInformation, Converter={StaticResource StringEmptyToInvisibleConverter}}"
+                            FontSize="{TemplateBinding FontSize}"
+                            Foreground="{TemplateBinding Foreground}" />
+                        <TextBlock
+                            DockPanel.Dock="Left"
+                            VerticalAlignment="Center"
+                            Margin="0,0,5,0"
+                            Text="&#xEDA2;"
+                            Style="{StaticResource SegoeAssets}" />
+                        <TextBlock
+                            DockPanel.Dock="Left"
+                            VerticalAlignment="Center"
+                            Text="{TemplateBinding TotalSizeInformation}"
+                            FontSize="{TemplateBinding FontSize}"
+                            Foreground="{TemplateBinding Foreground}" />
+                        <TextBlock
+                            Margin="10,0,10,0"
+                            VerticalAlignment="Center"
+                            DockPanel.Dock="Left"
+                            Text="|"
+                            FontSize="{TemplateBinding FontSize}"
+                            Foreground="{TemplateBinding Foreground}" />
+                        <TextBlock
+                            DockPanel.Dock="Left"
+                            VerticalAlignment="Center"
+                            Margin="0,0,5,0"
+                            Text="&#xE823;"
+                            Style="{StaticResource SegoeAssets}" />
+                        <TextBlock
+                            DockPanel.Dock="Left"
+                            VerticalAlignment="Center"
+                            Text="{TemplateBinding TotalDurationInformation}"
+                            FontSize="{TemplateBinding FontSize}"
+                            Foreground="{TemplateBinding Foreground}" />
+                        <ContentControl />
+                    </StackPanel>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

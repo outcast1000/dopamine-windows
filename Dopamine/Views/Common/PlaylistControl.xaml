@@ -26,35 +26,24 @@
     </i:Interaction.Triggers>
 
     <DockPanel>
-        <TextBlock
-            DockPanel.Dock="Top"
-            HorizontalAlignment="Right"
-            Text="{DynamicResource Language_Playlist}"
-            FontSize="13"
-            Margin="2,2,10,2"
-            Foreground="{DynamicResource Brush_PrimaryText}" />
-        <Grid DockPanel.Dock="Top" Margin="10,0,10,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="0.01*" />
-                <ColumnDefinition MaxWidth="170" Width="*" />
-            </Grid.ColumnDefinitions>
-            <DockPanel Grid.Column="0" VerticalAlignment="Center">
-                <TextBlock
-                    Text="{Binding TracksCount}"
-                    FontSize="13"
-                    Foreground="{DynamicResource Brush_Accent}"
-                    DockPanel.Dock="Left" />
-                <TextBlock
-                    Text="{DynamicResource Language_Songs}"
-                    FontSize="13"
-                    Margin="10,0,0,0"
-                    Foreground="{DynamicResource Brush_PrimaryText}" />
-            </DockPanel>
+        <DockPanel Margin="10,15,10,10" DockPanel.Dock="Top">
             <!--
-            <commonviews:SearchControl Grid.Column="2" VerticalAlignment="Center"/>
+            <Button
+                            Margin="10,0,0,0"
+                            Command="{Binding ToggleTrackOrderCommand}"
+                            Content="{Binding TrackOrderText}"
+                            DockPanel.Dock="Right"
+                            FontSize="13"
+                            Foreground="{DynamicResource Brush_SecondaryText}"
+                            Style="{StaticResource TransparentButton}"
+                            ToolTip="{DynamicResource Language_Toggle_Track_Order}" />
             -->
-        </Grid>
+            <TextBlock
+                            Margin="10,0,0,0"
+                            FontSize="13"
+                            Foreground="{DynamicResource Brush_PrimaryText}"
+                            Text="{DynamicResource Language_Playlist}" />
+        </DockPanel>
         <DockPanel>
             <pc:TotalsInformation
                 DockPanel.Dock="Bottom"
@@ -63,7 +52,8 @@
                 Foreground="{DynamicResource Brush_SecondaryText}"
                 FontSize="13"
                 TotalDurationInformation="{Binding TotalDurationInformation}"
-                TotalSizeInformation="{Binding TotalSizeInformation}" />
+                TotalSizeInformation="{Binding TotalSizeInformation}"
+                TotalTracksInformation="{Binding TotalTracksInformation}"/>
             <dc:MultiSelectListBox
                 x:Name="ListBoxTracks"
                 Margin="0,20,0,0"

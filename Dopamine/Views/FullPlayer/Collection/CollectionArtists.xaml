@@ -168,11 +168,6 @@
             <Border Background="{DynamicResource Brush_PaneBackground}">
                 <DockPanel Margin="10,20,10,26">
                     <DockPanel Margin="10,0,10,20" DockPanel.Dock="Top">
-                        <TextBlock
-                            DockPanel.Dock="Left"
-                            FontSize="13"
-                            Foreground="{DynamicResource Brush_Accent}"
-                            Text="{Binding TracksCount}" />
                         <Button
                             Margin="10,0,0,0"
                             Command="{Binding ToggleTrackOrderCommand}"
@@ -195,6 +190,7 @@
                             FontSize="13"
                             Foreground="{DynamicResource Brush_SecondaryText}"
                             TotalDurationInformation="{Binding TotalDurationInformation}"
+                            TotalTracksInformation="{Binding TotalTracksInformation}"
                             TotalSizeInformation="{Binding TotalSizeInformation}" />
                         <dc:MultiSelectListBox
                             x:Name="ListBoxTracks"

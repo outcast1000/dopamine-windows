@@ -20,8 +20,16 @@ namespace Dopamine.Controls
             set { SetValue(TotalSizeInformationProperty, value); }
         }
 
+        public string TotalTracksInformation
+        {
+            get { return Convert.ToString(GetValue(TotalTracksInformationProperty)); }
+
+            set { SetValue(TotalTracksInformationProperty, value); }
+        }
+
         public static readonly DependencyProperty TotalDurationInformationProperty = DependencyProperty.Register("TotalDurationInformation", typeof(string), typeof(TotalsInformation), new PropertyMetadata(null));
         public static readonly DependencyProperty TotalSizeInformationProperty = DependencyProperty.Register("TotalSizeInformation", typeof(string), typeof(TotalsInformation), new PropertyMetadata(null));
+        public static readonly DependencyProperty TotalTracksInformationProperty = DependencyProperty.Register("TotalTracksInformation", typeof(string), typeof(TotalsInformation), new PropertyMetadata(null));
 
         static TotalsInformation()
         {

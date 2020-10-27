@@ -409,6 +409,7 @@ namespace Dopamine.ViewModels.Common.Base
 
             RaisePropertyChanged(nameof(this.TotalDurationInformation));
             RaisePropertyChanged(nameof(this.TotalSizeInformation));
+            RaisePropertyChanged(nameof(this.TotalTracksInformation));
         }
 
         protected async Task PlaySelectedAsync()

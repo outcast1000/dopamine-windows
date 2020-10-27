@@ -62,6 +62,7 @@ namespace Dopamine.ViewModels.Common.Base
 
         public string TotalSizeInformation => this.totalSize > 0 ? FormatUtils.FormatFileSize(this.totalSize, false) : string.Empty;
         public string TotalDurationInformation => this.totalDuration > 0 ? FormatUtils.FormatDuration(this.totalDuration) : string.Empty;
+        public string TotalTracksInformation => TracksCount > 0 ? String.Format($"{TracksCount} {ResourceUtils.GetString("Language_Songs")}") : String.Empty;// this.totalTracks > 0 ? FormatUtils.FormatDuration(this.totalDuration) : string.Empty;
         public string TrackOrderText => this.trackOrderText;
 
         public long TracksCount
