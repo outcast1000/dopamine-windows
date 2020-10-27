@@ -78,7 +78,7 @@ namespace Dopamine.ViewModels.Common
             }
 
             // Listen to queue changes.
-            this.playbackService.QueueChanged += async (_, __) =>
+            this.playbackService.PlaylistChanged += async (_, __) =>
             {
                 if (!this.isDroppingTracks)
                 {

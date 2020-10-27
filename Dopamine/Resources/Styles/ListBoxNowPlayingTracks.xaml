@@ -7,8 +7,6 @@
     <converters:InvertingBooleanConverter x:Key="InvertingBooleanConverter" />
     <converters:BooleanToCollapsedConverter x:Key="BooleanToCollapsedConverter" />
     <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-    <converters:IntegerAddOneConverter x:Key="IntegerAddOneConverter" />
-
     
 
     <!-- ContextMenu -->
@@ -82,8 +80,7 @@
                             <DockPanel Margin="10,0,10,0">
                                 <Border DockPanel.Dock="Left" MinWidth="20" Height="40">
                                     <TextBlock 
-                                        Text="{Binding RelativeSource={RelativeSource Mode=TemplatedParent},
-                                      Path=(ItemsControl.AlternationIndex), Converter={StaticResource IntegerAddOneConverter}}" 
+                                        Text="0" 
                                         HorizontalAlignment="Center" 
                                         VerticalAlignment="Center"
                                         Foreground="{DynamicResource Brush_SecondaryText}"
@@ -162,7 +159,6 @@
 
     <!-- ListBox -->
     <Style x:Key="ListBoxNowPlayingTracks" TargetType="{x:Type ListBox}" >
-        <Setter Property="AlternationCount" Value="1000000000" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="ItemContainerStyle" Value="{StaticResource ListBoxNowPlayingTracksItem}" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />

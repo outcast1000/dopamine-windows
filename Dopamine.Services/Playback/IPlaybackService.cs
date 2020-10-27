@@ -30,6 +30,7 @@ namespace Dopamine.Services.Playback
         IPlayer Player { get; }
 
         TrackViewModel CurrentTrack { get; }
+        int CurrentPlaylistPosition { get; }
 
         bool HasQueue { get; }
 
@@ -137,6 +138,8 @@ namespace Dopamine.Services.Playback
         event TrackHistoryChangedEventHandler TrackHistoryChanged;
         event Action<bool> LoadingTrack;
         event EventHandler PlayingTrackChanged;
-        event EventHandler QueueChanged;
+        event EventHandler PlaylistChanged;
+        event EventHandler PlaylistPositionChanged;
+
     }
 }

@@ -35,7 +35,8 @@ namespace Dopamine.ViewModels.Common
             this.fileService = container.Resolve<IFileService>();
 
             this.playbackService.PlaybackSuccess += (_, __) => this.UpdateNowPlaying();
-            this.playbackService.QueueChanged += (_, __) => this.UpdateNowPlaying();
+            this.playbackService.PlaylistChanged += (_, __) => this.UpdateNowPlaying();
+            this.playbackService.PlaylistPositionChanged += (_, __) => this.UpdateNowPlaying();
 
             // Commands
             this.RemoveSelectedTracksCommand = new DelegateCommand(async () => await RemoveSelectedTracksFromNowPlayingAsync());
@@ -96,7 +97,7 @@ namespace Dopamine.ViewModels.Common
             }
 
             // Listen to queue changes.
-            this.playbackService.QueueChanged += async (_, __) =>
+            this.playbackService.PlaylistChanged += async (_, __) =>
             {
                 if (!this.isDroppingTracks)
                 {

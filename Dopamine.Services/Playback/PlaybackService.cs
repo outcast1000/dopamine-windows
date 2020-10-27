@@ -92,7 +92,14 @@ namespace Dopamine.Services.Playback
             // NewPosition may be invalid
             if (queueManager.Position == newPosition)
             {
-                await this.TryPlayAsync(queueManager.CurrentTrack);
+                if (IsPlaying)
+                {
+                    await TryPlayAsync(queueManager.CurrentTrack);
+                }
+                else
+                {
+                    PlaylistPositionChanged(this, new EventArgs());
+                }
             }
         }
 
@@ -272,6 +279,8 @@ namespace Dopamine.Services.Playback
             get { return this.player; }
         }
 
+        public int CurrentPlaylistPosition => queueManager.Position;
+
         public PlaybackService(IFileService fileService, II18nService i18nService, ITrackVRepository trackRepository,
             IEqualizerService equalizerService, IGeneralRepository generalRepository, IContainerProvider container, 
             IPlaylistService playlistService, ITrackHistoryRepository trackHistoryRepository)
@@ -322,7 +331,8 @@ namespace Dopamine.Services.Playback
         public event TrackHistoryChangedEventHandler TrackHistoryChanged = delegate { };
         public event Action<bool> LoadingTrack = delegate { };
         public event EventHandler PlayingTrackChanged = delegate { };
-        public event EventHandler QueueChanged = delegate { };
+        public event EventHandler PlaylistChanged = delegate { };
+        public event EventHandler PlaylistPositionChanged = delegate { };
         public event EventHandler PlaybackSkipped = delegate { };
 
         private AudioDevice CreateDefaultAudioDevice()
@@ -396,7 +406,7 @@ namespace Dopamine.Services.Playback
             await Task.Run(() =>
             {
                 if (queueManager.ReorderTracks(tracks))
-                    QueueChanged(this, new EventArgs());
+                    PlaylistChanged(this, new EventArgs());
             });
         }
 
@@ -407,7 +417,7 @@ namespace Dopamine.Services.Playback
             Logger.Warn("UpdateQueueMetadataAsync. Needs testing");
             await RefreshPlaylistInfo();
             PlayingTrackChanged(this, new EventArgs());
-            QueueChanged(this, new EventArgs());
+            PlaylistChanged(this, new EventArgs());
 
             /*
             UpdateQueueMetadataResult result = await this.queueManager.UpdateMetadataAsync(fileMetadatas);
@@ -430,7 +440,7 @@ namespace Dopamine.Services.Playback
             Logger.Warn("UpdateQueueLanguageAsync. Needs testing");
             await RefreshPlaylistInfo();
             this.PlayingTrackChanged(this, new EventArgs());
-            this.QueueChanged(this, new EventArgs());
+            this.PlaylistChanged(this, new EventArgs());
         }
 
         public async Task SetIsEqualizerEnabledAsync(bool isEnabled)
@@ -731,7 +741,7 @@ namespace Dopamine.Services.Playback
             {
                 if (queueManager.RemoveTracks(tracks))
                 {
-                    QueueChanged(this, new EventArgs());
+                    PlaylistChanged(this, new EventArgs());
                     await SavePlaylistAsync();
                     bRet = true;
                 }
@@ -752,7 +762,7 @@ namespace Dopamine.Services.Playback
             await Task.Run(() =>
             {
                 queueManager.Enqueue(tracks);
-                QueueChanged(this, new EventArgs());
+                PlaylistChanged(this, new EventArgs());
                 AddedTracksToQueue(tracks.Count);
                 ResetSaveQueuedTracksTimer();
             });
@@ -764,7 +774,7 @@ namespace Dopamine.Services.Playback
             await Task.Run(() =>
             {
                 queueManager.EnqueueNext(tracks);
-                QueueChanged(this, new EventArgs());
+                PlaylistChanged(this, new EventArgs());
                 AddedTracksToQueue(tracks.Count);
                 ResetSaveQueuedTracksTimer();
             });
@@ -1049,6 +1059,7 @@ namespace Dopamine.Services.Playback
                 //this.Stop();
                 return true;
             }
+            PlaylistPositionChanged(this, new EventArgs());
             return await this.TryPlayAsync(queueManager.CurrentTrack);
         }
 
@@ -1070,7 +1081,7 @@ namespace Dopamine.Services.Playback
                 Logger.Warn("ALEX TODO. Make it send an event that we found the end of the playlist");
                 return true;
             }
-
+            PlaylistPositionChanged(this, new EventArgs());
             return await this.TryPlayAsync(queueManager.CurrentTrack);
         }
 
@@ -1232,7 +1243,7 @@ namespace Dopamine.Services.Playback
             });
             if (mode == PlaylistMode.Play)
                 await TryPlayAsync(queueManager.CurrentTrack);
-            this.QueueChanged(this, new EventArgs());
+            this.PlaylistChanged(this, new EventArgs());
             this.ResetSaveQueuedTracksTimer(); // Save queued tracks to the database
         }
 
@@ -1241,17 +1252,9 @@ namespace Dopamine.Services.Playback
             await Task.Run(() =>
             {
                 queueManager.Randomize();
-                QueueChanged(this, new EventArgs());
+                PlaylistChanged(this, new EventArgs());
             });
-            if (IsPlaying)
-            {
-                await TryPlayAsync(queueManager.CurrentTrack);
-            }
-            else
-            {
-                Stop();
-                PlayingTrackChanged(this, new EventArgs());
-            }
+            await SetPlaylistPositionAsync(0);
         }
 
         private void ResetSaveQueuedTracksTimer()
