@@ -13,6 +13,7 @@ using Prism.Commands;
 using Prism.Ioc;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Dopamine.ViewModels.Common
@@ -23,6 +24,8 @@ namespace Dopamine.ViewModels.Common
         private IDialogService dialogService;
         private IFileService fileService;
         protected bool isDroppingTracks;
+        public DelegateCommand ShufflePlaylistCommand { get; set; }
+
 
         public PlaylistControlViewModel(IContainerProvider container) : base(container)
         {
@@ -36,11 +39,18 @@ namespace Dopamine.ViewModels.Common
 
             // Commands
             this.RemoveSelectedTracksCommand = new DelegateCommand(async () => await RemoveSelectedTracksFromNowPlayingAsync());
+
+            ShufflePlaylistCommand = new DelegateCommand(async () => await ShufflePlaylistAsync());
         }
 
         private void UpdateNowPlaying()
         {
             GetTracksAsync();
+        }
+
+        private async Task ShufflePlaylistAsync()
+        {
+            await playbackService.RandomizePlaylistAsync();
         }
 
         protected async Task GetTracksAsync()

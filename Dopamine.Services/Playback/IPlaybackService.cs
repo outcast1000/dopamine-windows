@@ -101,6 +101,7 @@ namespace Dopamine.Services.Playback
 
         Task StopIfPlayingAsync(TrackViewModel track);
 
+        Task RandomizePlaylistAsync();
 
         Task<bool> RemoveTracks(IList<TrackViewModel> tracks);
 

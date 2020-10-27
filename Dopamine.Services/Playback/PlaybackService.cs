@@ -1236,6 +1236,24 @@ namespace Dopamine.Services.Playback
             this.ResetSaveQueuedTracksTimer(); // Save queued tracks to the database
         }
 
+        public async Task RandomizePlaylistAsync()
+        {
+            await Task.Run(() =>
+            {
+                queueManager.Randomize();
+                QueueChanged(this, new EventArgs());
+            });
+            if (IsPlaying)
+            {
+                await TryPlayAsync(queueManager.CurrentTrack);
+            }
+            else
+            {
+                Stop();
+                PlayingTrackChanged(this, new EventArgs());
+            }
+        }
+
         private void ResetSaveQueuedTracksTimer()
         {
             this.saveQueuedTracksTimer.Stop();

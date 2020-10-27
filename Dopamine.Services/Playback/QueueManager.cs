@@ -15,7 +15,7 @@ namespace Dopamine.Services.Playback
 {
     public class QueueManager<T> where T : new()
     {
-        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private List<T> _playList = new List<T>();
         private List<int> _playlistOrder = new List<int>();
         private int _position = -1;
@@ -124,6 +124,15 @@ namespace Dopamine.Services.Playback
             }
 
         }
+
+        public void Randomize()
+        {
+            _playList = _playList.Randomize();
+            _playlistOrder = CreatePlayListOrder();
+            _position = 0;
+            _nextCounter = 0;
+        }
+
 
         public void Clear()
         {
