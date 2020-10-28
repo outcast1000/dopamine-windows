@@ -42,17 +42,6 @@
                         </DataTemplate>
                     </dc:PivotItem.HeaderTemplate>
                 </dc:PivotItem>
-                <!-- Playlist button -->
-                <dc:PivotItem HeaderForeground="{DynamicResource Brush_PrimaryText}" 
-                              SelectedHeaderForeground="{DynamicResource Brush_Accent}">
-                    <dc:PivotItem.HeaderTemplate>
-                        <DataTemplate>
-                            <Border ToolTip="{DynamicResource Language_Playlist}">
-                                <TextBlock Text="&#xEA37;" Style="{StaticResource SegoeAssets}" FontSize="16" Margin="6,0,6,0"/>
-                            </Border>
-                        </DataTemplate>
-                    </dc:PivotItem.HeaderTemplate>
-                </dc:PivotItem>
                 <!-- Lyrics button -->
                 <dc:PivotItem HeaderForeground="{DynamicResource Brush_PrimaryText}" 
                               SelectedHeaderForeground="{DynamicResource Brush_Accent}">

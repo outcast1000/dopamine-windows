@@ -330,7 +330,6 @@
     <Compile Include="ViewModels\MiniPlayer\MicroPlayerViewModel.cs" />
     <Compile Include="ViewModels\MiniPlayer\MiniPlayerPlaylistViewModel.cs" />
     <Compile Include="ViewModels\MiniPlayer\NanoPlayerViewModel.cs" />
-    <Compile Include="ViewModels\NowPlaying\NowPlayingPlaylistViewModel.cs" />
     <Compile Include="ViewModels\NowPlaying\NowPlayingShowcaseViewModel.cs" />
     <Compile Include="ViewModels\NowPlaying\NowPlayingViewModel.cs" />
     <Compile Include="ViewModels\OobeViewModel.cs" />
@@ -568,9 +567,6 @@
     </Compile>
     <Compile Include="Views\NowPlaying\NowPlaying.xaml.cs">
       <DependentUpon>NowPlaying.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\NowPlaying\NowPlayingPlaylist.xaml.cs">
-      <DependentUpon>NowPlayingPlaylist.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\NowPlaying\NowPlayingShowcase.xaml.cs">
       <DependentUpon>NowPlayingShowcase.xaml</DependentUpon>
@@ -1458,10 +1454,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\NowPlaying\NowPlaying.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\NowPlaying\NowPlayingPlaylist.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

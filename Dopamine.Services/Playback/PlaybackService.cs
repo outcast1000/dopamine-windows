@@ -409,17 +409,6 @@ namespace Dopamine.Services.Playback
             }
         }
 
-        public async Task UpdateQueueOrderAsync(IList<TrackViewModel> tracks)
-        {
-            await Task.Run(() =>
-            {
-                if (queueManager.ReorderTracks(tracks))
-                {
-                    PlaylistChanged(this, new EventArgs());
-                }
-            });
-        }
-
         public async Task UpdateQueueOrderAsync(IList<PlaylistItem> items)
         {
             await Task.Run(() =>
@@ -756,8 +745,9 @@ namespace Dopamine.Services.Playback
             await this.PlayTracksAsync(tracks, mode, shuffle, loopMode);
         }
 
-        public async Task<bool> RemovePlaylistItems(IList<PlaylistItem> tracks)
+        private async Task<bool> RemovePlaylistItems(IList<int> positions)
         {
+
             bool bRet = false;
             //=== We need to check if we are removing the current item in order to stop playing it (if it is playing)
             bool bAreWeRemovingTheCurrentTrack = false;
@@ -766,10 +756,9 @@ namespace Dopamine.Services.Playback
             //=== Remove all the needed files
             await Task.Run(async () =>
             {
-                IList<int> positionsToRemove = tracks.Select(x => x.Position).ToList();
                 if (currentPosition.HasValue)
-                    bAreWeRemovingTheCurrentTrack = positionsToRemove.Contains(currentPosition.Value);
-                if (queueManager.Remove(positionsToRemove))
+                    bAreWeRemovingTheCurrentTrack = positions.Contains(currentPosition.Value);
+                if (queueManager.Remove(positions))
                 {
                     PlaylistChanged(this, new EventArgs());
                     await SavePlaylistAsync();
@@ -784,30 +773,53 @@ namespace Dopamine.Services.Playback
                     StopPlayback();
             }
             return bRet;
+
         }
 
-        public async Task<bool> RemoveTracks(IList<TrackViewModel> tracks)
+        public async Task<bool> RemovePlaylistItems(IList<PlaylistItem> items)
         {
-            bool bRet = false;
-            long currentTrack = queueManager.CurrentItem == null ? -1 : queueManager.CurrentItem.Id;
+            if (items?.Count == 0)
+                return true;
+            //=== Remove all the needed files
             await Task.Run(async () =>
             {
-                if (queueManager.RemoveTracks(tracks))
-                {
-                    PlaylistChanged(this, new EventArgs());
-                    await SavePlaylistAsync();
-                    bRet = true;
-                }
+                IList<int> positionsToRemove = items.Select(x => x.Position).ToList();
+                return await RemovePlaylistItems(positionsToRemove);
             });
-            long newCurrentTrack = queueManager.CurrentItem == null ? -1 : queueManager.CurrentItem.Id;
-            if (newCurrentTrack != currentTrack)
+            return false;
+        }
+
+        private class TrackViewModelEqualityComparer : IEqualityComparer<TrackViewModel>
+        {
+            public bool Equals(TrackViewModel x, TrackViewModel y)
             {
-                if (queueManager.CurrentItem != null)
-                    await TryPlayAsync(queueManager.CurrentItem);
-                else
-                    StopPlayback();
+                return x.Id == y.Id;
             }
-            return bRet;
+
+            public int GetHashCode(TrackViewModel obj)
+            {
+                return (int) obj.Id;
+            }
+        }
+
+        public async Task<bool> RemovePlaylistItems(IList<TrackViewModel> tracks)
+        {
+            await Task.Run(async () =>
+            {
+                IList<int> positions = new List<int>();
+                int i = 0;
+                TrackViewModelEqualityComparer eq = new TrackViewModelEqualityComparer();
+                foreach (TrackViewModel vm in queueManager.Playlist)
+                {
+                    i++;
+                    if (tracks.Contains(vm, eq))
+                    {
+                        positions.Add(i);
+                    }
+                }
+                return await RemovePlaylistItems(positions);
+            });
+            return false;
         }
 
         public async Task<EnqueueResult> AddToQueueAsync(IList<TrackViewModel> tracks)

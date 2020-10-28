@@ -384,7 +384,6 @@ namespace Dopamine
                 // Now playing
                 containerRegistry.Register<object, NowPlayingArtistInformation>(typeof(NowPlayingArtistInformation).FullName);
                 containerRegistry.Register<object, NowPlayingLyrics>(typeof(NowPlayingLyrics).FullName);
-                containerRegistry.Register<object, NowPlayingPlaylist>(typeof(NowPlayingPlaylist).FullName);
                 containerRegistry.Register<object, NowPlayingShowcase>(typeof(NowPlayingShowcase).FullName);
             }
 

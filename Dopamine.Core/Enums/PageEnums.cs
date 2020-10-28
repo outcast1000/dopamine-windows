@@ -19,9 +19,8 @@
     public enum NowPlayingSubPage
     {
         ShowCase = 0,
-        Playlist = 1,
-        Lyrics = 2,
-        ArtistInformation = 3
+        Lyrics = 1,
+        ArtistInformation = 2
     }
 
     public enum CollectionPage

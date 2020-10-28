@@ -13,6 +13,8 @@ using Prism.Commands;
 using Prism.Ioc;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Dopamine.ViewModels.Common
@@ -37,7 +39,9 @@ namespace Dopamine.ViewModels.Common
 
         protected async Task GetTracksAsync()
         {
-            await this.GetTracksCommonAsync(this.playbackService.Playlist, TrackOrder.None);
+            // ALEX TODO. should we delete the whole file?
+            Debug.Assert(false, "ALEX TODO. should we delete the whole file?");
+            await this.GetTracksCommonAsync(this.playbackService.PlaylistItems.Select(x => x.TrackViewModel).ToList(), TrackOrder.None);
         }
 
         protected override async void FilterListsAsync(string searchText)
@@ -125,7 +129,9 @@ namespace Dopamine.ViewModels.Common
                 droppedTracks.Add((TrackViewModel)item);
             }
 
-            await this.playbackService.UpdateQueueOrderAsync(droppedTracks);
+            //=== ALEX TODO. Should we delete the whole file?
+            Debug.Assert(false, "ALEX TODO. Should we delete the whole file?");
+            //await this.playbackService.UpdateQueueOrderAsync(droppedTracks);
 
             this.isDroppingTracks = false;
         }
@@ -171,7 +177,7 @@ namespace Dopamine.ViewModels.Common
         {
             // Remove Tracks from PlaybackService (this dequeues the Tracks)
             IList<TrackViewModel> selectedTracks = this.SelectedTracks;
-            bool bSuccess = await this.playbackService.RemoveTracks(selectedTracks);
+            bool bSuccess = await this.playbackService.RemovePlaylistItems(selectedTracks);
 
             if (!bSuccess)
             {

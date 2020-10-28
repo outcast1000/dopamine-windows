@@ -33,7 +33,7 @@ namespace Dopamine.ViewModels.Common
 
         public bool HasPlaybackQueue
         {
-            get { return this.PlaybackService.Playlist.Count > 0; }
+            get { return this.PlaybackService.PlaylistItems.Count > 0; }
         }
 
         public NowPlayingPlaybackControlsViewModel(IContainerProvider container, IEventAggregator eventAggregator) : base(container)

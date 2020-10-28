@@ -314,7 +314,7 @@ namespace Dopamine.ViewModels.Common.Base
                 }
                 else
                 {
-                    await this.playbackService.RemoveTracks(selectedTracks);
+                    await this.playbackService.RemovePlaylistItems(selectedTracks);
                 }
             }
         }
@@ -339,7 +339,7 @@ namespace Dopamine.ViewModels.Common.Base
                 }
                 else
                 {
-                    await this.playbackService.RemoveTracks(selectedTracks);
+                    await this.playbackService.RemovePlaylistItems(selectedTracks);
                 }
             }
         }

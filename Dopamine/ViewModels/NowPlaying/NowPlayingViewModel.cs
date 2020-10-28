@@ -45,9 +45,6 @@ namespace Dopamine.ViewModels.NowPlaying
                 case NowPlayingSubPage.Lyrics:
                     this.regionManager.RequestNavigate(RegionNames.NowPlayingSubPageRegion, typeof(NowPlayingLyrics).FullName);
                     break;
-                case NowPlayingSubPage.Playlist:
-                    this.regionManager.RequestNavigate(RegionNames.NowPlayingSubPageRegion, typeof(NowPlayingPlaylist).FullName);
-                    break;
                 case NowPlayingSubPage.ShowCase:
                     this.regionManager.RequestNavigate(RegionNames.NowPlayingSubPageRegion, typeof(NowPlayingShowcase).FullName);
                     break;

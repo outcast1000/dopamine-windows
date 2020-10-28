@@ -57,8 +57,6 @@ namespace Dopamine.Services.Playback
 
         IList<PlaylistItem> PlaylistItems { get; }
 
-        IList<TrackViewModel> Playlist { get; }//=== DEPRECATED?
-
         bool Shuffle { get; set; }
 
         Task SetPlaylistPositionAsync(int newPosition);
@@ -119,9 +117,9 @@ namespace Dopamine.Services.Playback
 
         Task RandomizePlaylistAsync();
 
-        Task<bool> RemoveTracks(IList<TrackViewModel> tracks);
+        Task<bool> RemovePlaylistItems(IList<TrackViewModel> tracks);
 
-        Task<bool> RemovePlaylistItems(IList<PlaylistItem> tracks);
+        Task<bool> RemovePlaylistItems(IList<PlaylistItem> items);
 
         Task SavePlaylistAsync();
 
@@ -131,7 +129,6 @@ namespace Dopamine.Services.Playback
 
         Task UpdateQueueMetadataAsync(IList<FileMetadata> fileMetadatas);
 
-        Task UpdateQueueOrderAsync(IList<TrackViewModel> tracks);
         Task UpdateQueueOrderAsync(IList<PlaylistItem> playlistItems);
 
         Task<IList<AudioDevice>> GetAllAudioDevicesAsync();
