@@ -119,7 +119,7 @@
                                             VerticalAlignment="Center" 
                                             SelectedForeground="{DynamicResource Brush_Accent}"
                                             Visibility="{Binding DataContext.EnableLove,UpdateSourceTrigger=PropertyChanged, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}},Converter={StaticResource BooleanToCollapsedConverter}}"
-                                            Love="{Binding Love, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+                                            Love="{Binding TrackViewModel.Love, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
                                         </StackPanel>
                                         <TextBlock Text="{Binding TrackViewModel.ArtistName}"
                                                VerticalAlignment="Center"
