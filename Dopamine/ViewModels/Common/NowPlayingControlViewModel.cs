@@ -37,7 +37,7 @@ namespace Dopamine.ViewModels.Common
 
         protected async Task GetTracksAsync()
         {
-            await this.GetTracksCommonAsync(this.playbackService.Queue, TrackOrder.None);
+            await this.GetTracksCommonAsync(this.playbackService.Playlist, TrackOrder.None);
         }
 
         protected override async void FilterListsAsync(string searchText)

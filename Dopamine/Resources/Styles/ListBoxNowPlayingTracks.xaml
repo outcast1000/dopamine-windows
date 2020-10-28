@@ -7,7 +7,7 @@
     <converters:InvertingBooleanConverter x:Key="InvertingBooleanConverter" />
     <converters:BooleanToCollapsedConverter x:Key="BooleanToCollapsedConverter" />
     <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-    
+    <converters:IntegerAddOneConverter x:Key="IntegerAddOneConverter" />
 
     <!-- ContextMenu -->
     <ContextMenu x:Key="ListBoxNowPlayingTracksContextMenu" x:Shared="False">
@@ -72,15 +72,15 @@
                             <Border.ToolTip>
                                 <ToolTip>
                                     <StackPanel>
-                                        <TextBlock Text="{Binding TrackTitle}" FontWeight="Bold"/>
-                                        <TextBlock Text="{Binding ArtistName}"/>
+                                        <TextBlock Text="{Binding TrackViewModel.TrackTitle}" FontWeight="Bold"/>
+                                        <TextBlock Text="{Binding TrackViewModel.ArtistName}"/>
                                     </StackPanel>
                                 </ToolTip>
                             </Border.ToolTip>
                             <DockPanel Margin="10,0,10,0">
                                 <Border DockPanel.Dock="Left" MinWidth="20" Height="40">
                                     <TextBlock 
-                                        Text="0" 
+                                        Text="{Binding Position, Converter={StaticResource IntegerAddOneConverter}}" 
                                         HorizontalAlignment="Center" 
                                         VerticalAlignment="Center"
                                         Foreground="{DynamicResource Brush_SecondaryText}"
@@ -95,13 +95,13 @@
                                                    Margin="0,0,10,0" 
                                                    VerticalAlignment="Center"/>
                                             <TextBlock
-                                                Text="{Binding Duration}" 
+                                                Text="{Binding TrackViewModel.Duration}" 
                                                 TextAlignment="Right"
                                                 FontSize="13" 
                                                 VerticalAlignment="Center"
                                                 Margin="0,0,2,0"/>
                                         </StackPanel>
-                                        <TextBlock Text="{Binding TrackTitle}"
+                                        <TextBlock Text="{Binding TrackViewModel.TrackTitle}"
                                                VerticalAlignment="Center"
                                                HorizontalAlignment="Stretch" 
                                                TextTrimming="CharacterEllipsis"
@@ -113,7 +113,7 @@
                                             <pc:RatingButton 
                                             VerticalAlignment="Center" 
                                             Visibility="{Binding DataContext.EnableRating,UpdateSourceTrigger=PropertyChanged, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}"
-                                            Rating="{Binding Rating, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+                                            Rating="{Binding TrackViewModel.Rating, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
                                             <pc:LoveButton 
                                             Margin="10,0,0,0"
                                             VerticalAlignment="Center" 
@@ -121,7 +121,7 @@
                                             Visibility="{Binding DataContext.EnableLove,UpdateSourceTrigger=PropertyChanged, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}},Converter={StaticResource BooleanToCollapsedConverter}}"
                                             Love="{Binding Love, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
                                         </StackPanel>
-                                        <TextBlock Text="{Binding ArtistName}"
+                                        <TextBlock Text="{Binding TrackViewModel.ArtistName}"
                                                VerticalAlignment="Center"
                                                HorizontalAlignment="Stretch" 
                                                TextTrimming="CharacterEllipsis"

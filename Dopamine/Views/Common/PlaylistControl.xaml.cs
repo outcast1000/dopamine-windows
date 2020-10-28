@@ -10,10 +10,15 @@ using System;
 using Digimezzo.Foundation.WPF.Controls;
 using System.Windows.Media;
 using Dopamine.Services.Entities;
+using Dopamine.Services.Playback;
+using Digimezzo.Foundation.Core.IO;
+using Digimezzo.Foundation.Core.Logging;
+using Dopamine.Core.Base;
+using Dopamine.Services.Utils;
 
 namespace Dopamine.Views.Common
 {
-    public partial class PlaylistControl : TracksViewBase
+    public partial class PlaylistControl : CommonViewBase
     {
         public PlaylistControl()
         {
@@ -36,7 +41,7 @@ namespace Dopamine.Views.Common
             PlaylistControlViewModel vm = (PlaylistControlViewModel)this.DataContext;
             if (vm.InSearchMode)
             {
-                await base.ActionHandler(sender, source, enqueue, false);
+                //await base.ActionHandler(sender, source, enqueue, false);
             }
             else
             {
@@ -53,7 +58,7 @@ namespace Dopamine.Views.Common
                     return;
 
                 // The user just wants to play the selected item. Don't enqueue.
-                if (lb.SelectedItem.GetType().Name == typeof(TrackViewModel).Name)
+                if (lb.SelectedItem.GetType().Name == typeof(PlaylistItem).Name)
                 {
                     await this.playbackService.SetPlaylistPositionAsync(lb.SelectedIndex);
                     //await this.playbackService.PlaySelectedAsync((TrackViewModel)lb.SelectedItem);
@@ -73,5 +78,65 @@ namespace Dopamine.Views.Common
                 Task unAwaitedTask = this.ActionHandler(sender, e.OriginalSource as DependencyObject, false, true);
             }
         }
+
+        protected override void ViewInExplorer(Object sender)
+        {
+            try
+            {
+                // Cast sender to ListBox
+                ListBox lb = (ListBox)sender;
+
+                if (lb.SelectedItem != null)
+                {
+                    Actions.TryViewInExplorer(((PlaylistItem)lb.SelectedItem).TrackViewModel.Data.Path);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogClient.Error("Could not view track in Windows Explorer. Exception: {0}", ex.Message);
+            }
+        }
+
+        protected override async Task KeyUpHandlerAsync(object sender, KeyEventArgs e)
+        {
+            ListBox lb = (ListBox)sender;
+
+            if (e.Key == Key.J && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                await this.ScrollToPlayingTrackAsync(lb);
+
+            }
+            else if (e.Key == Key.E && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                if (lb.SelectedItem != null)
+                {
+                    Actions.TryViewInExplorer(((PlaylistItem)lb.SelectedItem).TrackViewModel.Data.Path);
+                }
+            }
+        }
+
+        protected override async Task ScrollToPlayingTrackAsync(Object sender)
+        {
+            try
+            {
+                // Cast sender to ListBox
+                ListBox lb = (ListBox)sender;
+
+                // This should provide a smoother experience because after this wait,
+                // other animations on the UI should have finished executing.
+                await Task.Delay(Convert.ToInt32(Constants.ScrollToPlayingTrackTimeoutSeconds * 1000));
+
+                await Application.Current.Dispatcher.Invoke(async () =>
+                {
+                    await ScrollUtils.ScrollToPlayingTrackAsync(lb);
+                });
+            }
+            catch (Exception ex)
+            {
+                LogClient.Error("Could not scroll to the playing track. Exception: {0}", ex.Message);
+            }
+        }
+
+
     }
 }

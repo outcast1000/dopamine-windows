@@ -25,7 +25,7 @@ namespace Dopamine.ViewModels.Common.Base
 
         private void SetNowPlaying()
         {
-            this.SelectedNowPlayingPage = this.playbackService.Queue.Count > 0 ? NowPlayingPage.NowPlaying : NowPlayingPage.NothingPlaying;
+            this.SelectedNowPlayingPage = this.playbackService.Playlist.Count > 0 ? NowPlayingPage.NowPlaying : NowPlayingPage.NothingPlaying;
         }
     }
 }

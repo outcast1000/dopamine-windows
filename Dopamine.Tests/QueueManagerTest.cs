@@ -62,14 +62,14 @@ namespace Dopamine.Tests
             Debug.Print($"Testing NEXT");
             for (int i = 0; i < 20; i++)
             {
-                Debug.Print($"i: {i} Position: {qm.Position} Current: {qm.CurrentTrack.TrackTitle}");
+                Debug.Print($"i: {i} Position: {qm.Position} Current: {qm.CurrentItem.TrackTitle}");
                 if (!qm.Next())
                     break;
             }
             Debug.Print("Testing PREV");
             for (int i = 0; i < 20; i++)
             {
-                Debug.Print($"i: {i} Position: {qm.Position} Current: {qm.CurrentTrack.TrackTitle}");
+                Debug.Print($"i: {i} Position: {qm.Position} Current: {qm.CurrentItem.TrackTitle}");
                 if (!qm.Prev())
                     break;
             }

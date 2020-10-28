@@ -18,7 +18,7 @@ namespace Dopamine.Services.Playback
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private List<T> _playList = new List<T>();
         private List<int> _playlistOrder = new List<int>();
-        private int _position = -1;
+        private int? _position = null;
         private int _nextCounter = 0;
         private bool _shuffle = false;
 
@@ -26,7 +26,6 @@ namespace Dopamine.Services.Playback
         {
             Shuffle = false;
             Loop = false;
-            _position = -1;
         }
 
         public IList<T> Playlist { get { return _playList; } }
@@ -43,7 +42,7 @@ namespace Dopamine.Services.Playback
 
         public bool Loop { get; set; }
 
-        public int Position
+        public int? Position
         {
             get { return _position; }
             set
@@ -59,35 +58,30 @@ namespace Dopamine.Services.Playback
                         Debug.Assert(false, "Not a legal position value");
                     }
                 }
+                else
+                    Debug.Assert(false, "Not a legal position value (playlist is empty)");
             }
         }
 
-        public T CurrentTrack { get
+        public T CurrentItem { get
             {
-                if (_position >= 0 && _position < _playList.Count)
+                if (_position.HasValue && _position.Value < _playList.Count)
                 {
-                    return _playList[_position];
+                    return _playList[_position.Value];
                 }
-                Logger.Info("CurrentTrack is null");
+                Logger.Info("CurrentItem is null");
                 return default;
             }
         }
 
-        public void Play(IList<T> tracks, int startAtIndex = -1)
+        public void Play(IList<T> items, int startAtIndex = -1)
         {
             Clear();
-            if (tracks.IsNullOrEmpty())
+            if (items.IsNullOrEmpty())
                 return;
-            Enqueue(tracks);
+            Enqueue(items);
             if (startAtIndex != -1)
             {
-                // Modify PlayList and set it as first track
-                /*
-                int idx = _playlistOrder.Find(x => x == startAtIndex);
-                TrackViewModel temp = _playList[idx];
-                _playList.RemoveAt(idx);
-                _playList.Insert(0, temp);
-                */
                 if (Shuffle)
                 {
                     // Modify PlayOrder to start at startAtIndex track as the first one
@@ -105,20 +99,20 @@ namespace Dopamine.Services.Playback
             
         }
 
-        public void Enqueue(IList<T> tracks)
+        public void Enqueue(IList<T> items)
         {
-            _playList.AddRange(tracks);
+            _playList.AddRange(items);
             _nextCounter = 0;
             _playlistOrder = CreatePlayListOrder();
         }
 
-        public void EnqueueNext(IList<T> tracks)
+        public void EnqueueNext(IList<T> items)
         {
             if (_position == -1)
-                Enqueue(tracks);
+                Enqueue(items);
             else
             {
-                _playList.InsertRange(_position + 1, tracks);
+                _playList.InsertRange(_position.HasValue ? 0 : _position.Value + 1, items);
                 _nextCounter = 0;
                 _playlistOrder = CreatePlayListOrder();
             }
@@ -138,7 +132,7 @@ namespace Dopamine.Services.Playback
         {
             _playList = new List<T>();
             _playlistOrder = new List<int>();
-            _position = -1;
+            _position = null;
             _nextCounter = 0;
         }
 
@@ -189,6 +183,33 @@ namespace Dopamine.Services.Playback
             return Enumerable.Range(0, _playList.Count).ToList();
         }
 
+
+        public bool Reorder(IList<int> reorderedPositions)
+        {
+            if (reorderedPositions.Count != _playList.Count)
+            {
+                Logger.Warn($"ReorderTracks (count: {reorderedPositions.Count}) failed. It should have the same numbers of tracks as the original (count: {_playList.Count})");
+                return false;
+            }
+            /*
+            if (CurrentTrack != null)
+            {
+                // The playing track may have changed position. Find the new position and change it internally.
+                // * ALEX TODO: This code may have issues if there the playlist have the same (current)track multiple times.
+                //              It should be refactored to use IList<int> reorderedTracks
+                int newPosition = reorderedPositions.IndexOf(CurrentTrack);
+                if (newPosition == -1)
+                {
+                    Logger.Warn($"ReorderPlaylist (count: {reorderedTracks.Count}) failed. The current track does not exist in the reordered list");
+                    return false;
+                }
+                _position = newPosition;
+            }
+            _playList.Clear();
+            _playList.InsertRange(0, reorderedTracks);
+            */
+            return true;
+        }
         // ALEX TODO: It should be refactored to use IList<int> reorderedTracks
         public bool ReorderTracks(IList<T> reorderedTracks)
         {
@@ -197,12 +218,12 @@ namespace Dopamine.Services.Playback
                 Logger.Warn($"ReorderTracks (count: {reorderedTracks.Count}) failed. It should have the same numbers of tracks as the original (count: {_playList.Count})");
                 return false;
             }
-            if (CurrentTrack != null)
+            if (CurrentItem != null)
             {
                 // The playing track may have changed position. Find the new position and change it internally.
                 // * ALEX TODO: This code may have issues if there the playlist have the same (current)track multiple times.
                 //              It should be refactored to use IList<int> reorderedTracks
-                int newPosition = reorderedTracks.IndexOf(CurrentTrack);
+                int newPosition = reorderedTracks.IndexOf(CurrentItem);
                 if (newPosition == -1)
                 {
                     Logger.Warn($"ReorderPlaylist (count: {reorderedTracks.Count}) failed. The current track does not exist in the reordered list");
@@ -217,6 +238,30 @@ namespace Dopamine.Services.Playback
 
         // Remove all tracks. Continue playing if active track is not affected. Next track if it is deleted. Nothing if the list is empty
         // ALEX TODO: It should be refactored to use IList<int> removedTracks
+
+        public bool Remove(IList<int> positions)
+        {
+            if (positions.Count > _playList.Count)
+            {
+                Logger.Warn($"RemoveTracks (count: {positions.Count}) failed. It should have at most the same numbers of tracks as the original (count: {_playList.Count})");
+                return false;
+            }
+            T current = CurrentItem;
+            foreach (int position in positions)
+            {
+                _playList.RemoveAt(position);
+            }
+            int idxCurrent = _playList.IndexOf(current);
+            if (idxCurrent != -1)
+            {
+                _position = idxCurrent;
+            }
+            if (_position > _playList.Count - 1)
+                _position = _playList.Count - 1;
+            _playlistOrder = CreatePlayListOrder();
+            return true;
+
+        }
         public bool RemoveTracks(IList<T> removedTracks)
         {
             if (removedTracks.Count > _playList.Count)
@@ -224,7 +269,7 @@ namespace Dopamine.Services.Playback
                 Logger.Warn($"RemoveTracks (count: {removedTracks.Count}) failed. It should have at most the same numbers of tracks as the original (count: {_playList.Count})");
                 return false;
             }
-            T current = CurrentTrack;
+            T current = CurrentItem;
             foreach (var tvm in removedTracks)
             {
                 bool ret = _playList.Remove(tvm);
@@ -239,7 +284,6 @@ namespace Dopamine.Services.Playback
                 _position = _playList.Count - 1;
             _playlistOrder = CreatePlayListOrder();
             return true;
-
 
         }
 

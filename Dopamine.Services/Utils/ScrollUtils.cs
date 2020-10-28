@@ -1,6 +1,7 @@
 ﻿using Digimezzo.Foundation.Core.Utils;
 using Dopamine.Services.Entities;
 using Dopamine.Services.Lyrics;
+using Dopamine.Services.Playback;
 using System;
 using System.Threading.Tasks;
 using System.Windows;
@@ -85,6 +86,7 @@ namespace Dopamine.Services.Utils
         public static async Task ScrollToPlayingTrackAsync(ListBox box)
         {
             if (box == null) return;
+            if (box.Items.Count == 0) return;
 
             Object itemObject = null;
 
@@ -92,13 +94,29 @@ namespace Dopamine.Services.Utils
             {
                 try
                 {
-                    for (int i = 0; i <= box.Items.Count - 1; i++)
+                    string t = box.Items[0].GetType().Name;
+                    if (t.Equals("TrackViewModel"))
                     {
-                        if (((TrackViewModel)box.Items[i]).IsPlaying)
+                        for (int i = 0; i <= box.Items.Count - 1; i++)
                         {
-                            itemObject = box.Items[i];
-                            break;
+                            if (((TrackViewModel)box.Items[i]).IsPlaying)
+                            {
+                                itemObject = box.Items[i];
+                                break;
+                            }
                         }
+                    }
+                    else if (t.Equals("PlaylistItem"))
+                    {
+                        for (int i = 0; i <= box.Items.Count - 1; i++)
+                        {
+                            if (((PlaylistItem)box.Items[i]).IsPlaying)
+                            {
+                                itemObject = box.Items[i];
+                                break;
+                            }
+                        }
+
                     }
                 }
                 catch (Exception)

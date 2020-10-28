@@ -25,12 +25,25 @@ namespace Dopamine.Services.Playback
         EnqueuNext
     }
 
+    public class PlaylistItem
+    {
+        public PlaylistItem(int position, bool isPlaying, TrackViewModel trackViewModel)
+        {
+            Position = position;
+            IsPlaying = isPlaying;
+            TrackViewModel = trackViewModel;
+        }
+        public int Position { get; set; }
+        public bool IsPlaying { get; set; }
+        public TrackViewModel TrackViewModel { get; set; }
+    }
+
     public interface IPlaybackService
     {
         IPlayer Player { get; }
 
         TrackViewModel CurrentTrack { get; }
-        int CurrentPlaylistPosition { get; }
+        int? CurrentPlaylistPosition { get; }
 
         bool HasQueue { get; }
 
@@ -42,7 +55,9 @@ namespace Dopamine.Services.Playback
 
         bool HasMediaFoundationSupport { get; }
 
-        IList<TrackViewModel> Queue { get; }
+        IList<PlaylistItem> PlaylistItems { get; }
+
+        IList<TrackViewModel> Playlist { get; }//=== DEPRECATED?
 
         bool Shuffle { get; set; }
 
@@ -106,6 +121,8 @@ namespace Dopamine.Services.Playback
 
         Task<bool> RemoveTracks(IList<TrackViewModel> tracks);
 
+        Task<bool> RemovePlaylistItems(IList<PlaylistItem> tracks);
+
         Task SavePlaylistAsync();
 
         void ApplyPreset(EqualizerPreset preset);
@@ -115,6 +132,7 @@ namespace Dopamine.Services.Playback
         Task UpdateQueueMetadataAsync(IList<FileMetadata> fileMetadatas);
 
         Task UpdateQueueOrderAsync(IList<TrackViewModel> tracks);
+        Task UpdateQueueOrderAsync(IList<PlaylistItem> playlistItems);
 
         Task<IList<AudioDevice>> GetAllAudioDevicesAsync();
 

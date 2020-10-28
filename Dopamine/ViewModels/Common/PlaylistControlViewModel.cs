@@ -12,9 +12,12 @@ using GongSolutions.Wpf.DragDrop;
 using Prism.Commands;
 using Prism.Ioc;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Data;
 
 namespace Dopamine.ViewModels.Common
 {
@@ -54,9 +57,81 @@ namespace Dopamine.ViewModels.Common
             await playbackService.RandomizePlaylistAsync();
         }
 
+        private ObservableCollection<PlaylistItem> _playlistItems;
+
         protected async Task GetTracksAsync()
         {
-            await this.GetTracksCommonAsync(this.playbackService.Queue, TrackOrder.None);
+            _playlistItems = new ObservableCollection<PlaylistItem>(playbackService.PlaylistItems);
+            RefreshView();
+        }
+
+        private CollectionViewSource tracksCvs;
+
+        public CollectionViewSource TracksCvs
+        {
+            get { return this.tracksCvs; }
+            set { SetProperty<CollectionViewSource>(ref this.tracksCvs, value); }
+        }
+
+        private void RefreshView()
+        {
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                // Populate CollectionViewSource
+
+                this.TracksCvs = new CollectionViewSource { Source = _playlistItems };
+                // Update count
+                this.TracksCount = _playlistItems.Count;
+
+
+                this.CalculateSizeInformationAsync(this.TracksCvs);
+                Task unAwaitedTask = this.ShowPlayingTrackAsync();
+            });
+
+            // Update duration and size
+
+            // Show playing Track
+        }
+
+        private IList<PlaylistItem> selectedTracks;
+
+        public IList<PlaylistItem> SelectedTracks
+        {
+            get { return this.selectedTracks; }
+            set { SetProperty<IList<PlaylistItem>>(ref this.selectedTracks, value); }
+        }
+
+        protected override void SelectedTracksHandler(object parameter)
+        {
+            if (parameter != null)
+            {
+                this.SelectedTracks = new List<PlaylistItem>();
+
+                foreach (PlaylistItem item in (IList)parameter)
+                {
+                    this.SelectedTracks.Add(item);
+                }
+            }
+        }
+
+        protected async void CalculateSizeInformationAsync(CollectionViewSource source)
+        {
+            if (source == null)
+            {
+                this.SetSizeInformation(0, 0);
+                return;
+            }
+            IList<PlaylistItem> vmList = (IList<PlaylistItem>)source.Source;
+            await Task.Run(() =>
+            {
+                long totalDuration = vmList.Select(x => x.TrackViewModel.Data.Duration.HasValue ? x.TrackViewModel.Data.Duration.Value : 0).Sum();
+                long totalSize = vmList.Select(x => x.TrackViewModel.Data.FileSize.HasValue ? x.TrackViewModel.Data.FileSize.Value : 0).Sum();
+                SetSizeInformation(totalDuration, totalSize);
+            });
+
+            RaisePropertyChanged(nameof(this.TotalDurationInformation));
+            RaisePropertyChanged(nameof(this.TotalSizeInformation));
+            RaisePropertyChanged(nameof(this.TotalTracksInformation));
         }
 
         protected override async void FilterListsAsync(string searchText)
@@ -136,12 +211,12 @@ namespace Dopamine.ViewModels.Common
         {
             this.isDroppingTracks = true;
 
-            var droppedTracks = new List<TrackViewModel>();
+            var droppedTracks = new List<PlaylistItem>();
 
             // TargetCollection contains all tracks of the queue, in the new order.
             foreach (var item in dropInfo.TargetCollection)
             {
-                droppedTracks.Add((TrackViewModel)item);
+                droppedTracks.Add((PlaylistItem)item);
             }
 
             await this.playbackService.UpdateQueueOrderAsync(droppedTracks);
@@ -189,8 +264,8 @@ namespace Dopamine.ViewModels.Common
         private async Task RemoveSelectedTracksFromNowPlayingAsync()
         {
             // Remove Tracks from PlaybackService (this dequeues the Tracks)
-            IList<TrackViewModel> selectedTracks = this.SelectedTracks;
-            bool bSuccess = await this.playbackService.RemoveTracks(selectedTracks);
+            IList<PlaylistItem> selectedTracks = this.SelectedTracks;
+            bool bSuccess = await this.playbackService.RemovePlaylistItems(selectedTracks);
 
             if (!bSuccess)
             {
@@ -204,11 +279,8 @@ namespace Dopamine.ViewModels.Common
                      ResourceUtils.GetString("Language_Log_File"));
             }
 
-            if (this.Tracks == null)
-            {
-                return;
-            }
-
+            // An event should be sent to refresh the view so this code will be disabled
+            /*
             // Remove the ViewModels from Tracks (this updates the UI)
             foreach (TrackViewModel track in selectedTracks)
             {
@@ -219,6 +291,11 @@ namespace Dopamine.ViewModels.Common
             }
 
             this.TracksCount = this.Tracks.Count;
+            */
         }
+
+
+
+
     }
 }
