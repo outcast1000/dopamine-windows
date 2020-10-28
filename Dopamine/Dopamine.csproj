@@ -283,7 +283,6 @@
     <Compile Include="ViewModels\Common\LyricsViewModel.cs" />
     <Compile Include="ViewModels\Common\NothingPlayingControlViewModel.cs" />
     <Compile Include="ViewModels\Common\PlaylistControlViewModel.cs" />
-    <Compile Include="ViewModels\Common\NowPlayingControlViewModel.cs" />
     <Compile Include="ViewModels\Common\NowPlayingPlaybackControlsViewModel.cs" />
     <Compile Include="ViewModels\Common\PlayAllControlViewModel.cs" />
     <Compile Include="ViewModels\Common\PlaybackControlsWithPlaylistNotificationViewModel.cs" />
@@ -417,9 +416,6 @@
     </Compile>
     <Compile Include="Views\Common\NothingPlayingControl.xaml.cs">
       <DependentUpon>NothingPlayingControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Common\NowPlayingControl.xaml.cs">
-      <DependentUpon>NowPlayingControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Common\NowPlayingPlaybackControls.xaml.cs">
       <DependentUpon>NowPlayingPlaybackControls.xaml</DependentUpon>
@@ -1254,10 +1250,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\Common\NothingPlayingControl.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Views\Common\NowPlayingControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

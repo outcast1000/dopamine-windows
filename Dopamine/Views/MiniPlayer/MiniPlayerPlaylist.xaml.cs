@@ -198,7 +198,7 @@ namespace Dopamine.Views.MiniPlayer
             // When unloaded, thee list is clear and memory is saved. Everybody happy :) 
             if (this.Visibility == Visibility.Visible)
             {
-                this.NowPlayingControlParent.Children.Add(new NowPlayingControl());
+                this.NowPlayingControlParent.Children.Add(new PlaylistControl());
             }
             else
             {
