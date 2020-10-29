@@ -780,13 +780,14 @@ namespace Dopamine.Services.Playback
         {
             if (items?.Count == 0)
                 return true;
+            bool bRet = false;
             //=== Remove all the needed files
             await Task.Run(async () =>
             {
                 IList<int> positionsToRemove = items.Select(x => x.Position).ToList();
-                return await RemovePlaylistItems(positionsToRemove);
+                bRet = await RemovePlaylistItems(positionsToRemove);
             });
-            return false;
+            return bRet;
         }
 
         private class TrackViewModelEqualityComparer : IEqualityComparer<TrackViewModel>
