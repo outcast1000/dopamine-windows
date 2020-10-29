@@ -302,6 +302,13 @@ namespace Dopamine.ViewModels.Common
             this.ShowFileInformation(this.SelectedTracks.Select(t => t.TrackViewModel.Path).ToList());
         }
 
+        protected override void EditSelectedTracks()
+        {
+            if (this.SelectedTracks == null || this.SelectedTracks.Count == 0) return;
+
+            this.EditFiles(this.SelectedTracks.Select(t => t.TrackViewModel.Path).ToList());
+        }
+
 
 
 
