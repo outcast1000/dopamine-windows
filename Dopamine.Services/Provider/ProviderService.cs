@@ -57,6 +57,12 @@ namespace Dopamine.Services.Provider
                "<Url>https://www.google.com/search?q=lyrics+</Url>" +
                "<Separator>+</Separator>" +
                "</SearchProvider>" +
+               "<SearchProvider>" +
+               "<Id>5f3568ee-92af-4c82-a35f-377383e5d163</Id>" +
+               "<Name>Info (AllMusic)</Name>" +
+               "<Url>https://www.allmusic.com/search/songs/</Url>" +
+               "<Separator>+</Separator>" +
+               "</SearchProvider>" +
                "</SearchProviders>" +
                "</Providers>");
 
