@@ -30,7 +30,7 @@ namespace Dopamine.Core.Utils
                 sb.Append(string.Concat(ts.ToString("%m"), " ", ts.Minutes == 1 ? ResourceUtils.GetString("Language_Minute") : ResourceUtils.GetString("Language_Minutes"), " "));
             }
 
-            if (ts.Seconds > 0)
+            if (ts.Seconds > 0 && ts.Minutes < 20)
             {
                 sb.Append(string.Concat(ts.ToString("%s"), " ", ts.Seconds == 1 ? ResourceUtils.GetString("Language_Second") : ResourceUtils.GetString("Language_Seconds")));
             }
