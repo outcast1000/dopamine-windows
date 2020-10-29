@@ -294,6 +294,14 @@ namespace Dopamine.ViewModels.Common
             */
         }
 
+        protected override void ShowSelectedTrackInformation()
+        {
+            // Don't try to show the file information when nothing is selected
+            if (this.SelectedTracks == null || this.SelectedTracks.Count == 0) return;
+
+            this.ShowFileInformation(this.SelectedTracks.Select(t => t.TrackViewModel.Path).ToList());
+        }
+
 
 
 
