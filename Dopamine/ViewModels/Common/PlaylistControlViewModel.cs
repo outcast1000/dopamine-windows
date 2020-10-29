@@ -7,6 +7,7 @@ using Dopamine.Services.Dialog;
 using Dopamine.Services.Entities;
 using Dopamine.Services.File;
 using Dopamine.Services.Playback;
+using Dopamine.Services.Provider;
 using Dopamine.ViewModels.Common.Base;
 using GongSolutions.Wpf.DragDrop;
 using Prism.Commands;
@@ -26,6 +27,8 @@ namespace Dopamine.ViewModels.Common
         private IPlaybackService playbackService;
         private IDialogService dialogService;
         private IFileService fileService;
+        private IProviderService providerService;
+
         protected bool isDroppingTracks;
         public DelegateCommand ShufflePlaylistCommand { get; set; }
 
@@ -36,6 +39,7 @@ namespace Dopamine.ViewModels.Common
             this.playbackService = container.Resolve<IPlaybackService>();
             this.dialogService = container.Resolve<IDialogService>();
             this.fileService = container.Resolve<IFileService>();
+            this.providerService = container.Resolve<IProviderService>();
 
             this.playbackService.PlaybackSuccess += (_, __) => this.UpdateNowPlaying();
             this.playbackService.PlaylistChanged += (_, __) => this.UpdateNowPlaying();
@@ -307,6 +311,14 @@ namespace Dopamine.ViewModels.Common
             if (this.SelectedTracks == null || this.SelectedTracks.Count == 0) return;
 
             this.EditFiles(this.SelectedTracks.Select(t => t.TrackViewModel.Path).ToList());
+        }
+
+        protected override void SearchOnline(string id)
+        {
+            if (this.SelectedTracks != null && this.SelectedTracks.Count > 0)
+            {
+                this.providerService.SearchOnline(id, new string[] { this.SelectedTracks.First().TrackViewModel.ArtistName, this.SelectedTracks.First().TrackViewModel.TrackTitle });
+            }
         }
 
 
