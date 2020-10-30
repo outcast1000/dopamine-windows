@@ -121,7 +121,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         public DelegateCommand<string> SemanticJumpCommand { get; set; }
 
-        public DelegateCommand AddArtistsToNowPlayingCommand { get; set; }
+        public DelegateCommand PlayArtistsCommand { get; set; }
+        public DelegateCommand EnqueueArtistsCommand { get; set; }
 
         public DelegateCommand ShuffleSelectedArtistsCommand { get; set; }
 
@@ -272,11 +273,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             AddArtistsToPlaylistCommand = new DelegateCommand<string>(async (playlistName) => await AddItemsToPlaylistAsync(SelectedArtists, playlistName));
             SelectedArtistsCommand = new DelegateCommand<object>(async (parameter) => await SelectedItemsHandlerAsync(parameter));
             ShowArtistsZoomCommand = new DelegateCommand(async () => await ShowSemanticZoomAsync());
-            AddArtistsToNowPlayingCommand = new DelegateCommand(async () => await AddItemsToNowPlayingAsync(SelectedArtists));
-            ShuffleSelectedArtistsCommand = new DelegateCommand(async () =>
-            {
-                await _playbackService.PlayArtistsAsync(SelectedArtists, PlaylistMode.Play, true);
-            });
+            PlayArtistsCommand = new DelegateCommand(async () => await _playbackService.PlayArtistsAsync(SelectedArtists, PlaylistMode.Play));
+            EnqueueArtistsCommand = new DelegateCommand(async () => await _playbackService.PlayArtistsAsync(SelectedArtists, PlaylistMode.Enqueue));
             DownloadImageArtistsCommand = new DelegateCommand<ArtistViewModel>(async (artist) =>
             {
                 await artist.RequestImageDownload(true, true);

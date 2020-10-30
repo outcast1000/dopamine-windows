@@ -461,6 +461,7 @@
   <Text Key="Played">Played</Text>
   <Text Key="Skipped">Skipped</Text>
   <Text Key="Records">Records</Text>
+  <Text Key="Enqueue">Enqueue</Text>
 
 
 </Language>
