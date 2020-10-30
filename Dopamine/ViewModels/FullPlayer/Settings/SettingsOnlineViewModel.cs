@@ -245,9 +245,18 @@ namespace Dopamine.ViewModels.FullPlayer.Settings
 
         private async void GetSearchProvidersAsync()
         {
-            var providersList = await this.providerService.GetSearchProvidersAsync();
             var localProviders = new ObservableCollection<SearchProvider>();
-
+            var providersList = await this.providerService.GetSearchProvidersAsync(SearchProvider.ProviderType.Track);
+            foreach (SearchProvider provider in providersList)
+            {
+                localProviders.Add(provider);
+            }
+            providersList = await this.providerService.GetSearchProvidersAsync(SearchProvider.ProviderType.Album);
+            foreach (SearchProvider provider in providersList)
+            {
+                localProviders.Add(provider);
+            }
+            providersList = await this.providerService.GetSearchProvidersAsync(SearchProvider.ProviderType.Artist);
             foreach (SearchProvider provider in providersList)
             {
                 localProviders.Add(provider);

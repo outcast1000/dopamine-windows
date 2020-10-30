@@ -26,6 +26,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.ComponentModel;
 using System.Diagnostics;
+using Dopamine.Services.Provider;
 
 /* ALEX COMMENT
 --- MAP OF VARIOUS EVENTS THAT TRIGGERS Data Refresh
@@ -82,6 +83,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private IIndexingService _indexingService;
         private IDialogService _dialogService;
         private IEventAggregator _eventAggregator;
+        private IProviderService _providerService;
         private CollectionViewSource _collectionViewSource;
         private IList<ArtistViewModel> _selectedItems = new List<ArtistViewModel>();
         private ObservableCollection<ISemanticZoomSelector> _zoomSelectors;
@@ -96,6 +98,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private ArtistOrder _order;
         private readonly string Setting_LeftPaneWidthPercent = "ArtistsLeftPaneWidthPercent";
         private readonly string Setting_RightPaneWidthPercent = "ArtistsRightPaneWidthPercent";
+        private ObservableCollection<SearchProvider> artistContextMenuSearchProviders;
 
 
 
@@ -129,6 +132,48 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         public DelegateCommand<ArtistViewModel> EnqueueArtistCommand { get; set; }
 
         public DelegateCommand<ArtistViewModel> LoveArtistCommand { get; set; }
+
+
+        public DelegateCommand<string> ArtistSearchOnlineCommand { get; set; }
+
+        public ObservableCollection<SearchProvider> ArtistContextMenuSearchProviders
+        {
+            get { return this.artistContextMenuSearchProviders; }
+            set
+            {
+                SetProperty<ObservableCollection<SearchProvider>>(ref this.artistContextMenuSearchProviders, value);
+                RaisePropertyChanged(nameof(this.HasContextMenuSearchProviders));
+            }
+        }
+
+        protected bool HasArtistContextMenuSearchProviders => this.ContextMenuSearchProviders != null && this.ContextMenuSearchProviders.Count > 0;
+
+        private async void GetArtistsSearchProvidersAsync()
+        {
+            this.artistContextMenuSearchProviders = null;
+
+            List<SearchProvider> providersList = await _providerService.GetSearchProvidersAsync(SearchProvider.ProviderType.Artist);
+            var localProviders = new ObservableCollection<SearchProvider>();
+
+            await Task.Run(() =>
+            {
+                foreach (SearchProvider vp in providersList)
+                {
+                    localProviders.Add(vp);
+                }
+            });
+
+            this.artistContextMenuSearchProviders = localProviders;
+        }
+
+        private void ArtistSearchOnline(string id)
+        {
+            if (SelectedArtists?.Count > 0)
+            {
+                _providerService.SearchOnline(id, new string[] { this.SelectedArtists.First().Name });
+            }
+        }
+
 
         public double LeftPaneWidthPercent
         {
@@ -218,6 +263,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             _indexingService = container.Resolve<IIndexingService>();
             _dialogService = container.Resolve<IDialogService>();
             _eventAggregator = container.Resolve<IEventAggregator>();
+            _providerService = container.Resolve<IProviderService>();
 
             // Commands
             ToggleTrackOrderCommand = new DelegateCommand(async () => await ToggleTrackOrderAsync());
@@ -241,6 +287,9 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             EnqueueArtistCommand = new DelegateCommand<ArtistViewModel>(async (vm) => await _playbackService.PlayArtistsAsync(new List<ArtistViewModel>() { vm }, PlaylistMode.Enqueue));
             LoveArtistCommand = new DelegateCommand<ArtistViewModel>((avm) => Debug.Assert(false, "ALEX TODO"));
 
+            _providerService.SearchProvidersChanged += (_, __) => { GetArtistsSearchProvidersAsync(); };
+            this.GetArtistsSearchProvidersAsync();
+            this.ArtistSearchOnlineCommand = new DelegateCommand<string>((id) => ArtistSearchOnline(id));
 
 
             SemanticJumpCommand = new DelegateCommand<string>((header) =>

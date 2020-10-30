@@ -126,6 +126,11 @@ namespace Dopamine.ViewModels.Common.Base
             this.playbackService.TrackHistoryChanged += PlaybackService_TrackHistoryChanged;
         }
 
+        override protected SearchProvider.ProviderType? GetSearchProviderType()
+        {
+            return SearchProvider.ProviderType.Track;
+        }
+
         protected virtual async void MetadataChangedHandlerAsync(MetadataChangedEventArgs e)
         {
             await this.FillListsAsync();

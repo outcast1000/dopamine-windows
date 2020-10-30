@@ -71,6 +71,20 @@
         </MenuItem>
         <Separator />
         <MenuItem
+            Header="{DynamicResource Language_Search_Online}"
+            ItemsSource="{Binding DataContext.ArtistContextMenuSearchProviders, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+            DisplayMemberPath="Name"
+            IsEnabled="{Binding DataContext.HasArtistContextMenuSearchProviders, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}">
+            <MenuItem.ItemContainerStyle>
+                <Style TargetType="MenuItem">
+                    <Setter Property="Foreground" Value="{DynamicResource Brush_ContextMenuText}" />
+                    <Setter Property="Command" Value="{Binding DataContext.ArtistSearchOnlineCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
+                    <Setter Property="CommandParameter" Value="{Binding Id}" />
+                </Style>
+            </MenuItem.ItemContainerStyle>
+        </MenuItem>
+        <Separator />
+        <MenuItem
             Command="{Binding DataContext.DownloadImageArtistsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
             CommandParameter="{Binding .}"
             Header="{DynamicResource Language_Download_An_Image}">

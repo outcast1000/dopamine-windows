@@ -3,11 +3,12 @@ using Dopamine.ViewModels.Common.Base;
 using GongSolutions.Wpf.DragDrop;
 using Prism.Ioc;
 using Prism.Mvvm;
+using System;
 using System.Threading.Tasks;
 
 namespace Dopamine.ViewModels.Common
 {
-    public class NothingPlayingControlViewModel : TracksViewModelBase, IDropTarget
+    public class NothingPlayingControlViewModel : ContextMenuViewModelBase, IDropTarget
     {
         public NothingPlayingControlViewModel(IContainerProvider container) : base(container)
         {
@@ -23,14 +24,9 @@ namespace Dopamine.ViewModels.Common
             throw new System.NotImplementedException();
         }
 
-        protected override Task EmptyListsAsync()
+        protected override void SearchOnline(string id)
         {
-            throw new System.NotImplementedException();
-        }
-
-        protected override Task FillListsAsync()
-        {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
     }
 }

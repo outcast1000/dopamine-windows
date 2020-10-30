@@ -64,7 +64,6 @@ namespace Dopamine.ViewModels.Common.Base
             async (playlistName) => await this.AddPlayingTrackToPlaylistAsync(playlistName), (_) => this.playbackService.HasCurrentTrack);
 
             // Events
-            this.providerService.SearchProvidersChanged += (_, __) => { this.GetSearchProvidersAsync(); };
             this.playbackService.PlaybackFailed += (_, __) => this.AddPlayingTrackToPlaylistCommand.RaiseCanExecuteChanged();
             this.playbackService.PlaybackSuccess += (_, __) => this.AddPlayingTrackToPlaylistCommand.RaiseCanExecuteChanged();
             this.playbackService.PlaybackStopped += (_, __) => this.AddPlayingTrackToPlaylistCommand.RaiseCanExecuteChanged();
@@ -73,10 +72,21 @@ namespace Dopamine.ViewModels.Common.Base
             this.playlistService.PlaylistFolderChanged += (_, __) => this.GetContextMenuPlaylistsAsync();
 
             // Initialize the search providers in the ContextMenu
-            this.GetSearchProvidersAsync();
+            SearchProvider.ProviderType? providerType = GetSearchProviderType();
+            if (providerType.HasValue)
+            {
+                this.providerService.SearchProvidersChanged += (_, __) => { this.GetSearchProvidersAsync(providerType.Value); };
+                this.GetSearchProvidersAsync(providerType.Value);
+            }
 
             // Initialize the playlists in the ContextMenu
             this.GetContextMenuPlaylistsAsync();
+        }
+
+        
+        protected virtual SearchProvider.ProviderType? GetSearchProviderType()
+        {
+            return null;
         }
 
         private async Task AddPlayingTrackToPlaylistAsync(string playlistName)
@@ -90,11 +100,11 @@ namespace Dopamine.ViewModels.Common.Base
             await this.AddTracksToPlaylistAsync(playlistName, playingTrack);
         }
 
-        private async void GetSearchProvidersAsync()
+        protected async void GetSearchProvidersAsync(SearchProvider.ProviderType providerType)
         {
             this.ContextMenuSearchProviders = null;
 
-            List<SearchProvider> providersList = await this.providerService.GetSearchProvidersAsync();
+            List<SearchProvider> providersList = await this.providerService.GetSearchProvidersAsync(providerType);
             var localProviders = new ObservableCollection<SearchProvider>();
 
             await Task.Run(() =>

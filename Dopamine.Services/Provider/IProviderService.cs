@@ -6,7 +6,7 @@ namespace Dopamine.Services.Provider
 {
     public interface IProviderService
     {
-        Task<List<SearchProvider>> GetSearchProvidersAsync();
+        Task<List<SearchProvider>> GetSearchProvidersAsync(SearchProvider.ProviderType providerType);
         void SearchOnline(string id, string[] searchArguments);
         bool RemoveSearchProvider(SearchProvider provider);
         UpdateSearchProviderResult AddSearchProvider(SearchProvider provider);

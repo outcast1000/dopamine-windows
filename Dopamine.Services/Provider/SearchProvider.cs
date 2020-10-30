@@ -4,11 +4,19 @@ namespace Dopamine.Services.Provider
 {
     public class SearchProvider
     {
+        public enum ProviderType
+        {
+            Track,
+            Album,
+            Artist
+        }
+
         public string Id { get; set; }
         public string Name { get; set; }
         public string Url { get; set; }
         public string Separator { get; set; }
-  
+        public ProviderType Type { get; set; }
+
         public SearchProvider()
         {
             this.Id = Guid.NewGuid().ToString();
