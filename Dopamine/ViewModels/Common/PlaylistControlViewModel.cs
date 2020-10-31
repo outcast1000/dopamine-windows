@@ -265,6 +265,16 @@ namespace Dopamine.ViewModels.Common
             }
         }
 
+        public bool IsMultipleItemsSelected
+        {
+            get { return selectedTracks?.Count > 1; }
+        }
+
+        public bool IsSingleItemSelected
+        {
+            get { return selectedTracks?.Count == 1; }
+        }
+
         private async Task RemoveSelectedTracksFromNowPlayingAsync()
         {
             // Remove Tracks from PlaybackService (this dequeues the Tracks)

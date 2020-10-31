@@ -77,6 +77,16 @@ namespace Dopamine.ViewModels.Common.Base
             set { SetProperty<IList<TrackViewModel>>(ref this.selectedTracks, value); }
         }
 
+        public bool IsMultipleItemsSelected
+        {
+            get { return selectedTracks?.Count > 1; }
+        }
+
+        public bool IsSingleItemSelected
+        {
+            get { return selectedTracks?.Count == 1; }
+        }
+
         public double UpscaledCoverSize => 128 * Constants.CoverUpscaleFactor;
 
 

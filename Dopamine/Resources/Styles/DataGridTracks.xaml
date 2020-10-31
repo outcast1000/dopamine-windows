@@ -19,7 +19,7 @@
     <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}" Color="{DynamicResource Color_SoftWhite}" />
 
     <!--  ContextMenu  -->
-    <ContextMenu x:Key="DataGridTracksContextMenu">
+    <ContextMenu x:Key="DataGridTracksContextMenu" x:Shared="False">
         <ContextMenu.Resources>
             <utils:BindingProxy x:Key="ColumnsProxy" Data="{DynamicResource Language_Columns}" />
             <utils:BindingProxy x:Key="NewPlaylistProxy" Data="{DynamicResource Language_New_Playlist}" />
@@ -28,6 +28,7 @@
 
         <MenuItem
             Command="{Binding DataContext.ShuffleTracksCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+            Visibility="{Binding DataContext.IsMultipleItemsSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}"
             Header="{DynamicResource Language_Shuffle}"
             InputGestureText="">
             <MenuItem.Icon>
@@ -87,6 +88,7 @@
         <MenuItem
             Header="{DynamicResource Language_Search_Online}"
             ItemsSource="{Binding DataContext.ContextMenuSearchProviders, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+            Visibility="{Binding DataContext.IsSingleItemSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}"
             DisplayMemberPath="Name"
             IsEnabled="{Binding DataContext.HasContextMenuSearchProviders, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}">
             <MenuItem.ItemContainerStyle>
@@ -103,17 +105,20 @@
                     Text="&#xE721;" />
             </MenuItem.Icon>
         </MenuItem>
-        <Separator />
         <MenuItem
             Header="{DynamicResource Language_View_In_Explorer}"
+            Visibility="{Binding DataContext.IsSingleItemSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}"
             InputGestureText="{DynamicResource Language_Ctrl_E}"
             Command="{Binding ViewInExplorerCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
         <MenuItem
             Header="{DynamicResource Language_Jump_To_Playing_Song}"
             InputGestureText="{DynamicResource Language_Ctrl_J}"
             Command="{Binding JumpToPlayingTrackCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
-        <Separator />
-        <MenuItem InputGestureText="" Command="{Binding DataContext.EditTracksCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}">
+        <Separator Visibility="{Binding DataContext.IsSingleItemSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}" />
+        <MenuItem
+            InputGestureText=""
+            Command="{Binding DataContext.EditTracksCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+            Visibility="{Binding DataContext.IsSingleItemSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}">
             <MenuItem.Header>
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="{DynamicResource Language_Edit}" />
@@ -168,6 +173,7 @@
         <MenuItem
             Header="{DynamicResource Language_Information}"
             InputGestureText=""
+            Visibility="{Binding DataContext.IsSingleItemSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}"
             Command="{Binding DataContext.ShowSelectedTrackInformationCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
         <MenuItem Header="{Binding Source={StaticResource ColumnsProxy}, Path=Data, Converter={StaticResource AddEllipsisConverter}}" Command="{Binding DataContext.ChooseColumnsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
 
