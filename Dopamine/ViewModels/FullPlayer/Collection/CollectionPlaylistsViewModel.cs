@@ -39,9 +39,10 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private IContainerProvider container;
         private double leftPaneWidthPercent;
 
-        public DelegateCommand AddPlaylistToNowPlayingCommand { get; set; }
 
-        public DelegateCommand ShuffleSelectedPlaylistCommand { get; set; }
+        public DelegateCommand PlayPlaylistsCommand { get; set; }
+        public DelegateCommand EnqueuePlaylistsCommand { get; set; }
+        public DelegateCommand ShufflePlaylistsCommand { get; set; }
 
         public DelegateCommand NewPlaylistCommand { get; set; }
 
@@ -90,8 +91,9 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             this.EditSelectedPlaylistCommand = new DelegateCommand(async () => await this.EditSelectedPlaylistAsync());
             this.DeletePlaylistCommand = new DelegateCommand<PlaylistViewModel>(async (playlist) => await this.ConfirmDeletePlaylistAsync(playlist));
             this.ImportPlaylistsCommand = new DelegateCommand(async () => await this.ImportPlaylistsAsync());
-            this.AddPlaylistToNowPlayingCommand = new DelegateCommand(async () => await this.AddPlaylistToNowPlayingAsync());
-            this.ShuffleSelectedPlaylistCommand = new DelegateCommand(async () => await this.ShuffleSelectedPlaylistAsync());
+            this.PlayPlaylistsCommand = new DelegateCommand(async () => await this.PlayPlaylistsAsync());
+            this.EnqueuePlaylistsCommand = new DelegateCommand(async () => await this.EnqueuePlaylistsAsync());
+            this.ShufflePlaylistsCommand = new DelegateCommand(async () => await this.ShufflePlaylistsAsync());
             this.NewPlaylistCommand = new DelegateCommand(async () => await this.ConfirmCreateNewPlaylistAsync());
             this.RemoveSelectedTracksCommand = new DelegateCommand(async () => await this.DeleteTracksFromPlaylistsAsync());
 
@@ -171,16 +173,22 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
         }
 
-        private async Task ShuffleSelectedPlaylistAsync()
+        private async Task ShufflePlaylistsAsync()
         {
             IList<TrackViewModel> tracks = await this.playlistService.GetTracksAsync(this.SelectedPlaylist);
             await this.playbackService.PlayTracksAsync(tracks, PlaylistMode.Play, TrackOrder.Random);
         }
 
-        private async Task AddPlaylistToNowPlayingAsync()
+        private async Task PlayPlaylistsAsync()
         {
             IList<TrackViewModel> tracks = await this.playlistService.GetTracksAsync(this.SelectedPlaylist);
-            await this.playbackService.PlayTracksAsync(tracks, PlaylistMode.Enqueue);
+            await this.playbackService.PlayTracksAsync(tracks, PlaylistMode.Play, TrackOrder.None);
+        }
+
+        private async Task EnqueuePlaylistsAsync()
+        {
+            IList<TrackViewModel> tracks = await this.playlistService.GetTracksAsync(this.SelectedPlaylist);
+            await this.playbackService.PlayTracksAsync(tracks, PlaylistMode.Enqueue, TrackOrder.None);
         }
 
         private async Task GetTracksIfSmartPlaylistSelectedAsync()
