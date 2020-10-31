@@ -101,9 +101,9 @@ namespace Dopamine.ViewModels.Common.Base
             // Commands
             this.ToggleTrackOrderCommand = new DelegateCommand(() => this.ToggleTrackOrder());
             this.AddTracksToPlaylistCommand = new DelegateCommand<string>(async (playlistName) => await this.AddTracksToPlaylistAsync(playlistName, this.SelectedTracks));
-            this.PlaySelectedCommand = new DelegateCommand(async () => await this.PlaySelectedAsync());
-            this.PlayNextCommand = new DelegateCommand(async () => await this.PlayNextAsync());
-            this.AddTracksToNowPlayingCommand = new DelegateCommand(async () => await this.AddTracksToNowPlayingAsync());
+            this.ShuffleTracksCommand = new DelegateCommand(async () => await this.playbackService.PlayTracksAsync(SelectedTracks, PlaylistMode.Play, TrackOrder.Random));
+            this.PlayTracksCommand = new DelegateCommand(async () => await this.playbackService.PlayTracksAsync(SelectedTracks, PlaylistMode.Play));
+            this.EnqueueTracksCommand = new DelegateCommand(async () => await this.playbackService.PlayTracksAsync(SelectedTracks, PlaylistMode.Enqueue));
             this.RemoveSelectedTracksFromDiskCommand = new DelegateCommand(async () => await this.RemoveTracksFromDiskAsync(this.SelectedTracks), () => !this.IsIndexing);
 
             // Settings changed
@@ -349,11 +349,7 @@ namespace Dopamine.ViewModels.Common.Base
             }
         }
 
-        private class StatsData
-        {
-            public long totalDuration = 0;
-            public long totalSize = 0;
-        };
+
         protected async void CalculateSizeInformationAsync(CollectionViewSource source)
         {
             if (source == null)
@@ -417,20 +413,6 @@ namespace Dopamine.ViewModels.Common.Base
             RaisePropertyChanged(nameof(this.TotalTracksInformation));
         }
 
-        protected async Task PlaySelectedAsync()
-        {
-            await this.playbackService.PlayTracksAsync(SelectedTracks, PlaylistMode.Play);
-        }
-
-        protected async Task PlayNextAsync()
-        {
-            await this.playbackService.PlayTracksAsync(SelectedTracks, PlaylistMode.EnqueuNext);
-        }
-
-        protected async Task AddTracksToNowPlayingAsync()
-        {
-            await this.playbackService.PlayTracksAsync(SelectedTracks, PlaylistMode.Enqueue);
-        }
 
         protected override async void FilterListsAsync(string searchText)
         {
