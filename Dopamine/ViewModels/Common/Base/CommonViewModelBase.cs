@@ -122,7 +122,7 @@ namespace Dopamine.ViewModels.Common.Base
             this.UnloadedCommand = new DelegateCommand(async () => await this.UnloadedCommandAsync());
             this.ShuffleAllCommand = new DelegateCommand(() =>
             {
-                this.playbackService.PlayAllTracksAsync(PlaylistMode.Play, true);
+                this.playbackService.PlayAllTracksAsync(PlaylistMode.Play, TrackOrder.Random);
             });
 
             // Events

@@ -41,9 +41,40 @@
             <CollectionViewSource x:Key="PlaylistsDataSource" Source="{Binding DataContext.ContextMenuPlaylists, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
         </ContextMenu.Resources>
         <MenuItem
-            Command="{Binding DataContext.AddGenresToNowPlayingCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
-            Header="{DynamicResource Language_Add_To_Now_Playing}"
-            InputGestureText="" />
+            Command="{Binding DataContext.ShuffleGenresCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+            Header="{DynamicResource Language_Shuffle}"
+            InputGestureText="">
+            <MenuItem.Icon>
+                <TextBlock
+                    FontSize="15"
+                    Style="{StaticResource SegoeAssets}"
+                    Text="&#xE8B1;" />
+            </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem
+            Command="{Binding DataContext.PlayGenresCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+            Header="{DynamicResource Language_Play}"
+            InputGestureText="">
+            <MenuItem.Icon>
+                <TextBlock
+                    FontSize="15"
+                    Style="{StaticResource SegoeAssets}"
+                    Text="&#xE768;" />
+            </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem
+            Command="{Binding DataContext.EnqueueGenresCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+            Header="{DynamicResource Language_Enqueue}"
+            InputGestureText="">
+            <MenuItem.Icon>
+                <TextBlock
+                    FontSize="15"
+                    Style="{StaticResource SegoeAssets}"
+                    Text="&#xE710;" />
+            </MenuItem.Icon>
+        </MenuItem>
+
+        <Separator />
         <MenuItem DisplayMemberPath="Name" Header="{DynamicResource Language_Add_To_Playlist}">
             <MenuItem.ItemContainerStyle>
                 <Style TargetType="MenuItem">
@@ -58,16 +89,6 @@
                     <CollectionContainer Collection="{Binding Source={StaticResource PlaylistsDataSource}}" />
                 </CompositeCollection>
             </MenuItem.ItemsSource>
-        </MenuItem>
-        <Separator />
-        <MenuItem Command="{Binding DataContext.ShuffleSelectedGenresCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" Header="{DynamicResource Language_Shuffle}">
-            <MenuItem.Icon>
-                <TextBlock
-                    Margin="0,1,0,0"
-                    FontSize="15"
-                    Style="{StaticResource SegoeAssets}"
-                    Text="&#xE8B1;" />
-            </MenuItem.Icon>
         </MenuItem>
     </ContextMenu>
 

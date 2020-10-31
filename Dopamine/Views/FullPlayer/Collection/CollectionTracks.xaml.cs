@@ -71,7 +71,7 @@ namespace Dopamine.Views.FullPlayer.Collection
             {
                 var dg = VisualTreeUtils.FindAncestor<DataGrid>((DataGridRow)sender);
                 if (includeTheRestOfTheList)
-                    await this.playbackService.PlayTracksAndStartOnTrack(dg.Items.OfType<TrackViewModel>().ToList(), (TrackViewModel)dg.SelectedItem, enqueue ? PlaylistMode.Enqueue : PlaylistMode.Play);
+                    await this.playbackService.PlayTracksAndStartOnTrack(dg.Items.OfType<TrackViewModel>().ToList(), (TrackViewModel)dg.SelectedItem);
                 else
                     await this.playbackService.PlayTracksAsync(new List<TrackViewModel>() { (TrackViewModel)dg.SelectedItem }, enqueue ? PlaylistMode.Enqueue : PlaylistMode.Play);
 

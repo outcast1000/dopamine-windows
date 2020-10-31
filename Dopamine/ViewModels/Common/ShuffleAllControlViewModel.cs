@@ -15,7 +15,7 @@ namespace Dopamine.ViewModels.Common
             this.playbackService = playbackService;
 
             this.ShuffleAllCommand = new DelegateCommand(() => { 
-                this.playbackService.PlayAllTracksAsync(PlaylistMode.Play, true); });
+                this.playbackService.PlayAllTracksAsync(PlaylistMode.Play, Data.TrackOrder.Random); });
         }
     }
 }

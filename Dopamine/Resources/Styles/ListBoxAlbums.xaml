@@ -7,7 +7,7 @@
     xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
     xmlns:pc="clr-namespace:Dopamine.Controls"
     xmlns:utils="clr-namespace:Dopamine.Utils"
-    xmlns:system="clr-namespace:System;assembly=System.Runtime">
+    xmlns:system="clr-namespace:System;assembly=mscorlib">
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/Dopamine;component/Resources/Styles/FontStyles.xaml" />
         <ResourceDictionary Source="/Dopamine;component/Resources/Styles/Buttons.xaml" />
@@ -25,17 +25,54 @@
             <utils:BindingProxy x:Key="NewPlaylistProxy" Data="{DynamicResource Language_New_Playlist}" />
             <CollectionViewSource x:Key="PlaylistsDataSource" Source="{Binding DataContext.ContextMenuPlaylists, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
         </ContextMenu.Resources>
-        <MenuItem Command="{Binding DataContext.EditAlbumCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" InputGestureText="">
-            <MenuItem.Header>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="{DynamicResource Language_Edit}" />
-                    <pc:SyncRing
-                        Width="11"
-                        Margin="15,0,0,0"
-                        VerticalAlignment="Center"
-                        Visibility="{Binding DataContext.IsIndexing, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                </StackPanel>
-            </MenuItem.Header>
+        <MenuItem
+            Command="{Binding DataContext.ShuffleAlbumsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+            Header="{DynamicResource Language_Shuffle}"
+            InputGestureText="">
+            <MenuItem.Icon>
+                <TextBlock
+                    FontSize="15"
+                    Style="{StaticResource SegoeAssets}"
+                    Text="&#xE8B1;" />
+            </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem
+            Command="{Binding DataContext.PlayAlbumsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+            Header="{DynamicResource Language_Play}"
+            InputGestureText="">
+            <MenuItem.Icon>
+                <TextBlock
+                    FontSize="15"
+                    Style="{StaticResource SegoeAssets}"
+                    Text="&#xE768;" />
+            </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem
+            Command="{Binding DataContext.EnqueueAlbumsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+            Header="{DynamicResource Language_Enqueue}"
+            InputGestureText="">
+            <MenuItem.Icon>
+                <TextBlock
+                    FontSize="15"
+                    Style="{StaticResource SegoeAssets}"
+                    Text="&#xE710;" />
+            </MenuItem.Icon>
+        </MenuItem>
+        <Separator />
+        <MenuItem DisplayMemberPath="Name" Header="{DynamicResource Language_Add_To_Playlist}">
+            <MenuItem.ItemContainerStyle>
+                <Style TargetType="MenuItem">
+                    <Setter Property="Command" Value="{Binding DataContext.AddAlbumsToPlaylistCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
+                    <Setter Property="CommandParameter" Value="{Binding Name}" />
+                </Style>
+            </MenuItem.ItemContainerStyle>
+            <MenuItem.ItemsSource>
+                <CompositeCollection>
+                    <MenuItem Header="{Binding Source={StaticResource NewPlaylistProxy}, Path=Data, Converter={StaticResource AddEllipsisConverter}}" />
+                    <Separator />
+                    <CollectionContainer Collection="{Binding Source={StaticResource PlaylistsDataSource}}" />
+                </CompositeCollection>
+            </MenuItem.ItemsSource>
         </MenuItem>
         <Separator />
         <MenuItem Header="{DynamicResource Language_Cover_Size}" InputGestureText="">
@@ -61,36 +98,7 @@
                 IsCheckable="True"
                 IsChecked="{Binding DataContext.IsLargeCoverSizeSelected, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
         </MenuItem>
-        <Separator />
-        <MenuItem
-            Command="{Binding DataContext.AddAlbumsToNowPlayingCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
-            Header="{DynamicResource Language_Add_To_Now_Playing}"
-            InputGestureText="" />
-        <MenuItem DisplayMemberPath="Name" Header="{DynamicResource Language_Add_To_Playlist}">
-            <MenuItem.ItemContainerStyle>
-                <Style TargetType="MenuItem">
-                    <Setter Property="Command" Value="{Binding DataContext.AddAlbumsToPlaylistCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
-                    <Setter Property="CommandParameter" Value="{Binding Name}" />
-                </Style>
-            </MenuItem.ItemContainerStyle>
-            <MenuItem.ItemsSource>
-                <CompositeCollection>
-                    <MenuItem Header="{Binding Source={StaticResource NewPlaylistProxy}, Path=Data, Converter={StaticResource AddEllipsisConverter}}" />
-                    <Separator />
-                    <CollectionContainer Collection="{Binding Source={StaticResource PlaylistsDataSource}}" />
-                </CompositeCollection>
-            </MenuItem.ItemsSource>
-        </MenuItem>
-        <Separator />
-        <MenuItem Command="{Binding DataContext.ShuffleSelectedAlbumsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" Header="{DynamicResource Language_Shuffle}">
-            <MenuItem.Icon>
-                <TextBlock
-                    Margin="0,1,0,0"
-                    FontSize="15"
-                    Style="{StaticResource SegoeAssets}"
-                    Text="&#xE8B1;" />
-            </MenuItem.Icon>
-        </MenuItem>
+
         <Separator />
         <MenuItem
             Command="{Binding DataContext.DownloadImageAlbumCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
@@ -103,6 +111,18 @@
                     Style="{StaticResource SegoeAssets}"
                     Text="&#xE896;" />
             </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Command="{Binding DataContext.EditAlbumCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" InputGestureText="">
+            <MenuItem.Header>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{DynamicResource Language_Edit}" />
+                    <pc:SyncRing
+                        Width="11"
+                        Margin="15,0,0,0"
+                        VerticalAlignment="Center"
+                        Visibility="{Binding DataContext.IsIndexing, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                </StackPanel>
+            </MenuItem.Header>
         </MenuItem>
     </ContextMenu>
     <!--  ListBoxItem  -->

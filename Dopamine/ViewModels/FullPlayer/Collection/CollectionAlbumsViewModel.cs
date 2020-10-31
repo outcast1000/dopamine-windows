@@ -4,6 +4,7 @@ using Dopamine.Data;
 using Dopamine.Services.Collection;
 using Dopamine.Services.Entities;
 using Dopamine.Services.Indexing;
+using Dopamine.Services.Playback;
 using Dopamine.ViewModels.Common.Base;
 using Prism.Commands;
 using Prism.Events;
@@ -19,6 +20,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
     public class CollectionAlbumsViewModel : AlbumsViewModelBase
     {
         private ICollectionService _collectionService;
+        private IPlaybackService _playbackService;
         private IIndexingService _indexingService;
         private IEventAggregator _eventAggregator;
         private double _leftPaneWidthPercent;
@@ -27,6 +29,9 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         //public delegate void EnsureSelectedItemVisibleAction(AlbumViewModel item);
         //public event EnsureSelectedItemVisibleAction EnsureItemVisible;
+        public DelegateCommand ShuffleAlbumsCommand { get; set; }
+        public DelegateCommand PlayAlbumsCommand { get; set; }
+        public DelegateCommand EnqueueAlbumsCommand { get; set; }
         public double LeftPaneWidthPercent
         {
             get { return _leftPaneWidthPercent; }
@@ -41,6 +46,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         {
             // Dependency injection
             _collectionService = container.Resolve<ICollectionService>();
+            _playbackService = container.Resolve<IPlaybackService>();
             _indexingService = container.Resolve<IIndexingService>();
             _eventAggregator = container.Resolve<IEventAggregator>();
 
@@ -48,6 +54,9 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             ToggleTrackOrderCommand = new DelegateCommand(async () => await ToggleTrackOrderAsync());
             ToggleAlbumOrderCommand = new DelegateCommand(async () => await ToggleOrderAsync());
             RemoveSelectedTracksCommand = new DelegateCommand(async () => await RemoveTracksFromCollectionAsync(SelectedTracks), () => !IsIndexing);
+            ShuffleAlbumsCommand = new DelegateCommand(async () => await _playbackService.PlayAlbumsAsync(SelectedAlbums, PlaylistMode.Play, TrackOrder.Random));
+            PlayAlbumsCommand = new DelegateCommand(async () => await _playbackService.PlayAlbumsAsync(SelectedAlbums, PlaylistMode.Play));
+            EnqueueAlbumsCommand = new DelegateCommand(async () => await _playbackService.PlayAlbumsAsync(SelectedAlbums, PlaylistMode.Enqueue));
             // Settings
             Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += async (_, e) =>
             {

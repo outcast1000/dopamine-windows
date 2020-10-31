@@ -1,4 +1,5 @@
 ﻿using Dopamine.Core.Base;
+using Dopamine.Core.Extensions;
 using Dopamine.Core.Utils;
 using Dopamine.Data;
 using Dopamine.Data.Entities;
@@ -77,6 +78,9 @@ namespace Dopamine.Services.Utils
                         break;
                     case TrackOrder.Ranking:
                         orderedTracks = tracks.OrderBy((t) => t.Rank).ToList();
+                        break;
+                    case TrackOrder.Random:
+                        orderedTracks = tracks.ToList().Randomize();
                         break;
                     case TrackOrder.None:
                         orderedTracks = tracks.ToList();

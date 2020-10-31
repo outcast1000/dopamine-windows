@@ -41,6 +41,17 @@
         <Separator />
 	-->
         <MenuItem
+            Command="{Binding DataContext.ShuffleArtistsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+            Header="{DynamicResource Language_Shuffle}"
+            InputGestureText="">
+            <MenuItem.Icon>
+                <TextBlock
+                    FontSize="15"
+                    Style="{StaticResource SegoeAssets}"
+                    Text="&#xE8B1;" />
+            </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem
             Command="{Binding DataContext.PlayArtistsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
             Header="{DynamicResource Language_Play}"
             InputGestureText="">

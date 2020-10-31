@@ -22,7 +22,8 @@
         ByRating = 4,
         ReverseAlphabetical = 5,
         Ranking = 6,
-        None = 7
+        Random = 7,
+        None = 8
     }
 
     public enum AlbumOrder

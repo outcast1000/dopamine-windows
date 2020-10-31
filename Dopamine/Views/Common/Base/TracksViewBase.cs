@@ -68,7 +68,7 @@ namespace Dopamine.Views.Common.Base
                 if (lb.SelectedItem.GetType().Name == typeof(TrackViewModel).Name)
                 {
                     if (includeTheRestOfTheList)
-                        await this.playbackService.PlayTracksAndStartOnTrack(lb.Items.OfType<TrackViewModel>().ToList(), (TrackViewModel)lb.SelectedItem, enqueue ? PlaylistMode.Enqueue : PlaylistMode.Play);
+                        await this.playbackService.PlayTracksAndStartOnTrack(lb.Items.OfType<TrackViewModel>().ToList(), (TrackViewModel)lb.SelectedItem);
                     else 
                         await this.playbackService.PlayTracksAsync(new List<TrackViewModel>() { (TrackViewModel)lb.SelectedItem }, enqueue ? PlaylistMode.Enqueue : PlaylistMode.Play);
                 }

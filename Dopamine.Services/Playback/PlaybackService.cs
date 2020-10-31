@@ -308,7 +308,7 @@ namespace Dopamine.Services.Playback
 
             // Event handlers
             this.fileService.ImportingTracks += (_, __) => this.canGetSavedQueuedTracks = false;
-            this.fileService.TracksImported += async (tracks, track) => await this.PlayTracksAndStartOnTrack(tracks, track, PlaylistMode.Play, null, null);
+            this.fileService.TracksImported += async (tracks, track) => await this.PlayTracksAndStartOnTrack(tracks, track);
             this.i18nService.LanguageChanged += (_, __) => this.UpdateQueueLanguageAsync();
 
             // Set up timers
@@ -673,19 +673,16 @@ namespace Dopamine.Services.Playback
             }
         }
 
-        public async Task PlayAllTracksAsync(PlaylistMode mode, bool? shuffle = null, LoopMode? loopMode = null)
+        public async Task PlayAllTracksAsync(PlaylistMode mode, TrackOrder trackOrder = TrackOrder.None)
         {
             IList<TrackV> tracks = this.trackRepository.GetTracks(false, null);
-            List<TrackViewModel> orederedTracks = await EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
-            await this.PlayTracksAsync(orederedTracks, PlaylistMode.Play, shuffle, loopMode);
+            await this.PlayTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), mode, trackOrder);
         }
 
-        public async Task PlayTracksAndStartOnTrack(IList<TrackViewModel> tracks, TrackViewModel track, PlaylistMode mode, bool? shuffle = null, LoopMode? loopMode = null)
+        public async Task PlayTracksAndStartOnTrack(IList<TrackViewModel> tracks, TrackViewModel track)
         {
             if (tracks == null || track == null)
-            {
                 return;
-            }
             await Task.Run(() =>
             {
                 int idx = tracks.IndexOf(track);
@@ -693,56 +690,40 @@ namespace Dopamine.Services.Playback
                 trackHistoryRepository.AddExecuted(track.Id);
             });
             await TryPlayAsync(track);
-
-            //await this.EnqueueAsync(tracks, queueManager.Shuffle);
-            //await this.PlaySelectedAsync(track);
         }
 
-        public async Task PlayArtistsAsync(IList<ArtistViewModel> artists, PlaylistMode mode, bool? shuffle = null, LoopMode? loopMode = null)
+        public async Task PlayArtistsAsync(IList<ArtistViewModel> artists, PlaylistMode mode, TrackOrder trackOrder = TrackOrder.ByAlbum)
         {
             if (artists == null)
-            {
                 return;
-            }
-
             IList<TrackV> tracks = trackRepository.GetTracksOfArtists(artists.Select(x => x.Id).ToList(), true);
-            List<TrackViewModel> orderedTracks = await EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
-            await this.PlayTracksAsync(orderedTracks, mode, shuffle, loopMode);
+            await this.PlayTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), mode, trackOrder);
         }
 
-        public async Task PlayGenresAsync(IList<GenreViewModel> genres, PlaylistMode mode, bool? shuffle = null, LoopMode? loopMode = null)
+        public async Task PlayGenresAsync(IList<GenreViewModel> genres, PlaylistMode mode, TrackOrder trackOrder = TrackOrder.ByAlbum)
         {
             if (genres == null)
-            {
                 return;
-            }
-
-            IList<TrackV> tracks = trackRepository.GetTracksWithGenres(genres.Select(x => x.Id).ToList(), true);
-            List<TrackViewModel> orderedTracks = await EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
-            await this.PlayTracksAsync(orderedTracks, mode, shuffle, loopMode);
+            List<TrackV> tracks = trackRepository.GetTracksWithGenres(genres.Select(x => x.Id).ToList(), true);
+            await this.PlayTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), mode, trackOrder);
         }
 
-        public async Task PlayAlbumsAsync(IList<AlbumViewModel> albumViewModels, PlaylistMode mode, bool? shuffle = null, LoopMode? loopMode = null)
+        public async Task PlayAlbumsAsync(IList<AlbumViewModel> albums, PlaylistMode mode, TrackOrder trackOrder = TrackOrder.ByFileName)
         {
-            if (albumViewModels == null)
-            {
+            if (albums == null)
                 return;
-            }
+            List<TrackV> tracks = trackRepository.GetTracksOfAlbums(albums.Select(x => x.Id).ToList(), true);
+            await this.PlayTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), mode, trackOrder);
 
-            IList<TrackV> tracks = trackRepository.GetTracksOfAlbums(albumViewModels.Select(x => x.Id).ToList(), true);
-            List<TrackViewModel> orderedTracks = await Utils.EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
-            await this.PlayTracksAsync(orderedTracks, mode, shuffle, loopMode);
         }
 
-        public async Task PlayPlaylistsAsync(IList<PlaylistViewModel> playlistViewModels, PlaylistMode mode, bool? shuffle = null, LoopMode? loopMode = null)
+        public async Task PlayPlaylistsAsync(IList<PlaylistViewModel> playlistViewModels, PlaylistMode mode, TrackOrder trackOrder = TrackOrder.None)
         {
-            if (playlistViewModels == null || playlistViewModels.Count == 0)
-            {
+            if (playlistViewModels == null)
                 return;
-            }
-
             IList<TrackViewModel> tracks = await this.playlistService.GetTracksAsync(playlistViewModels.First());
-            await this.PlayTracksAsync(tracks, mode, shuffle, loopMode);
+            await this.PlayTracksAsync(tracks, mode, trackOrder);
+
         }
 
         private async Task<bool> RemovePlaylistItems(IList<int> positions)
@@ -1202,7 +1183,7 @@ namespace Dopamine.Services.Playback
                 int playListPosition = int.Parse(generalRepository.GetValue(GeneralRepositoryKeys.PlayListPosition, "-1"));
                 IList<TrackViewModel> existingTrackViewModels = await this.container.ResolveTrackViewModelsAsync(existingTracks);
                 
-                await this.PlayTracksAsync(existingTrackViewModels, PlaylistMode.Enqueue);
+                await this.PlayTracksAsync(existingTrackViewModels, PlaylistMode.Enqueue, TrackOrder.None);
                 if (playListPosition >= 0 && playListPosition < existingTrackViewModels.Count)
                 {
                     queueManager.Position = playListPosition;
@@ -1282,16 +1263,10 @@ namespace Dopamine.Services.Playback
             PlaybackProgressChanged(this, new EventArgs());
         }
 
-        public async Task PlayTracksAsync(IList<TrackViewModel> tracks, PlaylistMode mode, bool? shuffle = null, LoopMode? loopMode = null)
+        public async Task PlayTracksAsync(IList<TrackViewModel> tracks, PlaylistMode mode, TrackOrder trackOrder)
         {
-            if (shuffle.HasValue)
-            {
-                Shuffle = shuffle.Value;
-            }
-            if (loopMode.HasValue)
-            {
-                LoopMode = loopMode.Value;
-            }
+            if (trackOrder != TrackOrder.None)
+                tracks = await EntityUtils.OrderTracksAsync(tracks, trackOrder);
             await Task.Run(() =>
             {
                 switch (mode)

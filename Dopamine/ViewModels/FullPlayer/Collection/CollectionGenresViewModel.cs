@@ -70,8 +70,9 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         public DelegateCommand ShowGenresZoomCommand { get; set; }
 
         public DelegateCommand<string> SemanticJumpCommand { get; set; }
-
-        public DelegateCommand AddGenresToNowPlayingCommand { get; set; }
+        public DelegateCommand ShuffleGenresCommand { get; set; }
+        public DelegateCommand PlayGenresCommand { get; set; }
+        public DelegateCommand EnqueueGenresCommand { get; set; }
 
         public DelegateCommand ShuffleSelectedGenresCommand { get; set; }
 
@@ -171,10 +172,10 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             AddGenresToPlaylistCommand = new DelegateCommand<string>(async (playlistName) => await AddItemsToPlaylistAsync(SelectedGenres, playlistName));
             SelectedGenresCommand = new DelegateCommand<object>(async (parameter) => await SelectedItemsHandlerAsync(parameter));
             ShowGenresZoomCommand = new DelegateCommand(async () => await ShowSemanticZoomAsync());
-            AddGenresToNowPlayingCommand = new DelegateCommand(async () => await AddItemsToNowPlayingAsync(SelectedGenres));
-            ShuffleSelectedGenresCommand = new DelegateCommand(async () => {
-                await _playbackService.PlayGenresAsync(SelectedGenres, PlaylistMode.Play, true);
-            });
+            ShuffleGenresCommand = new DelegateCommand(async () => await _playbackService.PlayGenresAsync(SelectedGenres, PlaylistMode.Play, TrackOrder.Random));
+            PlayGenresCommand = new DelegateCommand(async () => await _playbackService.PlayGenresAsync(SelectedGenres, PlaylistMode.Play));
+            EnqueueGenresCommand = new DelegateCommand(async () => await _playbackService.PlayGenresAsync(SelectedGenres, PlaylistMode.Enqueue));
+
             PlayGenreCommand = new DelegateCommand<GenreViewModel>(async (vm) => {
                 await _playbackService.PlayGenresAsync(new List<GenreViewModel>() { vm }, PlaylistMode.Play);
             });

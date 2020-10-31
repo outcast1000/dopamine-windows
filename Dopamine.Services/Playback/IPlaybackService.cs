@@ -99,19 +99,19 @@ namespace Dopamine.Services.Playback
 
         Task PlayOrPauseAsync();
 
-        Task PlayTracksAndStartOnTrack(IList<TrackViewModel> tracks, TrackViewModel track, PlaylistMode mode, bool? shuffle = null, LoopMode? loopMode = null);
+        Task PlayTracksAndStartOnTrack(IList<TrackViewModel> tracks, TrackViewModel track);
 
-        Task PlayTracksAsync(IList<TrackViewModel> tracks, PlaylistMode mode, bool? shuffle = null, LoopMode? loopMode = null);
+        Task PlayTracksAsync(IList<TrackViewModel> tracks, PlaylistMode mode, TrackOrder trackOrder = TrackOrder.ByAlbum);
 
-        Task PlayAllTracksAsync(PlaylistMode mode, bool? shuffle = null, LoopMode? loopMode = null);//bool shuffle, bool unshuffle);
+        Task PlayAllTracksAsync(PlaylistMode mode, TrackOrder trackOrder = TrackOrder.ByAlbum);//bool shuffle, bool unshuffle);
 
-        Task PlayArtistsAsync(IList<ArtistViewModel> artists, PlaylistMode mode, bool? shuffle = null, LoopMode? loopMode = null);//, bool shuffle, bool unshuffle);
+        Task PlayArtistsAsync(IList<ArtistViewModel> artists, PlaylistMode mode, TrackOrder trackOrder = TrackOrder.ByAlbum);//, bool shuffle, bool unshuffle);
 
-        Task PlayGenresAsync(IList<GenreViewModel> genres, PlaylistMode mode, bool? shuffle = null, LoopMode? loopMode = null);//, bool shuffle, bool unshuffle);
+        Task PlayGenresAsync(IList<GenreViewModel> genres, PlaylistMode mode, TrackOrder trackOrder = TrackOrder.ByAlbum);//, bool shuffle, bool unshuffle);
 
-        Task PlayAlbumsAsync(IList<AlbumViewModel> albumViewModels, PlaylistMode mode, bool? shuffle = null, LoopMode? loopMode = null);//, bool shuffle, bool unshuffle);
+        Task PlayAlbumsAsync(IList<AlbumViewModel> albumViewModels, PlaylistMode mode, TrackOrder trackOrder = TrackOrder.ByAlbum);//, bool shuffle, bool unshuffle);
 
-        Task PlayPlaylistsAsync(IList<PlaylistViewModel> playlistViewModels, PlaylistMode mode, bool? shuffle = null, LoopMode? loopMode = null);//, bool shuffle, bool unshuffle);
+        Task PlayPlaylistsAsync(IList<PlaylistViewModel> playlistViewModels, PlaylistMode mode, TrackOrder trackOrder = TrackOrder.ByAlbum);//, bool shuffle, bool unshuffle);
 
         Task StopIfPlayingAsync(TrackViewModel track);
 
