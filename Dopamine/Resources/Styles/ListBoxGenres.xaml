@@ -82,6 +82,12 @@
                     <Setter Property="CommandParameter" Value="{Binding Name}" />
                 </Style>
             </MenuItem.ItemContainerStyle>
+            <MenuItem.Icon>
+                <TextBlock
+                    FontSize="15"
+                    Style="{StaticResource SegoeAssets}"
+                    Text="&#xECC8;" />
+            </MenuItem.Icon>
             <MenuItem.ItemsSource>
                 <CompositeCollection>
                     <MenuItem Header="{Binding Source={StaticResource NewPlaylistProxy}, Path=Data, Converter={StaticResource AddEllipsisConverter}}" />

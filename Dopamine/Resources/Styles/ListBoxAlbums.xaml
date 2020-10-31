@@ -66,6 +66,12 @@
                     <Setter Property="CommandParameter" Value="{Binding Name}" />
                 </Style>
             </MenuItem.ItemContainerStyle>
+            <MenuItem.Icon>
+                <TextBlock
+                    FontSize="15"
+                    Style="{StaticResource SegoeAssets}"
+                    Text="&#xECC8;" />
+            </MenuItem.Icon>
             <MenuItem.ItemsSource>
                 <CompositeCollection>
                     <MenuItem Header="{Binding Source={StaticResource NewPlaylistProxy}, Path=Data, Converter={StaticResource AddEllipsisConverter}}" />
@@ -75,6 +81,25 @@
             </MenuItem.ItemsSource>
         </MenuItem>
         <Separator />
+	<MenuItem
+            Header="{DynamicResource Language_Search_Online}"
+            ItemsSource="{Binding DataContext.AlbumContextMenuSearchProviders, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+            DisplayMemberPath="Name"
+            IsEnabled="{Binding DataContext.HasAlbumContextMenuSearchProviders, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}">
+            <MenuItem.ItemContainerStyle>
+                <Style TargetType="MenuItem">
+                    <Setter Property="Foreground" Value="{DynamicResource Brush_ContextMenuText}" />
+                    <Setter Property="Command" Value="{Binding DataContext.AlbumSearchOnlineCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
+                    <Setter Property="CommandParameter" Value="{Binding Id}" />
+                </Style>
+            </MenuItem.ItemContainerStyle>
+            <MenuItem.Icon>
+                <TextBlock
+                    FontSize="15"
+                    Style="{StaticResource SegoeAssets}"
+                    Text="&#xE721;" />
+            </MenuItem.Icon>
+        </MenuItem>
         <MenuItem Header="{DynamicResource Language_Cover_Size}" InputGestureText="">
             <MenuItem
                 Command="{Binding DataContext.SetCoverSizeCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"

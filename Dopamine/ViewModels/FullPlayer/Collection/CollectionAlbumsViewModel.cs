@@ -5,12 +5,14 @@ using Dopamine.Services.Collection;
 using Dopamine.Services.Entities;
 using Dopamine.Services.Indexing;
 using Dopamine.Services.Playback;
+using Dopamine.Services.Provider;
 using Dopamine.ViewModels.Common.Base;
 using Prism.Commands;
 using Prism.Events;
 using Prism.Ioc;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -23,15 +25,57 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private IPlaybackService _playbackService;
         private IIndexingService _indexingService;
         private IEventAggregator _eventAggregator;
+        private IProviderService _providerService;
         private double _leftPaneWidthPercent;
         private IList<long> _selectedIDs;
         private bool _ignoreSelectionChangedEvent;
+        private ObservableCollection<SearchProvider> albumContextMenuSearchProviders;
 
         //public delegate void EnsureSelectedItemVisibleAction(AlbumViewModel item);
         //public event EnsureSelectedItemVisibleAction EnsureItemVisible;
         public DelegateCommand ShuffleAlbumsCommand { get; set; }
         public DelegateCommand PlayAlbumsCommand { get; set; }
         public DelegateCommand EnqueueAlbumsCommand { get; set; }
+        public DelegateCommand<string> AlbumSearchOnlineCommand { get; set; }
+
+        public ObservableCollection<SearchProvider> AlbumContextMenuSearchProviders
+        {
+            get { return this.albumContextMenuSearchProviders; }
+            set
+            {
+                SetProperty<ObservableCollection<SearchProvider>>(ref this.albumContextMenuSearchProviders, value);
+                RaisePropertyChanged(nameof(this.HasContextMenuSearchProviders));
+            }
+        }
+
+        protected bool HasAlbumContextMenuSearchProviders => this.ContextMenuSearchProviders != null && this.ContextMenuSearchProviders.Count > 0;
+
+        private async void GetAlbumsSearchProvidersAsync()
+        {
+            this.albumContextMenuSearchProviders = null;
+
+            List<SearchProvider> providersList = await _providerService.GetSearchProvidersAsync(SearchProvider.ProviderType.Album);
+            var localProviders = new ObservableCollection<SearchProvider>();
+
+            await Task.Run(() =>
+            {
+                foreach (SearchProvider vp in providersList)
+                {
+                    localProviders.Add(vp);
+                }
+            });
+
+            this.albumContextMenuSearchProviders = localProviders;
+        }
+
+        private void AlbumSearchOnline(string id)
+        {
+            if (SelectedAlbums?.Count > 0)
+            {
+                _providerService.SearchOnline(id, new string[] { this.SelectedAlbums.First().Name, SelectedAlbums.First().AlbumArtistComplete });
+            }
+        }
+
         public double LeftPaneWidthPercent
         {
             get { return _leftPaneWidthPercent; }
@@ -49,6 +93,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             _playbackService = container.Resolve<IPlaybackService>();
             _indexingService = container.Resolve<IIndexingService>();
             _eventAggregator = container.Resolve<IEventAggregator>();
+            _providerService = container.Resolve<IProviderService>();
 
             // Commands
             ToggleTrackOrderCommand = new DelegateCommand(async () => await ToggleTrackOrderAsync());
@@ -57,6 +102,9 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             ShuffleAlbumsCommand = new DelegateCommand(async () => await _playbackService.PlayAlbumsAsync(SelectedAlbums, PlaylistMode.Play, TrackOrder.Random));
             PlayAlbumsCommand = new DelegateCommand(async () => await _playbackService.PlayAlbumsAsync(SelectedAlbums, PlaylistMode.Play));
             EnqueueAlbumsCommand = new DelegateCommand(async () => await _playbackService.PlayAlbumsAsync(SelectedAlbums, PlaylistMode.Enqueue));
+            _providerService.SearchProvidersChanged += (_, __) => { GetAlbumsSearchProvidersAsync(); };
+            this.GetAlbumsSearchProvidersAsync();
+            this.AlbumSearchOnlineCommand = new DelegateCommand<string>((id) => AlbumSearchOnline(id));
             // Settings
             Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += async (_, e) =>
             {
@@ -89,6 +137,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             // Cover size
             Task unAwaitedTask = SetCoversizeAsync((CoverSizeType)SettingsClient.Get<int>("CoverSizes", "AlbumsCoverSize"));
             LoadSelectedItems();
+
         }
 
         private void LoadSelectedItems()
