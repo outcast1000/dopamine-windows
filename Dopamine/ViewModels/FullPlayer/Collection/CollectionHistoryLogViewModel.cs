@@ -24,7 +24,7 @@ using Dopamine.Core.Base;
 
 namespace Dopamine.ViewModels.FullPlayer.Collection
 {
-    public class CollectionHistoryLogViewModel : CommonViewModelBase
+    public class CollectionHistoryLogViewModel : TracksViewModelBase
     {
         private enum HistoryListMode
         {
@@ -447,21 +447,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             GC.Collect(); // For the memory maniacs
         }
 
-        protected override void EditSelectedTracks()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        protected override void SelectedTracksHandler(object parameter)
-        {
-            return;
-            //throw new System.NotImplementedException();
-        }
-
-        protected override void SearchOnline(string id)
-        {
-            throw new System.NotImplementedException();
-        }
 
         private async Task ToggleHistoryListMode()
         {
