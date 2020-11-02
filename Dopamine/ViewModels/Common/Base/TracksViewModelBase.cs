@@ -301,7 +301,7 @@ namespace Dopamine.ViewModels.Common.Base
                     this.TracksCvs.GroupDescriptions.Add(new PropertyGroupDescription("GroupAlbumHeader"));
                 }
                 this.CalculateSizeInformationAsync(this.TracksCvs);
-                Task unAwaitedTask = this.ShowPlayingTrackAsync();
+                //Task unAwaitedTask = this.ShowPlayingTrackAsync();
             });
 
             // Update duration and size
@@ -431,7 +431,7 @@ namespace Dopamine.ViewModels.Common.Base
             Application.Current.Dispatcher.Invoke(() =>
             {
                 this.CalculateSizeInformationAsync(this.TracksCvs);
-                Task unAwaitedTask = this.ShowPlayingTrackAsync();
+                //Task unAwaitedTask = this.ShowPlayingTrackAsync();
             });
         }
 
@@ -447,8 +447,10 @@ namespace Dopamine.ViewModels.Common.Base
             }
         }
 
-        protected override async Task ShowPlayingTrackAsync()
+        /*
+        private async Task ShowPlayingTrackAsync()
         {
+
             await Task.Run(() =>
             {
                 if (this.PreviousPlayingTrack != null)
@@ -489,6 +491,7 @@ namespace Dopamine.ViewModels.Common.Base
 
             this.ConditionalScrollToPlayingTrack();
         }
+        */
 
         protected async override void MetadataService_RatingChangedAsync(RatingChangedEventArgs e)
         {

@@ -89,7 +89,6 @@ namespace Dopamine.ViewModels.Common
 
 
                 this.CalculateSizeInformationAsync(this.TracksCvs);
-                Task unAwaitedTask = this.ShowPlayingTrackAsync();
             });
 
             // Update duration and size

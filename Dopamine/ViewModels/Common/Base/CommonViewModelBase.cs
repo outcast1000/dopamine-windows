@@ -126,11 +126,6 @@ namespace Dopamine.ViewModels.Common.Base
             });
 
             // Events
-            this.playbackService.PlaybackFailed += (_, __) => this.ShowPlayingTrackAsync();
-            this.playbackService.PlaybackPaused += (_, __) => this.ShowPlayingTrackAsync();
-            this.playbackService.PlaybackResumed += (_, __) => this.ShowPlayingTrackAsync();
-            this.playbackService.PlaybackStopped += (_, __) => this.ShowPlayingTrackAsync();
-            this.playbackService.PlaybackSuccess += (_,__) => this.ShowPlayingTrackAsync();
             this.collectionService.CollectionChanged += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when the Collection has changed
             this.foldersService.FoldersChanged += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when marked folders have changed
             this.indexingService.RefreshLists += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when the indexer has finished indexing
@@ -275,7 +270,6 @@ namespace Dopamine.ViewModels.Common.Base
             if (this.RemoveSelectedTracksCommand != null) this.RemoveSelectedTracksCommand.RaiseCanExecuteChanged();
         }
 
-        protected abstract Task ShowPlayingTrackAsync();
         protected abstract Task FillListsAsync();
         protected abstract Task EmptyListsAsync();
         protected abstract void FilterListsAsync(string searchText);

@@ -409,12 +409,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             */
         }
 
-        protected override Task ShowPlayingTrackAsync()
-        {
-            return Task.FromResult<object>(null);
-            //throw new System.NotImplementedException();
-        }
-
         protected override void ConditionalScrollToPlayingTrack()
         {
             throw new System.NotImplementedException();
