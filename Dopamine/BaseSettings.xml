@@ -2,7 +2,7 @@
 <Settings>
   <Namespace Name="Configuration">
     <Setting Name="Version">
-      <Value>119</Value>
+      <Value>121</Value>
     </Setting>
     <Setting Name="IsPortable">
       <Value>False</Value>
@@ -23,6 +23,9 @@
 	    <Setting Name="ListBoxArtistsScrollPos">
 		    <Value>0</Value>
 	    </Setting>
+		<Setting Name="LeftPaneWidth">
+			<Value>*</Value>
+		</Setting>
     </Namespace>
 <Namespace Name="State">
 	<Setting Name="SelectedArtistIDs">

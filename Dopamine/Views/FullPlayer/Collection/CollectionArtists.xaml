@@ -85,8 +85,8 @@
     <!-- GRID IMPLEMENTATION -->
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" MinWidth="250"/>
-            <ColumnDefinition Width="5" />
+            <ColumnDefinition Width="{Binding LeftPaneWidth, Mode=TwoWay}" MinWidth="250"/>
+            <ColumnDefinition Width="6" />
             <ColumnDefinition Width="*" MinWidth="250"/>
         </Grid.ColumnDefinitions>
     <!-- GRID IMPLEMENTATION END -->
@@ -192,7 +192,7 @@
             </Border>
 
         <!-- GRID IMPLEMENTATION -->
-        <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" />
+        <GridSplitter Grid.Column="1"  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
         <!-- GRID IMPLEMENTATION END -->
         
     <!--

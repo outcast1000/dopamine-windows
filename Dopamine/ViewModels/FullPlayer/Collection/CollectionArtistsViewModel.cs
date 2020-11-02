@@ -98,6 +98,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private ArtistOrder _order;
         private readonly string Setting_LeftPaneWidthPercent = "ArtistsLeftPaneWidthPercent";
         private readonly string Setting_RightPaneWidthPercent = "ArtistsRightPaneWidthPercent";
+        private readonly string Setting_NameSpace = "CollectionArtists";
         private ObservableCollection<SearchProvider> artistContextMenuSearchProviders;
 
 
@@ -203,7 +204,21 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             set
             {
                 SetProperty<double>(ref _listBoxArtistsScrollPos, value);
-                SettingsClient.Set<double>("CollectionArtists", "ListBoxArtistsScrollPos", value);
+                SettingsClient.Set<double>(Setting_NameSpace, "ListBoxArtistsScrollPos", value);
+            }
+        }
+
+        private GridLength _leftPaneGridLength;
+        public GridLength LeftPaneWidth
+        {
+            get {
+                return _leftPaneGridLength;
+            }
+            set
+            {
+                SetProperty<GridLength>(ref _leftPaneGridLength, value);
+                if (!value.IsStar)
+                    SettingsClient.Set<double>(Setting_NameSpace, "LeftPaneWidth", value.Value);
             }
         }
 
@@ -345,10 +360,19 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             // Set width of the panels
             LeftPaneWidthPercent = SettingsClient.Get<int>("ColumnWidths", "ArtistsLeftPaneWidthPercent");
 
-            ListBoxArtistsScrollPos = SettingsClient.Get<double>("CollectionArtists", "ListBoxArtistsScrollPos");
+            ListBoxArtistsScrollPos = SettingsClient.Get<double>(Setting_NameSpace, "ListBoxArtistsScrollPos");
+
+            LeftPaneWidth = String2GridLength(SettingsClient.Get<string>(Setting_NameSpace, "LeftPaneWidth"));
 
             LoadSelectedItems();
 
+        }
+
+        private GridLength String2GridLength(string gridLength)
+        {
+            if (gridLength.Equals("*") || string.IsNullOrWhiteSpace(gridLength))
+                return new GridLength(1, GridUnitType.Star);
+            return new GridLength(double.Parse(gridLength), GridUnitType.Pixel);
         }
 
         private void LoadSelectedItems()
