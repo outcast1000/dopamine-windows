@@ -222,7 +222,7 @@
                                         VerticalAlignment="Stretch"
                                         Orientation="Horizontal">
                                         <Grid Width="64" Height="48">
-                                            <Image Stretch="UniformToFill" HorizontalAlignment="Center" >
+                                            <Image Stretch="UniformToFill" HorizontalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality" >
                                                 <Image.Source>
                                                     <Binding
                                                         Converter="{StaticResource KeyToPathConverter}"
