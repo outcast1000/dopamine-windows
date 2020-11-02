@@ -52,12 +52,8 @@ namespace Dopamine.Controls
 
         private void ScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
-            NLog.LogManager.GetLogger("ScrollViewer_ScrollChanged").Debug($"{e.VerticalChange},{e.ExtentHeightChange},{e.ExtentWidthChange}");
             if (e.VerticalChange != 0 && e.ExtentHeightChange == 0)
-            {
-                NLog.LogManager.GetLogger("ScrollViewer_ScrollChanged").Debug("NEW SCROLL POS: " + e.VerticalOffset.ToString());
                 ScrollPos = e.VerticalOffset;
-            }
         }
 
         protected override DependencyObject GetContainerForItemOverride()

@@ -38,5 +38,6 @@
         <ResourceDictionary Source="/Dopamine;component/Resources/Styles/ScrollBar.xaml" />
         <ResourceDictionary Source="/Dopamine;component/Resources/Styles/PlaybackIndicator.xaml" />
         <ResourceDictionary Source="/Dopamine;component/Resources/Styles/StackPanelConditionEnabled.xaml" />
+        <ResourceDictionary Source="/Dopamine;component/Resources/Styles/Splitter.xaml" />
     </ResourceDictionary.MergedDictionaries>
 </ResourceDictionary>
