@@ -12,6 +12,7 @@
     xmlns:prismMvvm="clr-namespace:Prism.Mvvm;assembly=Prism.Wpf"
     xmlns:dc="clr-namespace:Digimezzo.Foundation.WPF.Controls;assembly=Digimezzo.Foundation.WPF"
     xmlns:alex="clr-namespace:Dopamine.Controls"
+    xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
     SizeChanged="UserControl_SizeChanged"
     mc:Ignorable="d"
     d:DesignHeight="300"
@@ -24,69 +25,31 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="80" />
         </Grid.RowDefinitions>
-        <!--
-        <Border Grid.Row="0" BorderBrush="Red" BorderThickness="20">
-                <controls:TransitioningContentControl
-            
-                    Panel.ZIndex="0"
-                    Margin="0,0,0,-6"
-                    FadeIn="True"
-                    FadeInTimeout="0.5"
-                    SlideIn="True"
-                    SlideInTimeout="0.5"
-                    SlideInFrom="{Binding SlideInFrom}"
-                    SlideInTo="0"
-                    x:Name="CollectionRegion"
-                    prism:RegionManager.RegionName="{x:Static cp:RegionNames.CollectionRegion}" />
-        </Border>
-        -->
         <Grid HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
-                <ColumnDefinition Width="350"/>
+                <ColumnDefinition Width="{Binding LeftPaneWidth, Mode=TwoWay, diag:PresentationTraceSources.TraceLevel=High}" MinWidth="400" />
+                <ColumnDefinition Width="6" />
+                <ColumnDefinition Width="*" MinWidth="250"/>
             </Grid.ColumnDefinitions>
             <controls:TransitioningContentControl
-                    Grid.Column="0"
-                    Panel.ZIndex="0"
-                    Margin="0,0,0,-6"
-                    FadeIn="True"
-                    FadeInTimeout="0.5"
-                    SlideIn="True"
-                    SlideInTimeout="0.5"
-                    SlideInFrom="{Binding SlideInFrom}"
-                    SlideInTo="0"
-                    x:Name="CollectionRegion"
-                    prism:RegionManager.RegionName="{x:Static cp:RegionNames.CollectionRegion}" />
-            <commonviews:PlaylistControl Grid.Column="1" Margin="5,5,5,5"/>
+                Grid.Column="0"
+                Panel.ZIndex="0"
+                Margin="0,0,0,-6"
+                FadeIn="True"
+                FadeInTimeout="0.5"
+                SlideIn="True"
+                SlideInTimeout="0.5"
+                SlideInFrom="{Binding SlideInFrom}"
+                SlideInTo="0"
+                x:Name="CollectionRegion"
+                prism:RegionManager.RegionName="{x:Static cp:RegionNames.CollectionRegion}" />
+            <GridSplitter
+                Grid.Column="1"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                Style="{StaticResource MainGridSplitterStyle}" />
+            <commonviews:PlaylistControl Grid.Column="2" Margin="5,5,5,5" />
         </Grid>
-        <!--
-        <dc:MultiPanePanel
-            Grid.Row="0"
-            ContentResizeDelay="25"
-            IsRightPaneCollapsed="True"
-            LeftPaneWidthPercent="70"
-            LeftPaneMinimumWidth="250"
-            MiddlePaneMinimumWidth="250">
-            <dc:MultiPanePanel.LeftPaneContent>
-                <controls:TransitioningContentControl
-                    Panel.ZIndex="0"
-                    Margin="0,0,0,-6"
-                    FadeIn="True"
-                    FadeInTimeout="0.5"
-                    SlideIn="True"
-                    SlideInTimeout="0.5"
-                    SlideInFrom="{Binding SlideInFrom}"
-                    SlideInTo="0"
-                    x:Name="CollectionRegion"
-                    prism:RegionManager.RegionName="{x:Static cp:RegionNames.CollectionRegion}" />
-            </dc:MultiPanePanel.LeftPaneContent>
-            <dc:MultiPanePanel.MiddlePaneContent>
-                <TextBlock
-                    Text="PLAYLIST"
-                    Background="Red"/>
-            </dc:MultiPanePanel.MiddlePaneContent>
-        </dc:MultiPanePanel>
-        -->
         <Grid
             Grid.Row="1"
             Panel.ZIndex="1"

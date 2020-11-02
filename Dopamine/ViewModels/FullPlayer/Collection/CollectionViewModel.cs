@@ -1,4 +1,5 @@
 ﻿using Digimezzo.Foundation.WPF.Controls;
+using Dopamine.Core.Alex;
 using Dopamine.Core.Base;
 using Dopamine.Core.Enums;
 using Dopamine.Core.Prism;
@@ -6,6 +7,7 @@ using Dopamine.Views.FullPlayer.Collection;
 using Prism.Events;
 using Prism.Mvvm;
 using Prism.Regions;
+using System.Windows;
 
 namespace Dopamine.ViewModels.FullPlayer.Collection
 {
@@ -13,11 +15,27 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
     {
         private int slideInFrom;
         private IRegionManager regionManager;
+        private readonly string Setting_NameSpace = "Collection";
 
         public int SlideInFrom
         {
             get { return this.slideInFrom; }
             set { SetProperty<int>(ref this.slideInFrom, value); }
+        }
+
+        private GridLength _leftPaneGridLength;
+        public GridLength LeftPaneWidth
+        {
+            get
+            {
+                return _leftPaneGridLength;
+            }
+            set
+            {
+                SetProperty<GridLength>(ref _leftPaneGridLength, value);
+                //if (!value.IsStar)
+                SettingsClient.Set<double>(Setting_NameSpace, "LeftPaneWidth", value.Value);
+            }
         }
 
         public CollectionViewModel(IEventAggregator eventAggregator, IRegionManager regionManager)
@@ -28,6 +46,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             {
                 this.NagivateToPage(tuple.Item1, tuple.Item2);
             });
+            LeftPaneWidth = CollectionUtils.String2GridLength(SettingsClient.Get<string>(Setting_NameSpace, CollectionUtils.Setting_LeftPaneWidth));
         }
 
         private void NagivateToPage(SlideDirection direction, CollectionPage page)

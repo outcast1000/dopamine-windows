@@ -90,15 +90,11 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private ObservableCollection<ISemanticZoomSelector> _zoomSelectors;
         private bool _isZoomVisible;
         private long _itemCount;
-        private double _leftPaneWidthPercent;
-        private double _rightPaneWidthPercent;
         private IList<long> _selectedIDs;
         private bool _ignoreSelectionChangedEvent;
         private string _searchString = "";
         private string _orderText;
         private ArtistOrder _order;
-        private readonly string Setting_LeftPaneWidthPercent = "ArtistsLeftPaneWidthPercent";
-        private readonly string Setting_RightPaneWidthPercent = "ArtistsRightPaneWidthPercent";
         private readonly string Setting_NameSpace = "CollectionArtists";
         private ObservableCollection<SearchProvider> artistContextMenuSearchProviders;
 
@@ -177,28 +173,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
         }
 
-
-        public double LeftPaneWidthPercent
-        {
-            get { return _leftPaneWidthPercent; }
-            set
-            {
-                SetProperty<double>(ref _leftPaneWidthPercent, value);
-                SettingsClient.Set<int>("ColumnWidths", Setting_LeftPaneWidthPercent, Convert.ToInt32(value));
-            }
-        }
-
-
-        public double RightPaneWidthPercent
-        {
-            get { return _rightPaneWidthPercent; }
-            set
-            {
-                SetProperty<double>(ref _rightPaneWidthPercent, value);
-                SettingsClient.Set<int>("ColumnWidths", Setting_RightPaneWidthPercent, Convert.ToInt32(value));
-            }
-        }
-
         private double _listBoxArtistsScrollPos;
         public double ListBoxArtistsScrollPos
         {
@@ -219,8 +193,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             set
             {
                 SetProperty<GridLength>(ref _leftPaneGridLength, value);
-                if (!value.IsStar)
-                    SettingsClient.Set<double>(Setting_NameSpace, "LeftPaneWidth", value.Value);
+                //if (!value.IsStar)
+                SettingsClient.Set<double>(Setting_NameSpace, CollectionUtils.Setting_LeftPaneWidth, value.Value);
             }
         }
 
@@ -368,24 +342,13 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
             // Set the initial TrackOrder
             SetTrackOrder("ArtistsTrackOrder");
-
-            // Set width of the panels
-            LeftPaneWidthPercent = SettingsClient.Get<int>("ColumnWidths", "ArtistsLeftPaneWidthPercent");
-
             ListBoxArtistsScrollPos = SettingsClient.Get<double>(Setting_NameSpace, "ListBoxArtistsScrollPos");
-
-            LeftPaneWidth = String2GridLength(SettingsClient.Get<string>(Setting_NameSpace, "LeftPaneWidth"));
-
+            LeftPaneWidth = CollectionUtils.String2GridLength(SettingsClient.Get<string>(Setting_NameSpace, CollectionUtils.Setting_LeftPaneWidth));
             LoadSelectedItems();
 
         }
 
-        private GridLength String2GridLength(string gridLength)
-        {
-            if (gridLength.Equals("*") || string.IsNullOrWhiteSpace(gridLength))
-                return new GridLength(1, GridUnitType.Star);
-            return new GridLength(double.Parse(gridLength), GridUnitType.Pixel);
-        }
+
 
         private void LoadSelectedItems()
         {

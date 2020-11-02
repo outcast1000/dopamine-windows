@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace Dopamine.ViewModels.FullPlayer.Collection
@@ -343,6 +344,15 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
 
             SettingsClient.Set<string>("TracksGrid", "SortDirection", settingsSortDirection);
+        }
+
+
+        public static readonly string Setting_LeftPaneWidth = "LeftPaneWidth";
+        public static GridLength String2GridLength(string gridLength)
+        {
+            if (gridLength.Equals("*") || string.IsNullOrWhiteSpace(gridLength))
+                return new GridLength(1, GridUnitType.Star);
+            return new GridLength(double.Parse(gridLength), GridUnitType.Pixel);
         }
     }
 }
