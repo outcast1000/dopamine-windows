@@ -45,7 +45,8 @@ namespace Dopamine.Views.FullPlayer.Collection
             CollectionArtistsViewModel vm = (CollectionArtistsViewModel)DataContext;
             vm.EnsureItemVisible += (ArtistViewModel item) =>
             {
-                ListBoxArtists.ScrollIntoView(item);
+               NLog.LogManager.GetLogger("TEMP").Debug("EnsureVisible is disabled");
+                //ListBoxArtists.ScrollIntoView(item);
             };
             vm.SelectionChanged += () =>
             {
@@ -61,12 +62,6 @@ namespace Dopamine.Views.FullPlayer.Collection
         }
 
 
-        private async void ListBoxArtists_ItemPlayClick(object sender, MouseButtonEventArgs e)
-        {
-            //await this.ActionHandler(sender, e.OriginalSource as DependencyObject, true);
-            Debug.Print("Test");
-            //await this.playbackService.EnqueueArtistsAsync(new List<ArtistViewModel> { ((ArtistViewModel)lb.SelectedItem) }, false, false);
-        }
 
         private async void ListBoxArtists_PreviewKeyDown(object sender, KeyEventArgs e)
         {

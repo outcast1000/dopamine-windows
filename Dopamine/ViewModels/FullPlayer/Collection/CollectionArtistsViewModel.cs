@@ -196,6 +196,17 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
         }
 
+        private double _listBoxArtistsScrollPos;
+        public double ListBoxArtistsScrollPos
+        {
+            get { return _listBoxArtistsScrollPos; }
+            set
+            {
+                SetProperty<double>(ref _listBoxArtistsScrollPos, value);
+                SettingsClient.Set<double>("CollectionArtists", "ListBoxArtistsScrollPos", value);
+            }
+        }
+
         public bool InSearchMode { get { return !string.IsNullOrEmpty(_searchString); } }
 
         public CollectionViewSource ArtistsCvs
@@ -333,6 +344,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
             // Set width of the panels
             LeftPaneWidthPercent = SettingsClient.Get<int>("ColumnWidths", "ArtistsLeftPaneWidthPercent");
+
+            ListBoxArtistsScrollPos = SettingsClient.Get<double>("CollectionArtists", "ListBoxArtistsScrollPos");
 
             LoadSelectedItems();
 

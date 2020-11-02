@@ -9,6 +9,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:pc="clr-namespace:Dopamine.Controls"
     xmlns:prismMvvm="clr-namespace:Prism.Mvvm;assembly=Prism.Wpf"
+    xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
     d:DesignHeight="300"
     d:DesignWidth="300"
     prismMvvm:ViewModelLocator.AutoWireViewModel="True"
@@ -57,15 +58,40 @@
             </Storyboard>
         </Storyboard>
     </baseviews:TracksViewBase.Resources>
-
-    <dc:MultiPanePanel
+    
+    <!--
+    ALEX TODO (FIX OR REPLACE THE MULTIPANEL). *** IT CAUSES ANOTHER PROBLEM WHEN YOU ADD MORE A PANE INSIDE ANOTHER PANE ***
+    THE MAIN PROBLEM IS THAT WHEN WE ARE USING THE MULTIPANEL THE TREE IS NOT YET CREATED =>
+    EVERY BINDING TO A PROPERTY LIKE ScrollPos="{Binding ListBoxArtistsScrollPos, Mode=TwoWay} IS WORKING IN DEFERRED MODE =>
+    IT IS NOT WORKING
+    
+    - MORE TODO
+    - Column Width Binding (Remember percentage? / width?)
+    - Theming
+    - EnsureVisible Policy 
+    
+    -->
+    
+    <!--
+    <pc:MultiPanePanel
         ContentResizeDelay="25"
         IsRightPaneCollapsed="True"
-        LeftPaneWidthPercent="{Binding LeftPaneWidthPercent, Mode=TwoWay}"
+        LeftPaneWidthPercent="{Binding LeftPaneWidthPercent, Mode=TwoWay, diag:PresentationTraceSources.TraceLevel=High}"
         LeftPaneMinimumWidth="250"
+        ScrollPos="{Binding MultiPanelScrollPos, Mode=TwoWay, diag:PresentationTraceSources.TraceLevel=High}"
         MiddlePaneMinimumWidth="250">
-        <dc:MultiPanePanel.LeftPaneContent>
-            <Border Background="{DynamicResource Brush_PaneBackground}">
+        <pc:MultiPanePanel.LeftPaneContent>
+    -->
+    <!-- GRID IMPLEMENTATION -->
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" MinWidth="250"/>
+            <ColumnDefinition Width="5" />
+            <ColumnDefinition Width="*" MinWidth="250"/>
+        </Grid.ColumnDefinitions>
+    <!-- GRID IMPLEMENTATION END -->
+
+        <Border Background="{DynamicResource Brush_PaneBackground}" Grid.Column="0">
                 <DockPanel Margin="10,20,10,26">
                     <DockPanel Margin="10,0,10,20" DockPanel.Dock="Top">
                         <TextBlock
@@ -108,7 +134,7 @@
                     </DockPanel>
                     <Grid>
                         <Border Panel.ZIndex="0" Visibility="{Binding IsArtistsZoomVisible, Converter={StaticResource InvertingBooleanToCollapsedConverter}}">
-                            <dc:MultiSelectListBox
+                            <pc:MultiSelectListBoxEx
                                 x:Name="ListBoxArtists"
                                 BorderThickness="0"
                                 ItemsSource="{Binding ArtistsCvs.View}"
@@ -118,6 +144,7 @@
                                 Style="{StaticResource ListBoxArtists}"
                                 HorizontalContentAlignment="Stretch"
                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                ScrollPos="{Binding ListBoxArtistsScrollPos, Mode=TwoWay, diag:PresentationTraceSources.TraceLevel=High}"
                                 VirtualizingPanel.IsVirtualizingWhenGrouping="True"
                                 VirtualizingStackPanel.IsVirtualizing="True"
                                 VirtualizingStackPanel.VirtualizationMode="Recycling">
@@ -126,7 +153,7 @@
                                         <i:InvokeCommandAction Command="{Binding SelectedArtistsCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=SelectedItems}" />
                                     </i:EventTrigger>
                                 </i:Interaction.Triggers>
-                            </dc:MultiSelectListBox>
+                            </pc:MultiSelectListBoxEx>
                         </Border>
                         <Border
                             MaxWidth="300"
@@ -163,9 +190,16 @@
                     </Grid>
                 </DockPanel>
             </Border>
-        </dc:MultiPanePanel.LeftPaneContent>
-        <dc:MultiPanePanel.MiddlePaneContent>
-            <Border Background="{DynamicResource Brush_PaneBackground}">
+
+        <!-- GRID IMPLEMENTATION -->
+        <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" />
+        <!-- GRID IMPLEMENTATION END -->
+        
+    <!--
+        </pc:MultiPanePanel.LeftPaneContent>
+        <pc:MultiPanePanel.MiddlePaneContent>
+        -->
+        <Border Background="{DynamicResource Brush_PaneBackground}" Grid.Column="2">
                 <DockPanel Margin="10,20,10,26">
                     <DockPanel Margin="10,0,10,20" DockPanel.Dock="Top">
                         <Button
@@ -219,6 +253,12 @@
                     </DockPanel>
                 </DockPanel>
             </Border>
-        </dc:MultiPanePanel.MiddlePaneContent>
-    </dc:MultiPanePanel>
+        <!-- GRID IMPLEMENTATION -->
+    </Grid>
+    <!-- GRID IMPLEMENTATION END -->
+    <!--
+        </pc:MultiPanePanel.MiddlePaneContent>
+    </pc:MultiPanePanel>
+       
+    -->
 </baseviews:TracksViewBase>
