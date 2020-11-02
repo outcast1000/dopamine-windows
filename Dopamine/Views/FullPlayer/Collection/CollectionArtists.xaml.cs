@@ -45,8 +45,8 @@ namespace Dopamine.Views.FullPlayer.Collection
             CollectionArtistsViewModel vm = (CollectionArtistsViewModel)DataContext;
             vm.EnsureItemVisible += (ArtistViewModel item) =>
             {
-               NLog.LogManager.GetLogger("TEMP").Debug("EnsureVisible is disabled");
-                //ListBoxArtists.ScrollIntoView(item);
+                //NLog.LogManager.GetLogger("TEMP").Debug("EnsureVisible is disabled");
+                ListBoxArtists.ScrollIntoView(item);
             };
             vm.SelectionChanged += () =>
             {

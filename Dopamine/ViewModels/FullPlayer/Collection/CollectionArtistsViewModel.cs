@@ -85,6 +85,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private IEventAggregator _eventAggregator;
         private IProviderService _providerService;
         private CollectionViewSource _collectionViewSource;
+        private CollectionViewSource _selectedItemsCvs;
         private IList<ArtistViewModel> _selectedItems = new List<ArtistViewModel>();
         private ObservableCollection<ISemanticZoomSelector> _zoomSelectors;
         private bool _isZoomVisible;
@@ -125,6 +126,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         public DelegateCommand PlayArtistsCommand { get; set; }
         public DelegateCommand EnqueueArtistsCommand { get; set; }
 
+        public DelegateCommand<ArtistViewModel> EnsureArtistVisibleCommand { get; set; }
 
         public DelegateCommand<ArtistViewModel> DownloadImageArtistsCommand { get; set; }
         
@@ -236,6 +238,12 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             set { SetProperty<IList<ArtistViewModel>>(ref _selectedItems, value); }
         }
 
+        public CollectionViewSource SelectedItemsCvs
+        {
+            get { return _selectedItemsCvs; }
+            set { SetProperty<CollectionViewSource>(ref _selectedItemsCvs, value); }
+        }
+
         public ArtistOrder ArtistOrder
         {
             get { return _order; }
@@ -301,6 +309,10 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             ShuffleArtistsCommand = new DelegateCommand(async () => await _playbackService.PlayArtistsAsync(SelectedArtists, PlaylistMode.Play, TrackOrder.Random));
             PlayArtistsCommand = new DelegateCommand(async () => await _playbackService.PlayArtistsAsync(SelectedArtists, PlaylistMode.Play));
             EnqueueArtistsCommand = new DelegateCommand(async () => await _playbackService.PlayArtistsAsync(SelectedArtists, PlaylistMode.Enqueue));
+            EnsureArtistVisibleCommand = new DelegateCommand<ArtistViewModel>(async (artist) =>
+            {
+                EnsureItemVisible?.Invoke(artist);
+            });
             DownloadImageArtistsCommand = new DelegateCommand<ArtistViewModel>(async (artist) =>
             {
                 await artist.RequestImageDownload(true, true);
@@ -441,6 +453,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             Application.Current.Dispatcher.Invoke(() =>
             {
                 ArtistsCvs = null;
+                SelectedItemsCvs = null;
             });
 
         }
@@ -493,8 +506,9 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             {
                 // Populate CollectionViewSource
                 ArtistsCvs = new CollectionViewSource { Source = items };
+                SelectedItemsCvs = new CollectionViewSource { Source = _selectedItems };
                 OrderItems();
-                EnsureVisible();
+                //EnsureVisible();
                 ArtistsCount = ArtistsCvs.View.Cast<ISemanticZoomable>().Count();
             });
         }
@@ -588,6 +602,10 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             SetTrackOrder("ArtistsTrackOrder");
             Task tracks = GetTracksAsync(SelectedArtists, null, null, TrackOrder);
             await Task.WhenAll(tracks, saveSelection);
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                SelectedItemsCvs = new CollectionViewSource { Source = _selectedItems };
+            });
             SelectionChanged?.Invoke();
 
         }
@@ -675,7 +693,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             ToggleArtistOrder();
             SettingsClient.Set<int>("Ordering", "ArtistsArtistOrder", (int)ArtistOrder);
             OrderItems();
-            EnsureVisible();
+            //EnsureVisible();
         }
 
         private void EnsureVisible()
