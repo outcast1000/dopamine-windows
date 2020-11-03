@@ -39,6 +39,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private IContainerProvider container;
         private double leftPaneWidthPercent;
 		private readonly string Settings_NameSpace = "CollectionPlaylists";
+        private readonly string Setting_ListBoxScrollPos = "ListBoxScrollPos";
 
 
         public DelegateCommand PlayPlaylistsCommand { get; set; }
@@ -54,6 +55,16 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         public DelegateCommand DeleteSelectedPlaylistCommand { get; set; }
 
         public DelegateCommand<PlaylistViewModel> DeletePlaylistCommand { get; set; }
+        private double _listBoxScrollPos;
+        public double ListBoxScrollPos
+        {
+            get { return _listBoxScrollPos; }
+            set
+            {
+                SetProperty<double>(ref _listBoxScrollPos, value);
+                SettingsClient.Set<double>(Settings_NameSpace, Setting_ListBoxScrollPos, value);
+            }
+        }
 
         private GridLength _leftPaneGridLength;
         public GridLength LeftPaneWidth
@@ -127,6 +138,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             };
 
             LeftPaneWidth = CollectionUtils.String2GridLength(SettingsClient.Get<string>(Settings_NameSpace, CollectionUtils.Setting_LeftPaneGridLength));
+			ListBoxScrollPos = SettingsClient.Get<double>(Settings_NameSpace, Setting_ListBoxScrollPos);
         }
 
         private async void PlaylistService_PlaylistFolderChanged(object sender, EventArgs e)

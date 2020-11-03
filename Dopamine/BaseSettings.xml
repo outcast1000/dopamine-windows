@@ -2,7 +2,7 @@
 <Settings>
 	<Namespace Name="Configuration">
 		<Setting Name="Version">
-			<Value>128</Value>
+			<Value>129</Value>
 		</Setting>
 		<Setting Name="IsPortable">
 			<Value>False</Value>
@@ -76,11 +76,9 @@
 		</Setting>
 	</Namespace>
 	<Namespace Name="CollectionPlaylists">
-		<!--
 		<Setting Name="ListBoxScrollPos">
 			<Value>0</Value>
 		</Setting>
-		-->
 		<Setting Name="LeftPaneGridLength">
 			<Value>*</Value>
 		</Setting>
