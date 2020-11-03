@@ -206,23 +206,33 @@
                             <DataTemplate>
                                 <Border
                                     BorderThickness="1"
-                                    CornerRadius="5,5,5,5"
+                                    CornerRadius="10"
                                     BorderBrush="Black"
                                     Margin="5,0,5,0"
-                                    Background="{DynamicResource Brush_ItemSelected}"
-                                    >
+                                    Background="{DynamicResource Brush_ItemSelected}">
                                     <Border.InputBindings>
-                                        <MouseBinding 
-                                            MouseAction="LeftClick" 
+                                        <MouseBinding
+                                            MouseAction="LeftClick"
                                             Command="{Binding DataContext.EnsureArtistVisibleCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ItemsControl}}}"
-                                            CommandParameter="{Binding .}"/>
+                                            CommandParameter="{Binding .}" />
                                     </Border.InputBindings>
+
                                     <StackPanel
                                         HorizontalAlignment="Stretch"
                                         VerticalAlignment="Stretch"
                                         Orientation="Horizontal">
                                         <Grid Width="64" Height="48">
-                                            <Image Stretch="UniformToFill" HorizontalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality" >
+                                            <Border Name="Mask"
+                                                Background="White"
+                                                BorderBrush="#FF3B5998"
+                                                BorderThickness=".5"
+                                                CornerRadius="10,0,0,10">
+                                            </Border>
+                                            <Image
+                                                Visibility="Visible"
+                                                Stretch="UniformToFill"
+                                                HorizontalAlignment="Center"
+                                                RenderOptions.BitmapScalingMode="HighQuality">
                                                 <Image.Source>
                                                     <Binding
                                                         Converter="{StaticResource KeyToPathConverter}"
@@ -230,6 +240,9 @@
                                                         Path="Thumbnail" />
                                                 </Image.Source>
                                             </Image>
+                                            <Grid.OpacityMask>
+                                                <VisualBrush Visual="{Binding ElementName=Mask}" />
+                                            </Grid.OpacityMask>
                                         </Grid>
                                         <TextBlock
                                             Margin="10,0,10,0"
