@@ -126,6 +126,9 @@
                     PreviewKeyDown="ListBoxAlbums_PreviewKeyDown"
                     SelectionMode="Extended"
                     Style="{StaticResource ListBoxAlbums}"
+                            HorizontalContentAlignment="Stretch"
+                            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                            ScrollPos="{Binding ListBoxScrollPos, Mode=TwoWay}"
                     VirtualizingPanel.IsVirtualizingWhenGrouping="True"
                     VirtualizingStackPanel.IsVirtualizing="True"
                     VirtualizingStackPanel.VirtualizationMode="Recycling">

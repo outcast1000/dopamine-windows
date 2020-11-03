@@ -235,7 +235,7 @@
                                                 Margin="4,4,4,4"
                                                 HorizontalContentAlignment="Center"
                                                 VerticalContentAlignment="Center"
-                                                Command="{Binding DataContext.PlayAlbumCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                                Command="{Binding DataContext.PlayItemCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
                                                 CommandParameter="{Binding .}"
                                                 ToolTip="{DynamicResource Language_Play}">
                                                 <TextBlock
@@ -258,7 +258,7 @@
                                                     Margin="4,4,4,4"
                                                     HorizontalContentAlignment="Center"
                                                     VerticalContentAlignment="Center"
-                                                    Command="{Binding DataContext.LoveAlbumCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                                    Command="{Binding DataContext.LoveItemCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
                                                     CommandParameter="{Binding .}"
                                                     ToolTip="{DynamicResource Language_Love}">
                                                     <TextBlock
@@ -275,7 +275,7 @@
                                                     Margin="4,4,4,4"
                                                     HorizontalContentAlignment="Center"
                                                     VerticalContentAlignment="Center"
-                                                    Command="{Binding DataContext.EnqueueAlbumCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                                    Command="{Binding DataContext.EnqueueItemCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
                                                     CommandParameter="{Binding .}"
                                                     ToolTip="{DynamicResource Language_Add_To_Playlist}">
                                                     <TextBlock
