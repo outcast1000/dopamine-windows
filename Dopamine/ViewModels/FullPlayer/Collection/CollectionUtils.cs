@@ -355,5 +355,12 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 return new GridLength(1, GridUnitType.Star);
             return new GridLength(double.Parse(gridLength), GridUnitType.Pixel);
         }
+
+        public static string GridLength2String(GridLength gridLength)
+        {
+            if (gridLength.IsStar)
+                return "*";
+            return gridLength.Value.ToString();
+        }
     }
 }
