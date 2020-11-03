@@ -11,7 +11,9 @@ using Dopamine.Services.Playback;
 using Dopamine.Services.Playlist;
 using Dopamine.Services.Provider;
 using Dopamine.Services.Utils;
+using Dopamine.ViewModels.Common;
 using Dopamine.ViewModels.Common.Base;
+using Dopamine.Views.Common;
 using Prism.Commands;
 using Prism.Events;
 using Prism.Ioc;
@@ -38,6 +40,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private IDialogService _dialogService;
         private IEventAggregator _eventAggregator;
         private IProviderService _providerService;
+        private IContainerProvider _container;
         private CollectionViewSource _collectionViewSource;
         private CollectionViewSource _selectedItemsCvs;
         private IList<AlbumViewModel> _selectedItems = new List<AlbumViewModel>();
@@ -74,6 +77,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         public DelegateCommand PlayItemsCommand { get; set; }
         public DelegateCommand EnqueueItemsCommand { get; set; }
 
+
         public DelegateCommand<AlbumViewModel> EnsureItemVisibleCommand { get; set; }
 
         public DelegateCommand<AlbumViewModel> DownloadImageAlbumsCommand { get; set; }
@@ -86,6 +90,10 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         public DelegateCommand<string> AlbumSearchOnlineCommand { get; set; }
 
+        public DelegateCommand<string> SetCoverSizeCommand { get; set; }
+        public DelegateCommand<AlbumViewModel> DownloadImageAlbumCommand { get; set; }
+        public DelegateCommand EditAlbumCommand { get; set; }
+
         public ObservableCollection<SearchProvider> AlbumContextMenuSearchProviders
         {
             get { return this.albumContextMenuSearchProviders; }
@@ -96,7 +104,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
         }
 
-        protected bool HasAlbumContextMenuSearchProviders => this.ContextMenuSearchProviders != null && this.ContextMenuSearchProviders.Count > 0;
+        public bool HasAlbumContextMenuSearchProviders => this.ContextMenuSearchProviders != null && this.ContextMenuSearchProviders.Count > 0;
 
         private async void GetAlbumsSearchProvidersAsync()
         {
@@ -237,6 +245,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         public CollectionAlbumsViewModel(IContainerProvider container) : base(container)
         {
             // Dependency injection
+            _container = container;
             _collectionService = container.Resolve<ICollectionService>();
             _playbackService = container.Resolve<IPlaybackService>();
             _playlistService = container.Resolve<IPlaylistService>();
@@ -278,6 +287,21 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 HideSemanticZoom();
                 _eventAggregator.GetEvent<PerformSemanticJump>().Publish(new Tuple<string, string>("Albums", header));
             });
+
+            SetCoverSizeCommand = new DelegateCommand<string>(async (coverSize) =>
+            {
+                if (int.TryParse(coverSize, out int selectedCoverSize))
+                {
+                    await this.SetCoversizeAsync((CoverSizeType)selectedCoverSize);
+                }
+            });
+
+            DownloadImageAlbumCommand = new DelegateCommand<AlbumViewModel>((album) =>
+            {
+                Task unwaitedTask = album.RequestImageDownload(true, true);
+            });
+
+            EditAlbumCommand = new DelegateCommand(() => this.EditSelectedAlbum(), () => !this.IsIndexing);
 
             // Settings
             Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += async (_, e) =>
@@ -781,6 +805,30 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 RaisePropertyChanged(nameof(this.IsMediumCoverSizeSelected));
                 RaisePropertyChanged(nameof(this.IsLargeCoverSizeSelected));
             });
+        }
+
+        private void EditSelectedAlbum()
+        {
+            if (this.SelectedItems?.Count != 1)
+                return;
+
+            EditAlbum view = this._container.Resolve<EditAlbum>();
+            view.DataContext = this._container.Resolve<Func<AlbumViewModel, EditAlbumViewModel>>()(this.SelectedItems.First());
+
+            this._dialogService.ShowCustomDialog(
+                0xe104,
+                14,
+                ResourceUtils.GetString("Language_Edit_Album"),
+                view,
+                405,
+                450,
+                false,
+                true,
+                true,
+                true,
+                ResourceUtils.GetString("Language_Ok"),
+                ResourceUtils.GetString("Language_Cancel"),
+                ((EditAlbumViewModel)view.DataContext).SaveAlbumAsync);
         }
     }
 }
