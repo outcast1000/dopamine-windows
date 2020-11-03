@@ -15,7 +15,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
     {
         private int slideInFrom;
         private IRegionManager regionManager;
-        private readonly string Setting_NameSpace = "Collection";
+        private readonly string Settings_NameSpace = "Collection";
 
         public int SlideInFrom
         {
@@ -35,7 +35,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 if (value.IsStar && value.Value > 1)
                     value = new GridLength(value.Value);
                 SetProperty<GridLength>(ref _leftPaneGridLength, value);
-                SettingsClient.Set<string>(Setting_NameSpace, CollectionUtils.Setting_LeftPaneGridLength, CollectionUtils.GridLength2String(value));
+                SettingsClient.Set<string>(Settings_NameSpace, CollectionUtils.Setting_LeftPaneGridLength, CollectionUtils.GridLength2String(value));
             }
         }
 
@@ -47,7 +47,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             {
                 this.NagivateToPage(tuple.Item1, tuple.Item2);
             });
-            LeftPaneWidth = CollectionUtils.String2GridLength(SettingsClient.Get<string>(Setting_NameSpace, CollectionUtils.Setting_LeftPaneGridLength));
+            LeftPaneWidth = CollectionUtils.String2GridLength(SettingsClient.Get<string>(Settings_NameSpace, CollectionUtils.Setting_LeftPaneGridLength));
         }
 
         private void NagivateToPage(SlideDirection direction, CollectionPage page)

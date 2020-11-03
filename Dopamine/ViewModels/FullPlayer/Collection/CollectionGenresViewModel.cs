@@ -90,14 +90,16 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private GridLength _leftPaneGridLength;
         public GridLength LeftPaneWidth
         {
-            get {
+            get
+            {
                 return _leftPaneGridLength;
             }
             set
             {
+                if (value.IsStar && value.Value > 1)
+                    value = new GridLength(value.Value);
                 SetProperty<GridLength>(ref _leftPaneGridLength, value);
-                //if (!value.IsStar)
-                SettingsClient.Set<double>(Settings_NameSpace, CollectionUtils.Setting_LeftPaneGridLength, value.Value);
+                SettingsClient.Set<string>(Settings_NameSpace, CollectionUtils.Setting_LeftPaneGridLength, CollectionUtils.GridLength2String(value));
             }
         }
 
