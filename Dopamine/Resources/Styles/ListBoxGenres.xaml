@@ -12,21 +12,6 @@
         <ResourceDictionary Source="/Dopamine;component/Resources/Styles/FontStyles.xaml" />
         <ResourceDictionary Source="/Dopamine;component/Resources/Styles/Buttons.xaml" />
     </ResourceDictionary.MergedDictionaries>
-    <Style x:Key="RoundedButtonStyle" TargetType="{x:Type Button}">
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Border
-                        Padding="2"
-                        Background="White"
-                        BorderThickness="1"
-                        CornerRadius="15">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
     <converters:BooleanToCollapsedConverter x:Key="BooleanToCollapsedConverter" />
     <converters:InvertingBooleanToCollapsedConverter x:Key="InvertingBooleanToCollapsedConverter" />
     <converters:InvertingBooleanToVisibilityConverter x:Key="InvertingBooleanToVisibilityConverter" />
@@ -40,8 +25,9 @@
             <utils:BindingProxy x:Key="NewPlaylistProxy" Data="{DynamicResource Language_New_Playlist}" />
             <CollectionViewSource x:Key="PlaylistsDataSource" Source="{Binding DataContext.ContextMenuPlaylists, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
         </ContextMenu.Resources>
+
         <MenuItem
-            Command="{Binding DataContext.ShuffleGenresCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+            Command="{Binding DataContext.ShuffleItemsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
             Header="{DynamicResource Language_Shuffle}"
             InputGestureText="">
             <MenuItem.Icon>
@@ -52,7 +38,7 @@
             </MenuItem.Icon>
         </MenuItem>
         <MenuItem
-            Command="{Binding DataContext.PlayGenresCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+            Command="{Binding DataContext.PlayItemsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
             Header="{DynamicResource Language_Play}"
             InputGestureText="">
             <MenuItem.Icon>
@@ -63,7 +49,7 @@
             </MenuItem.Icon>
         </MenuItem>
         <MenuItem
-            Command="{Binding DataContext.EnqueueGenresCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+            Command="{Binding DataContext.EnqueueItemsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
             Header="{DynamicResource Language_Enqueue}"
             InputGestureText="">
             <MenuItem.Icon>
@@ -78,7 +64,7 @@
         <MenuItem DisplayMemberPath="Name" Header="{DynamicResource Language_Add_To_Playlist}">
             <MenuItem.ItemContainerStyle>
                 <Style TargetType="MenuItem">
-                    <Setter Property="Command" Value="{Binding DataContext.AddGenresToPlaylistCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
+                    <Setter Property="Command" Value="{Binding DataContext.AddItemsToPlaylistCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
                     <Setter Property="CommandParameter" Value="{Binding Name}" />
                 </Style>
             </MenuItem.ItemContainerStyle>
@@ -97,7 +83,6 @@
             </MenuItem.ItemsSource>
         </MenuItem>
     </ContextMenu>
-
     <!--  ListBoxItem  -->
     <Style x:Key="ListBoxGenresItem" TargetType="{x:Type ListBoxItem}">
         <Style.Resources>
@@ -122,7 +107,7 @@
                             Margin="10,5,10,5"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Top"
-                            Command="{Binding DataContext.ShowGenresZoomCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                            Command="{Binding DataContext.ShowZoomCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
                             Cursor="Hand"
                             DockPanel.Dock="Top"
                             Style="{DynamicResource TransparentButton}"
@@ -185,7 +170,7 @@
                                                 Margin="4,4,4,4"
                                                 HorizontalContentAlignment="Center"
                                                 VerticalContentAlignment="Center"
-                                                Command="{Binding DataContext.PlayGenreCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                                Command="{Binding DataContext.PlayItemCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
                                                 CommandParameter="{Binding .}"
                                                 ToolTip="{DynamicResource Language_Play}">
                                                 <TextBlock
@@ -227,7 +212,7 @@
                                                     Margin="4,4,4,4"
                                                     HorizontalContentAlignment="Center"
                                                     VerticalContentAlignment="Center"
-                                                    Command="{Binding DataContext.EnqueueGenreCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                                    Command="{Binding DataContext.EnqueueItemCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
                                                     CommandParameter="{Binding .}"
                                                     ToolTip="{DynamicResource Language_Add_To_Playlist}">
                                                     <TextBlock
@@ -251,10 +236,7 @@
                                             Margin="10,0,5,0"
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Center">
-                                            <pc:SourceChangedImage
-                                                HorizontalAlignment="Center"
-                                                VerticalAlignment="Center"
-                                                Stretch="UniformToFill">
+                                            <pc:SourceChangedImage HorizontalAlignment="Center" Stretch="UniformToFill">
                                                 <pc:SourceChangedImage.Source>
                                                     <Binding
                                                         Converter="{StaticResource KeyToPathConverter}"
@@ -297,6 +279,7 @@
                             </Grid>
                         </Border>
                     </DockPanel>
+
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="True">
                             <Trigger.EnterActions>

@@ -27,7 +27,7 @@
         </Grid.RowDefinitions>
         <Grid HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="{Binding LeftPaneWidth, Mode=TwoWay, diag:PresentationTraceSources.TraceLevel=High}" MinWidth="400" />
+                <ColumnDefinition Width="{Binding LeftPaneWidth, Mode=TwoWay}" MinWidth="400" />
                 <ColumnDefinition Width="6" />
                 <ColumnDefinition Width="*" MinWidth="250"/>
             </Grid.ColumnDefinitions>

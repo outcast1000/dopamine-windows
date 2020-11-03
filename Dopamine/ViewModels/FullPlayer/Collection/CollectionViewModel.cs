@@ -46,7 +46,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             {
                 this.NagivateToPage(tuple.Item1, tuple.Item2);
             });
-            LeftPaneWidth = CollectionUtils.String2GridLength(SettingsClient.Get<string>(Setting_NameSpace, CollectionUtils.Setting_LeftPaneWidth));
+            LeftPaneWidth = CollectionUtils.String2GridLength(SettingsClient.Get<string>(Setting_NameSpace, CollectionUtils.Setting_LeftPaneGridLength));
         }
 
         private void NagivateToPage(SlideDirection direction, CollectionPage page)

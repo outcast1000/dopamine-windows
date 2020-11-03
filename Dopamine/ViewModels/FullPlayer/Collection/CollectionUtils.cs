@@ -347,7 +347,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         }
 
 
-        public static readonly string Setting_LeftPaneWidth = "LeftPaneWidth";
+        public static readonly string Setting_LeftPaneGridLength = "LeftPaneGridLength";
+        public static readonly string Setting_TrackOrder = "TrackOrder";
         public static GridLength String2GridLength(string gridLength)
         {
             if (gridLength.Equals("*") || string.IsNullOrWhiteSpace(gridLength))

@@ -25,8 +25,9 @@
             <utils:BindingProxy x:Key="NewPlaylistProxy" Data="{DynamicResource Language_New_Playlist}" />
             <CollectionViewSource x:Key="PlaylistsDataSource" Source="{Binding DataContext.ContextMenuPlaylists, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
         </ContextMenu.Resources>
+
         <MenuItem
-            Command="{Binding DataContext.ShuffleAlbumsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+            Command="{Binding DataContext.ShuffleItemsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
             Header="{DynamicResource Language_Shuffle}"
             InputGestureText="">
             <MenuItem.Icon>
@@ -37,7 +38,7 @@
             </MenuItem.Icon>
         </MenuItem>
         <MenuItem
-            Command="{Binding DataContext.PlayAlbumsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+            Command="{Binding DataContext.PlayItemsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
             Header="{DynamicResource Language_Play}"
             InputGestureText="">
             <MenuItem.Icon>
@@ -48,7 +49,7 @@
             </MenuItem.Icon>
         </MenuItem>
         <MenuItem
-            Command="{Binding DataContext.EnqueueAlbumsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+            Command="{Binding DataContext.EnqueueItemsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
             Header="{DynamicResource Language_Enqueue}"
             InputGestureText="">
             <MenuItem.Icon>
@@ -58,11 +59,12 @@
                     Text="&#xE710;" />
             </MenuItem.Icon>
         </MenuItem>
+
         <Separator />
         <MenuItem DisplayMemberPath="Name" Header="{DynamicResource Language_Add_To_Playlist}">
             <MenuItem.ItemContainerStyle>
                 <Style TargetType="MenuItem">
-                    <Setter Property="Command" Value="{Binding DataContext.AddAlbumsToPlaylistCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
+                    <Setter Property="Command" Value="{Binding DataContext.AddItemsToPlaylistCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
                     <Setter Property="CommandParameter" Value="{Binding Name}" />
                 </Style>
             </MenuItem.ItemContainerStyle>
@@ -81,7 +83,7 @@
             </MenuItem.ItemsSource>
         </MenuItem>
         <Separator />
-	<MenuItem
+        <MenuItem
             Header="{DynamicResource Language_Search_Online}"
             ItemsSource="{Binding DataContext.AlbumContextMenuSearchProviders, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
             DisplayMemberPath="Name"
@@ -131,7 +133,6 @@
             Header="{DynamicResource Language_Download_An_Image}">
             <MenuItem.Icon>
                 <TextBlock
-                    Margin="0,1,0,0"
                     FontSize="15"
                     Style="{StaticResource SegoeAssets}"
                     Text="&#xE896;" />
@@ -323,7 +324,6 @@
                                         <DoubleAnimation
                                             Storyboard.TargetName="SelectionBorder"
                                             Storyboard.TargetProperty="Opacity"
-                                            From="0"
                                             To="1"
                                             Duration="0:0:0.15" />
                                     </Storyboard>
@@ -335,7 +335,6 @@
                                         <DoubleAnimation
                                             Storyboard.TargetName="SelectionBorder"
                                             Storyboard.TargetProperty="Opacity"
-                                            From="1"
                                             To="0"
                                             Duration="0:0:0.3" />
                                     </Storyboard>
@@ -427,6 +426,5 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Hidden" />
-
     </Style>
 </ResourceDictionary>

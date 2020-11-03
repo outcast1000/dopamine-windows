@@ -27,7 +27,7 @@
         </ContextMenu.Resources>
 
         <MenuItem
-            Command="{Binding DataContext.ShuffleArtistsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+            Command="{Binding DataContext.ShuffleItemsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
             Header="{DynamicResource Language_Shuffle}"
             InputGestureText="">
             <MenuItem.Icon>
@@ -38,7 +38,7 @@
             </MenuItem.Icon>
         </MenuItem>
         <MenuItem
-            Command="{Binding DataContext.PlayArtistsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+            Command="{Binding DataContext.PlayItemsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
             Header="{DynamicResource Language_Play}"
             InputGestureText="">
             <MenuItem.Icon>
@@ -49,7 +49,7 @@
             </MenuItem.Icon>
         </MenuItem>
         <MenuItem
-            Command="{Binding DataContext.EnqueueArtistsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+            Command="{Binding DataContext.EnqueueItemsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
             Header="{DynamicResource Language_Enqueue}"
             InputGestureText="">
             <MenuItem.Icon>
@@ -64,7 +64,7 @@
         <MenuItem DisplayMemberPath="Name" Header="{DynamicResource Language_Add_To_Playlist}">
             <MenuItem.ItemContainerStyle>
                 <Style TargetType="MenuItem">
-                    <Setter Property="Command" Value="{Binding DataContext.AddArtistsToPlaylistCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
+                    <Setter Property="Command" Value="{Binding DataContext.AddItemsToPlaylistCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
                     <Setter Property="CommandParameter" Value="{Binding Name}" />
                 </Style>
             </MenuItem.ItemContainerStyle>
@@ -155,7 +155,7 @@
                             Margin="10,5,10,5"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Top"
-                            Command="{Binding DataContext.ShowArtistsZoomCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                            Command="{Binding DataContext.ShowZoomCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
                             Cursor="Hand"
                             DockPanel.Dock="Top"
                             Style="{DynamicResource TransparentButton}"
@@ -218,7 +218,7 @@
                                                 Margin="4,4,4,4"
                                                 HorizontalContentAlignment="Center"
                                                 VerticalContentAlignment="Center"
-                                                Command="{Binding DataContext.PlayArtistCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                                Command="{Binding DataContext.PlayItemCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
                                                 CommandParameter="{Binding .}"
                                                 ToolTip="{DynamicResource Language_Play}">
                                                 <TextBlock
@@ -241,7 +241,7 @@
                                                     Margin="4,4,4,4"
                                                     HorizontalContentAlignment="Center"
                                                     VerticalContentAlignment="Center"
-                                                    Command="{Binding DataContext.LoveArtistCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                                    Command="{Binding DataContext.LoveItemCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
                                                     CommandParameter="{Binding .}"
                                                     ToolTip="{DynamicResource Language_Love}">
                                                     <TextBlock
@@ -258,7 +258,7 @@
                                                     Margin="4,4,4,4"
                                                     HorizontalContentAlignment="Center"
                                                     VerticalContentAlignment="Center"
-                                                    Command="{Binding DataContext.EnqueueArtistCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                                    Command="{Binding DataContext.EnqueueItemCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
                                                     CommandParameter="{Binding .}"
                                                     ToolTip="{DynamicResource Language_Add_To_Playlist}">
                                                     <TextBlock
@@ -334,7 +334,6 @@
                                         <DoubleAnimation
                                             Storyboard.TargetName="SelectionBorder"
                                             Storyboard.TargetProperty="Opacity"
-                                            From="0"
                                             To="1"
                                             Duration="0:0:0.15" />
                                     </Storyboard>
@@ -346,8 +345,6 @@
                                         <DoubleAnimation
                                             Storyboard.TargetName="SelectionBorder"
                                             Storyboard.TargetProperty="Opacity"
-                                            DecelerationRatio="1"
-                                            From="1"
                                             To="0"
                                             Duration="0:0:0.3" />
                                     </Storyboard>

@@ -6,6 +6,7 @@ using Dopamine.Data.Entities;
 using Dopamine.Data.Repositories;
 using Dopamine.Services.Cache;
 using Dopamine.Services.Indexing;
+using Dopamine.Services.Utils;
 using Prism.Mvvm;
 using System;
 using System.Collections.Generic;
@@ -16,15 +17,17 @@ using System.Threading.Tasks;
 
 namespace Dopamine.Services.Entities
 {
-    public class AlbumViewModel : BindableBase
+    public class AlbumViewModel : BindableBase, ISemanticZoomable
     {
         private AlbumV data;
+        private bool isHeader;
         private IIndexingService _indexingService;
         private IAlbumVRepository _albumVRepository;
 		
         public AlbumViewModel(IIndexingService indexingService, IAlbumVRepository albumVRepository, AlbumV data)
         {
             this.data = data;
+            this.isHeader = false;
             _indexingService = indexingService;
             _albumVRepository = albumVRepository;
         }
@@ -140,6 +143,13 @@ namespace Dopamine.Services.Entities
             get { return data.MinYear.HasValue ? data.MinYear.ToString() : ""; }
         }
 
+        public string Header => SemanticZoomUtils.GetGroupHeader(Name, true);
+
+        public bool IsHeader
+        {
+            get { return this.isHeader; }
+            set { SetProperty<bool>(ref this.isHeader, value); }
+        }
 
         public string AlbumArtists
         {

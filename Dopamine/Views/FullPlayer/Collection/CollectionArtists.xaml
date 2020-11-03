@@ -75,11 +75,11 @@
                         DockPanel.Dock="Left"
                         FontSize="13"
                         Foreground="{DynamicResource Brush_Accent}"
-                        Text="{Binding ArtistsCount}" />
+                        Text="{Binding ItemsCount}" />
                     <Button
                         Margin="10,0,0,0"
-                        Command="{Binding ToggleArtistOrderCommand}"
-                        Content="{Binding ArtistOrderText}"
+                        Command="{Binding ToggleOrderCommand}"
+                        Content="{Binding ItemOrderText}"
                         DockPanel.Dock="Right"
                         FontSize="13"
                         Foreground="{DynamicResource Brush_SecondaryText}"
@@ -102,7 +102,6 @@
                     </Button>
 
                     <TextBlock
-                        x:Name="ArtistsHeader"
                         Margin="10,0,0,0"
                         Text="{DynamicResource Language_All_Artists}"
                         FontSize="13"
@@ -110,18 +109,18 @@
                         Background="#00000000" />
                 </DockPanel>
                 <Grid>
-                    <Border Panel.ZIndex="0" Visibility="{Binding IsArtistsZoomVisible, Converter={StaticResource InvertingBooleanToCollapsedConverter}}">
+                    <Border Panel.ZIndex="0" Visibility="{Binding IsZoomVisible, Converter={StaticResource InvertingBooleanToCollapsedConverter}}">
                         <pc:MultiSelectListBoxEx
                             x:Name="ListBoxArtists"
                             BorderThickness="0"
-                            ItemsSource="{Binding ArtistsCvs.View}"
+                            ItemsSource="{Binding ItemsCvs.View}"
                             MouseDoubleClick="ListBoxArtists_MouseDoubleClick"
                             PreviewKeyDown="ListBoxArtists_PreviewKeyDown"
                             SelectionMode="Extended"
                             Style="{StaticResource ListBoxArtists}"
                             HorizontalContentAlignment="Stretch"
                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                            ScrollPos="{Binding ListBoxArtistsScrollPos, Mode=TwoWay}"
+                            ScrollPos="{Binding ListBoxScrollPos, Mode=TwoWay}"
                             VirtualizingPanel.IsVirtualizingWhenGrouping="True"
                             VirtualizingStackPanel.IsVirtualizing="True"
                             VirtualizingStackPanel.VirtualizationMode="Recycling">
@@ -136,7 +135,7 @@
                         MaxWidth="300"
                         MaxHeight="600"
                         Panel.ZIndex="1"
-                        Visibility="{Binding IsArtistsZoomVisible, Converter={StaticResource BooleanToCollapsedConverter}}">
+                        Visibility="{Binding IsZoomVisible, Converter={StaticResource BooleanToCollapsedConverter}}">
                         <Border
                             HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch"
@@ -146,7 +145,7 @@
                             <Border.Style>
                                 <Style>
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsArtistsZoomVisible}" Value="True">
+                                        <DataTrigger Binding="{Binding IsZoomVisible}" Value="True">
                                             <DataTrigger.EnterActions>
                                                 <BeginStoryboard Storyboard="{StaticResource ShowSemanticZoom}" />
                                             </DataTrigger.EnterActions>
@@ -160,7 +159,7 @@
                             <ListBox
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Stretch"
-                                ItemsSource="{Binding ArtistsZoomSelectors}"
+                                ItemsSource="{Binding ZoomSelectors}"
                                 Style="{StaticResource ListBoxSemanticZoom}" />
                         </Border>
                     </Border>
@@ -213,7 +212,7 @@
                                     <Border.InputBindings>
                                         <MouseBinding
                                             MouseAction="LeftClick"
-                                            Command="{Binding DataContext.EnsureArtistVisibleCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ItemsControl}}}"
+                                            Command="{Binding DataContext.EnsureItemVisibleCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ItemsControl}}}"
                                             CommandParameter="{Binding .}" />
                                     </Border.InputBindings>
 

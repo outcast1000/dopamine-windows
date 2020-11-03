@@ -95,9 +95,11 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private string _searchString = "";
         private string _orderText;
         private ArtistOrder _order;
-        private readonly string Setting_NameSpace = "CollectionArtists";
         private ObservableCollection<SearchProvider> artistContextMenuSearchProviders;
-
+        private readonly string Settings_NameSpace = "CollectionArtists";
+        private readonly string Setting_ListBoxScrollPos = "ListBoxScrollPos";
+        private readonly string Setting_SelectedIDs = "SelectedIDs";
+        private readonly string Setting_ItemOrder = "ItemOrder";
 
 
 
@@ -107,31 +109,24 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         public delegate void SelectionChangedAction();
         public event SelectionChangedAction SelectionChanged;
 
-        public DelegateCommand ToggleArtistOrderCommand { get; set; }
-
-
-        public DelegateCommand<string> AddArtistsToPlaylistCommand { get; set; }
-
-
+        public DelegateCommand ToggleOrderCommand { get; set; }
+        public DelegateCommand<string> AddItemsToPlaylistCommand { get; set; }
         public DelegateCommand<object> SelectedArtistsCommand { get; set; }
-
-        public DelegateCommand ShowArtistsZoomCommand { get; set; }
-
+        public DelegateCommand ShowZoomCommand { get; set; }
         public DelegateCommand<string> SemanticJumpCommand { get; set; }
-        public DelegateCommand ShuffleArtistsCommand { get; set; }
-        public DelegateCommand PlayArtistsCommand { get; set; }
-        public DelegateCommand EnqueueArtistsCommand { get; set; }
+        public DelegateCommand ShuffleItemsCommand { get; set; }
+        public DelegateCommand PlayItemsCommand { get; set; }
+        public DelegateCommand EnqueueItemsCommand { get; set; }
 
-        public DelegateCommand<ArtistViewModel> EnsureArtistVisibleCommand { get; set; }
+        public DelegateCommand<ArtistViewModel> EnsureItemVisibleCommand { get; set; }
 
         public DelegateCommand<ArtistViewModel> DownloadImageArtistsCommand { get; set; }
         
-        public DelegateCommand<ArtistViewModel> PlayArtistCommand { get; set; }
+        public DelegateCommand<ArtistViewModel> PlayItemCommand { get; set; }
 
-        public DelegateCommand<ArtistViewModel> EnqueueArtistCommand { get; set; }
+        public DelegateCommand<ArtistViewModel> EnqueueItemCommand { get; set; }
 
-        public DelegateCommand<ArtistViewModel> LoveArtistCommand { get; set; }
-
+        public DelegateCommand<ArtistViewModel> LoveItemCommand { get; set; }
 
         public DelegateCommand<string> ArtistSearchOnlineCommand { get; set; }
 
@@ -167,20 +162,20 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         private void ArtistSearchOnline(string id)
         {
-            if (SelectedArtists?.Count > 0)
+            if (SelectedItems?.Count > 0)
             {
-                _providerService.SearchOnline(id, new string[] { this.SelectedArtists.First().Name });
+                _providerService.SearchOnline(id, new string[] { this.SelectedItems.First().Name });
             }
         }
 
-        private double _listBoxArtistsScrollPos;
-        public double ListBoxArtistsScrollPos
+        private double _listBoxScrollPos;
+        public double ListBoxScrollPos
         {
-            get { return _listBoxArtistsScrollPos; }
+            get { return _listBoxScrollPos; }
             set
             {
-                SetProperty<double>(ref _listBoxArtistsScrollPos, value);
-                SettingsClient.Set<double>(Setting_NameSpace, "ListBoxArtistsScrollPos", value);
+                SetProperty<double>(ref _listBoxScrollPos, value);
+                SettingsClient.Set<double>(Settings_NameSpace, Setting_ListBoxScrollPos, value);
             }
         }
 
@@ -194,19 +189,19 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             {
                 SetProperty<GridLength>(ref _leftPaneGridLength, value);
                 //if (!value.IsStar)
-                SettingsClient.Set<double>(Setting_NameSpace, CollectionUtils.Setting_LeftPaneWidth, value.Value);
+                SettingsClient.Set<double>(Settings_NameSpace, CollectionUtils.Setting_LeftPaneGridLength, value.Value);
             }
         }
 
         public bool InSearchMode { get { return !string.IsNullOrEmpty(_searchString); } }
 
-        public CollectionViewSource ArtistsCvs
+        public CollectionViewSource ItemsCvs
         {
             get { return _collectionViewSource; }
             set { SetProperty<CollectionViewSource>(ref _collectionViewSource, value); }
         }
 
-        public IList<ArtistViewModel> SelectedArtists
+        public IList<ArtistViewModel> SelectedItems
         {
             get { return _selectedItems; }
             set { SetProperty<IList<ArtistViewModel>>(ref _selectedItems, value); }
@@ -229,37 +224,29 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
         }
 
-        public long ArtistsCount
+        public long ItemsCount
         {
             get { return _itemCount; }
             set { SetProperty<long>(ref _itemCount, value); }
         }
 
-        public bool IsArtistsZoomVisible
+        public bool IsZoomVisible
         {
             get { return _isZoomVisible; }
             set { SetProperty<bool>(ref _isZoomVisible, value); }
         }
 
-        public string ArtistOrderText => _orderText;
+        public string ItemOrderText => _orderText;
 
-        public ObservableCollection<ISemanticZoomSelector> ArtistsZoomSelectors
+        public ObservableCollection<ISemanticZoomSelector> ZoomSelectors
         {
             get { return _zoomSelectors; }
             set { SetProperty<ObservableCollection<ISemanticZoomSelector>>(ref _zoomSelectors, value); }
         }
         ObservableCollection<ISemanticZoomSelector> ISemanticZoomViewModel.SemanticZoomSelectors
         {
-            get { return ArtistsZoomSelectors; }
-            set { ArtistsZoomSelectors = value; }
-        }
-
-        public bool HasSelectedArtists
-        {
-            get
-            {
-                return (SelectedArtists?.Count > 0);
-            }
+            get { return ZoomSelectors; }
+            set { ZoomSelectors = value; }
         }
 
         public CollectionArtistsViewModel(IContainerProvider container) : base(container)
@@ -275,27 +262,27 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
             // Commands
             ToggleTrackOrderCommand = new DelegateCommand(async () => await ToggleTrackOrderAsync());
-            ToggleArtistOrderCommand = new DelegateCommand(async () => await ToggleOrderAsync());
+            ToggleOrderCommand = new DelegateCommand(async () => await ToggleOrderAsync());
             RemoveSelectedTracksCommand = new DelegateCommand(async () => await RemoveTracksFromCollectionAsync(SelectedTracks), () => !IsIndexing);
-            AddArtistsToPlaylistCommand = new DelegateCommand<string>(async (playlistName) => await AddItemsToPlaylistAsync(SelectedArtists, playlistName));
+            AddItemsToPlaylistCommand = new DelegateCommand<string>(async (playlistName) => await AddItemsToPlaylistAsync(SelectedItems, playlistName));
             SelectedArtistsCommand = new DelegateCommand<object>(async (parameter) => await SelectedItemsHandlerAsync(parameter));
-            ShowArtistsZoomCommand = new DelegateCommand(async () => await ShowSemanticZoomAsync());
-            ShuffleArtistsCommand = new DelegateCommand(async () => await _playbackService.PlayArtistsAsync(SelectedArtists, PlaylistMode.Play, TrackOrder.Random));
-            PlayArtistsCommand = new DelegateCommand(async () => await _playbackService.PlayArtistsAsync(SelectedArtists, PlaylistMode.Play));
-            EnqueueArtistsCommand = new DelegateCommand(async () => await _playbackService.PlayArtistsAsync(SelectedArtists, PlaylistMode.Enqueue));
-            EnsureArtistVisibleCommand = new DelegateCommand<ArtistViewModel>(async (artist) =>
+            ShowZoomCommand = new DelegateCommand(async () => await ShowSemanticZoomAsync());
+            ShuffleItemsCommand = new DelegateCommand(async () => await _playbackService.PlayArtistsAsync(SelectedItems, PlaylistMode.Play, TrackOrder.Random));
+            PlayItemsCommand = new DelegateCommand(async () => await _playbackService.PlayArtistsAsync(SelectedItems, PlaylistMode.Play));
+            EnqueueItemsCommand = new DelegateCommand(async () => await _playbackService.PlayArtistsAsync(SelectedItems, PlaylistMode.Enqueue));
+            EnsureItemVisibleCommand = new DelegateCommand<ArtistViewModel>(async (item) =>
             {
-                EnsureItemVisible?.Invoke(artist);
+                EnsureItemVisible?.Invoke(item);
             });
             DownloadImageArtistsCommand = new DelegateCommand<ArtistViewModel>(async (artist) =>
             {
                 await artist.RequestImageDownload(true, true);
             });
-            PlayArtistCommand = new DelegateCommand<ArtistViewModel>(async (vm) => {
+            PlayItemCommand = new DelegateCommand<ArtistViewModel>(async (vm) => {
                 await _playbackService.PlayArtistsAsync(new List<ArtistViewModel>() { vm }, PlaylistMode.Play);
             });
-            EnqueueArtistCommand = new DelegateCommand<ArtistViewModel>(async (vm) => await _playbackService.PlayArtistsAsync(new List<ArtistViewModel>() { vm }, PlaylistMode.Enqueue));
-            LoveArtistCommand = new DelegateCommand<ArtistViewModel>((avm) => Debug.Assert(false, "ALEX TODO"));
+            EnqueueItemCommand = new DelegateCommand<ArtistViewModel>(async (vm) => await _playbackService.PlayArtistsAsync(new List<ArtistViewModel>() { vm }, PlaylistMode.Enqueue));
+            LoveItemCommand = new DelegateCommand<ArtistViewModel>((avm) => Debug.Assert(false, "ALEX TODO"));
 
             _providerService.SearchProvidersChanged += (_, __) => { GetArtistsSearchProvidersAsync(); };
             this.GetArtistsSearchProvidersAsync();
@@ -314,18 +301,18 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableRating"))
                 {
                     EnableRating = (bool)e.Entry.Value;
-                    SetTrackOrder("ArtistsTrackOrder");
-                    await GetTracksAsync(SelectedArtists, null, null, TrackOrder);
+                    SetTrackOrder(TrackOrder);
+                    await GetTracksAsync(SelectedItems, null, null, TrackOrder);
                 }
 
                 if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableLove"))
                 {
                     EnableLove = (bool)e.Entry.Value;
-                    SetTrackOrder("ArtistsTrackOrder");
-                    await GetTracksAsync(SelectedArtists, null, null, TrackOrder);
+                    SetTrackOrder(TrackOrder);
+                    await GetTracksAsync(SelectedItems, null, null, TrackOrder);
                 }
 
-                if (SettingsClient.IsSettingChanged(e, "State", "SelectedArtistIDs"))
+                if (SettingsClient.IsSettingChanged(e, Settings_NameSpace, Setting_SelectedIDs))
                 {
                     LoadSelectedItems();
                 }
@@ -333,17 +320,17 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             };
 
             // PubSub Events
-            _eventAggregator.GetEvent<ShellMouseUp>().Subscribe((_) => IsArtistsZoomVisible = false);
+            _eventAggregator.GetEvent<ShellMouseUp>().Subscribe((_) => IsZoomVisible = false);
 
             // ALEX WARNING. EVERYTIME YOU NEED TO ADD A NEW SETTING YOU HAVE TO:
-            //  1. Update the \BaseSettings.xml of the project
-            //  2. Update the  C:\Users\Alex\AppData\Roaming\Dopamine\Settings.xml
-            ArtistOrder = (ArtistOrder)SettingsClient.Get<int>("Ordering", "ArtistsArtistOrder");
+            //  1. Update the \BaseSettings.xml and add the new / modified value
+            //  2. Increase the version number (in order to update the C:\Users\Alex\AppData\Roaming\Dopamine\Settings.xml)
+            ArtistOrder = (ArtistOrder)SettingsClient.Get<int>(Settings_NameSpace, Setting_ItemOrder);
 
             // Set the initial TrackOrder
-            SetTrackOrder("ArtistsTrackOrder");
-            ListBoxArtistsScrollPos = SettingsClient.Get<double>(Setting_NameSpace, "ListBoxArtistsScrollPos");
-            LeftPaneWidth = CollectionUtils.String2GridLength(SettingsClient.Get<string>(Setting_NameSpace, CollectionUtils.Setting_LeftPaneWidth));
+            SetTrackOrder((TrackOrder)SettingsClient.Get<int>(Settings_NameSpace, CollectionUtils.Setting_TrackOrder));
+            ListBoxScrollPos = SettingsClient.Get<double>(Settings_NameSpace, Setting_ListBoxScrollPos);
+            LeftPaneWidth = CollectionUtils.String2GridLength(SettingsClient.Get<string>(Settings_NameSpace, CollectionUtils.Setting_LeftPaneGridLength));
             LoadSelectedItems();
 
         }
@@ -354,7 +341,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         {
             try
             {
-                string s = SettingsClient.Get<String>("State", "SelectedArtistIDs");
+                string s = SettingsClient.Get<String>(Settings_NameSpace, Setting_SelectedIDs);
                 if (!string.IsNullOrEmpty(s))
                 {
                     _selectedIDs = s.Split(',').Select(x => long.Parse(x)).ToList();
@@ -371,26 +358,25 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private void SaveSelectedItems()
         {
             string s = string.Join(",", _selectedIDs);
-            SettingsClient.Set<String>("State", "SelectedArtistIDs", s);
+            SettingsClient.Set<String>(Settings_NameSpace, Setting_SelectedIDs, s);
         }
 
         public async Task ShowSemanticZoomAsync()
         {
-            ArtistsZoomSelectors = await SemanticZoomUtils.UpdateSemanticZoomSelectors(ArtistsCvs.View);
-            IsArtistsZoomVisible = true;
+            ZoomSelectors = await SemanticZoomUtils.UpdateSemanticZoomSelectors(ItemsCvs.View);
+            IsZoomVisible = true;
         }
 
         public void HideSemanticZoom()
         {
-
-            IsArtistsZoomVisible = false;
+            IsZoomVisible = false;
         }
 
         public void UpdateSemanticZoomHeaders()
         {
             string previousHeader = string.Empty;
 
-            foreach (ArtistViewModel vm in ArtistsCvs.View)
+            foreach (ArtistViewModel vm in ItemsCvs.View)
             {
                 if (_order == ArtistOrder.AlphabeticalAscending || _order == ArtistOrder.AlphabeticalDescending)
                 {
@@ -415,7 +401,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                ArtistsCvs = null;
+                ItemsCvs = null;
                 SelectedItemsCvs = null;
             });
 
@@ -437,7 +423,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                     _selectedItems = new List<ArtistViewModel>();
                     foreach (long id in _selectedIDs)
                     {
-                        ArtistViewModel vm = viewModels.Where(x => x.Id == id).FirstOrDefault();
+                        var vm = viewModels.Where(x => x.Id == id).FirstOrDefault();
                         if (vm != null)
                         {
                             vm.IsSelected = _selectedIDs.Contains(vm.Id);
@@ -450,7 +436,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                         //  1. The collection was previously empty
                         //  2. The collection with the previous selection has been removed
                         //  3. The previous selection has been removed and the collection has been refreshed
-                        ArtistViewModel sel = viewModels[0];
+                        var sel = viewModels[0];
                         sel.IsSelected = true;
                         _selectedItems.Add(sel);
                         _selectedIDs.Add(sel.Id);
@@ -468,11 +454,11 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             Application.Current.Dispatcher.Invoke(() =>
             {
                 // Populate CollectionViewSource
-                ArtistsCvs = new CollectionViewSource { Source = items };
+                ItemsCvs = new CollectionViewSource { Source = items };
                 SelectedItemsCvs = new CollectionViewSource { Source = _selectedItems };
                 OrderItems();
                 //EnsureVisible();
-                ArtistsCount = ArtistsCvs.View.Cast<ISemanticZoomable>().Count();
+                ItemsCount = ItemsCvs.View.Cast<ISemanticZoomable>().Count();
             });
         }
 
@@ -505,8 +491,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 default:
                     break;
             }
-            ArtistsCvs.SortDescriptions.Clear();
-            ArtistsCvs.SortDescriptions.Add(sd);
+            ItemsCvs.SortDescriptions.Clear();
+            ItemsCvs.SortDescriptions.Add(sd);
             UpdateSemanticZoomHeaders();
         }
 
@@ -520,7 +506,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             if (!string.IsNullOrEmpty(_searchString) && ((IList)parameter).Count == 0)
                 return;
             // We should also ignore it if we have an empty list (for example when we clear the list)
-            if (ArtistsCvs == null)
+            if (ItemsCvs == null)
                 return;
             bool bKeepOldSelections = true;
             if (parameter != null && ((IList)parameter).Count > 0)
@@ -544,10 +530,10 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 // This is the case when we have refresh the collection etc.
                 List<long> validSelectedIDs = new List<long>();
                 _selectedItems.Clear();
-                IEnumerable<ArtistViewModel> artists = ArtistsCvs.View.Cast<ArtistViewModel>();
+                IEnumerable<ArtistViewModel> artists = ItemsCvs.View.Cast<ArtistViewModel>();
                 foreach (long id in _selectedIDs)
                 {
-                    ArtistViewModel sel = artists.Where(x => x.Id == id).FirstOrDefault();
+                    var sel = artists.Where(x => x.Id == id).FirstOrDefault();
                     if (sel != null)
                     {
                         validSelectedIDs.Add(id);
@@ -559,11 +545,10 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
             }
 
-            RaisePropertyChanged(nameof(HasSelectedArtists));
             Task saveSelection = Task.Run(() => SaveSelectedItems());
             // Update the tracks
-            SetTrackOrder("ArtistsTrackOrder");
-            Task tracks = GetTracksAsync(SelectedArtists, null, null, TrackOrder);
+            SetTrackOrder(TrackOrder);
+            Task tracks = GetTracksAsync(SelectedItems, null, null, TrackOrder);
             await Task.WhenAll(tracks, saveSelection);
             Application.Current.Dispatcher.Invoke(() =>
             {
@@ -573,7 +558,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         }
 
-        private async Task AddItemsToPlaylistAsync(IList<ArtistViewModel> artists, string playlistName)
+        private async Task AddItemsToPlaylistAsync(IList<ArtistViewModel> items, string playlistName)
         {
             CreateNewPlaylistResult addPlaylistResult = CreateNewPlaylistResult.Success; // Default Success
 
@@ -605,7 +590,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 case CreateNewPlaylistResult.Success:
                 case CreateNewPlaylistResult.Duplicate:
                     // Add items to playlist
-                    AddTracksToPlaylistResult result = await _playlistService.AddArtistsToStaticPlaylistAsync(artists, playlistName);
+                    AddTracksToPlaylistResult result = await _playlistService.AddArtistsToStaticPlaylistAsync(items, playlistName);
 
                     if (result == AddTracksToPlaylistResult.Error)
                     {
@@ -647,22 +632,22 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         {
             base.ToggleTrackOrder();
 
-            SettingsClient.Set<int>("Ordering", "ArtistsTrackOrder", (int)TrackOrder);
+            SettingsClient.Set<int>(Settings_NameSpace, CollectionUtils.Setting_TrackOrder, (int)TrackOrder);
             await GetTracksCommonAsync(Tracks, TrackOrder);
         }
 
         private async Task ToggleOrderAsync()
         {
             ToggleArtistOrder();
-            SettingsClient.Set<int>("Ordering", "ArtistsArtistOrder", (int)ArtistOrder);
+            SettingsClient.Set<int>(Settings_NameSpace, Setting_ItemOrder, (int)ArtistOrder);
             OrderItems();
             //EnsureVisible();
         }
 
         private void EnsureVisible()
         {
-            if (SelectedArtists.Count > 0)
-                EnsureItemVisible?.Invoke(SelectedArtists[0]);
+            if (SelectedItems.Count > 0)
+                EnsureItemVisible?.Invoke(SelectedItems[0]);
         }
 
         protected async override Task FillListsAsync()
@@ -674,7 +659,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 if (string.IsNullOrEmpty(_searchString))
                 {
                     await GetItemsAsync();
-                    await GetTracksAsync(SelectedArtists, null, null, TrackOrder);
+                    await GetTracksAsync(SelectedItems, null, null, TrackOrder);
                 }
                 else
                 {
@@ -740,6 +725,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                     break;
             }
         }
+		
         protected void UpdateArtistOrderText(ArtistOrder order)
         {
             switch (order)
@@ -771,7 +757,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                     break;
             }
 
-            RaisePropertyChanged(nameof(ArtistOrderText));
+            RaisePropertyChanged(nameof(ItemOrderText));
         }
     }
 }

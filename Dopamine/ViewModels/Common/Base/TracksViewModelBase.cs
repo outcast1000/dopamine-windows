@@ -174,18 +174,18 @@ namespace Dopamine.ViewModels.Common.Base
             });
         }
 
-        protected void SetTrackOrder(string settingName)
+        protected void SetTrackOrder(TrackOrder trackOrder)
         {
-            TrackOrder savedTrackOrder = (TrackOrder)SettingsClient.Get<int>("Ordering", settingName);
+            //TrackOrder savedTrackOrder = (TrackOrder)SettingsClient.Get<int>("Ordering", settingName);
 
-            if ((!this.EnableRating & savedTrackOrder == TrackOrder.ByRating))
+            if ((!this.EnableRating && trackOrder == TrackOrder.ByRating))
             {
                 this.TrackOrder = TrackOrder.Alphabetical;
             }
             else
             {
                 // Only change the TrackOrder if it is not correct
-                if (this.TrackOrder != savedTrackOrder) this.TrackOrder = savedTrackOrder;
+                if (this.TrackOrder != trackOrder) this.TrackOrder = trackOrder;
             }
         }
 
