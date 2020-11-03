@@ -2,7 +2,7 @@
 <Settings>
 	<Namespace Name="Configuration">
 		<Setting Name="Version">
-			<Value>127</Value>
+			<Value>128</Value>
 		</Setting>
 		<Setting Name="IsPortable">
 			<Value>False</Value>
@@ -74,6 +74,27 @@
 		<Setting Name="TrackOrder">
 			<Value>2</Value>
 		</Setting>
+	</Namespace>
+	<Namespace Name="CollectionPlaylists">
+		<!--
+		<Setting Name="ListBoxScrollPos">
+			<Value>0</Value>
+		</Setting>
+		-->
+		<Setting Name="LeftPaneGridLength">
+			<Value>*</Value>
+		</Setting>
+		<!--
+			<Setting Name="SelectedIDs">
+			<Value />
+		</Setting>
+		<Setting Name="ItemOrder">
+			<Value>1</Value>
+		</Setting>
+		<Setting Name="TrackOrder">
+			<Value>2</Value>
+		</Setting>
+		-->
 	</Namespace>
 	<Namespace Name="State">
 		<Setting Name="SelectedGenreIDs">

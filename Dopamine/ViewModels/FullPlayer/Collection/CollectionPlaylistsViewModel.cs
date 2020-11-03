@@ -38,6 +38,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private IEventAggregator eventAggregator;
         private IContainerProvider container;
         private double leftPaneWidthPercent;
+		private readonly string Settings_NameSpace = "CollectionPlaylists";
 
 
         public DelegateCommand PlayPlaylistsCommand { get; set; }
@@ -54,13 +55,19 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         public DelegateCommand<PlaylistViewModel> DeletePlaylistCommand { get; set; }
 
-        public double LeftPaneWidthPercent
+        private GridLength _leftPaneGridLength;
+        public GridLength LeftPaneWidth
         {
-            get { return this.leftPaneWidthPercent; }
+            get
+            {
+                return _leftPaneGridLength;
+            }
             set
             {
-                SetProperty<double>(ref this.leftPaneWidthPercent, value);
-                SettingsClient.Set<int>("ColumnWidths", "PlaylistsLeftPaneWidthPercent", Convert.ToInt32(value));
+                if (value.IsStar && value.Value > 1)
+                    value = new GridLength(value.Value);
+                SetProperty<GridLength>(ref _leftPaneGridLength, value);
+                SettingsClient.Set<string>(Settings_NameSpace, CollectionUtils.Setting_LeftPaneGridLength, CollectionUtils.GridLength2String(value));
             }
         }
 
@@ -119,8 +126,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 }
             };
 
-            // Load settings
-            this.LeftPaneWidthPercent = SettingsClient.Get<int>("ColumnWidths", "PlaylistsLeftPaneWidthPercent");
+            LeftPaneWidth = CollectionUtils.String2GridLength(SettingsClient.Get<string>(Settings_NameSpace, CollectionUtils.Setting_LeftPaneGridLength));
         }
 
         private async void PlaylistService_PlaylistFolderChanged(object sender, EventArgs e)
