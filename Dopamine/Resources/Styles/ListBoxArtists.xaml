@@ -299,20 +299,31 @@
                                     <DockPanel x:Name="HiddenInfo" Opacity="1">
                                         <Grid
                                             x:Name="Image"
-                                            Width="{StaticResource ImageMaxWidth}"
+                                            
                                             Height="{StaticResource ImageHeight}"
                                             DockPanel.Dock="Left"
                                             Margin="10,0,5,0"
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Center">
+                                            <Grid.Tag>
+                                                <system:Double>1.0</system:Double>
+                                            </Grid.Tag>
+                                            <Grid.Width>
+                                                <!-- Width="{Binding ElementName=HiddenInfo, Path=ActualWidth}" -->
+                                                <MultiBinding Converter="{StaticResource MultiplyConverter}" ConverterParameter="{StaticResource ImageMinWidth}">
+                                                    <Binding Path="ActualWidth" ElementName="HiddenInfo"/>
+                                                    <Binding Path="Tag" RelativeSource="{RelativeSource Self}" />
+                                                </MultiBinding>
+                                            </Grid.Width>
                                             <pc:SourceChangedImage HorizontalAlignment="Center" Stretch="UniformToFill">
                                                 <pc:SourceChangedImage.Source>
                                                     <Binding
                                                         Converter="{StaticResource KeyToPathConverter}"
                                                         ConverterParameter="{StaticResource DefaultImage}"
-                                                        IsAsync="True"
+                                                        IsAsync="False"
                                                         Path="Thumbnail" />
                                                 </pc:SourceChangedImage.Source>
+
                                                 <pc:SourceChangedImage.Triggers>
                                                     <EventTrigger RoutedEvent="pc:SourceChangedImage.SourceChanged">
                                                         <BeginStoryboard>
@@ -397,8 +408,8 @@
                                     -->
                                     <DoubleAnimation
                                         Storyboard.TargetName="Image"
-                                        Storyboard.TargetProperty="Width"
-                                        To="{StaticResource ImageMinWidth}"
+                                        Storyboard.TargetProperty="Tag"
+                                        To="0"
                                         Duration="0:0:0.3">
                                         <DoubleAnimation.EasingFunction>
                                             <BackEase />
@@ -442,8 +453,8 @@
                                     -->
                                     <DoubleAnimation
                                         Storyboard.TargetName="Image"
-                                        Storyboard.TargetProperty="Width"
-                                        To="{StaticResource ImageMaxWidth}"
+                                        Storyboard.TargetProperty="Tag"
+                                        To="1"
                                         Duration="0:0:0.3">
                                         <DoubleAnimation.EasingFunction>
                                             <BackEase />
