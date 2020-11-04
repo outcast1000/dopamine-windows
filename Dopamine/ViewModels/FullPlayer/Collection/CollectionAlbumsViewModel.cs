@@ -91,7 +91,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         public DelegateCommand<string> AlbumSearchOnlineCommand { get; set; }
 
         public DelegateCommand<string> SetCoverSizeCommand { get; set; }
-        public DelegateCommand<AlbumViewModel> DownloadImageAlbumCommand { get; set; }
+
         public DelegateCommand EditAlbumCommand { get; set; }
 
         public ObservableCollection<SearchProvider> AlbumContextMenuSearchProviders
@@ -296,7 +296,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 }
             });
 
-            DownloadImageAlbumCommand = new DelegateCommand<AlbumViewModel>((album) =>
+            DownloadImageAlbumsCommand = new DelegateCommand<AlbumViewModel>((album) =>
             {
                 Task unwaitedTask = album.RequestImageDownload(true, true);
             });

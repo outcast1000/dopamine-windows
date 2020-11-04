@@ -84,6 +84,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private IDialogService _dialogService;
         private IEventAggregator _eventAggregator;
         private IProviderService _providerService;
+        private IContainerProvider _container;
         private CollectionViewSource _collectionViewSource;
         private CollectionViewSource _selectedItemsCvs;
         private IList<ArtistViewModel> _selectedItems = new List<ArtistViewModel>();
@@ -130,6 +131,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         public DelegateCommand<string> ArtistSearchOnlineCommand { get; set; }
 
+        public DelegateCommand EditArtistCommand { get; set; }
         public ObservableCollection<SearchProvider> ArtistContextMenuSearchProviders
         {
             get { return this.artistContextMenuSearchProviders; }
@@ -259,6 +261,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         public CollectionArtistsViewModel(IContainerProvider container) : base(container)
         {
             // Dependency injection
+            _container = container;
             _collectionService = container.Resolve<ICollectionService>();
             _playbackService = container.Resolve<IPlaybackService>();
             _playlistService = container.Resolve<IPlaylistService>();
@@ -302,6 +305,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 _eventAggregator.GetEvent<PerformSemanticJump>().Publish(new Tuple<string, string>("Artists", header));
             });
 
+            EditArtistCommand = new DelegateCommand(() => this.EditSelectedArtist());
             // Settings
             Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += async (_, e) =>
             {
@@ -766,6 +770,31 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
 
             RaisePropertyChanged(nameof(ItemOrderText));
+        }
+
+        private void EditSelectedArtist()
+        {
+            if (this.SelectedItems?.Count != 1)
+                return;
+            /*
+            EditArtist view = this._container.Resolve<EditArtist>();
+            view.DataContext = this._container.Resolve<Func<ArtistViewModel, EditArtistViewModel>>()(this.SelectedItems.First());
+
+            this._dialogService.ShowCustomDialog(
+                0xe104,
+                14,
+                ResourceUtils.GetString("Language_Edit_Artist"),
+                view,
+                405,
+                450,
+                false,
+                true,
+                true,
+                true,
+                ResourceUtils.GetString("Language_Ok"),
+                ResourceUtils.GetString("Language_Cancel"),
+                ((EditArtistViewModel)view.DataContext).SaveArtistAsync);
+            */
         }
     }
 }

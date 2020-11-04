@@ -128,7 +128,7 @@
 
         <Separator />
         <MenuItem
-            Command="{Binding DataContext.DownloadImageAlbumCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+            Command="{Binding DataContext.DownloadImageAlbumsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
             CommandParameter="{Binding .}"
             Header="{DynamicResource Language_Download_An_Image}">
             <MenuItem.Icon>

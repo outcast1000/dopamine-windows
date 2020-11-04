@@ -114,20 +114,13 @@
                     Text="&#xE8B9;" />
             </MenuItem.Icon>
         </MenuItem>
-        <!--
-        <MenuItem Command="{Binding DataContext.EditAlbumCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" InputGestureText="">
+        <MenuItem Command="{Binding DataContext.EditArtistCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" InputGestureText="">
             <MenuItem.Header>
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="{DynamicResource Language_Edit}" />
-                    <pc:SyncRing
-                        Width="11"
-                        Margin="15,0,0,0"
-                        VerticalAlignment="Center"
-                        Visibility="{Binding DataContext.IsIndexing, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 </StackPanel>
             </MenuItem.Header>
         </MenuItem>
-	-->
     </ContextMenu>
     <!--  ListBoxItem  -->
 

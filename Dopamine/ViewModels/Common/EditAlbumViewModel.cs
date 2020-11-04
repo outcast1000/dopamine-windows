@@ -1,5 +1,6 @@
 ﻿using Digimezzo.Foundation.Core.Logging;
 using Digimezzo.Foundation.Core.Utils;
+using Dopamine.Data;
 using Dopamine.Services.Cache;
 using Dopamine.Services.Dialog;
 using Dopamine.Services.Entities;
@@ -21,6 +22,7 @@ namespace Dopamine.ViewModels.Common
         private IMetadataService metadataService;
         private IDialogService dialogService;
         private IInfoDownloadService infoDownloadService;
+        private IFileStorage _fileStorage;
         private bool updateFileArtwork;
 
         public AlbumViewModel AlbumViewModel
@@ -46,12 +48,13 @@ namespace Dopamine.ViewModels.Common
         public DelegateCommand RemoveArtworkCommand { get; set; }
 
         public EditAlbumViewModel(AlbumViewModel albumViewModel, IMetadataService metadataService,
-            IDialogService dialogService, IInfoDownloadService infoDownloadService) : base(infoDownloadService)
+            IDialogService dialogService, IInfoDownloadService infoDownloadService, IFileStorage fileStorage) : base(infoDownloadService)
         {
             this.albumViewModel = albumViewModel;
             this.metadataService = metadataService;
             this.dialogService = dialogService;
             this.infoDownloadService = infoDownloadService;
+            _fileStorage = fileStorage;
 
             this.LoadedCommand = new DelegateCommand(async () => await this.GetAlbumArtworkAsync());
 
@@ -66,6 +69,18 @@ namespace Dopamine.ViewModels.Common
 
             this.RemoveArtworkCommand = new DelegateCommand(() => this.UpdateArtwork(null));
             this.DownloadArtworkCommand = new DelegateCommand(async () => await this.DownloadArtworkAsync(), () => this.CanDownloadArtwork());
+
+            //DisplayArtwork(albumViewModel);
+        }
+
+        private void DisplayArtwork(AlbumViewModel albumViewModel)
+        {
+            if (albumViewModel.Thumbnail != null)
+            {
+                byte[] img = ImageUtils.Image2ByteArray(_fileStorage.GetRealPath(this.albumViewModel.Thumbnail), 0, 0);
+                if (img != null)
+                    this.ShowArtwork(img);
+            }
         }
 
         private async Task DownloadArtworkAsync()
@@ -104,7 +119,7 @@ namespace Dopamine.ViewModels.Common
                 {
                     if (!string.IsNullOrEmpty(this.albumViewModel.Thumbnail))
                     {
-                        this.ShowArtwork(ImageUtils.Image2ByteArray(this.albumViewModel.Thumbnail, 0, 0));
+                        DisplayArtwork(albumViewModel);
                     }
                     else
                     {
@@ -117,6 +132,16 @@ namespace Dopamine.ViewModels.Common
                 }
             });
         }
+
+        /*
+        private AlbumInfoProviderData RetrieveInfo(AlbumV album)
+        {
+            if (string.IsNullOrEmpty(album.Name))
+                return null;
+            Logger.Debug($"RetrieveInfo: Getting {album.Name} - {album.AlbumArtists}");
+            return _infoProvider.Get(album.Name, string.IsNullOrEmpty(album.AlbumArtists) ? null : DataUtils.SplitAndTrimColumnMultiValue(album.AlbumArtists).ToArray());
+        }
+        */
 
         public async Task<bool> SaveAlbumAsync()
         {
@@ -137,5 +162,6 @@ namespace Dopamine.ViewModels.Common
             this.IsBusy = false;
             return true;
         }
+
     }
 }
