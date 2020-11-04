@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace Dopamine.ViewModels.FullPlayer.Collection
 {
@@ -23,12 +24,13 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private IFileService fileService;
         private IPlaybackService playbackService;
         private IEventAggregator eventAggregator;
-        private double leftPaneWidthPercent;
         private ObservableCollection<FolderViewModel> folders;
         private ObservableCollection<SubfolderViewModel> subfolders;
         private FolderViewModel selectedFolder;
         private string activeSubfolderPath;
         private ObservableCollection<SubfolderBreadCrumbViewModel> subfolderBreadCrumbs;
+		private readonly string Settings_NameSpace = "CollectionFolders";
+
 
         public DelegateCommand<string> JumpSubfolderCommand { get; set; }
 
@@ -38,13 +40,19 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             set { SetProperty<ObservableCollection<SubfolderBreadCrumbViewModel>>(ref this.subfolderBreadCrumbs, value); }
         }
 
-        public double LeftPaneWidthPercent
+        private GridLength _leftPaneGridLength;
+        public GridLength LeftPaneWidth
         {
-            get { return this.leftPaneWidthPercent; }
+            get
+            {
+                return _leftPaneGridLength;
+            }
             set
             {
-                SetProperty<double>(ref this.leftPaneWidthPercent, value);
-                SettingsClient.Set<int>("ColumnWidths", "FoldersLeftPaneWidthPercent", Convert.ToInt32(value));
+                if (value.IsStar && value.Value > 1)
+                    value = new GridLength(value.Value);
+                SetProperty<GridLength>(ref _leftPaneGridLength, value);
+                SettingsClient.Set<string>(Settings_NameSpace, CollectionUtils.Setting_LeftPaneGridLength, CollectionUtils.GridLength2String(value));
             }
         }
 
@@ -82,8 +90,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             // Commands
             this.JumpSubfolderCommand = new DelegateCommand<string>(async (subfolderPath) => await this.GetSubfoldersAsync(new SubfolderViewModel(subfolderPath, false)));
 
-            // Load settings
-            this.LeftPaneWidthPercent = SettingsClient.Get<int>("ColumnWidths", "FoldersLeftPaneWidthPercent");
 
             // Events
             this.foldersService.FoldersChanged += FoldersService_FoldersChanged;
@@ -97,6 +103,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             {
                 await this.GetSubfoldersAsync(activeSubfolder as SubfolderViewModel);
             });
+            LeftPaneWidth = CollectionUtils.String2GridLength(SettingsClient.Get<string>(Settings_NameSpace, CollectionUtils.Setting_LeftPaneGridLength));
         }
 
         private async void FoldersService_FoldersChanged(object sender, EventArgs e)

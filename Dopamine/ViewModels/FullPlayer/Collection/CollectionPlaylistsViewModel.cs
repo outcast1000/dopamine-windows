@@ -37,7 +37,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private IFileService fileService;
         private IEventAggregator eventAggregator;
         private IContainerProvider container;
-        private double leftPaneWidthPercent;
 		private readonly string Settings_NameSpace = "CollectionPlaylists";
         private readonly string Setting_ListBoxScrollPos = "ListBoxScrollPos";
 
@@ -138,7 +137,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             };
 
             LeftPaneWidth = CollectionUtils.String2GridLength(SettingsClient.Get<string>(Settings_NameSpace, CollectionUtils.Setting_LeftPaneGridLength));
-			ListBoxScrollPos = SettingsClient.Get<double>(Settings_NameSpace, Setting_ListBoxScrollPos);
+
         }
 
         private async void PlaylistService_PlaylistFolderChanged(object sender, EventArgs e)

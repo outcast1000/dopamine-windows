@@ -2,7 +2,7 @@
 <Settings>
 	<Namespace Name="Configuration">
 		<Setting Name="Version">
-			<Value>129</Value>
+			<Value>130</Value>
 		</Setting>
 		<Setting Name="IsPortable">
 			<Value>False</Value>
@@ -82,22 +82,14 @@
 		<Setting Name="LeftPaneGridLength">
 			<Value>*</Value>
 		</Setting>
-		<!--
-			<Setting Name="SelectedIDs">
-			<Value />
+	</Namespace>
+	<Namespace Name="CollectionFolders">
+		<Setting Name="LeftPaneGridLength">
+			<Value>*</Value>
 		</Setting>
-		<Setting Name="ItemOrder">
-			<Value>1</Value>
-		</Setting>
-		<Setting Name="TrackOrder">
-			<Value>2</Value>
-		</Setting>
-		-->
 	</Namespace>
 	<Namespace Name="State">
-		<Setting Name="SelectedGenreIDs">
-			<Value />
-		</Setting>
+		<!-- This is used only by the deprecated AlbumsViewModelBase -->
 		<Setting Name="SelectedAlbumIDs">
 			<Value />
 		</Setting>

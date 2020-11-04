@@ -79,29 +79,30 @@
                             Command="{Binding Path=ImportPlaylistsCommand}"
                             IsHitTestVisible="{Binding IsIndexing, Converter={StaticResource InvertingBooleanConverter}}" />
                     </StackPanel>
-                    <dc:MultiSelectListBox
+                    <pc:MultiSelectListBoxEx
                         x:Name="ListBoxPlaylists"
                         dd:DragDrop.IsDragSource="True"
                         dd:DragDrop.IsDropTarget="True"
                         dd:DragDrop.DropHandler="{Binding}"
                         dd:DragDrop.UseDefaultDragAdorner="True"
                         dd:DragDrop.DefaultDragAdornerOpacity="0.5"
-                        VirtualizingStackPanel.IsVirtualizing="True"
-                        VirtualizingPanel.IsVirtualizingWhenGrouping="True"
-                        VirtualizingStackPanel.VirtualizationMode="Recycling"
-                        Style="{StaticResource ListBoxPlaylists}"
-                        ItemsSource="{Binding Source={StaticResource ListBoxPlaylistsViewSource}}"
                         KeyUp="ListBoxPlaylists_KeyUp"
                         BorderThickness="0"
+                        ItemsSource="{Binding Source={StaticResource ListBoxPlaylistsViewSource}}"
                         MouseDoubleClick="ListBoxPlaylists_MouseDoubleClick"
                         PreviewKeyDown="ListBoxPlaylists_PreviewKeyDown"
                         SelectedItem="{Binding SelectedPlaylist}"
-                        SelectionMode="Single">
-                        <dc:MultiSelectListBox.InputBindings>
+                        SelectionMode="Single"
+                        Style="{StaticResource ListBoxPlaylists}"
+                        ScrollPos="{Binding ListBoxScrollPos, Mode=TwoWay}"
+                        VirtualizingPanel.IsVirtualizingWhenGrouping="True"
+                        VirtualizingStackPanel.IsVirtualizing="True"
+                        VirtualizingStackPanel.VirtualizationMode="Recycling">
+                        <pc:MultiSelectListBoxEx.InputBindings>
                             <KeyBinding Key="F2" Command="{Binding EditSelectedPlaylistCommand}" />
                             <KeyBinding Key="Delete" Command="{Binding DeleteSelectedPlaylistCommand}" />
-                        </dc:MultiSelectListBox.InputBindings>
-                    </dc:MultiSelectListBox>
+                        </pc:MultiSelectListBoxEx.InputBindings>
+                    </pc:MultiSelectListBoxEx>
                 </DockPanel>
             </DockPanel>
         </Border>
