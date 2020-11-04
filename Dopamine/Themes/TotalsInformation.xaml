@@ -37,7 +37,7 @@
                             DockPanel.Dock="Left"
                             VerticalAlignment="Center"
                             Text="|"
-                            Visibility="{TemplateBinding TotalTracksInformation, Converter={StaticResource StringEmptyToInvisibleConverter}}"
+                            Visibility="{TemplateBinding TotalSizeInformation, Converter={StaticResource StringEmptyToInvisibleConverter}}"
                             FontSize="{TemplateBinding FontSize}"
                             Foreground="{TemplateBinding Foreground}" />
                         <TextBlock
@@ -45,11 +45,13 @@
                             VerticalAlignment="Center"
                             Margin="0,0,5,0"
                             Text="&#xEDA2;"
+                            Visibility="{TemplateBinding TotalSizeInformation, Converter={StaticResource StringEmptyToInvisibleConverter}}"
                             Style="{StaticResource SegoeAssets}" />
                         <TextBlock
                             DockPanel.Dock="Left"
                             VerticalAlignment="Center"
                             Text="{TemplateBinding TotalSizeInformation}"
+                            Visibility="{TemplateBinding TotalSizeInformation, Converter={StaticResource StringEmptyToInvisibleConverter}}"
                             FontSize="{TemplateBinding FontSize}"
                             Foreground="{TemplateBinding Foreground}" />
                         <TextBlock
@@ -57,18 +59,21 @@
                             VerticalAlignment="Center"
                             DockPanel.Dock="Left"
                             Text="|"
+                            Visibility="{TemplateBinding TotalDurationInformation, Converter={StaticResource StringEmptyToInvisibleConverter}}"
                             FontSize="{TemplateBinding FontSize}"
                             Foreground="{TemplateBinding Foreground}" />
                         <TextBlock
                             DockPanel.Dock="Left"
                             VerticalAlignment="Center"
                             Margin="0,0,5,0"
+                            Visibility="{TemplateBinding TotalDurationInformation, Converter={StaticResource StringEmptyToInvisibleConverter}}"
                             Text="&#xE823;"
                             Style="{StaticResource SegoeAssets}" />
                         <TextBlock
                             DockPanel.Dock="Left"
                             VerticalAlignment="Center"
                             Text="{TemplateBinding TotalDurationInformation}"
+                            Visibility="{TemplateBinding TotalDurationInformation, Converter={StaticResource StringEmptyToInvisibleConverter}}"
                             FontSize="{TemplateBinding FontSize}"
                             Foreground="{TemplateBinding Foreground}" />
                         <ContentControl />
