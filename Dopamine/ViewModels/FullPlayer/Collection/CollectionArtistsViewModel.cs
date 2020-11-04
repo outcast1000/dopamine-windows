@@ -140,7 +140,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
         }
 
-        protected bool HasArtistContextMenuSearchProviders => this.ContextMenuSearchProviders != null && this.ContextMenuSearchProviders.Count > 0;
+        public bool HasArtistContextMenuSearchProviders => this.ContextMenuSearchProviders != null && this.ContextMenuSearchProviders.Count > 0;
 
         private async void GetArtistsSearchProvidersAsync()
         {
