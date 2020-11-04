@@ -210,6 +210,7 @@
                                             TextTrimming="CharacterEllipsis"
                                             TextWrapping="Wrap" />
                                         <DockPanel x:Name="Buttons">
+                                            <!-- Put it here to be show all the times
                                             <Button
                                                 Style="{StaticResource TransparentButton}"
                                                 Background="Transparent"
@@ -229,6 +230,7 @@
                                                     Style="{StaticResource SegoeAssets}"
                                                     Text="&#xE768;" />
                                             </Button>
+                                            -->
                                             <StackPanel
                                                 x:Name="ExtraButtons"
                                                 Orientation="Horizontal"
@@ -240,7 +242,7 @@
                                                     x:Name="LoveButton"
                                                     Width="32"
                                                     Height="32"
-                                                    Margin="4,4,4,4"
+                                                    Margin="2,2,2,2"
                                                     HorizontalContentAlignment="Center"
                                                     VerticalContentAlignment="Center"
                                                     Command="{Binding DataContext.LoveItemCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
@@ -257,7 +259,7 @@
                                                     x:Name="EnqueueButton"
                                                     Width="32"
                                                     Height="32"
-                                                    Margin="4,4,4,4"
+                                                    Margin="2,2,2,2"
                                                     HorizontalContentAlignment="Center"
                                                     VerticalContentAlignment="Center"
                                                     Command="{Binding DataContext.EnqueueItemCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
@@ -268,6 +270,25 @@
                                                         Foreground="{DynamicResource Brush_PrimaryText}"
                                                         Style="{StaticResource SegoeAssets}"
                                                         Text="&#xE710;" />
+                                                </Button>
+                                                <Button
+                                                    Style="{StaticResource TransparentButton}"
+                                                    Background="Transparent"
+                                                    x:Name="PlayButton"
+                                                    Width="32"
+                                                    Height="32"
+                                                    DockPanel.Dock="Right"
+                                                    Margin="2,2,2,2"
+                                                    HorizontalContentAlignment="Center"
+                                                    VerticalContentAlignment="Center"
+                                                    Command="{Binding DataContext.PlayItemCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                                    CommandParameter="{Binding .}"
+                                                    ToolTip="{DynamicResource Language_Play}">
+                                                    <TextBlock
+                                                        FontSize="16"
+                                                        Foreground="{DynamicResource Brush_PrimaryText}"
+                                                        Style="{StaticResource SegoeAssets}"
+                                                        Text="&#xE768;" />
                                                 </Button>
 
                                             </StackPanel>
