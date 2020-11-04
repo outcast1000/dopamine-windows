@@ -195,8 +195,13 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
         }
 
-        public bool InSearchMode { get { return !string.IsNullOrEmpty(_searchString); } }
-
+        private bool _inSearchMode;
+        public bool InSearchMode
+        {
+            get { return _inSearchMode; }
+            set { SetProperty<bool>(ref _inSearchMode, value); }
+        }
+        
         public CollectionViewSource ItemsCvs
         {
             get { return _collectionViewSource; }
@@ -680,6 +685,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         protected override async void FilterListsAsync(string searchText)
         {
+            InSearchMode = !string.IsNullOrEmpty(searchText);
             if (!_searchString.Equals(searchText))
             {
                 _searchString = searchText;

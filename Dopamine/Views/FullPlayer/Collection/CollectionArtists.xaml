@@ -195,6 +195,7 @@
                         ItemsSource="{Binding SelectedItemsCvs.View}"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
+                        Visibility="{Binding InSearchMode, Converter={StaticResource InvertingBooleanToVisibilityConverter}}"
                         Padding="0,5">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
