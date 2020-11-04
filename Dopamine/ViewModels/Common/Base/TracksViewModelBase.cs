@@ -111,6 +111,7 @@ namespace Dopamine.ViewModels.Common.Base
             // Commands
             this.ToggleTrackOrderCommand = new DelegateCommand(() => this.ToggleTrackOrder());
             this.AddTracksToPlaylistCommand = new DelegateCommand<string>(async (playlistName) => await this.AddTracksToPlaylistAsync(playlistName, this.SelectedTracks));
+            this.ShuffleAllTracksCommand = new DelegateCommand(async () => await this.playbackService.PlayTracksAsync(Tracks, PlaylistMode.Play, TrackOrder.Random));
             this.ShuffleTracksCommand = new DelegateCommand(async () => await this.playbackService.PlayTracksAsync(SelectedTracks, PlaylistMode.Play, TrackOrder.Random));
             this.PlayTracksCommand = new DelegateCommand(async () => await this.playbackService.PlayTracksAsync(SelectedTracks, PlaylistMode.Play));
             this.EnqueueTracksCommand = new DelegateCommand(async () => await this.playbackService.PlayTracksAsync(SelectedTracks, PlaylistMode.Enqueue));

@@ -24,13 +24,26 @@
             <i:InvokeCommandAction Command="{Binding UnloadedCommand}" />
         </i:EventTrigger>
     </i:Interaction.Triggers>
+    <baseviews:CommonViewBase.Resources>
+        <Style x:Key="HeaderTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontWeight" Value="Light" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush_PrimaryText}" />
+            <Setter Property="Margin" Value="2" />
+        </Style>
+    </baseviews:CommonViewBase.Resources>
 
     <DockPanel>
-        <DockPanel Margin="10,15,10,10" DockPanel.Dock="Top">
+        <StackPanel Orientation="Horizontal"  Margin="5,0,5,0" DockPanel.Dock="Top"  Height="64">
+            <TextBlock
+                Style="{StaticResource HeaderTitle}"
+                Text="{DynamicResource Language_Playlist}" />
             <Button
-                Margin="10,0,0,0"
+                Margin="10,0,5,0"
+                VerticalContentAlignment="Center"
                 Command="{Binding ShufflePlaylistCommand}"
-                DockPanel.Dock="Right"
                 Style="{StaticResource TransparentButton}"
                 ToolTip="{DynamicResource Language_Shuffle}">
                 <Button.Content>
@@ -41,12 +54,7 @@
                         Style="{StaticResource SegoeAssets}" />
                 </Button.Content>
             </Button>
-            <TextBlock
-                Margin="10,0,0,0"
-                FontSize="13"
-                Foreground="{DynamicResource Brush_PrimaryText}"
-                Text="{DynamicResource Language_Playlist}" />
-        </DockPanel>
+        </StackPanel>
         <DockPanel>
             <pc:TotalsInformation
                 DockPanel.Dock="Bottom"

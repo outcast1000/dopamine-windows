@@ -53,6 +53,7 @@ namespace Dopamine.ViewModels.Common.Base
         public DelegateCommand ShowSelectedTrackInformationCommand { get; set; }
         public DelegateCommand<object> SelectedTracksCommand { get; set; }
         public DelegateCommand EditTracksCommand { get; set; }
+        public DelegateCommand ShuffleAllTracksCommand { get; set; }
         public DelegateCommand ShuffleTracksCommand { get; set; }
         public DelegateCommand PlayTracksCommand { get; set; }
         public DelegateCommand EnqueueTracksCommand { get; set; }
