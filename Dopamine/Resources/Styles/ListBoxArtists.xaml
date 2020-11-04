@@ -191,7 +191,9 @@
                                 <Border
                                     Name="SelectionBorder"
                                     Opacity="0"
-                                    Background="{DynamicResource Brush_ItemSelected}" />
+                                    Margin="0,5,0,0"
+                                    BorderThickness="5,0,0,0"
+                                    BorderBrush="{DynamicResource Brush_SelectionBorder}" />
                                 <Border
                                     Name="OverlayBorder"
                                     Opacity="0"
