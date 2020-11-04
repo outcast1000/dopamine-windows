@@ -222,15 +222,25 @@
                                                 <VisualBrush Visual="{Binding ElementName=Mask}" />
                                             </Grid.OpacityMask>
                                         </Grid>
+                                        <StackPanel>
                                         <TextBlock
                                             Margin="10,0,10,0"
-                                            Foreground="Beige"
+                                            Foreground="{DynamicResource Brush_PrimaryText}"
                                             Text="{Binding Name}"
                                             FontSize="20"
                                             FontWeight="Light"
                                             HorizontalAlignment="Stretch"
                                             VerticalAlignment="Center"
                                             TextAlignment="Center" />
+                                        <TextBlock
+                                            Margin="10,0,10,0"
+                                            Foreground="{DynamicResource Brush_SecondaryText}"
+                                            Text="{Binding AlbumArtistComplete}"
+                                            FontWeight="Light"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            TextAlignment="Center" />
+                                        </StackPanel>
                                     </StackPanel>
                                 </Border>
                             </DataTemplate>
