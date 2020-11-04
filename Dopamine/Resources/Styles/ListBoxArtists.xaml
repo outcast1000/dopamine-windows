@@ -393,26 +393,13 @@
                                         Storyboard.TargetProperty="Opacity"
                                         To="1"
                                         Duration="{x:Static base:Constants.MouseEnterDuration}" />
-                                    <!--
-                                    <ColorAnimation
-                                        Storyboard.TargetName="OverlayBorder"
-                                        Storyboard.TargetProperty="Background.Color"
-                                        To="#0000"
-                                        Duration="0:0:0.15" />
-                                    <DoubleAnimation
-                                        Storyboard.TargetName="HiddenInfo"
-                                        Storyboard.TargetProperty="Opacity"
-                                        From="0.1"
-                                        To="1.0"
-                                        Duration="0:0:0.3" />
-                                    -->
                                     <DoubleAnimation
                                         Storyboard.TargetName="Image"
                                         Storyboard.TargetProperty="Tag"
                                         To="0"
                                         Duration="0:0:0.3">
                                         <DoubleAnimation.EasingFunction>
-                                            <BackEase />
+                                            <SineEase />
                                         </DoubleAnimation.EasingFunction>
                                     </DoubleAnimation>
                                     <DoubleAnimation
@@ -438,26 +425,13 @@
                                         Storyboard.TargetProperty="Opacity"
                                         To="0"
                                         Duration="{x:Static base:Constants.MouseEnterDuration}" />
-                                    <!--
-                                    <ColorAnimation
-                                        Storyboard.TargetName="OverlayBorder"
-                                        Storyboard.TargetProperty="Background.Color"
-                                        To="#0000"
-                                        Duration="0:0:0.3" />
-                                    <DoubleAnimation
-                                        Storyboard.TargetName="HiddenInfo"
-                                        Storyboard.TargetProperty="Opacity"
-                                        From="1.0"
-                                        To="0.1"
-                                        Duration="0:0:0.3" />
-                                    -->
                                     <DoubleAnimation
                                         Storyboard.TargetName="Image"
                                         Storyboard.TargetProperty="Tag"
                                         To="1"
                                         Duration="0:0:0.3">
                                         <DoubleAnimation.EasingFunction>
-                                            <BackEase />
+                                            <SineEase />
                                         </DoubleAnimation.EasingFunction>
                                     </DoubleAnimation>
                                     <DoubleAnimation
