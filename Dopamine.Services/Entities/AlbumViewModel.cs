@@ -17,13 +17,17 @@ using System.Threading.Tasks;
 
 namespace Dopamine.Services.Entities
 {
+    public delegate void Notify();  // delegate
+
     public class AlbumViewModel : BindableBase, ISemanticZoomable
     {
         private AlbumV data;
         private bool isHeader;
         private IIndexingService _indexingService;
         private IAlbumVRepository _albumVRepository;
-		
+
+        public event Notify ImageRequestCompleted; // event
+
         public AlbumViewModel(IIndexingService indexingService, IAlbumVRepository albumVRepository, AlbumV data)
         {
             this.data = data;
@@ -115,16 +119,20 @@ namespace Dopamine.Services.Entities
                 return;// Belongs to a different view model
             _indexingService.AlbumInfoDownloaded -= indexingService_InfoDownloaded;
             if (!success)
+            {
+                ImageRequestCompleted?.Invoke();
                 return;// Nothing to change
+            }
             AlbumV album = _albumVRepository.GetAlbum(Data.Id, true);
             if (album == null)
                 return;// Should not happen
             data = album;
             if (album.Thumbnail != null)
                 Thumbnail = album.Thumbnail;
+            ImageRequestCompleted?.Invoke();
         }
 
-		public string AlbumArtistComplete
+        public string AlbumArtistComplete
         {
             get
             {

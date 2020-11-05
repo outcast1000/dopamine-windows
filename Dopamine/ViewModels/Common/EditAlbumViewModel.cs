@@ -1,9 +1,11 @@
 ﻿using Digimezzo.Foundation.Core.Logging;
 using Digimezzo.Foundation.Core.Utils;
 using Dopamine.Data;
+using Dopamine.Data.Entities;
 using Dopamine.Services.Cache;
 using Dopamine.Services.Dialog;
 using Dopamine.Services.Entities;
+using Dopamine.Services.Indexing;
 using Dopamine.Services.InfoDownload;
 using Dopamine.Services.Metadata;
 using Dopamine.Utils;
@@ -22,6 +24,7 @@ namespace Dopamine.ViewModels.Common
         private IMetadataService metadataService;
         private IDialogService dialogService;
         private IInfoDownloadService infoDownloadService;
+        private IIndexingService _indexingService;
         private IFileStorage _fileStorage;
         private bool updateFileArtwork;
 
@@ -48,13 +51,14 @@ namespace Dopamine.ViewModels.Common
         public DelegateCommand RemoveArtworkCommand { get; set; }
 
         public EditAlbumViewModel(AlbumViewModel albumViewModel, IMetadataService metadataService,
-            IDialogService dialogService, IInfoDownloadService infoDownloadService, IFileStorage fileStorage) : base(infoDownloadService)
+            IDialogService dialogService, IInfoDownloadService infoDownloadService, IFileStorage fileStorage, IIndexingService indexingService) : base(infoDownloadService)
         {
             this.albumViewModel = albumViewModel;
             this.metadataService = metadataService;
             this.dialogService = dialogService;
             this.infoDownloadService = infoDownloadService;
             _fileStorage = fileStorage;
+            _indexingService = indexingService;
 
             this.LoadedCommand = new DelegateCommand(async () => await this.GetAlbumArtworkAsync());
 
@@ -87,14 +91,28 @@ namespace Dopamine.ViewModels.Common
         {
             try
             {
-                //=== ALEX Temporary hack
-                await this.DownloadArtworkAsync(this.albumViewModel.Name, new List<string>() { this.albumViewModel.AlbumArtists });
+                _indexingService.AlbumInfoDownloaded += _indexingService_AlbumInfoDownloaded;
+                _indexingService.RequestAlbumInfoAsync(albumViewModel.Data, true, true);
+                //== Start Waiting Cursor
+                await albumViewModel.RequestImageDownload(true, true);
             }
             catch (Exception ex)
             {
                 LogClient.Error("Could not download artwork. Exception: {0}", ex.Message);
             }
         }
+
+        private void _indexingService_AlbumInfoDownloaded(AlbumV requestedAlbum, bool success)
+        {
+            //== Stop Waiting Cursor
+            if (success && requestedAlbum.Thumbnail != null)
+            {
+                byte[] img = ImageUtils.Image2ByteArray(_fileStorage.GetRealPath(requestedAlbum.Thumbnail), 0, 0);
+                if (img != null)
+                    this.ShowArtwork(img);
+            }
+        }
+
 
         private bool CanDownloadArtwork()
         {
