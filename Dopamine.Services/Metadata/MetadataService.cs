@@ -242,17 +242,27 @@ namespace Dopamine.Services.Metadata
 
         public async Task UpdateAlbumAsync(AlbumViewModel albumViewModel, MetadataArtworkValue artwork, bool updateFileArtwork)
         {
-            // Cache the new artwork
-            string artworkID = fileStorage.SaveImageToCache(artwork.Value, FileStorageItemType.Album);
-            // Add or update AlbumArtwork in the database
-            infoRepository.SetAlbumImage(new AlbumImage()
+            if (artwork?.Value != null)
             {
-                AlbumId = albumViewModel.Id,
-                Location = artworkID,
-                DateAdded = DateTime.Now.Ticks,
-                Origin = String.Empty,
-                OriginType = OriginType.User
-            }, true);
+                string artworkID = fileStorage.SaveImageToCache(artwork.Value, FileStorageItemType.Album);
+                // Add or update AlbumArtwork in the database
+                infoRepository.SetAlbumImage(new AlbumImage()
+                {
+                    AlbumId = albumViewModel.Id,
+                    Location = artworkID,
+                    DateAdded = DateTime.Now.Ticks,
+                    Origin = String.Empty,
+                    OriginType = OriginType.User
+                }, true);
+            }
+            else
+            {
+                //=== Remove & Add a record on Failed Downloads in order ot not download it again
+                infoRepository.RemoveAlbumImage(albumViewModel.Id);
+                infoRepository.SetAlbumImageFailed(albumViewModel.Data);
+            }
+            // Cache the new artwork
+
 
             if (updateFileArtwork)
             {

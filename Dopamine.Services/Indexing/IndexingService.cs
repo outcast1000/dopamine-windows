@@ -873,7 +873,7 @@ namespace Dopamine.Services.Indexing
             await Task.Run(() =>
             {
                 if (bIgnorePreviousFailures || bForce)
-                    infoRepository.ClearAlbumImageFailed(album);
+                    infoRepository.RemoveAlbumImageFailed(album);
                 if (!bIgnorePreviousFailures)
                 {
                     if (infoRepository.HasAlbumImageFailed(album))

@@ -216,7 +216,7 @@ namespace Dopamine.Data.Repositories
         }
 
 
-        public bool ClearAlbumImageFailed(AlbumV album)
+        public bool RemoveAlbumImageFailed(AlbumV album)
         {
             return ExecuteInternal("DELETE FROM AlbumImageFailed WHERE album_id=?", album.Id) > 0;
         }
@@ -297,6 +297,24 @@ namespace Dopamine.Data.Repositories
             if (list.Count == 1)
                 return list[0];
             return null;
+        }
+
+        public bool RemoveAlbumImage(long album_id)
+        {
+            Debug.Assert(album_id > 0);
+            return ExecuteInternal("DELETE FROM AlbumImages WHERE album_id=?", album_id) > 0;
+        }
+
+        public bool RemoveAlbumReview(long album_id)
+        {
+            Debug.Assert(album_id > 0);
+            return ExecuteInternal("DELETE FROM AlbumReviews WHERE album_id=?", album_id) > 0;
+        }
+
+        public bool RemoveArtistBiography(long artist_id)
+        {
+            Debug.Assert(artist_id > 0);
+            return ExecuteInternal("DELETE FROM ArtistBiographies WHERE artist_id=?", artist_id) > 0;
         }
     }
 }
