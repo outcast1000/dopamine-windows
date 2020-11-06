@@ -13,9 +13,12 @@ namespace Dopamine.Services.Indexing
     internal class FolderWatcherManager
     {
         private IFolderVRepository folderVRepository;
-        private IList<GentleFolderWatcher> watchers = new List<GentleFolderWatcher>();
+        private Dictionary<GentleFolderWatcher, long> _watchers = new Dictionary<GentleFolderWatcher, long>();
 
-        public event EventHandler FoldersChanged = delegate { };
+        public event EventHandler<long> FoldersChanged = delegate { };
+        public delegate void FolderWatcherManagerHandler<TEventArgs>(object sender, long id, TEventArgs e);
+        public event FolderWatcherManagerHandler<List<FileSystemEventArgs>> FilesChanged = delegate { };
+        public event FolderWatcherManagerHandler<List<RenamedEventArgs>> FilesRenamed = delegate { };
 
         public FolderWatcherManager(IFolderVRepository folderVRepository)
         {
@@ -26,7 +29,7 @@ namespace Dopamine.Services.Indexing
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                this.FoldersChanged(this, new EventArgs());
+                this.FoldersChanged(this, _watchers[(GentleFolderWatcher)sender]);
             });
         }
 
@@ -45,7 +48,9 @@ namespace Dopamine.Services.Indexing
                         // When the folder exists, but access is denied, creating the FileSystemWatcher throws an exception.
                         var watcher = new GentleFolderWatcher(fol.Path, true, 2000);
                         watcher.FolderChanged += Watcher_FolderChanged;
-                        this.watchers.Add(watcher);
+                        watcher.FilesRenamed += Watcher_FilesRenamed;
+                        watcher.FilesChanged += Watcher_FilesChanged;
+                        _watchers[watcher] = fol.Id;
                         watcher.Resume();
                     }
                     catch (Exception ex)
@@ -56,21 +61,34 @@ namespace Dopamine.Services.Indexing
             }
         }
 
+        private void Watcher_FilesChanged(object sender, List<FileSystemEventArgs> e)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                this.FilesChanged(this, _watchers[(GentleFolderWatcher)sender], e);
+            });
+        }
+
+        private void Watcher_FilesRenamed(object sender, List<RenamedEventArgs> e)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                this.FilesRenamed(this, _watchers[(GentleFolderWatcher)sender], e);
+            });
+        }
+
         public async Task StopWatchingAsync()
         {
-            if (this.watchers.Count == 0)
-            {
+            if (this._watchers.Count == 0)
                 return;
-            }
-
             await Task.Run(() =>
             {
-                for (int i = this.watchers.Count - 1; i >= 0; i--)
+                foreach (var watcherKV in _watchers)
                 {
-                    this.watchers[i].FolderChanged -= Watcher_FolderChanged;
-                    this.watchers[i].Dispose();
-                    this.watchers.RemoveAt(i);
+                    watcherKV.Key.FolderChanged -= Watcher_FolderChanged;
+                    watcherKV.Key.Dispose();
                 }
+                _watchers.Clear();
             });
         }
     }

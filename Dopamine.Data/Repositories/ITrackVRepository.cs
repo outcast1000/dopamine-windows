@@ -48,6 +48,7 @@ namespace Dopamine.Data.Repositories
         bool UpdateDeleteValue(long trackId, bool Delete);
         bool UpdateRating(long trackId, long? Rating);
         bool UpdateLove(long trackId, long? Love);
+        bool UpdateLocation(long trackId, string location);
 
 
         void ClearRemovedTrack();

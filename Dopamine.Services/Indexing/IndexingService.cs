@@ -197,10 +197,54 @@ namespace Dopamine.Services.Indexing
             watcherManager = new FolderWatcherManager(folderVRepository);
 
             Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += SettingsClient_SettingChanged;
-            watcherManager.FoldersChanged += WatcherManager_FoldersChanged;
-
+            //watcherManager.FoldersChanged += WatcherManager_FoldersChanged;
+            watcherManager.FilesRenamed += WatcherManager_FilesRenamed;
+            watcherManager.FilesChanged += WatcherManager_FilesChanged;
             isIndexingFiles = false;
         }
+
+        private async void WatcherManager_FilesRenamed(object sender, long folderId, List<RenamedEventArgs> e)
+        {
+            long filesChanged = 0;
+            await StartProcessingFilesAsync();
+            await Task.Run(() =>
+            {
+                foreach (RenamedEventArgs ev in e)
+                {
+                    TrackV track = trackVRepository.GetTrackWithPath(ev.OldFullPath, QueryOptions.IncludeAll());
+                    if (track == null)
+                        continue; // It may be a file that it is not handled or something else
+                    filesChanged++;
+                    if (!FileFormats.SupportedMediaExtensions.Contains(Path.GetExtension(ev.FullPath.ToLower())))
+                    {
+                        //Delete track
+                        trackVRepository.UpdateDeleteValue(track.Id, true);
+                        continue;
+                    }
+                    trackVRepository.UpdateLocation(track.Id, ev.FullPath);
+                }
+            });
+            if (filesChanged > 0)
+                RefreshLists(this, new EventArgs());
+            await StopProcessingFilesAsync();
+        }
+
+        private async void WatcherManager_FilesChanged(object sender, long folderId, List<FileSystemEventArgs> e)
+        {
+            long filesChanged = 0;
+            await StartProcessingFilesAsync();
+            foreach (FileSystemEventArgs ev in e)
+            {
+                TrackV track = trackVRepository.GetTrackWithPath(ev.FullPath, QueryOptions.IncludeAll());
+                ProcessFileResult res = ProcessFile(ev.FullPath, folderId, track);
+                filesChanged += (res == ProcessFileResult.Failed) ? 0 : 1;
+            }
+            isIndexingFiles = false;
+            if (filesChanged > 0)
+                RefreshLists(this, new EventArgs());
+            await StopProcessingFilesAsync();
+        }
+
 
         private void _artistInfoIndexingQueue_InfoDownloaded(ArtistV requestedArtist, ArtistInfoProviderData data)
         {
@@ -528,73 +572,20 @@ namespace Dopamine.Services.Indexing
                         return;
                     }
                     //=== Get File Info
-                    FileMetadata fileMetadata = GetFileMetadata(path);
-                    MediaFileData mediaFileData = GetMediaFileData(path, fileMetadata);
-
-                    if (trackV == null)
+                    ProcessFileResult res = ProcessFile(path, folder.Id, trackV);
+                    switch (res)
                     {
-                        AddMediaFileResult result;
-                        using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
-                        {
-                            result = uc.AddMediaFile(mediaFileData, folder.Id);
-                        }
-                        if (result.Success)
-                        {
+                        case ProcessFileResult.Added:
                             stats.Added++;
-                            OnCollectionFileChanged();
-                            if (fileMetadata != null)
-                            {
-                                //=== Add Album Image
-                                if (result.AlbumId.HasValue)
-                                    AddAlbumImageIfNecessary((long)result.AlbumId, fileMetadata);
-                                //=== Add Lyrics
-                                // Lyrics are already added in uc.AddMediaFile
-                                //AddTrackLyrics((long)result.TrackId, fileMetadata);
-                            }
-                        }
-                        else
-                        {
-                            stats.Failed++;
-                            Logger.Warn($">> Failed to add ({path})");
-                        }
-                    }
-                    else
-                    {
-                        // If we update the file we do not want to change these Dates
-                        mediaFileData.DateAdded = trackV.DateAdded;
-                        mediaFileData.DateIgnored = trackV.DateIgnored;
-                        // If the file was previously deleted then now it seem that i re-emerged
-                        mediaFileData.DateFileDeleted = null;
-                        // Love / Rating/ Language are not saved in tags
-                        mediaFileData.Love = trackV.Love;
-                        mediaFileData.Rating = trackV.Rating;
-                        mediaFileData.Language = trackV.Language;
-                        UpdateMediaFileResult result;
-                        using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
-                        {
-                            result = uc.UpdateMediaFile(trackV, mediaFileData);
-                        }
-                        if (result.Success)
-                        {
+                            break;
+                        case ProcessFileResult.Updated:
                             stats.Updated++;
-                            OnCollectionFileChanged();
-                            if (fileMetadata != null)
-                            {
-                                //=== Add Album Image
-                                if (result.AlbumId.HasValue)
-                                    AddAlbumImageIfNecessary((long)result.AlbumId, fileMetadata);
-                                //=== Add Lyrics
-                                AddTrackLyrics(trackV.Id, fileMetadata);
-                            }
-                        }
-                        else
-                        {
+                            break;
+                        case ProcessFileResult.Failed:
+                        default:
                             stats.Failed++;
-                            Logger.Warn($">> Failed to update ({path})");
-                        }
-
+                            break;
                     }
-                    
 
                 },
                 () =>
@@ -616,6 +607,83 @@ namespace Dopamine.Services.Indexing
             });
             Logger.Debug($"Refreshing collection finished in {tcRefreshCollection.GetMs(true)}. Stats: {stats}");
             return stats;
+        }
+
+        private enum ProcessFileResult
+        {
+            Added,
+            Updated,
+            Failed
+        }
+        private ProcessFileResult ProcessFile(string path, long folderId, TrackV trackV)
+        {
+            FileMetadata fileMetadata = GetFileMetadata(path);
+            MediaFileData mediaFileData = GetMediaFileData(path, fileMetadata);
+
+            if (trackV == null)
+            {
+                AddMediaFileResult result;
+                using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
+                {
+                    result = uc.AddMediaFile(mediaFileData, folderId);
+                }
+                if (result.Success)
+                {
+                    OnCollectionFileChanged();
+                    if (fileMetadata != null)
+                    {
+                        //=== Add Album Image
+                        if (result.AlbumId.HasValue)
+                            AddAlbumImageIfNecessary((long)result.AlbumId, fileMetadata);
+                        //=== Add Lyrics
+                        // Lyrics are already added in uc.AddMediaFile
+                        //AddTrackLyrics((long)result.TrackId, fileMetadata);
+                    }
+                    return ProcessFileResult.Added;
+                }
+                else
+                {
+                    Logger.Warn($">> Failed to add ({path})");
+                    return ProcessFileResult.Failed;
+                }
+            }
+            else
+            {
+                // If we update the file we do not want to change these Dates
+                mediaFileData.DateAdded = trackV.DateAdded;
+                mediaFileData.DateIgnored = trackV.DateIgnored;
+                // If the file was previously deleted then now it seem that i re-emerged
+                mediaFileData.DateFileDeleted = null;
+                // Love / Rating/ Language are not saved in tags
+                mediaFileData.Love = trackV.Love;
+                mediaFileData.Rating = trackV.Rating;
+                mediaFileData.Language = trackV.Language;
+                UpdateMediaFileResult result;
+                using (IUpdateCollectionUnitOfWork uc = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
+                {
+                    result = uc.UpdateMediaFile(trackV, mediaFileData);
+                }
+                if (result.Success)
+                {
+                    OnCollectionFileChanged();
+                    if (fileMetadata != null)
+                    {
+                        //=== Add Album Image
+                        if (result.AlbumId.HasValue)
+                            AddAlbumImageIfNecessary((long)result.AlbumId, fileMetadata);
+                        //=== Add Lyrics
+                        AddTrackLyrics(trackV.Id, fileMetadata);
+                    }
+                    return ProcessFileResult.Updated;
+
+                }
+                else
+                {
+                    Logger.Warn($">> Failed to update ({path})");
+                    return ProcessFileResult.Failed;
+                }
+
+            }
         }
 
         public bool UpdateFile(FileMetadata fileMetadata)
@@ -725,11 +793,11 @@ namespace Dopamine.Services.Indexing
                 Logger.Debug("RefreshCollectionAsync EXIT (Already Indexing)");
                 return;
             }
-            isIndexingFiles = true;
-            await watcherManager.StopWatchingAsync();
-            IndexingStarted(this, new EventArgs());
+
             await Task.Run(async () =>
             {
+                await StartProcessingFilesAsync();
+
                 Logger.Debug("RefreshCollectionAsync ENTER Task");
                 UpdateStatistics totalStats = new UpdateStatistics();
                 TimeCounter timerTotal = new TimeCounter();
@@ -740,30 +808,32 @@ namespace Dopamine.Services.Indexing
                     UpdateStatistics folderStats = RefreshCollection(folder, bReReadTags);
                     totalStats.AddStatistics(folderStats);
                 }
-
-
-
                 // Refresh lists
                 if (totalStats.IsSomethingChanged())
                     RefreshLists(this, new EventArgs());
-
-                // Finalize
-                // --------
-                isIndexingFiles = false;
-                IndexingStopped(this, new EventArgs());
-
-                
-
-                if (SettingsClient.Get<bool>("Indexing", "RefreshCollectionAutomatically"))
-                {
-                    await watcherManager.StartWatchingAsync();
-                }
-
-                //await RetrieveInfoAsync(false, false);
+                await StopProcessingFilesAsync();
             });
         }
 
-        
+        private async Task StartProcessingFilesAsync()
+        {
+            isIndexingFiles = true;
+            await watcherManager.StopWatchingAsync();
+            IndexingStarted(this, new EventArgs());
+        }
+
+        private async Task StopProcessingFilesAsync()
+        {
+            isIndexingFiles = false;
+            IndexingStopped(this, new EventArgs());
+            if (SettingsClient.Get<bool>("Indexing", "RefreshCollectionAutomatically"))
+            {
+                await watcherManager.StartWatchingAsync();
+            }
+        }
+
+
+
         private async void WatcherManager_FoldersChanged(object sender, EventArgs e)
         {
             await RefreshCollectionAsync(false, false);

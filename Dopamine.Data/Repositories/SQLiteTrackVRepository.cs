@@ -408,6 +408,11 @@ GROUP BY plays
             return ExecuteSQL("UPDATE Tracks SET love = NULL WHERE id = ?;", trackId);
         }
 
+        public bool UpdateLocation(long trackId, string location)
+        {
+            return ExecuteSQL("UPDATE Tracks SET location = ? WHERE id = ?;", location, trackId);
+        }
+
         private bool ExecuteSQL(string sql, params object[] args)
         {
             try
@@ -492,8 +497,7 @@ GROUP BY plays
         //=== PLAYLIST
         public List<TrackV> GetPlaylistTracks()
         {
-            QueryOptions qo = new QueryOptions();
-            qo.ResetToIncludeAll();
+            QueryOptions qo = QueryOptions.IncludeAll();
             qo.extraWhereClause.Add("t.id in (SELECT track_id from PlaylistTracks)");
             qo.GetHistory = true;
             return GetTracksInternal(qo);
@@ -514,8 +518,7 @@ GROUP BY plays
         }
         public TrackV GetPlaylistCurrentTrack()
         {
-            QueryOptions qo = new QueryOptions();
-            qo.ResetToIncludeAll();
+            QueryOptions qo = QueryOptions.IncludeAll();
             qo.extraWhereClause.Add("t.id in (SELECT value from General WHERE key=?)");
             qo.extraWhereParams.Add(GeneralRepositoryKeys.PlayListPosition);
             IList<TrackV> tracks = GetTracksInternal(qo);
@@ -526,8 +529,7 @@ GROUP BY plays
 
         public List<TrackV> GetTracksHistoryLog(TracksHistoryLogMode tracksHistoryLogMode, string searchText = null)
         {
-            QueryOptions qo = new QueryOptions();
-            qo.ResetToIncludeAll();
+            QueryOptions qo = QueryOptions.IncludeAll();
             qo.GetHistory = true;
             if (tracksHistoryLogMode != TracksHistoryLogMode.All)
             {

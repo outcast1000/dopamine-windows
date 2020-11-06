@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Timers;
 using System.Windows;
 
@@ -14,6 +16,12 @@ namespace Dopamine.Core.Helpers
         private Timer changeNotificationTimer = new Timer();
 
         public event EventHandler FolderChanged = delegate { };
+        public event EventHandler<List<FileSystemEventArgs>> FilesChanged = delegate { };
+        public event EventHandler<List<RenamedEventArgs>> FilesRenamed = delegate { };
+
+        private List<FileSystemEventArgs> _pendingChangedFilePaths = new List<FileSystemEventArgs>();
+        private List<RenamedEventArgs> _pendingRenamedItems = new List<RenamedEventArgs>();
+
 
         public GentleFolderWatcher(string folderPath, bool includeSubdirectories, int intervalMilliSeconds = 200)
         {
@@ -36,14 +44,17 @@ namespace Dopamine.Core.Helpers
 
         private void OnRenamed(object sender, RenamedEventArgs e)
         {
+            _pendingRenamedItems.Add(e);
             this.changeNotificationTimer.Stop();
             this.changeNotificationTimer.Start();
         }
 
         private void OnChanged(object sender, FileSystemEventArgs e)
         {
+            _pendingChangedFilePaths.Add(e);
             this.changeNotificationTimer.Stop();
             this.changeNotificationTimer.Start();
+          
         }
 
         private void ChangeNotificationTimerElapsed(object sender, ElapsedEventArgs e)
@@ -52,6 +63,16 @@ namespace Dopamine.Core.Helpers
 
             Application.Current.Dispatcher.Invoke(() =>
             {
+                if (_pendingChangedFilePaths.Count > 0)
+                {
+                    this.FilesChanged(this, _pendingChangedFilePaths.Select(x => x).ToList());
+                    _pendingChangedFilePaths.Clear();
+                }
+                if (_pendingRenamedItems.Count > 0)
+                {
+                    this.FilesRenamed(this, _pendingRenamedItems.Select(x => x).ToList());
+                    _pendingRenamedItems.Clear();
+                }
                 this.FolderChanged(this, new EventArgs());
             });
         }

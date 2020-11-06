@@ -37,6 +37,12 @@ namespace Dopamine.Data.Repositories
             WhereDeleted = QueryOptionsBool.Ignore;
             WhereInACollection = QueryOptionsBool.Ignore;
         }
+        public static QueryOptions IncludeAll()
+        {
+            QueryOptions qo = new QueryOptions();
+            qo.ResetToIncludeAll();
+            return qo;
+        }
     }
 
     class RepositoryCommon

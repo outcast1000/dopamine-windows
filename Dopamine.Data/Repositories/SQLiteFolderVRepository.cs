@@ -66,8 +66,7 @@ namespace Dopamine.Data.Repositories
                 {
                     try
                     {
-                        QueryOptions qo = new QueryOptions();
-                        qo.ResetToIncludeAll();
+                        QueryOptions qo = QueryOptions.IncludeAll();
                         qo.GetHistory = false;
                         return RepositoryCommon.Query<FolderV>(conn, GetSQLTemplate(), qo);
                     }
