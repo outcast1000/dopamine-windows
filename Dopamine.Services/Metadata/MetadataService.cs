@@ -183,7 +183,7 @@ namespace Dopamine.Services.Metadata
             await this.updater.ForceUpdateFileMetadataAsync();
         }
 
-        private async Task UpdateDatabaseMetadataAsync(FileMetadata fileMetadata, bool updateAlbumArtwork)
+        private async Task UpdateDatabaseMetadataAsync(FileMetadata fileMetadata)
         {
             // Get the track from the database
             TrackV track = trackRepository.GetTrackWithPath(fileMetadata.SafePath);
@@ -199,24 +199,15 @@ namespace Dopamine.Services.Metadata
             // Update the Track in the database
             this.trackRepository.UpdateTrack(track);
 
-            if (updateAlbumArtwork)
-            {
-                // Cache the new artwork
-                //string artworkID = await this.cacheService.CacheArtworkAsync(fileMetadata.ArtworkData.Value);
-
-                Debug.Assert(false, "ALEX TODO");
-                // Add or update AlbumArtwork in the database
-                //albumImageRepository.UpdateAlbumArtworkAsync(track.AlbumTitle, artworkID);
-            }
         }
 
-        private async Task UpdateDatabaseMetadataAsync(IList<FileMetadata> fileMetadatas, bool updateAlbumArtwork)
+        private async Task UpdateDatabaseMetadataAsync(IList<FileMetadata> fileMetadatas)
         {
             foreach (FileMetadata fileMetadata in fileMetadatas)
             {
                 try
                 {
-                    await this.UpdateDatabaseMetadataAsync(fileMetadata, updateAlbumArtwork);
+                    await this.UpdateDatabaseMetadataAsync(fileMetadata);
                 }
                 catch (Exception ex)
                 {
@@ -231,10 +222,10 @@ namespace Dopamine.Services.Metadata
              await this.updater.UpdateFileMetadataAsync(fileMetadatas);
 
             // Update metadata in the database
-            await this.UpdateDatabaseMetadataAsync(fileMetadatas, updateAlbumArtwork);
+            await this.UpdateDatabaseMetadataAsync(fileMetadatas);
 
             // Update metadata in the PlaybackService queue
-            await this.playbackService.UpdateQueueMetadataAsync(fileMetadatas);
+            await this.playbackService.UpdatePlaylistMetadataAsync(fileMetadatas);
 
             // Raise event
             this.MetadataChanged(new MetadataChangedEventArgs());

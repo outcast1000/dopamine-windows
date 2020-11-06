@@ -127,7 +127,7 @@ namespace Dopamine.Services.Playback
 
         Task SetIsEqualizerEnabledAsync(bool isEnabled);
 
-        Task UpdateQueueMetadataAsync(IList<FileMetadata> fileMetadatas);
+        Task UpdatePlaylistMetadataAsync(IList<FileMetadata> fileMetadatas);
 
         Task UpdateQueueOrderAsync(IList<PlaylistItem> playlistItems);
 

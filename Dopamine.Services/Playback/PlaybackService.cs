@@ -422,29 +422,12 @@ namespace Dopamine.Services.Playback
         }
 
 
-        public async Task UpdateQueueMetadataAsync(IList<FileMetadata> fileMetadatas)
+        public async Task UpdatePlaylistMetadataAsync(IList<FileMetadata> fileMetadatas)
         {
             //=== Need to refresh
-            //Debug.Assert(false, "ALEX TODO a refresh");
-            Logger.Warn("UpdateQueueMetadataAsync. Needs testing");
             await RefreshPlaylistInfo();
             PlayingTrackChanged(this, new EventArgs());
             PlaylistChanged(this, new EventArgs());
-
-            /*
-            UpdateQueueMetadataResult result = await this.queueManager.UpdateMetadataAsync(fileMetadatas);
-
-            // Raise events
-            if (result.IsPlayingTrackChanged)
-            {
-                this.PlayingTrackChanged(this, new EventArgs());
-            }
-
-            if (result.IsQueueChanged)
-            {
-                this.QueueChanged(this, new EventArgs());
-            }
-            */
         }
 
         private async void UpdateQueueLanguageAsync()
