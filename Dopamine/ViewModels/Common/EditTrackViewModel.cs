@@ -2,29 +2,40 @@
 using Digimezzo.Foundation.Core.Utils;
 using Dopamine.Core.Base;
 using Dopamine.Core.Enums;
+using Dopamine.Data;
+using Dopamine.Data.Entities;
 using Dopamine.Data.Metadata;
 using Dopamine.Services.Cache;
 using Dopamine.Services.Dialog;
+using Dopamine.Services.Indexing;
 using Dopamine.Services.InfoDownload;
 using Dopamine.Services.Metadata;
 using Dopamine.Utils;
 using Dopamine.ViewModels.Common.Base;
 using Dopamine.Views.Common;
 using Prism.Commands;
+using Prism.Mvvm;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using System.Windows.Media.Imaging;
 
 namespace Dopamine.ViewModels.Common
 {
-    public class EditTrackViewModel : EditMetadataBase
+    public class EditTrackViewModel : BindableBase
     {
         private IList<string> paths;
         private IMetadataService metadataService;
         private IDialogService dialogService;
         private IInfoDownloadService infoDownloadService;
+        private IIndexingService _indexingService;
+        private IFileStorage _fileStorage;
+        private bool updateFileArtwork;
+        private bool isBusy;
+        private string artworkSize;
+        private BitmapImage artworkThumbnail;
 
         private string multipleValuesText;
         private bool hasMultipleArtwork;
@@ -43,6 +54,7 @@ namespace Dopamine.ViewModels.Common
         private MetadataValue grouping;
         private MetadataValue comment;
         private MetadataValue lyrics;
+        private MetadataArtworkValue artwork;
 
         private int slideInFrom;
         private UserControl editTrackContent;
@@ -53,7 +65,11 @@ namespace Dopamine.ViewModels.Common
         public DelegateCommand LoadedCommand { get; set; }
         public DelegateCommand ChangeArtworkCommand { get; set; }
         public DelegateCommand RemoveArtworkCommand { get; set; }
+        public DelegateCommand ExportArtworkCommand { get; set; }
 
+        /// <summary>
+        /// It would be the Dialog Title but in this implementation does nothing
+        /// </summary>
         public string DialogTitle
         {
             get
@@ -62,23 +78,32 @@ namespace Dopamine.ViewModels.Common
                 return dialogTitle.ToLower();
             }
         }
-
+        /// <summary>
+        /// It is the warning just under the Title bar
+        /// </summary>
         public string MultipleTracksWarningText
         {
             get { return ResourceUtils.GetString("Language_Multiple_Songs_Selected").Replace("{trackcount}", this.paths.Count.ToString()); }
         }
-
+        /// <summary>
+        /// Controls the visibility of the warning
+        /// </summary>
         public bool ShowMultipleTracksWarning
         {
             get { return this.paths.Count > 1; }
         }
-
+        /// <summary>
+        /// Controls the From (Initial Animation)
+        /// </summary>
         public int SlideInFrom
         {
             get { return this.slideInFrom; }
             set { SetProperty<int>(ref this.slideInFrom, value); }
         }
 
+        /// <summary>
+        /// Controls the Visible Tab Page
+        /// </summary>
         public EditTrackPage SelectedEditTrackPage
         {
             get { return selectedEditTrackPage; }
@@ -101,13 +126,59 @@ namespace Dopamine.ViewModels.Common
             set { SetProperty<bool>(ref this.hasMultipleArtwork, value); }
         }
 
+        public MetadataArtworkValue Artwork
+        {
+            get { return this.artwork; }
+            set { SetProperty<MetadataArtworkValue>(ref this.artwork, value); }
+        }
+
+        public bool UpdateFileArtwork
+        {
+            get { return this.updateFileArtwork; }
+            set { SetProperty<bool>(ref this.updateFileArtwork, value); }
+        }
+
+        /// <summary>
+        /// This is the tooltip of the image
+        /// </summary>
+        public string ArtworkSize
+        {
+            get { return this.artworkSize; }
+            set { SetProperty<string>(ref this.artworkSize, value); }
+        }
+
+        /// <summary>
+        /// This control the visibility of the image
+        /// </summary>
+        public bool HasArtwork
+        {
+            get { return artwork?.Value != null; }
+        }
+
+        /// <summary>
+        /// This control the visiblity of the waiting cursor
+        /// </summary>
+        public bool IsBusy
+        {
+            get { return this.isBusy; }
+            set { SetProperty<bool>(ref this.isBusy, value); }
+        }
+
+        /// <summary>
+        /// This is the source of the image
+        /// </summary>
+        public BitmapImage ArtworkThumbnail
+        {
+            get { return this.artworkThumbnail; }
+            set { SetProperty<BitmapImage>(ref this.artworkThumbnail, value); }
+        }
+
         public MetadataValue Artists
         {
             get { return this.artists; }
             set
             {
                 SetProperty<MetadataValue>(ref this.artists, value);
-                this.DownloadArtworkCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -123,7 +194,6 @@ namespace Dopamine.ViewModels.Common
             set
             {
                 SetProperty<MetadataValue>(ref this.album, value);
-                this.DownloadArtworkCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -133,7 +203,6 @@ namespace Dopamine.ViewModels.Common
             set
             {
                 SetProperty<MetadataValue>(ref this.albumArtists, value);
-                this.DownloadArtworkCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -198,7 +267,7 @@ namespace Dopamine.ViewModels.Common
         }
 
         public EditTrackViewModel(IList<string> paths, IMetadataService metadataService,
-            IDialogService dialogService, IInfoDownloadService infoDownloadService) : base(infoDownloadService)
+            IDialogService dialogService, IInfoDownloadService infoDownloadService) //: base(infoDownloadService)
         {
             this.multipleValuesText = "<" + ResourceUtils.GetString("Language_Multiple_Values") + ">";
 
@@ -233,24 +302,22 @@ namespace Dopamine.ViewModels.Common
             });
 
             this.RemoveArtworkCommand = new DelegateCommand(() => this.UpdateArtwork(null));
-            this.DownloadArtworkCommand = new DelegateCommand(async () => await this.DownloadArtworkAsync(), () => this.CanDownloadArtwork());
+            this.ExportArtworkCommand = new DelegateCommand(async () => await this.ExportArtworkAsync(), () => this.CanExportArtwork());
         }
 
-        private async Task DownloadArtworkAsync()
+        private async Task ExportArtworkAsync()
         {
-            try
+            if (this.HasArtwork)
             {
-                await base.DownloadArtworkAsync(
-                   this.album.Value,
-                   new List<string>() { this.albumArtists.Values.FirstOrDefault() },
-                   this.Title.Value,
-                   new List<string>() { this.artists.Values.FirstOrDefault() });
-            }
-            catch (Exception ex)
-            {
-                LogClient.Error("Could not download artwork. Exception: {0}", ex.Message);
+                await SaveFileUtils.SaveImageFileAsync("cover", this.Artwork.Value);
             }
         }
+
+        private bool CanExportArtwork()
+        {
+            return this.HasArtwork;
+        }
+
 
         private void NagivateToSelectedPage()
         {
@@ -406,6 +473,13 @@ namespace Dopamine.ViewModels.Common
             this.ShowArtwork(foundArtwork);
         }
 
+        private void ShowArtwork(byte[] imageData)
+        {
+            this.Artwork = new MetadataArtworkValue(imageData); // Create new artwork data, so IsValueChanged is not triggered.
+            this.VisualizeArtwork(imageData); // Visualize the artwork
+            this.ExportArtworkCommand.RaiseCanExecuteChanged();
+        }
+
         private bool AllEntriesValid()
         {
             return this.Year.IsNumeric &
@@ -434,10 +508,11 @@ namespace Dopamine.ViewModels.Common
             RaisePropertyChanged(nameof(this.HasArtwork));
         }
 
-        protected override void UpdateArtwork(byte[] imageData)
+        private void UpdateArtwork(byte[] imageData)
         {
-            base.UpdateArtwork(imageData);
-
+            this.Artwork.Value = imageData; // Update existing artwork data, so IsValueChanged is triggered.
+            this.VisualizeArtwork(imageData); // Visualize the artwork
+            this.ExportArtworkCommand.RaiseCanExecuteChanged();
             // Artwork is updated. Multiple artwork is now impossible.
             this.HasMultipleArtwork = false;
         }
@@ -484,7 +559,7 @@ namespace Dopamine.ViewModels.Common
 
             if (fmdList.Count > 0)
             {
-                await this.metadataService.UpdateTracksAsync(fmdList, this.UpdateAlbumArtwork);
+                await this.metadataService.UpdateTracksAsync(fmdList, artwork.IsValueChanged);
             }
 
             this.IsBusy = false;
