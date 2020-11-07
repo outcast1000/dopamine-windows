@@ -41,5 +41,7 @@ namespace Dopamine.Services.Indexing
             
 
         void TriggerRefreshLists();
+
+        bool SuspendFileSystemWatcher { get; set; }
     }
 }

@@ -958,5 +958,15 @@ namespace Dopamine.Services.Indexing
             return bRet;
         }
 
+        public bool SuspendFileSystemWatcher { get => watcherManager.IsSuspended; 
+            set 
+            {
+                if (value)
+                    watcherManager.Suspend();
+                else
+                    watcherManager.Resume();
+            }
+        }
+
     }
 }

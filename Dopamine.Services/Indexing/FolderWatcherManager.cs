@@ -5,6 +5,7 @@ using Dopamine.Data.Repositories;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -33,12 +34,33 @@ namespace Dopamine.Services.Indexing
             });
         }
 
+        public bool IsSuspended
+        {
+            get { return _watchers.Count == 0 ? true : _watchers.First().Key.IsSuspended; }
+        }
+
+        public void Suspend()
+        {
+            foreach (var watcherKV in _watchers)
+            {
+                watcherKV.Key.Suspend();
+            }
+        }
+
+        public void Resume()
+        {
+            foreach (var watcherKV in _watchers)
+            {
+                watcherKV.Key.Resume();
+            }
+        }
+
+
+
         public async Task StartWatchingAsync()
         {
             await this.StopWatchingAsync();
-
             List<FolderV> folders = folderVRepository.GetFolders();
-
             foreach (FolderV fol in folders)
             {
                 if (Directory.Exists(fol.Path))

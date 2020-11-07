@@ -22,7 +22,6 @@ namespace Dopamine.Core.Helpers
         private List<FileSystemEventArgs> _pendingChangedFilePaths = new List<FileSystemEventArgs>();
         private List<RenamedEventArgs> _pendingRenamedItems = new List<RenamedEventArgs>();
 
-
         public GentleFolderWatcher(string folderPath, bool includeSubdirectories, int intervalMilliSeconds = 200)
         {
             // Timer
@@ -77,10 +76,14 @@ namespace Dopamine.Core.Helpers
             });
         }
 
+        public bool IsSuspended { get => this.watcher.EnableRaisingEvents == false; }
+
         public void Suspend()
         {
             this.watcher.EnableRaisingEvents = false;
             this.changeNotificationTimer.Stop();
+            _pendingChangedFilePaths.Clear();
+            _pendingRenamedItems.Clear();
         }
 
         public void Resume()
