@@ -17,6 +17,7 @@ namespace Dopamine.Data.Repositories
         bool HasAlbumImageFailed(AlbumV album);
         bool RemoveAlbumImageFailed(AlbumV album);
 
+        AlbumReview GetAlbumReview(long album_id);
         bool SetAlbumReview(AlbumReview albumReview);
         bool RemoveAlbumReview(long album_id);
 

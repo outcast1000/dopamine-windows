@@ -374,11 +374,17 @@
     <Compile Include="Views\Common\CoverPlayerControls.xaml.cs">
       <DependentUpon>CoverPlayerControls.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Common\EditAlbumImageControl.xaml.cs">
+      <DependentUpon>EditAlbumImageControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Common\EditAlbum.xaml.cs">
       <DependentUpon>EditAlbum.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Common\EditTrack.xaml.cs">
       <DependentUpon>EditTrack.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Common\EditAlbumReviewControl.xaml.cs">
+      <DependentUpon>EditAlbumReviewControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Common\EditTrackLyricsControl.xaml.cs">
       <DependentUpon>EditTrackLyricsControl.xaml</DependentUpon>
@@ -1199,11 +1205,19 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Views\Common\EditAlbumImageControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Views\Common\EditAlbum.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\Common\EditTrack.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Common\EditAlbumReviewControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

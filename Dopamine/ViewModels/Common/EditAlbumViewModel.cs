@@ -1,9 +1,11 @@
 ﻿using Digimezzo.Foundation.Core.Logging;
 using Digimezzo.Foundation.Core.Utils;
 using Dopamine.Core.Base;
+using Dopamine.Core.Enums;
 using Dopamine.Data;
 using Dopamine.Data.Entities;
 using Dopamine.Data.Metadata;
+using Dopamine.Data.Repositories;
 using Dopamine.Services.Cache;
 using Dopamine.Services.Dialog;
 using Dopamine.Services.Entities;
@@ -12,12 +14,14 @@ using Dopamine.Services.InfoDownload;
 using Dopamine.Services.Metadata;
 using Dopamine.Utils;
 using Dopamine.ViewModels.Common.Base;
+using Dopamine.Views.Common;
 using Prism.Commands;
 using Prism.Mvvm;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 
 namespace Dopamine.ViewModels.Common
@@ -29,15 +33,64 @@ namespace Dopamine.ViewModels.Common
         private IDialogService dialogService;
         private IIndexingService _indexingService;
         private IFileStorage _fileStorage;
+        private IInfoRepository _infoRepository;
         private bool updateFileArtwork;
         private bool isBusy;
-        private MetadataArtworkValue artwork;
         private string artworkSize;
         private BitmapImage artworkThumbnail;
+        private MetadataArtworkValue _artwork;
+        private MetadataValue _albumReview;
+
+        private int slideInFrom;
+        private UserControl editAlbumContent;
+
+        private EditAlbumPage previousSelectedEditAlbumPage;
+        private EditAlbumPage selectedEditAlbumPage;
+        public DelegateCommand LoadedCommand { get; set; }
+        public DelegateCommand ChangeArtworkCommand { get; set; }
+        public DelegateCommand RemoveArtworkCommand { get; set; }
+        public DelegateCommand DownloadArtworkCommand { get; set; }
+
+        public AlbumViewModel AlbumViewModel
+        {
+            get { return this.albumViewModel; }
+            set { SetProperty<AlbumViewModel>(ref this.albumViewModel, value); }
+        }
 
         /// <summary>
-        /// This is the check box
+        /// <summary>
+        /// Controls the From (Initial Animation)
         /// </summary>
+        public int SlideInFrom
+        {
+            get { return this.slideInFrom; }
+            set { SetProperty<int>(ref this.slideInFrom, value); }
+        }
+
+        /// <summary>
+        /// Controls the Visible Tab Page
+        /// </summary>
+		public EditAlbumPage SelectedEditAlbumPage
+        {
+            get { return selectedEditAlbumPage; }
+            set
+            {
+                SetProperty<EditAlbumPage>(ref this.selectedEditAlbumPage, value);
+                this.NagivateToSelectedPage();
+            }
+        }
+        public UserControl EditAlbumContent
+        {
+            get { return this.editAlbumContent; }
+            set { SetProperty<UserControl>(ref this.editAlbumContent, value); }
+        }
+
+        public MetadataArtworkValue Artwork
+        {
+            get { return this._artwork; }
+            set { SetProperty<MetadataArtworkValue>(ref this._artwork, value); }
+        }
+
         public bool UpdateFileArtwork
         {
             get { return this.updateFileArtwork; }
@@ -58,7 +111,7 @@ namespace Dopamine.ViewModels.Common
         /// </summary>
         public bool HasArtwork
         {
-            get { return artwork?.Value != null; }
+            get { return _artwork?.Value != null; }
         }
 
         /// <summary>
@@ -79,28 +132,31 @@ namespace Dopamine.ViewModels.Common
             set { SetProperty<BitmapImage>(ref this.artworkThumbnail, value); }
         }
 
-        public MetadataArtworkValue Artwork
+
+
+        public MetadataValue AlbumReview
         {
-            get { return this.artwork; }
-            set { SetProperty<MetadataArtworkValue>(ref this.artwork, value); }
+            get { return this._albumReview; }
+            set { SetProperty<MetadataValue>(ref this._albumReview, value); }
         }
-		
-        public DelegateCommand LoadedCommand { get; set; }
-        public DelegateCommand ChangeArtworkCommand { get; set; }
-        public DelegateCommand RemoveArtworkCommand { get; set; }
-        public DelegateCommand DownloadArtworkCommand { get; set; }
         public DelegateCommand ExportArtworkCommand { get; set; }
 
         public EditAlbumViewModel(AlbumViewModel albumViewModel, IMetadataService metadataService,
-            IDialogService dialogService, IFileStorage fileStorage, IIndexingService indexingService)// : base(infoDownloadService)
+            IDialogService dialogService, IFileStorage fileStorage, IIndexingService indexingService, IInfoRepository infoRepository)// : base(infoDownloadService)
         {
             this.albumViewModel = albumViewModel;
             this.metadataService = metadataService;
             this.dialogService = dialogService;
             _fileStorage = fileStorage;
             _indexingService = indexingService;
-			this.artwork = new MetadataArtworkValue();
-            this.LoadedCommand = new DelegateCommand(async () => await LoadExistingArtworkAsync());
+            _infoRepository = infoRepository;
+            _artwork = new MetadataArtworkValue();
+            _albumReview = new MetadataValue();
+            this.LoadedCommand = new DelegateCommand(async () =>
+            {
+                this.NagivateToSelectedPage();
+                await LoadExistingDataAsync();
+            });
 
             this.ChangeArtworkCommand = new DelegateCommand(async () =>
             {
@@ -128,6 +184,28 @@ namespace Dopamine.ViewModels.Common
             return this.HasArtwork;
         }
 
+
+        private void NagivateToSelectedPage()
+        {
+            this.SlideInFrom = this.selectedEditAlbumPage <= this.previousSelectedEditAlbumPage ? -Constants.SlideDistance : Constants.SlideDistance;
+            this.previousSelectedEditAlbumPage = this.selectedEditAlbumPage;
+
+            switch (this.selectedEditAlbumPage)
+            {
+                case EditAlbumPage.Image:
+                    var albumImageContent = new EditAlbumImageControl();
+                    albumImageContent.DataContext = this;
+                    this.EditAlbumContent = albumImageContent;
+                    break;
+                case EditAlbumPage.Review:
+                    var reviewContent = new EditAlbumReviewControl();
+                    reviewContent.DataContext = this;
+                    this.EditAlbumContent = reviewContent;
+                    break;
+                default:
+                    break;
+            }
+        }
         private void VisualizeArtwork(byte[] imageData)
         {
             //this.Artwork = new MetadataArtworkValue(imageData); // Create new artwork data, so IsValueChanged is not triggered
@@ -189,31 +267,40 @@ namespace Dopamine.ViewModels.Common
 
         private void UpdateArtwork(byte[] imageData)
         {
+            this.IsBusy = true;
             this.Artwork.Value = imageData; // Update existing artwork data, so IsValueChanged is triggered.
             this.VisualizeArtwork(imageData); // Visualize the artwork
+            this.IsBusy = false;
         }
 
-        private async Task LoadExistingArtworkAsync()
+        private async Task LoadExistingDataAsync()
         {
-            if (string.IsNullOrEmpty(albumViewModel.Thumbnail))
-                VisualizeArtwork(null);
-            else
+            await Task.Run(() =>
             {
-                await Task.Run(() =>
+                try
                 {
-                    try
+                    AlbumReview albumReview = _infoRepository.GetAlbumReview(albumViewModel.Id);
+                    if (albumReview != null)
+                        AlbumReview = new MetadataValue(albumReview.Review);
+                    if (string.IsNullOrEmpty(albumViewModel.Thumbnail))
+                    {
+                        VisualizeArtwork(null);
+                    }
+                    else
                     {
                         byte[] img = ImageUtils.Image2ByteArray(_fileStorage.GetRealPath(albumViewModel.Thumbnail), 0, 0);
                         if (img != null)
+                        {
+                            this.Artwork = new MetadataArtworkValue(img);
                             this.VisualizeArtwork(img);
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        LogClient.Error("An error occurred while getting the artwork for album title='{0}' and artist='{1}'. Exception: {2}", (string)this.albumViewModel.Name, (string)this.albumViewModel.AlbumArtists, ex.Message);
-                    }
-                });
-
-            }
+                }
+                catch (Exception ex)
+                {
+                    LogClient.Error("An error occurred while getting the artwork for album title='{0}' and artist='{1}'. Exception: {2}", (string)this.albumViewModel.Name, (string)this.albumViewModel.AlbumArtists, ex.Message);
+                }
+            });
 
         }
 
@@ -223,9 +310,13 @@ namespace Dopamine.ViewModels.Common
 
             try
             {
-                if (artwork.IsValueChanged)
+                if (_artwork.IsValueChanged)
                 {
-                    await this.metadataService.UpdateAlbumAsync(this.albumViewModel, artwork, this.UpdateFileArtwork);
+                    await this.metadataService.UpdateAlbumAsync(this.albumViewModel, _artwork, this.UpdateFileArtwork);
+                }
+                if (_albumReview.IsValueChanged)
+                {
+                    _infoRepository.SetAlbumReview(new Data.Entities.AlbumReview() {AlbumId = albumViewModel.Id, OriginType = OriginType.User, Review = _albumReview.Value, DateAdded = DateTime.Now.Ticks });// albumReview.Value);
                 }
             }
             catch (Exception ex)

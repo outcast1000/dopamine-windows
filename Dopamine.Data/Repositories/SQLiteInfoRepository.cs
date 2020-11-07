@@ -225,6 +225,15 @@ namespace Dopamine.Data.Repositories
             return ExecuteInternal("DELETE FROM ArtistImageFailed WHERE artist_id=?", artist.Id) > 0;
         }
 
+        public AlbumReview GetAlbumReview(long album_id)
+        {
+            Debug.Assert(album_id > 0);
+            IList<AlbumReview> list = GetInternal<AlbumReview>("SELECT * FROM AlbumReviews WHERE album_id=?", album_id);
+            if (list.Count == 1)
+                return list[0];
+            return null;
+        }
+
         public bool SetAlbumReview(AlbumReview albumReview)
         {
             Debug.Assert(albumReview.AlbumId > 0);

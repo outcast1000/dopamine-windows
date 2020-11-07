@@ -61,4 +61,10 @@
         Tags = 0,
         Lyrics = 1
     }
+
+    public enum EditAlbumPage
+    {
+        Image = 0,
+        Review = 1
+    }
 }
