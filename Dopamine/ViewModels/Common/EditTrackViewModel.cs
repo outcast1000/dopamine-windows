@@ -560,7 +560,10 @@ namespace Dopamine.ViewModels.Common
 
             if (fmdList.Count > 0)
             {
+                _indexingService.SuspendFileSystemWatcher = true;
                 await this.metadataService.UpdateTracksAsync(fmdList, artwork.IsValueChanged);
+                await Task.Delay(500);
+                _indexingService.SuspendFileSystemWatcher = false;
             }
 
             this.IsBusy = false;
