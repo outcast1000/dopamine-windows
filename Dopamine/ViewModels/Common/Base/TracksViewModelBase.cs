@@ -568,6 +568,8 @@ namespace Dopamine.ViewModels.Common.Base
                 {
                     this.SelectedTracks.Add(item);
                 }
+                RaisePropertyChanged(nameof(this.IsSingleItemSelected));
+                RaisePropertyChanged(nameof(this.IsMultipleItemsSelected));
             }
         }
 
