@@ -138,7 +138,6 @@
                     </Border>
                     <Border
                         MaxWidth="300"
-                        MaxHeight="600"
                         Panel.ZIndex="1"
                         Visibility="{Binding IsZoomVisible, Converter={StaticResource BooleanToCollapsedConverter}}">
                         <Border

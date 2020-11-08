@@ -16,6 +16,11 @@ namespace Dopamine.Services.Utils
     {
         public static async Task<ObservableCollection<ISemanticZoomSelector>> UpdateSemanticZoomSelectors(ICollectionView semanticZoomables)
         {
+
+            //=== ALEX (Support all characters)
+            return new ObservableCollection<ISemanticZoomSelector>(semanticZoomables.OfType<ISemanticZoomable>().Select(x => x.Header).Distinct().Select(x => new SemanticZoomSelectorViewModel() { Header = x, CanZoom = true }).ToList());
+            //=== END ALEX
+
             // Get all the possible semantic zoom selectors
             var zoomSelectors = new ObservableCollection<ISemanticZoomSelector>();
 

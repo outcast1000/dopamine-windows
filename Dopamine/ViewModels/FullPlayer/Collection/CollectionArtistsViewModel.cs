@@ -183,6 +183,14 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
         }
 
+        public int SemanticRows
+        {
+            get
+            {
+                return ZoomSelectors.Count / 4 + 1;
+            }
+        }
+
         private GridLength _leftPaneGridLength;
         public GridLength LeftPaneWidth
         {
