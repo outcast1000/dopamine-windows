@@ -187,7 +187,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         {
             get
             {
-                return ZoomSelectors.Count / 4 + 1;
+                return ZoomSelectors == null ? 12 : ZoomSelectors.Count / 4 + 1;
             }
         }
 

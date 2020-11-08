@@ -129,7 +129,8 @@
             <BitmapImage x:Key="DefaultImage" UriSource="/Resources/Media/no_album_image.png" />
             <system:Double x:Key="ImageMaxWidth">220</system:Double>
             <system:Double x:Key="ImageMinWidth">100</system:Double>
-            <system:Double x:Key="ImageHeight">80</system:Double>
+            <system:Double x:Key="ImageHeight">100</system:Double>
+            <system:Double x:Key="ButtonSize">30</system:Double>
         </Style.Resources>
 
         <Setter Property="ContextMenu" Value="{StaticResource ListBoxArtistsContextMenu}" />
@@ -182,48 +183,72 @@
                         <Border BorderBrush="#8888" BorderThickness="0">
                             <Grid x:Name="FullItem">
                                 <Border
+                                    Panel.ZIndex="1"
                                     Name="SelectionBorder"
                                     Opacity="0"
                                     Margin="0,5,0,0"
                                     BorderThickness="5,0,0,0"
                                     BorderBrush="{DynamicResource Brush_SelectionBorder}" />
-                                <Border
+                                <Border Panel.ZIndex="0"
                                     Name="OverlayBorder"
                                     Opacity="0"
                                     Background="{DynamicResource Brush_ItemHovered}" />
+                                <Grid
+                                    x:Name="Image"
+                                    Height="{StaticResource ImageHeight}"
+                                    DockPanel.Dock="Left"
+                                    Margin="10,0,5,0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center">
+                                    <Grid.Tag>
+                                        <system:Double>1.0</system:Double>
+                                    </Grid.Tag>
+                                    <Grid.Width>
+                                        <!--  Width="{Binding ElementName=HiddenInfo, Path=ActualWidth}"  -->
+                                        <MultiBinding Converter="{StaticResource MultiplyConverter}" ConverterParameter="{StaticResource ImageMinWidth}">
+                                            <Binding Path="ActualWidth" ElementName="HiddenInfo" />
+                                            <Binding Path="Tag" RelativeSource="{RelativeSource Self}" />
+                                        </MultiBinding>
+                                    </Grid.Width>
+                                    <pc:SourceChangedImage HorizontalAlignment="Center" Stretch="UniformToFill">
+                                        <pc:SourceChangedImage.Source>
+                                            <Binding
+                                                Converter="{StaticResource KeyToPathConverter}"
+                                                ConverterParameter="{StaticResource DefaultImage}"
+                                                IsAsync="False"
+                                                Path="Thumbnail" />
+                                        </pc:SourceChangedImage.Source>
+
+                                        <pc:SourceChangedImage.Triggers>
+                                            <EventTrigger RoutedEvent="pc:SourceChangedImage.SourceChanged">
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <DoubleAnimation
+                                                            Storyboard.TargetProperty="Opacity"
+                                                            From="0"
+                                                            To="1"
+                                                            Duration="{x:Static base:Constants.SourceChangedImageChangedDuration}" />
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </EventTrigger>
+                                        </pc:SourceChangedImage.Triggers>
+                                    </pc:SourceChangedImage>
+                                </Grid>
                                 <StackPanel>
                                     <Grid>
-                                        <TextBlock
-                                            Padding="10,0,5,0"
-                                            HorizontalAlignment="Left"
-                                            VerticalAlignment="Center"
-                                            FontSize="20"
-                                            FontWeight="Light"
-                                            Text="{Binding Name}"
-                                            TextTrimming="CharacterEllipsis"
-                                            TextWrapping="Wrap" />
+                                        <Border Background="{DynamicResource Brush_PaneBackground}" Opacity=".95" Padding="0,0,40,0" CornerRadius="0,0,40,0" VerticalAlignment="Stretch" HorizontalAlignment="Left">
+                                            <TextBlock
+                                                Padding="10,0,0,10"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center"
+                                                Background="{DynamicResource Brush_PaneBackground}"
+                                                FontSize="20"
+                                                FontWeight="Light"
+                                                Text="{Binding Name}"
+                                                TextTrimming="CharacterEllipsis"
+                                                TextWrapping="Wrap" />
+                                        </Border>
                                         <DockPanel x:Name="Buttons">
-                                            <!-- Put it here to be show all the times
-                                            <Button
-                                                Style="{StaticResource TransparentButton}"
-                                                Background="Transparent"
-                                                x:Name="PlayButton"
-                                                Width="32"
-                                                Height="32"
-                                                DockPanel.Dock="Right"
-                                                Margin="4,4,4,4"
-                                                HorizontalContentAlignment="Center"
-                                                VerticalContentAlignment="Center"
-                                                Command="{Binding DataContext.PlayItemCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
-                                                CommandParameter="{Binding .}"
-                                                ToolTip="{DynamicResource Language_Play}">
-                                                <TextBlock
-                                                    FontSize="16"
-                                                    Foreground="{DynamicResource Brush_PrimaryText}"
-                                                    Style="{StaticResource SegoeAssets}"
-                                                    Text="&#xE768;" />
-                                            </Button>
-                                            -->
                                             <StackPanel
                                                 x:Name="ExtraButtons"
                                                 Orientation="Horizontal"
@@ -232,9 +257,10 @@
                                                 Opacity="0">
                                                 <Button
                                                     Style="{StaticResource TransparentButton}"
+                                                    Panel.ZIndex="10"
                                                     x:Name="LoveButton"
-                                                    Width="32"
-                                                    Height="32"
+                                                    Width="{StaticResource ButtonSize}"
+                                                    Height="{StaticResource ButtonSize}"
                                                     Margin="2,2,2,2"
                                                     HorizontalContentAlignment="Center"
                                                     VerticalContentAlignment="Center"
@@ -249,9 +275,10 @@
                                                 </Button>
                                                 <Button
                                                     Style="{StaticResource TransparentButton}"
+                                                    Panel.ZIndex="10"
                                                     x:Name="EnqueueButton"
-                                                    Width="32"
-                                                    Height="32"
+                                                    Width="{StaticResource ButtonSize}"
+                                                    Height="{StaticResource ButtonSize}"
                                                     Margin="2,2,2,2"
                                                     HorizontalContentAlignment="Center"
                                                     VerticalContentAlignment="Center"
@@ -266,10 +293,11 @@
                                                 </Button>
                                                 <Button
                                                     Style="{StaticResource TransparentButton}"
+                                                    Panel.ZIndex="10"
                                                     Background="Transparent"
                                                     x:Name="PlayButton"
-                                                    Width="32"
-                                                    Height="32"
+                                                    Width="{StaticResource ButtonSize}"
+                                                    Height="{StaticResource ButtonSize}"
                                                     DockPanel.Dock="Right"
                                                     Margin="2,2,2,2"
                                                     HorizontalContentAlignment="Center"
@@ -290,53 +318,13 @@
 
                                     </Grid>
                                     <DockPanel x:Name="HiddenInfo" Opacity="1">
-                                        <Grid
-                                            x:Name="Image"
-                                            
-                                            Height="{StaticResource ImageHeight}"
-                                            DockPanel.Dock="Left"
-                                            Margin="10,0,5,0"
-                                            HorizontalAlignment="Center"
-                                            VerticalAlignment="Center">
-                                            <Grid.Tag>
-                                                <system:Double>1.0</system:Double>
-                                            </Grid.Tag>
-                                            <Grid.Width>
-                                                <!-- Width="{Binding ElementName=HiddenInfo, Path=ActualWidth}" -->
-                                                <MultiBinding Converter="{StaticResource MultiplyConverter}" ConverterParameter="{StaticResource ImageMinWidth}">
-                                                    <Binding Path="ActualWidth" ElementName="HiddenInfo"/>
-                                                    <Binding Path="Tag" RelativeSource="{RelativeSource Self}" />
-                                                </MultiBinding>
-                                            </Grid.Width>
-                                            <pc:SourceChangedImage HorizontalAlignment="Center" Stretch="UniformToFill">
-                                                <pc:SourceChangedImage.Source>
-                                                    <Binding
-                                                        Converter="{StaticResource KeyToPathConverter}"
-                                                        ConverterParameter="{StaticResource DefaultImage}"
-                                                        IsAsync="False"
-                                                        Path="Thumbnail" />
-                                                </pc:SourceChangedImage.Source>
 
-                                                <pc:SourceChangedImage.Triggers>
-                                                    <EventTrigger RoutedEvent="pc:SourceChangedImage.SourceChanged">
-                                                        <BeginStoryboard>
-                                                            <Storyboard>
-                                                                <DoubleAnimation
-                                                                    Storyboard.TargetProperty="Opacity"
-                                                                    From="0"
-                                                                    To="1"
-                                                                    Duration="{x:Static base:Constants.SourceChangedImageChangedDuration}" />
-                                                            </Storyboard>
-                                                        </BeginStoryboard>
-                                                    </EventTrigger>
-                                                </pc:SourceChangedImage.Triggers>
-                                            </pc:SourceChangedImage>
-                                        </Grid>
 
                                         <TextBlock
+                                            Visibility="Collapsed"
                                             x:Name="ExtraInfo"
                                             DockPanel.Dock="Left"
-                                            Margin="15,2,2,2"
+                                            Margin="120,2,2,2"
                                             VerticalAlignment="Top"
                                             HorizontalAlignment="Left"
                                             Foreground="{DynamicResource Brush_PrimaryText}"
