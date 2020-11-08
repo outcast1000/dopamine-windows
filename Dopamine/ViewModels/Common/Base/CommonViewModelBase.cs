@@ -119,14 +119,15 @@ namespace Dopamine.ViewModels.Common.Base
             this.ShowSelectedTrackInformationCommand = new DelegateCommand(() => this.ShowSelectedTrackInformation());
             this.SelectedTracksCommand = new DelegateCommand<object>((parameter) => this.SelectedTracksHandler(parameter));
             this.EditTracksCommand = new DelegateCommand(() => this.EditSelectedTracks(), () => !this.IsIndexing);
-            this.LoadedCommand = new DelegateCommand(async () => await this.LoadedCommandAsync());
-            this.UnloadedCommand = new DelegateCommand(async () => await this.UnloadedCommandAsync());
+            this.LoadedCommand = new DelegateCommand(async () => { RegisteEvents(); await this.LoadedCommandAsync(); });
+            this.UnloadedCommand = new DelegateCommand(async () => { UnRegisteEvents(); await this.UnloadedCommandAsync(); });
             this.ShuffleAllCommand = new DelegateCommand(() =>
             {
                 this.playbackService.PlayAllTracksAsync(PlaylistMode.Play, TrackOrder.Random);
             });
 
             // Events
+            /*
             this.collectionService.CollectionChanged += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when the Collection has changed
             this.foldersService.FoldersChanged += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when marked folders have changed
             this.indexingService.RefreshLists += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when the indexer has finished indexing
@@ -135,6 +136,7 @@ namespace Dopamine.ViewModels.Common.Base
             this.searchService.DoSearch += (searchText) => this.FilterListsAsync(searchText);
             this.metadataService.RatingChanged += MetadataService_RatingChangedAsync;
             this.metadataService.LoveChanged += MetadataService_LoveChangedAsync;
+            */
             //=== ALEX TODO. CHECK IF WE NEED THIS SOMEHOW AFTER THE REFACTORING WHICH ASKS THE Images ON demand
             //this.indexingService.AlbumImagesAdded += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when the indexer has finished indexing
             //this.indexingService.ArtistImagesAdded += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when the indexer has finished indexing
@@ -148,6 +150,47 @@ namespace Dopamine.ViewModels.Common.Base
             // created after the Indexer is started, and thus after triggering the 
             // IndexingService.IndexerStarted event.
             this.SetEditCommands();
+        }
+
+        private void RegisteEvents()
+        {
+            this.collectionService.CollectionChanged += OnRefreshListsAsync; // Refreshes the lists when the Collection has changed
+            this.foldersService.FoldersChanged += OnRefreshListsAsync; // Refreshes the lists when marked folders have changed
+            this.indexingService.RefreshLists += OnRefreshListsAsync; // Refreshes the lists when the indexer has finished indexing
+            this.indexingService.IndexingStarted += OnIndexingChanged;
+            this.indexingService.IndexingStopped += OnIndexingChanged;
+            this.indexingService.IndexingStarted += OnIndexingChanged;
+            //this.searchService.DoSearch += (searchText) => this.FilterListsAsync(searchText);
+            this.searchService.DoSearch += OnSearchAsync;
+            this.metadataService.RatingChanged += MetadataService_RatingChangedAsync;
+            this.metadataService.LoveChanged += MetadataService_LoveChangedAsync;
+        }
+
+        private void OnIndexingChanged(object sender, EventArgs e)
+        {
+            this.SetEditCommands();
+        }
+
+        private async void OnRefreshListsAsync(object sender, EventArgs e)
+        {
+            await this.FillListsAsync();
+        }
+
+        private async void OnSearchAsync(string searchText)
+        {
+            this.FilterListsAsync(searchText);
+        }
+
+        private void UnRegisteEvents()
+        {
+            this.collectionService.CollectionChanged -= OnRefreshListsAsync; // Refreshes the lists when the Collection has changed
+            this.foldersService.FoldersChanged -= OnRefreshListsAsync; // Refreshes the lists when marked folders have changed
+            this.indexingService.RefreshLists -= OnRefreshListsAsync; // Refreshes the lists when the indexer has finished indexing
+            this.indexingService.IndexingStarted -= OnIndexingChanged;
+            this.indexingService.IndexingStopped -= OnIndexingChanged;
+            this.searchService.DoSearch -= OnSearchAsync;
+            this.metadataService.RatingChanged -= MetadataService_RatingChangedAsync;
+            this.metadataService.LoveChanged -= MetadataService_LoveChangedAsync;
         }
 
         protected void SetSizeInformation(long totalDuration, long totalSize)
