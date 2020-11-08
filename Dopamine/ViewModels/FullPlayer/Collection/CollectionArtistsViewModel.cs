@@ -99,12 +99,12 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private string _orderText;
         private ArtistOrder _order;
         private ObservableCollection<SearchProvider> artistContextMenuSearchProviders;
+        private ListItemSizeType selectedListItemSizeType;
         private readonly string Settings_NameSpace = "CollectionArtists";
         private readonly string Setting_ListBoxScrollPos = "ListBoxScrollPos";
         private readonly string Setting_SelectedIDs = "SelectedIDs";
         private readonly string Setting_ItemOrder = "ItemOrder";
-
-
+        private readonly string Setting_ListItemSize = "ListItemSize";
 
         public delegate void EnsureSelectedItemVisibleAction(ArtistViewModel item);
         public event EnsureSelectedItemVisibleAction EnsureItemVisible;
@@ -132,6 +132,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         public DelegateCommand<ArtistViewModel> LoveItemCommand { get; set; }
 
         public DelegateCommand<string> ArtistSearchOnlineCommand { get; set; }
+
+        public DelegateCommand<string> SetListItemSizeCommand { get; set; }
 
         public DelegateCommand EditArtistCommand { get; set; }
         public ObservableCollection<SearchProvider> ArtistContextMenuSearchProviders
@@ -268,6 +270,31 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             set { ZoomSelectors = value; }
         }
 
+        private bool _isImageVisible;
+        public bool IsImageVisible
+        {
+            get { return _isImageVisible; }
+            set { SetProperty<bool>(ref _isImageVisible, value); }
+        }
+
+        private bool _isExtraInfoVisible;
+        public bool IsExtraInfoVisible
+        {
+            get { return _isExtraInfoVisible; }
+            set { SetProperty<bool>(ref _isExtraInfoVisible, value); }
+        }
+
+        private int _imageHeight;
+        public int ImageHeight
+        {
+            get { return _imageHeight; }
+            set { SetProperty<int>(ref _imageHeight, value); }
+        }
+
+        public bool IsSmallListItemSizeSelected => this.selectedListItemSizeType == ListItemSizeType.Small;
+        public bool IsMediumListItemSizeSelected => this.selectedListItemSizeType == ListItemSizeType.Medium;
+        public bool IsLargeListItemSizeSelected => this.selectedListItemSizeType == ListItemSizeType.Large;
+
         public CollectionArtistsViewModel(IContainerProvider container) : base(container)
         {
             // Dependency injection
@@ -315,6 +342,13 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 _eventAggregator.GetEvent<PerformSemanticJump>().Publish(new Tuple<string, string>("Artists", header));
             });
 
+            SetListItemSizeCommand = new DelegateCommand<string>(async (listItemSize) =>
+            {
+                if (int.TryParse(listItemSize, out int selectedListItemSize))
+                {
+                    SetListItemSize((ListItemSizeType)selectedListItemSize);
+                }
+            });
             EditArtistCommand = new DelegateCommand(() => this.EditSelectedArtist());
             // Settings
             Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += async (_, e) =>
@@ -352,6 +386,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             SetTrackOrder((TrackOrder)SettingsClient.Get<int>(Settings_NameSpace, CollectionUtils.Setting_TrackOrder));
             ListBoxScrollPos = SettingsClient.Get<double>(Settings_NameSpace, Setting_ListBoxScrollPos);
             LeftPaneWidth = CollectionUtils.String2GridLength(SettingsClient.Get<string>(Settings_NameSpace, CollectionUtils.Setting_LeftPaneGridLength));
+            SetListItemSize((ListItemSizeType)SettingsClient.Get<int>(Settings_NameSpace, Setting_ListItemSize));
             LoadSelectedItems();
 
         }
@@ -781,7 +816,34 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
             RaisePropertyChanged(nameof(ItemOrderText));
         }
+		
+		private void SetListItemSize(ListItemSizeType listItemSize)
+        {
+			SettingsClient.Set<int>(Settings_NameSpace, Setting_ListItemSize, (int)listItemSize);
+            selectedListItemSizeType = listItemSize;
 
+            switch (listItemSize)
+            {
+                case ListItemSizeType.Small:
+                    IsImageVisible = false;
+                    IsExtraInfoVisible = false;
+                    break;
+                default:
+                case ListItemSizeType.Medium:
+                    IsImageVisible = true;
+                    ImageHeight = 100;
+                    IsExtraInfoVisible = true;
+                    break;
+                case ListItemSizeType.Large:
+                    IsImageVisible = true;
+                    ImageHeight = 200;
+                    IsExtraInfoVisible = true;
+                    break;
+            }
+            RaisePropertyChanged(nameof(this.IsSmallListItemSizeSelected));
+            RaisePropertyChanged(nameof(this.IsMediumListItemSizeSelected));
+            RaisePropertyChanged(nameof(this.IsLargeListItemSizeSelected));
+        }
         private void EditSelectedArtist()
         {
             if (this.SelectedItems?.Count != 1)

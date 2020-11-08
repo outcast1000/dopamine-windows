@@ -102,6 +102,30 @@
                     Text="&#xE721;" />
             </MenuItem.Icon>
         </MenuItem>
+        <MenuItem Header="{DynamicResource Language_Item_Style}" InputGestureText="">
+            <MenuItem
+                Command="{Binding DataContext.SetListItemSizeCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                CommandParameter="1"
+                Header="{DynamicResource Language_Small}"
+                InputGestureText=""
+                IsCheckable="True"
+                IsChecked="{Binding DataContext.IsSmallListItemSizeSelected, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
+            <MenuItem
+                Command="{Binding DataContext.SetListItemSizeCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                CommandParameter="2"
+                Header="{DynamicResource Language_Medium}"
+                InputGestureText=""
+                IsCheckable="True"
+                IsChecked="{Binding DataContext.IsMediumListItemSizeSelected, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
+            <MenuItem
+                Command="{Binding DataContext.SetListItemSizeCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                CommandParameter="3"
+                Header="{DynamicResource Language_Large}"
+                InputGestureText=""
+                IsCheckable="True"
+                IsChecked="{Binding DataContext.IsLargeListItemSizeSelected, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
+        </MenuItem>
+
         <Separator />
         <MenuItem
             Command="{Binding DataContext.DownloadImageArtistsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
@@ -189,17 +213,19 @@
                                     Margin="0,5,0,0"
                                     BorderThickness="5,0,0,0"
                                     BorderBrush="{DynamicResource Brush_SelectionBorder}" />
-                                <Border Panel.ZIndex="0"
+                                <Border
+                                    Panel.ZIndex="0"
                                     Name="OverlayBorder"
                                     Opacity="0"
                                     Background="{DynamicResource Brush_ItemHovered}" />
                                 <Grid
                                     x:Name="Image"
-                                    Height="{StaticResource ImageHeight}"
+                                    Height="{Binding DataContext.ImageHeight, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
                                     DockPanel.Dock="Left"
                                     Margin="10,0,5,0"
                                     HorizontalAlignment="Left"
-                                    VerticalAlignment="Center">
+                                    VerticalAlignment="Center"
+                                    Visibility="{Binding DataContext.IsImageVisible, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}">
                                     <Grid.Tag>
                                         <system:Double>1.0</system:Double>
                                     </Grid.Tag>
@@ -236,7 +262,13 @@
                                 </Grid>
                                 <StackPanel>
                                     <Grid>
-                                        <Border Background="{DynamicResource Brush_PaneBackground}" Opacity=".95" Padding="0,0,40,0" CornerRadius="0,0,40,0" VerticalAlignment="Stretch" HorizontalAlignment="Left">
+                                        <Border
+                                            Background="{DynamicResource Brush_PaneBackground}"
+                                            Opacity=".95"
+                                            Padding="0,0,40,0"
+                                            CornerRadius="0,0,40,0"
+                                            VerticalAlignment="Stretch"
+                                            HorizontalAlignment="Left">
                                             <TextBlock
                                                 Padding="10,0,0,10"
                                                 HorizontalAlignment="Left"
@@ -317,11 +349,12 @@
                                         </DockPanel>
 
                                     </Grid>
-                                    <DockPanel x:Name="HiddenInfo" Opacity="1">
-
+                                    <DockPanel
+                                        x:Name="HiddenInfo"
+                                        Opacity="1"
+                                        Visibility="{Binding DataContext.IsExtraInfoVisible, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}">
 
                                         <TextBlock
-                                            Visibility="Collapsed"
                                             x:Name="ExtraInfo"
                                             DockPanel.Dock="Left"
                                             Margin="120,2,2,2"

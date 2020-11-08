@@ -464,4 +464,5 @@
 	<Text Key="Enqueue">Enqueue</Text>
 	<Text Key="Review">Review</Text>
 	<Text Key="Image">Image</Text>
+	<Text Key="Item_Style">Item style</Text>
 </Language>

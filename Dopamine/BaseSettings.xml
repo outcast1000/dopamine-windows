@@ -2,7 +2,7 @@
 <Settings>
 	<Namespace Name="Configuration">
 		<Setting Name="Version">
-			<Value>130</Value>
+			<Value>131</Value>
 		</Setting>
 		<Setting Name="IsPortable">
 			<Value>False</Value>
@@ -38,6 +38,9 @@
 			<Value>1</Value>
 		</Setting>
 		<Setting Name="TrackOrder">
+			<Value>2</Value>
+		</Setting>
+		<Setting Name="ListItemSize">
 			<Value>2</Value>
 		</Setting>
 	</Namespace>
