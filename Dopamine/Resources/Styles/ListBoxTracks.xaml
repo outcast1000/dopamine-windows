@@ -109,10 +109,12 @@
             Visibility="{Binding DataContext.IsSingleItemSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}"
             InputGestureText="{DynamicResource Language_Ctrl_E}"
             Command="{Binding ViewInExplorerCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
+        <!--
         <MenuItem
             Header="{DynamicResource Language_Jump_To_Playing_Song}"
             InputGestureText="{DynamicResource Language_Ctrl_J}"
             Command="{Binding JumpToPlayingTrackCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
+        -->
         <Separator Visibility="{Binding DataContext.IsSingleItemSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}" />
         <MenuItem
             InputGestureText=""
