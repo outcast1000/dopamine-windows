@@ -27,6 +27,8 @@ using System.Windows.Data;
 using System.ComponentModel;
 using System.Diagnostics;
 using Dopamine.Services.Provider;
+using Dopamine.Views.Common;
+using Dopamine.ViewModels.Common;
 
 /* ALEX COMMENT
 --- MAP OF VARIOUS EVENTS THAT TRIGGERS Data Refresh
@@ -776,7 +778,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         {
             if (this.SelectedItems?.Count != 1)
                 return;
-            /*
             EditArtist view = this._container.Resolve<EditArtist>();
             view.DataContext = this._container.Resolve<Func<ArtistViewModel, EditArtistViewModel>>()(this.SelectedItems.First());
 
@@ -788,13 +789,12 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 405,
                 450,
                 false,
-                true,
-                true,
+                false,
+                false,
                 true,
                 ResourceUtils.GetString("Language_Ok"),
                 ResourceUtils.GetString("Language_Cancel"),
-                ((EditArtistViewModel)view.DataContext).SaveArtistAsync);
-            */
+                ((EditArtistViewModel)view.DataContext).SaveAsync);
         }
     }
 }

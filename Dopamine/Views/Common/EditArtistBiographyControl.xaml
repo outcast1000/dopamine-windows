@@ -1,5 +1,5 @@
 ﻿<UserControl
-    x:Class="Dopamine.Views.Common.EditAlbumReviewControl"
+    x:Class="Dopamine.Views.Common.EditArtistBiographyControl"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -10,9 +10,9 @@
     d:DesignWidth="300">
     <DockPanel>
         <TextBlock
-            FontSize="20"
             DockPanel.Dock="Top"
-            Text="{DynamicResource Language_Review}"
+            FontSize="20"
+            Text="{DynamicResource Language_Biography}"
             Foreground="{DynamicResource Brush_PrimaryText}"
             Margin="0,5,0,10" />
         <pc:AccentTextBox
@@ -20,7 +20,7 @@
             TextWrapping="Wrap"
             AcceptsReturn="True"
             VerticalScrollBarVisibility="Auto"
-            Text="{Binding AlbumReview.Value, UpdateSourceTrigger=PropertyChanged}"
-            ShowAccent="{Binding AlbumReview.IsValueChanged}" />
+            Text="{Binding ArtistBiography.Value, UpdateSourceTrigger=PropertyChanged}"
+            ShowAccent="{Binding ArtistBiography.IsValueChanged}" />
     </DockPanel>
 </UserControl>

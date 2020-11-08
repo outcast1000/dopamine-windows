@@ -15,6 +15,7 @@ namespace Dopamine.Services.Metadata
         Task UpdateTracksAsync(IList<FileMetadata> fileMetadatas, bool updateAlbumArtwork);
 
         Task UpdateAlbumAsync(AlbumViewModel albumViewModel, MetadataArtworkValue artwork, bool updateFileArtwork);
+        Task UpdateArtistAsync(ArtistViewModel artistViewModel, MetadataArtworkValue artwork);
 
         FileMetadata GetFileMetadata(string path);
 

@@ -275,6 +275,7 @@
     <Compile Include="ViewModels\Common\CompactPlaybackControlsViewModel.cs" />
     <Compile Include="ViewModels\Common\CoverArtControlViewModel.cs" />
     <Compile Include="ViewModels\Common\CoverPlaybackInfoControlViewModel.cs" />
+    <Compile Include="ViewModels\Common\EditArtistViewModel.cs" />
     <Compile Include="ViewModels\Common\EditAlbumViewModel.cs" />
     <Compile Include="ViewModels\Common\EditTrackViewModel.cs" />
     <Compile Include="ViewModels\Common\EqualizerControlViewModel.cs" />
@@ -374,11 +375,20 @@
     <Compile Include="Views\Common\CoverPlayerControls.xaml.cs">
       <DependentUpon>CoverPlayerControls.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Common\EditArtist.xaml.cs">
+      <DependentUpon>EditArtist.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Common\EditArtistImageControl.xaml.cs">
+      <DependentUpon>EditArtistImageControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Common\EditAlbumImageControl.xaml.cs">
       <DependentUpon>EditAlbumImageControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Common\EditAlbum.xaml.cs">
       <DependentUpon>EditAlbum.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Common\EditArtistBiographyControl.xaml.cs">
+      <DependentUpon>EditArtistBiographyControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Common\EditTrack.xaml.cs">
       <DependentUpon>EditTrack.xaml</DependentUpon>
@@ -1205,11 +1215,23 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Views\Common\EditArtist.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Common\EditArtistImageControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Views\Common\EditAlbumImageControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\Common\EditAlbum.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Common\EditArtistBiographyControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

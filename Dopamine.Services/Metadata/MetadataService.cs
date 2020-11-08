@@ -275,5 +275,32 @@ namespace Dopamine.Services.Metadata
             // Raise event
             this.MetadataChanged(new MetadataChangedEventArgs());
         }
+
+        public async Task UpdateArtistAsync(ArtistViewModel artistViewModel, MetadataArtworkValue artwork)
+        {
+            if (artwork?.Value != null)
+            {
+                string artworkID = fileStorage.SaveImageToCache(artwork.Value, FileStorageItemType.Album);
+                // Add or update AlbumArtwork in the database
+                infoRepository.SetArtistImage(new ArtistImage()
+                {
+                    ArtistId = artistViewModel.Id,
+                    Location = artworkID,
+                    DateAdded = DateTime.Now.Ticks,
+                    Origin = String.Empty,
+                    OriginType = OriginType.User
+                });
+            }
+            else
+            {
+                //=== Remove & Add a record on Failed Downloads in order ot not download it again
+                infoRepository.RemoveAlbumImage(artistViewModel.Id);
+                infoRepository.SetArtistImageFailed(artistViewModel.Data);
+            }
+            // Cache the new artwork
+
+            // Raise event
+            this.MetadataChanged(new MetadataChangedEventArgs());
+        }
     }
 }

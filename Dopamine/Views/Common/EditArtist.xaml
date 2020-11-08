@@ -1,5 +1,5 @@
 ﻿<UserControl
-    x:Class="Dopamine.Views.Common.EditAlbum"
+    x:Class="Dopamine.Views.Common.EditArtist"
     x:Name="ThisControl"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -76,9 +76,9 @@
                 <dc:Pivot
                     DockPanel.Dock="Top"
                     Style="{DynamicResource MenuPivot}"
-                    SelectedIndex="{Binding SelectedEditPage, Converter={StaticResource EnumConverter}, ConverterParameter={x:Type enums:EditAlbumPage}}">
+                    SelectedIndex="{Binding SelectedEditPage, Converter={StaticResource EnumConverter}, ConverterParameter={x:Type enums:EditArtistPage}}">
                     <dc:PivotItem Header="{DynamicResource Language_Image}" Style="{StaticResource MenuPivotItem}" />
-                    <dc:PivotItem Header="{DynamicResource Language_Review}" Style="{StaticResource MenuPivotItem}" />
+                    <dc:PivotItem Header="{DynamicResource Language_Biography}" Style="{StaticResource MenuPivotItem}" />
                 </dc:Pivot>
             </DockPanel>
         </Border>

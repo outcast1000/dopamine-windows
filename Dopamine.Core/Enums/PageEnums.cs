@@ -67,4 +67,12 @@
         Image = 0,
         Review = 1
     }
+
+    public enum EditArtistPage
+    {
+        Image = 0,
+        Biography = 1
+    }
+
+    
 }
