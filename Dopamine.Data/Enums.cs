@@ -53,10 +53,11 @@
     {
         AlphabeticalAscending = 1,
         AlphabeticalDescending = 2,
-        ByTrackCount = 5
+        ByTrackCount = 3,
+        ByPlayCount = 4
     }
 
-    
+
 
     public enum RemoveTracksResult
     {

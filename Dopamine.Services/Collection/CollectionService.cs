@@ -187,7 +187,7 @@ namespace Dopamine.Services.Collection
             List<GenreViewModel> viewModels = new List<GenreViewModel>();
             await Task.Run(() =>
             {
-                IList<GenreV> items = this.genreVRepository.GetGenres(searchString);
+                IList<GenreV> items = this.genreVRepository.GetGenres(true, searchString);
                 if (items == null)
                     Logger.Warn($"GetGenresAsync genreVRepository({searchString}) return null");
                 else

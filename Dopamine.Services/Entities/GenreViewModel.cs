@@ -50,14 +50,14 @@ namespace Dopamine.Services.Entities
                 StringBuilder sb = new StringBuilder();
                 if (!string.IsNullOrEmpty(data.Artists))
                     sb.AppendLine(ResourceUtils.GetString("Language_Artists") + ": " + data.Artists);
-                if (!data.MinYean.HasValue)
+                if (!data.MinYear.HasValue)
                 {
                     // Do nothing 
                 }
-                else if (data.MinYean == data.MaxYear)
-                    sb.AppendLine(ResourceUtils.GetString("Language_Year") + ": " + data.MinYean);
+                else if (data.MinYear == data.MaxYear)
+                    sb.AppendLine(ResourceUtils.GetString("Language_Year") + ": " + data.MinYear);
                 else
-                    sb.AppendLine(ResourceUtils.GetString("Language_Year") + ": " + data.MinYean + " - " + data.MaxYear);
+                    sb.AppendLine(ResourceUtils.GetString("Language_Year") + ": " + data.MinYear + " - " + data.MaxYear);
 
                 sb.AppendLine(ResourceUtils.GetString("Language_Songs") + ": " + data.TrackCount);
                 sb.AppendLine(ResourceUtils.GetString("Language_Albums") + ": " + data.AlbumCount);

@@ -8,14 +8,14 @@ namespace Dopamine.Data.Repositories
 {
     public class SQLiteGenreVRepository: IGenreVRepository
     {
-        private ISQLiteConnectionFactory factory;
+        private readonly ISQLiteConnectionFactory factory;
 
         public SQLiteGenreVRepository(ISQLiteConnectionFactory factory)
         {
             this.factory = factory;
         }
 
-        public List<GenreV> GetGenres(string searchString = null)
+        public List<GenreV> GetGenres(bool bGetHistory, string searchString = null)
         {
             QueryOptions qo = new QueryOptions();
             if (!string.IsNullOrEmpty(searchString))
@@ -23,6 +23,7 @@ namespace Dopamine.Data.Repositories
                 qo.extraWhereClause.Add("Genres.Name like ?");
                 qo.extraWhereParams.Add("%" + searchString + "%");
             }
+            qo.GetHistory = bGetHistory;
             return GetGenresInternal(qo);
         }
 
@@ -77,23 +78,28 @@ COUNT(DISTINCT t.id) as TrackCount,
 COUNT(DISTINCT Albums.id) as AlbumCount, 
 COUNT(DISTINCT Artists.id) as ArtistCount, 
 GROUP_CONCAT(DISTINCT Artists.name) as Artists,
-MIN(t.year) as YearFrom,
-MAX(t.year) as YearTo,
-COALESCE(GenreImages.location,MAX(AlbumImages.location)) as Thumbnail
+MIN(t.year) as MinYear,
+MAX(t.year) as MaxYear,
+COALESCE(GenreImages.location,MAX(AlbumImages.location)) as Thumbnail,
+MIN(t.date_added) as MinDateAdded,
+MAX(t.date_added) as MaxDateAdded,
+MIN(t.date_file_created) as MinDateFileCreated,
+MIN(t.date_file_created) as MaxDateFileCreated #SELECT#
 from Tracks t
 LEFT JOIN TrackAlbums ON TrackAlbums.track_id = t.id
 LEFT JOIN Albums ON Albums.id = TrackAlbums.album_id
-LEFT JOIN AlbumImages ON AlbumImages.album_id = Albums.id AND AlbumImages.album_id is not null
+LEFT JOIN AlbumImages ON Albums.id = AlbumImages.album_id
 LEFT JOIN TrackGenres ON TrackGenres.track_id = t.id
 LEFT JOIN Genres ON TrackGenres.genre_id = Genres.id 
 LEFT JOIN GenreImages ON Genres.id = GenreImages.genre_id 
 LEFT JOIN TrackArtists ON TrackArtists.track_id = t.id
 LEFT JOIN Artists ON Artists.id = TrackArtists.artist_id
-LEFT JOIN Folders ON Folders.id = t.folder_id
-#WHERE# 
+LEFT JOIN Folders ON Folders.id = t.folder_id #JOIN#
+#WHERE#
 GROUP BY Genres.id
 ORDER BY Genres.name
-#LIMIT#";
+#LIMIT#
+";
         }    
     }
 

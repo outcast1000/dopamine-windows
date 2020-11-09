@@ -198,6 +198,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         public bool IsSmallListItemSizeSelected => this.selectedListItemSizeType == ListItemSizeType.Small;
         public bool IsMediumListItemSizeSelected => this.selectedListItemSizeType == ListItemSizeType.Medium;
         public bool IsLargeListItemSizeSelected => this.selectedListItemSizeType == ListItemSizeType.Large;
+        public bool ShowTrackCount => _order == GenreOrder.ByTrackCount;
+        public bool ShowPlaycount => _order == GenreOrder.ByPlayCount;
         public CollectionGenresViewModel(IContainerProvider container) : base(container)
         {
             // Dependency injection
@@ -410,23 +412,26 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         private void OrderItems()
         {
-            SortDescription sd = new SortDescription();
+            ItemsCvs.SortDescriptions.Clear();
             switch (_order)
             {
                 case GenreOrder.AlphabeticalAscending:
-                    sd = new SortDescription("Name", ListSortDirection.Ascending);
+                    ItemsCvs.SortDescriptions.Add(new SortDescription("Data.Name", ListSortDirection.Ascending));
                     break;
                 case GenreOrder.AlphabeticalDescending:
-                    sd = new SortDescription("Name", ListSortDirection.Descending);
+                    ItemsCvs.SortDescriptions.Add(new SortDescription("Data.Name", ListSortDirection.Descending));
                     break;
                 case GenreOrder.ByTrackCount:
-                    sd = new SortDescription("TrackCount", ListSortDirection.Descending);
+                    ItemsCvs.SortDescriptions.Add(new SortDescription("Data.TrackCount", ListSortDirection.Descending));
+                    ItemsCvs.SortDescriptions.Add(new SortDescription("Data.Name", ListSortDirection.Ascending));
+                    break;
+                case GenreOrder.ByPlayCount:
+                    ItemsCvs.SortDescriptions.Add(new SortDescription("Data.PlayCount", ListSortDirection.Descending));
+                    ItemsCvs.SortDescriptions.Add(new SortDescription("Data.Name", ListSortDirection.Ascending));
                     break;
                 default:
                     break;
             }
-            ItemsCvs.SortDescriptions.Clear();
-            ItemsCvs.SortDescriptions.Add(sd);
             UpdateSemanticZoomHeaders();
         }
 
@@ -640,6 +645,9 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                     GenreOrder = GenreOrder.ByTrackCount;
                     break;
                 case GenreOrder.ByTrackCount:
+                    GenreOrder = GenreOrder.ByPlayCount;
+                    break;
+                case GenreOrder.ByPlayCount:
                     GenreOrder = GenreOrder.AlphabeticalAscending;
                     break;
                 default:
@@ -660,6 +668,9 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                     break;
                 case GenreOrder.ByTrackCount:
                     _orderText = ResourceUtils.GetString("Language_By_Track_Count");
+                    break;
+                case GenreOrder.ByPlayCount:
+                    _orderText = ResourceUtils.GetString("Language_By_PlayCount");
                     break;
                 default:
                     // Cannot happen, but just in case.
