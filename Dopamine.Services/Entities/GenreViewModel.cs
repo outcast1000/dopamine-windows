@@ -20,27 +20,17 @@ namespace Dopamine.Services.Entities
             this.isHeader = false;
         }
 
-
-        public long Id
-        {
-            get { return data.Id; }
-        }
-        public GenreV Data
-        {
-            get { return data; }
-            set
-            {
-                //SetProperty<string>(ref genre.Name, value);
-            }
-        }
+        public long Id { get { return data.Id; } }
 
         public string Name
         {
-            get { return data.Name; }
-            set
+            get
             {
-                //SetProperty<string>(ref genre.Name, value);
+                if (string.IsNullOrEmpty(data.Name))
+                    return ResourceUtils.GetString("Language_Unknown_Genre");
+                return data.Name;
             }
+
         }
 
         public string Thumbnail
@@ -52,6 +42,7 @@ namespace Dopamine.Services.Entities
             }
         }
 
+        public GenreV Data { get { return data; } }
         public String GenreItemInfo
         {
             get
@@ -81,7 +72,7 @@ namespace Dopamine.Services.Entities
             }
         }
 
-        public string SortGenreName => FormatUtils.GetSortableString(data.Name, true);
+        public long TrackCount => data.TrackCount;
 
         public string Header => SemanticZoomUtils.GetGroupHeader(data.Name);
 
@@ -90,7 +81,7 @@ namespace Dopamine.Services.Entities
             get { return this.isHeader; }
             set { SetProperty<bool>(ref this.isHeader, value); }
         }
-     
+
         public override string ToString()
         {
             return data.Name;
@@ -102,7 +93,6 @@ namespace Dopamine.Services.Entities
             {
                 return false;
             }
-
             return string.Equals(this.data.Name, ((GenreViewModel)obj).data.Name, StringComparison.CurrentCultureIgnoreCase);
         }
 

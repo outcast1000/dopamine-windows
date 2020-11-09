@@ -2,7 +2,7 @@
 <Settings>
 	<Namespace Name="Configuration">
 		<Setting Name="Version">
-			<Value>131</Value>
+			<Value>132</Value>
 		</Setting>
 		<Setting Name="IsPortable">
 			<Value>False</Value>
@@ -60,6 +60,9 @@
 		<Setting Name="TrackOrder">
 			<Value>2</Value>
 		</Setting>
+		<Setting Name="ListItemSize">
+			<Value>2</Value>
+		</Setting>
 	</Namespace>
 	<Namespace Name="CollectionGenres">
 		<Setting Name="ListBoxScrollPos">
@@ -75,6 +78,9 @@
 			<Value>1</Value>
 		</Setting>
 		<Setting Name="TrackOrder">
+			<Value>2</Value>
+		</Setting>
+		<Setting Name="ListItemSize">
 			<Value>2</Value>
 		</Setting>
 	</Namespace>
