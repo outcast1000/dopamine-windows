@@ -112,7 +112,7 @@
                     HorizontalAlignment="Stretch"
                     FontSize="13"
                     Foreground="{DynamicResource Brush_SecondaryText}"
-                    TotalTracksInformation="{Binding ItemsCount}"/>
+                    TotalTracksInformation="{Binding ItemsCount}" />
                 <Grid>
                     <Border Panel.ZIndex="0" Visibility="{Binding IsZoomVisible, Converter={StaticResource InvertingBooleanToCollapsedConverter}}">
                         <pc:MultiSelectListBoxEx
@@ -197,11 +197,10 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border
-                                    BorderThickness="1"
-                                    CornerRadius="10"
-                                    BorderBrush="Black"
-                                    Margin="5,0,5,0"
-                                    Background="{DynamicResource Brush_ItemSelected}">
+                                    BorderThickness="0"
+                                    CornerRadius="4"
+                                    BorderBrush="{DynamicResource Brush_SecondaryText}"
+                                    Margin="10,0,0,0">
                                     <Border.InputBindings>
                                         <MouseBinding
                                             MouseAction="LeftClick"
@@ -210,8 +209,8 @@
                                     </Border.InputBindings>
 
                                     <StackPanel
-                                        HorizontalAlignment="Stretch"
-                                        VerticalAlignment="Stretch"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
                                         Orientation="Horizontal">
                                         <Grid Width="64" Height="48">
                                             <Border
@@ -219,7 +218,7 @@
                                                 Background="White"
                                                 BorderBrush="#FF3B5998"
                                                 BorderThickness=".5"
-                                                CornerRadius="10,0,0,10" />
+                                                CornerRadius="10,10,10,10" />
                                             <Image
                                                 Visibility="Visible"
                                                 Stretch="UniformToFill"
@@ -237,12 +236,16 @@
                                             </Grid.OpacityMask>
                                         </Grid>
                                         <TextBlock
-                                            Margin="10,0,10,0"
-                                            Foreground="Beige"
+                                            Margin="5,0,10,0"
+                                            Foreground="{DynamicResource Brush_PrimaryText}"
+                                            MaxHeight="48"
+                                            MaxWidth="100"
+                                            TextTrimming="CharacterEllipsis"
                                             Text="{Binding Name}"
-                                            FontSize="20"
+                                            TextWrapping="WrapWithOverflow"
+                                            FontSize="14"
                                             FontWeight="Light"
-                                            HorizontalAlignment="Stretch"
+                                            HorizontalAlignment="Left"
                                             VerticalAlignment="Center"
                                             TextAlignment="Center" />
                                     </StackPanel>
