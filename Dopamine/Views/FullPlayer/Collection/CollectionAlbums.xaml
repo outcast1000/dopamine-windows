@@ -1,19 +1,19 @@
 ﻿<baseviews:TracksViewBase
     x:Class="Dopamine.Views.FullPlayer.Collection.CollectionAlbums"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:dc="clr-namespace:Digimezzo.Foundation.WPF.Controls;assembly=Digimezzo.Foundation.WPF"
     xmlns:baseviews="clr-namespace:Dopamine.Views.Common.Base"
-    xmlns:pc="clr-namespace:Dopamine.Controls"
-    xmlns:corebase="clr-namespace:Dopamine.Core.Base;assembly=Dopamine.Core"
-    xmlns:prismMvvm="clr-namespace:Prism.Mvvm;assembly=Prism.Wpf"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dc="clr-namespace:Digimezzo.Foundation.WPF.Controls;assembly=Digimezzo.Foundation.WPF"
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
-    mc:Ignorable="d"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:pc="clr-namespace:Dopamine.Controls"
+    xmlns:prismMvvm="clr-namespace:Prism.Mvvm;assembly=Prism.Wpf"
+    xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
     d:DesignHeight="300"
     d:DesignWidth="300"
-    prismMvvm:ViewModelLocator.AutoWireViewModel="True">
+    prismMvvm:ViewModelLocator.AutoWireViewModel="True"
+    mc:Ignorable="d">
 
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">
@@ -58,6 +58,14 @@
             </Storyboard>
         </Storyboard>
         <BitmapImage x:Key="DefaultImage" UriSource="/Resources/Media/no_album_image.png" />
+        <Style x:Key="HeaderTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontWeight" Value="Light" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush_PrimaryText}" />
+            <Setter Property="Margin" Value="2" />
+        </Style>
     </baseviews:TracksViewBase.Resources>
 
 
@@ -69,80 +77,98 @@
         </Grid.ColumnDefinitions>
 
         <Border Background="{DynamicResource Brush_PaneBackground}" Grid.Column="0">
-            <DockPanel Margin="10,20,10,26">
-                <DockPanel Margin="10,0,10,20" DockPanel.Dock="Top">
-                    <TextBlock
-                        Text="{Binding ItemsCount}"
-                        FontSize="13"
-                        Foreground="{DynamicResource Brush_Accent}"
-                        DockPanel.Dock="Left" />
-                    <Button
-                        x:Name="ShuffleAllButton"
-                        DockPanel.Dock="Right"
-                        Margin="20,0,0,0"
-                        FontSize="13"
-                        Style="{StaticResource TransparentButton}"
-                        VerticalContentAlignment="Center"
-                        ToolTip="{DynamicResource Language_Shuffle_All}"
-                        Command="{Binding DataContext.ShuffleAllCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
-                        <StackPanel Orientation="Horizontal">
+            <DockPanel Margin="10,0,10,0">
+                <DockPanel
+                    Margin="5,0,5,0"
+                    DockPanel.Dock="Top"
+                    Height="64">
+                    <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource HeaderTitle}" Text="{DynamicResource Language_Albums}" />
+                        <Button
+                            Margin="10,0,5,0"
+                            VerticalContentAlignment="Center"
+                            Command="{Binding ToggleOrderCommand}"
+                            Content="{Binding ItemOrderText}"
+                            DockPanel.Dock="Right"
+                            Foreground="{DynamicResource Brush_SecondaryText}"
+                            Style="{StaticResource TransparentButton}"
+                            ToolTip="{DynamicResource Language_Toggle_Album_Order}" />
+                        <Button
+                            Margin="10,0,5,0"
+                            VerticalContentAlignment="Center"
+                            Command="{Binding DataContext.ShuffleAllCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+                            Style="{StaticResource TransparentButton}"
+                            ToolTip="{DynamicResource Language_Shuffle_All}">
                             <TextBlock
-                                Text="&#xE8B1;"
                                 Style="{StaticResource SegoeAssets}"
-                                FontSize="16"
-                                Margin="0,1,5,0"
-                                Foreground="{DynamicResource Brush_SecondaryText}" />
-                            <TextBlock
-                                FontSize="13"
-                                Text="{DynamicResource Language_Shuffle_All}"
-                                Foreground="{DynamicResource Brush_SecondaryText}" />
-                        </StackPanel>
-                    </Button>
-                    <Button
-                        DockPanel.Dock="Right"
-                        Content="{Binding ItemOrderText}"
-                        Style="{StaticResource TransparentButton}"
-                        FontSize="13"
-                        Margin="10,0,0,0"
-                        Foreground="{DynamicResource Brush_SecondaryText}"
-                        Command="{Binding ToggleOrderCommand}"
-                        ToolTip="{DynamicResource Language_Toggle_Album_Order}" />
-                    <Button
-                        x:Name="AlbumsButton"
-                        Content="{DynamicResource Language_Albums}"
-                        FontSize="13"
-                        Margin="10,0,0,0"
-                        Style="{StaticResource TransparentButton}"
-                        Foreground="{DynamicResource Brush_PrimaryText}"
-                        Click="AlbumsButton_Click"
-                        ToolTip="{DynamicResource Language_Select_None}" />
+                                Foreground="{DynamicResource Brush_SecondaryText}"
+                                Text="&#xE8B1;" />
+                        </Button>
+                    </StackPanel>
                 </DockPanel>
-                <pc:MultiSelectListBoxEx
-                    x:Name="ListBoxAlbums"
-                    VerticalAlignment="Top"
-                    BorderThickness="0"
-                    ItemsSource="{Binding ItemsCvs.View}"
-                    MouseDoubleClick="ListBoxAlbums_MouseDoubleClick"
-                    PreviewKeyDown="ListBoxAlbums_PreviewKeyDown"
-                    SelectionMode="Extended"
-                    Style="{StaticResource ListBoxAlbums}"
+                <pc:TotalsInformation
+                    Margin="10"
+                    DockPanel.Dock="Bottom"
+                    HorizontalAlignment="Stretch"
+                    FontSize="13"
+                    Foreground="{DynamicResource Brush_SecondaryText}"
+                    TotalTracksInformation="{Binding ItemsCount}" />
+                <Grid>
+                    <Border Panel.ZIndex="0" Visibility="{Binding IsZoomVisible, Converter={StaticResource InvertingBooleanToCollapsedConverter}}">
+                        <pc:MultiSelectListBoxEx
+                    		x:Name="ListBoxAlbums"
+                            BorderThickness="0"
+                            ItemsSource="{Binding ItemsCvs.View}"
+                    		MouseDoubleClick="ListBoxAlbums_MouseDoubleClick"
+                    		PreviewKeyDown="ListBoxAlbums_PreviewKeyDown"
+                            SelectionMode="Extended"
+                    		Style="{StaticResource ListBoxAlbums}"
                             HorizontalContentAlignment="Stretch"
                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                             ScrollPos="{Binding ListBoxScrollPos, Mode=TwoWay}"
-                    VirtualizingPanel.IsVirtualizingWhenGrouping="True"
-                    VirtualizingStackPanel.IsVirtualizing="True"
-                    VirtualizingStackPanel.VirtualizationMode="Recycling">
-                    <i:Interaction.Triggers>
-                        <i:EventTrigger EventName="SelectionChanged">
-                            <i:InvokeCommandAction Command="{Binding SelectedAlbumsCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=SelectedItems}" />
-                        </i:EventTrigger>
-                        <!--
-                        <i:EventTrigger EventName="PreviewMouseRightButtonDown">
-                            <i:InvokeCommandAction Command="{Binding DelaySelectedAlbumsCommand}" />
-                        </i:EventTrigger>
-                        -->
-                    </i:Interaction.Triggers>
-                </pc:MultiSelectListBoxEx>
+                            VirtualizingPanel.IsVirtualizingWhenGrouping="True"
+                            VirtualizingStackPanel.IsVirtualizing="True"
+                            VirtualizingStackPanel.VirtualizationMode="Recycling">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="SelectionChanged">
+                            		<i:InvokeCommandAction Command="{Binding SelectedAlbumsCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=SelectedItems}" />
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </pc:MultiSelectListBoxEx>
+                    </Border>
+                    <Border
+                        MaxWidth="300"
+                        Panel.ZIndex="1"
+                        Visibility="{Binding IsZoomVisible, Converter={StaticResource BooleanToCollapsedConverter}}">
+                        <Border
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            Panel.ZIndex="1"
+                            Background="#00000000"
+                            Opacity="0">
+                            <Border.Style>
+                                <Style>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsZoomVisible}" Value="True">
+                                            <DataTrigger.EnterActions>
+                                                <BeginStoryboard Storyboard="{StaticResource ShowSemanticZoom}" />
+                                            </DataTrigger.EnterActions>
+                                            <DataTrigger.ExitActions>
+                                                <BeginStoryboard Storyboard="{StaticResource HideSemanticZoom}" />
+                                            </DataTrigger.ExitActions>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <ListBox
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                ItemsSource="{Binding ZoomSelectors}"
+                                Style="{StaticResource ListBoxSemanticZoom}" />
+                        </Border>
+                    </Border>
+                </Grid>
+
             </DockPanel>
         </Border>
 
@@ -152,28 +178,16 @@
             VerticalAlignment="Stretch"
             Style="{StaticResource MainGridSplitterStyle}" />
         <Border Background="{DynamicResource Brush_PaneBackground}" Grid.Column="2">
-            <DockPanel Margin="10,5,10,5">
-                <DockPanel Margin="5,0,5,0" DockPanel.Dock="Top">
-                    <Button
-                        Margin="10,0,0,0"
-                        Command="{Binding ToggleTrackOrderCommand}"
-                        Content="{Binding TrackOrderText}"
-                        DockPanel.Dock="Right"
-                        Foreground="{DynamicResource Brush_SecondaryText}"
-                        Style="{StaticResource TransparentButton}"
-                        ToolTip="{DynamicResource Language_Toggle_Track_Order}" />
-                    <TextBlock
-                        Margin="0,0,10,0"
-                        Foreground="{DynamicResource Brush_PrimaryText}"
-                        VerticalAlignment="Center"
-                        FontSize="20"
-                        FontWeight="Light"
-                        Text="{DynamicResource Language_Songs}" />
-
+            <DockPanel Margin="10,0,10,0">
+                <DockPanel
+                    Margin="5,0,5,0"
+                    DockPanel.Dock="Top"
+                    Height="64">
                     <ItemsControl
                         ItemsSource="{Binding SelectedItemsCvs.View}"
-                        HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
+                        Visibility="{Binding InSearchMode, Converter={StaticResource InvertingBooleanToVisibilityConverter}}"
+                        DockPanel.Dock="Right"
                         Padding="0,5">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -183,11 +197,10 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border
-                                    BorderThickness="1"
-                                    CornerRadius="10"
-                                    BorderBrush="Black"
-                                    Margin="5,0,5,0"
-                                    Background="{DynamicResource Brush_ItemSelected}">
+                                    BorderThickness="0"
+                                    CornerRadius="4"
+                                    BorderBrush="{DynamicResource Brush_SecondaryText}"
+                                    Margin="10,0,0,0">
                                     <Border.InputBindings>
                                         <MouseBinding
                                             MouseAction="LeftClick"
@@ -196,8 +209,8 @@
                                     </Border.InputBindings>
 
                                     <StackPanel
-                                        HorizontalAlignment="Stretch"
-                                        VerticalAlignment="Stretch"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
                                         Orientation="Horizontal">
                                         <Grid Width="64" Height="48">
                                             <Border
@@ -205,7 +218,7 @@
                                                 Background="White"
                                                 BorderBrush="#FF3B5998"
                                                 BorderThickness=".5"
-                                                CornerRadius="10,0,0,10" />
+                                                CornerRadius="10,10,10,10" />
                                             <Image
                                                 Visibility="Visible"
                                                 Stretch="UniformToFill"
@@ -226,8 +239,11 @@
                                         <TextBlock
                                             Margin="10,0,10,0"
                                             Foreground="{DynamicResource Brush_PrimaryText}"
+                                            MaxHeight="48"
+                                            MaxWidth="100"
+                                            TextTrimming="CharacterEllipsis"
                                             Text="{Binding Name}"
-                                            FontSize="20"
+                                            FontSize="14"
                                             FontWeight="Light"
                                             HorizontalAlignment="Stretch"
                                             VerticalAlignment="Center"
@@ -246,10 +262,30 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
+                    <TextBlock Style="{StaticResource HeaderTitle}" Text="{DynamicResource Language_Songs}" />
+                    <Button
+                        Margin="10,0,5,0"
+                        Command="{Binding ToggleTrackOrderCommand}"
+                        Content="{Binding TrackOrderText}"
+                        VerticalAlignment="Center"
+                        Foreground="{DynamicResource Brush_SecondaryText}"
+                        Style="{StaticResource TransparentButton}"
+                        ToolTip="{DynamicResource Language_Toggle_Track_Order}" />
+                    <Button
+                        Margin="10,0,5,0"
+                        VerticalContentAlignment="Center"
+                        Command="{Binding DataContext.ShuffleAllTracksCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+                        Style="{StaticResource TransparentButton}"
+                        ToolTip="{DynamicResource Language_Shuffle_All}">
+                        <TextBlock
+                            Style="{StaticResource SegoeAssets}"
+                            Foreground="{DynamicResource Brush_SecondaryText}"
+                            Text="&#xE8B1;" />
+                    </Button>
                 </DockPanel>
                 <DockPanel>
                     <pc:TotalsInformation
-                        Margin="10,20,10,0"
+                        Margin="10"
                         DockPanel.Dock="Bottom"
                         FontSize="13"
                         Foreground="{DynamicResource Brush_SecondaryText}"

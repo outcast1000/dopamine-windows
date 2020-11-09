@@ -53,14 +53,12 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private string _orderText;
         private AlbumOrder _order;
         private ObservableCollection<SearchProvider> albumContextMenuSearchProviders;
-        private CoverSizeType selectedCoverSize;
-        private double coverSize;
-        private double albumWidth;
-        private double albumHeight;
+        private ListItemSizeType selectedListItemSizeType;
         private readonly string Settings_NameSpace = "CollectionAlbums";
         private readonly string Setting_ListBoxScrollPos = "ListBoxScrollPos";
         private readonly string Setting_SelectedIDs = "SelectedIDs";
         private readonly string Setting_ItemOrder = "ItemOrder";
+        private readonly string Setting_ListItemSize = "ListItemSize";
 
         public delegate void EnsureSelectedItemVisibleAction(AlbumViewModel item);
         public event EnsureSelectedItemVisibleAction EnsureItemVisible;
@@ -90,7 +88,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         public DelegateCommand<string> AlbumSearchOnlineCommand { get; set; }
 
-        public DelegateCommand<string> SetCoverSizeCommand { get; set; }
+        public DelegateCommand<string> SetListItemSizeCommand { get; set; }
 
         public DelegateCommand EditAlbumCommand { get; set; }
 
@@ -143,6 +141,14 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
         }
 
+        public int SemanticRows
+        {
+            get
+            {
+                return ZoomSelectors == null ? 12 : ZoomSelectors.Count / 4 + 1;
+            }
+        }
+
         private GridLength _leftPaneGridLength;
         public GridLength LeftPaneWidth
         {
@@ -159,8 +165,13 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
         }
 
-        public bool InSearchMode { get { return !string.IsNullOrEmpty(_searchString); } }
-
+        private bool _inSearchMode;
+        public bool InSearchMode
+        {
+            get { return _inSearchMode; }
+            set { SetProperty<bool>(ref _inSearchMode, value); }
+        }
+        
         public CollectionViewSource ItemsCvs
         {
             get { return _collectionViewSource; }
@@ -215,32 +226,30 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             set { ZoomSelectors = value; }
         }
 
-        public double CoverSize
+        private bool _isImageVisible;
+        public bool IsImageVisible
         {
-            get { return this.coverSize; }
-            set { SetProperty<double>(ref this.coverSize, value); }
+            get { return _isImageVisible; }
+            set { SetProperty<bool>(ref _isImageVisible, value); }
         }
 
-        public double AlbumWidth
+        private bool _isExtraInfoVisible;
+        public bool IsExtraInfoVisible
         {
-            get { return this.albumWidth; }
-            set { SetProperty<double>(ref this.albumWidth, value); }
+            get { return _isExtraInfoVisible; }
+            set { SetProperty<bool>(ref _isExtraInfoVisible, value); }
         }
 
-        public double AlbumHeight
+        private int _imageHeight;
+        public int ImageHeight
         {
-            get { return this.albumHeight; }
-            set { SetProperty<double>(ref this.albumHeight, value); }
+            get { return _imageHeight; }
+            set { SetProperty<int>(ref _imageHeight, value); }
         }
 
-        public new double UpscaledCoverSize => this.CoverSize * Constants.CoverUpscaleFactor;
-
-        public bool IsSmallCoverSizeSelected => this.selectedCoverSize == CoverSizeType.Small;
-
-        public bool IsMediumCoverSizeSelected => this.selectedCoverSize == CoverSizeType.Medium;
-
-        public bool IsLargeCoverSizeSelected => this.selectedCoverSize == CoverSizeType.Large;
-
+        public bool IsSmallListItemSizeSelected => this.selectedListItemSizeType == ListItemSizeType.Small;
+        public bool IsMediumListItemSizeSelected => this.selectedListItemSizeType == ListItemSizeType.Medium;
+        public bool IsLargeListItemSizeSelected => this.selectedListItemSizeType == ListItemSizeType.Large;
 
         public CollectionAlbumsViewModel(IContainerProvider container) : base(container)
         {
@@ -288,11 +297,11 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 _eventAggregator.GetEvent<PerformSemanticJump>().Publish(new Tuple<string, string>("Albums", header));
             });
 
-            SetCoverSizeCommand = new DelegateCommand<string>(async (coverSize) =>
+            SetListItemSizeCommand = new DelegateCommand<string>(async (listItemSize) =>
             {
-                if (int.TryParse(coverSize, out int selectedCoverSize))
+                if (int.TryParse(listItemSize, out int selectedListItemSize))
                 {
-                    await this.SetCoversizeAsync((CoverSizeType)selectedCoverSize);
+                    SetListItemSize((ListItemSizeType)selectedListItemSize);
                 }
             });
 
@@ -339,8 +348,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             SetTrackOrder((TrackOrder)SettingsClient.Get<int>(Settings_NameSpace, CollectionUtils.Setting_TrackOrder));
             ListBoxScrollPos = SettingsClient.Get<double>(Settings_NameSpace, Setting_ListBoxScrollPos);
             LeftPaneWidth = CollectionUtils.String2GridLength(SettingsClient.Get<string>(Settings_NameSpace, CollectionUtils.Setting_LeftPaneGridLength));
-            // Cover size
-            Task unAwaitedTask = SetCoversizeAsync((CoverSizeType)SettingsClient.Get<int>("CoverSizes", "AlbumsCoverSize"));
+            SetListItemSize((ListItemSizeType)SettingsClient.Get<int>(Settings_NameSpace, Setting_ListItemSize));
             LoadSelectedItems();
 
         }
@@ -567,6 +575,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             SelectionChanged?.Invoke();
 
         }
+
         private async Task AddItemsToPlaylistAsync(IList<AlbumViewModel> items, string playlistName)
         {
             CreateNewPlaylistResult addPlaylistResult = CreateNewPlaylistResult.Success; // Default Success
@@ -687,6 +696,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         protected override async void FilterListsAsync(string searchText)
         {
+            InSearchMode = !string.IsNullOrEmpty(searchText);
             if (!_searchString.Equals(searchText))
             {
                 _searchString = searchText;
@@ -769,44 +779,33 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             RaisePropertyChanged(nameof(ItemOrderText));
         }
 		
-		private async Task SetCoversizeAsync(CoverSizeType coverSize)
+		private void SetListItemSize(ListItemSizeType listItemSize)
         {
-            await Task.Run(() =>
+			SettingsClient.Set<int>(Settings_NameSpace, Setting_ListItemSize, (int)listItemSize);
+            selectedListItemSizeType = listItemSize;
+
+            switch (listItemSize)
             {
-				SettingsClient.Set<int>("CoverSizes", "AlbumsCoverSize", (int)coverSize);
-               selectedCoverSize = coverSize;
-
-                switch (coverSize)
-                {
-                    case CoverSizeType.Small:
-                       CoverSize = Constants.CoverSmallSize;
-                        break;
-                    case CoverSizeType.Medium:
-                       CoverSize = Constants.CoverMediumSize;
-                        break;
-                    case CoverSizeType.Large:
-                       CoverSize = Constants.CoverLargeSize;
-                        break;
-                    default:
-                       CoverSize = Constants.CoverMediumSize;
-                       selectedCoverSize = CoverSizeType.Medium;
-                        break;
-                }
-
-                //AlbumWidth =CoverSize + Constants.AlbumTilePadding.Left + Constants.AlbumTilePadding.Right + Constants.AlbumTileMargin.Left + Constants.AlbumTileMargin.Right;
-               AlbumWidth = CoverSize + Constants.AlbumTileMargin.Left + Constants.AlbumTileMargin.Right;
-               AlbumHeight = AlbumWidth + Constants.AlbumTileAlbumInfoHeight + Constants.AlbumSelectionBorderSize;
-
-                RaisePropertyChanged(nameof(this.CoverSize));
-                RaisePropertyChanged(nameof(this.AlbumWidth));
-                RaisePropertyChanged(nameof(this.AlbumHeight));
-                RaisePropertyChanged(nameof(this.UpscaledCoverSize));
-                RaisePropertyChanged(nameof(this.IsSmallCoverSizeSelected));
-                RaisePropertyChanged(nameof(this.IsMediumCoverSizeSelected));
-                RaisePropertyChanged(nameof(this.IsLargeCoverSizeSelected));
-            });
+                case ListItemSizeType.Small:
+                    IsImageVisible = false;
+                    IsExtraInfoVisible = false;
+                    break;
+                default:
+                case ListItemSizeType.Medium:
+                    IsImageVisible = true;
+                    ImageHeight = 100;
+                    IsExtraInfoVisible = true;
+                    break;
+                case ListItemSizeType.Large:
+                    IsImageVisible = true;
+                    ImageHeight = 200;
+                    IsExtraInfoVisible = true;
+                    break;
+            }
+            RaisePropertyChanged(nameof(this.IsSmallListItemSizeSelected));
+            RaisePropertyChanged(nameof(this.IsMediumListItemSizeSelected));
+            RaisePropertyChanged(nameof(this.IsLargeListItemSizeSelected));
         }
-
         private void EditSelectedAlbum()
         {
             if (this.SelectedItems?.Count != 1)

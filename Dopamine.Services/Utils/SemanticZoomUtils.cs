@@ -100,7 +100,7 @@ namespace Dopamine.Services.Utils
                 return string.Empty;
             //=== ALEX: Make it group also international characters
             string firstLetter = FormatUtils.GetSortableString(originalString, removePrefix).Substring(0, 1);
-            if ("`1234567890-=[];'\\,./~!@#$%^&*()_+{}:\"|<>? ".Contains(firstLetter))
+            if ("`1234567890-=[];'\\,./~!@#$%^&*()_+{}:\"|<>?… ".Contains(firstLetter))
                 return "#";
 
             return firstLetter;
