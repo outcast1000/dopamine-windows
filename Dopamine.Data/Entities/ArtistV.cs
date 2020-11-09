@@ -32,9 +32,13 @@ namespace Dopamine.Data.Entities
 
         public long? MaxYear { get; set; }
 
-        public DateTime DateAdded { get; set; }
+        public DateTime MinDateAdded { get; set; }
 
-        public DateTime DateFileCreated { get; set; }
+        public DateTime MaxDateAdded { get; set; }
+
+        public DateTime MinDateFileCreated { get; set; }
+
+        public DateTime MaxDateFileCreated { get; set; }
 
         // History
         public long? PlayCount { get; set; }

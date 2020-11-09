@@ -122,13 +122,7 @@ namespace Dopamine.Services.Entities
                 Thumbnail = artist.Thumbnail;
         }
 
-        public DateTime DateAdded { get { return data.DateAdded; } }
-
-        public DateTime DateFileCreated { get { return data.DateFileCreated; } }
-
-        public long? Year { get { return data.MinYear; } }
-
-        public string Header => SemanticZoomUtils.GetGroupHeader(Name, true);
+        public string Header => SemanticZoomUtils.GetGroupHeader(Data.Name, true);
 
         public bool IsHeader
         {

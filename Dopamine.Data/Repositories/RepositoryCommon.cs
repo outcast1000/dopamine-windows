@@ -56,10 +56,10 @@ namespace Dopamine.Data.Repositories
             //=== History
             if (queryOptions.GetHistory == true)
             {
-                queryOptions.extraSelectClause.Add("TrackHistoryStats.plays as PlayCount");
-                queryOptions.extraSelectClause.Add("TrackHistoryStats.skips as SkipCount");
-                queryOptions.extraSelectClause.Add("TrackHistoryStats.first_played as DateLastPlayed");
-                queryOptions.extraSelectClause.Add("TrackHistoryStats.last_played as DateFirstPlayed");
+                queryOptions.extraSelectClause.Add("SUM(TrackHistoryStats.plays) as PlayCount");
+                queryOptions.extraSelectClause.Add("SUM(TrackHistoryStats.skips) as SkipCount");
+                queryOptions.extraSelectClause.Add("MIN(TrackHistoryStats.first_played) as DateFirstPlayed");
+                queryOptions.extraSelectClause.Add("MAX(TrackHistoryStats.last_played) as DateLastPlayed");
                 queryOptions.extraJoinClause.Add("LEFT JOIN TrackHistoryStats on t.id=TrackHistoryStats.track_id");
             }
             //=== WhereVisibleFolders

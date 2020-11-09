@@ -465,4 +465,5 @@
 	<Text Key="Review">Review</Text>
 	<Text Key="Image">Image</Text>
 	<Text Key="Item_Style">Item style</Text>
+	<Text Key="By_PlayCount">By play count</Text>
 </Language>

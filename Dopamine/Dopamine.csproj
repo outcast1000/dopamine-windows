@@ -217,6 +217,7 @@
     <Compile Include="Controls\TransitioningContentControl.cs" />
     <Compile Include="Controls\ZoomInContentControl.cs" />
     <Compile Include="Converters\IntegerAddOneConverter.cs" />
+    <Compile Include="Converters\TwoDatesToDateRangeConverter.cs" />
     <Compile Include="Converters\MultiplyConverter.cs" />
     <Compile Include="Converters\TicksToDateTimeConverter.cs" />
     <Compile Include="Converters\HistoryActionIdToStringConverter.cs" />

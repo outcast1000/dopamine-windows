@@ -45,7 +45,8 @@
         ByDateCreated = 4,
         ByTrackCount = 5,
         ByYearDescending = 6,
-        ByYearAscending = 7
+        ByYearAscending = 7,
+        ByPlayCount = 8
     }
 
     public enum GenreOrder

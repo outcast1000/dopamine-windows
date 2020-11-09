@@ -53,13 +53,13 @@ namespace Dopamine.Services.Entities
         public long SortDuration => this.Data.Duration.HasValue ? this.Data.Duration.Value : 0;
 
         // SortAlbumTitle is used to sort by AlbumTitle, then by TrackNumber.
-        public string SortAlbumTitle => this.AlbumTitle + this.Data.TrackNumber.Value.ToString("0000");
+        public string SortAlbumTitle => this.AlbumTitle + (this.Data.TrackNumber.HasValue ? this.Data.TrackNumber.Value.ToString("0000") : string.Empty);
 
         // SortAlbumArtist is used to sort by AlbumArtists, then by AlbumTitle, then by TrackNumber.
-        public string SortAlbumArtist => this.AlbumArtist + this.AlbumTitle + this.Data.TrackNumber.Value.ToString("0000");
+        public string SortAlbumArtist => this.AlbumArtist + this.AlbumTitle + (this.Data.TrackNumber.HasValue ? this.Data.TrackNumber.Value.ToString("0000") : string.Empty);
 
         // SortArtistName is used to sort by ArtistName, then by AlbumTitle, then by TrackNumber.
-        public string SortArtistName => this.ArtistName + this.AlbumTitle + this.Data.TrackNumber.Value.ToString("0000");
+        public string SortArtistName => this.ArtistName + this.AlbumTitle + (this.Data.TrackNumber.HasValue ? this.Data.TrackNumber.Value.ToString("0000") : string.Empty);
 
         public long SortBitrate => this.Data.BitRate.GetValueOrZero();
 

@@ -35,6 +35,7 @@
     <!--  Brushes  -->
     <SolidColorBrush x:Key="Brush_PrimaryText" Color="{DynamicResource Color_SoftWhite}" />
     <SolidColorBrush x:Key="Brush_SecondaryText" Color="{DynamicResource Color_DarkGrey8}" />
+    <SolidColorBrush x:Key="Brush_AlternativeText" Color="{DynamicResource Color_DarkBlue}" />
     <SolidColorBrush x:Key="Brush_WindowHeaderBackground" Color="{StaticResource Color_DarkGrey1}" />
     <SolidColorBrush x:Key="Brush_PaneBackground" Color="{DynamicResource Color_DarkGrey2}" />
     <SolidColorBrush x:Key="Brush_MainWindowBackground" Color="{DynamicResource Color_DarkGrey3}" />

@@ -102,8 +102,10 @@ MIN(t.year) as MinYear,
 MAX(t.year) as MaxYear,
 COALESCE(ArtistImages.location, MAX(AlbumImages.location)) as Thumbnail,
 ArtistImages.location as ArtistImage,
-MIN(t.date_added) as DateAdded,
-MIN(t.date_file_created) as DateFileCreated #SELECT#
+MIN(t.date_added) as MinDateAdded,
+MAX(t.date_added) as MaxDateAdded,
+MIN(t.date_file_created) as MinDateFileCreated,
+MIN(t.date_file_created) as MaxDateFileCreated #SELECT#
 from Tracks t
 LEFT JOIN TrackArtists  ON TrackArtists.track_id = t.id
 LEFT JOIN Artists ON Artists.id = TrackArtists.artist_id
