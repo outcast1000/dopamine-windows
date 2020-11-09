@@ -84,6 +84,8 @@ namespace Dopamine.Data.UnitOfWorks
                 mediaFileData.AlbumArtists = mediaFileData.AlbumArtists.Distinct().ToList();
                 foreach (string artist in mediaFileData.AlbumArtists)
                 {
+                    if (string.IsNullOrWhiteSpace(artist))
+                        continue;
                     artistCollection.Add(GetArtistID(artist));
                 }
             }
@@ -94,6 +96,8 @@ namespace Dopamine.Data.UnitOfWorks
                 mediaFileData.Artists = mediaFileData.Artists.Distinct().ToList();
                 foreach (string artist in mediaFileData.Artists)
                 {
+                    if (string.IsNullOrWhiteSpace(artist))
+                        continue;
                     long curID = GetArtistID(artist);
                     if (bUseArtistForAlbumArtistCollection)
                         artistCollection.Add(curID);
@@ -106,7 +110,7 @@ namespace Dopamine.Data.UnitOfWorks
                 }
             }
 
-            if (!string.IsNullOrEmpty(mediaFileData.Album))
+            if (!string.IsNullOrWhiteSpace(mediaFileData.Album))
             {
                 long artistCollectionID = GetArtistCollectionID(artistCollection);
                 result.AlbumId = GetAlbumID(mediaFileData.Album, artistCollectionID);
@@ -134,6 +138,8 @@ namespace Dopamine.Data.UnitOfWorks
                 mediaFileData.Genres = mediaFileData.Genres.Distinct().ToList();
                 foreach (string genre in mediaFileData.Genres)
                 {
+                    if (string.IsNullOrWhiteSpace(genre))
+                        continue;
                     long curID = GetGenreID(genre);
                     try
                     {
@@ -210,6 +216,8 @@ namespace Dopamine.Data.UnitOfWorks
                 mediaFileData.AlbumArtists = mediaFileData.AlbumArtists.Distinct().ToList();
                 foreach (string artist in mediaFileData.AlbumArtists)
                 {
+                    if (string.IsNullOrWhiteSpace(artist))
+                        continue;
                     artistCollection.Add(GetArtistID(artist));
                 }
             }
@@ -222,6 +230,8 @@ namespace Dopamine.Data.UnitOfWorks
 
                 foreach (string artist in mediaFileData.Artists)
                 {
+                    if (string.IsNullOrWhiteSpace(artist))
+                        continue;
                     long curID = GetArtistID(artist);
                     if (bUseArtistForAlbumArtistCollection)
                         artistCollection.Add(curID);
@@ -235,7 +245,7 @@ namespace Dopamine.Data.UnitOfWorks
             }
 
             conn.Execute(String.Format("DELETE FROM TrackAlbums WHERE track_id={0}", track_id));
-            if (!string.IsNullOrEmpty(mediaFileData.Album))
+            if (!string.IsNullOrWhiteSpace(mediaFileData.Album))
             {
                 long artistCollectionID = GetArtistCollectionID(artistCollection);
                 updateMediaFileResult.AlbumId = GetAlbumID(mediaFileData.Album, artistCollectionID);
@@ -264,6 +274,8 @@ namespace Dopamine.Data.UnitOfWorks
                 mediaFileData.Genres = mediaFileData.Genres.Distinct().ToList();
                 foreach (string genre in mediaFileData.Genres)
                 {
+                    if (string.IsNullOrWhiteSpace(genre))
+                        continue;
                     long curID = GetGenreID(genre);
                     try
                     {
@@ -282,7 +294,7 @@ namespace Dopamine.Data.UnitOfWorks
             }
 
             conn.Execute(String.Format("DELETE FROM TrackLyrics WHERE track_id={0}", track_id));
-            if (mediaFileData.Lyrics != null)
+            if (mediaFileData.Lyrics != null && mediaFileData.Lyrics.Text != null && mediaFileData.Lyrics.Text.Length > 0)
             {
                 try
                 {
