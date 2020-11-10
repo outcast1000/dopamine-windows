@@ -112,8 +112,15 @@ namespace Dopamine.Data.UnitOfWorks
 
             if (!string.IsNullOrWhiteSpace(mediaFileData.Album))
             {
-                long artistCollectionID = GetArtistCollectionID(artistCollection);
-                result.AlbumId = GetAlbumID(mediaFileData.Album, artistCollectionID);
+                if (artistCollection.IsNullOrEmpty())
+                {
+                    result.AlbumId = GetAlbumID(mediaFileData.Album, null);
+                }
+                else
+                {
+                    long artistCollectionID = GetArtistCollectionID(artistCollection);
+                    result.AlbumId = GetAlbumID(mediaFileData.Album, artistCollectionID);
+                }
                 try
                 {
                     conn.Insert(new TrackAlbum()
@@ -366,17 +373,26 @@ WHERE artist_id IN (" + inString + ") AND AGROUP.C=" + artistIDs.Count.ToString(
             return artist_collection_id;
         }
 
-        private long GetAlbumID(String entry, long artist_collection_id)
+        private long GetAlbumID(String entry, long? artist_collection_id)
         {
             //=== Normalization
             entry = entry.Trim();
             //=== Normalization End
-            long? id = conn.ExecuteScalar<long?>("SELECT id FROM Albums WHERE name=? AND artist_collection_ID=?", entry, artist_collection_id);
-            if (id != null)
-                return (long) id;
+            long? id;
+            if (artist_collection_id.HasValue)
+                id = conn.ExecuteScalar<long?>("SELECT id FROM Albums WHERE name=? AND artist_collection_ID=?", entry, artist_collection_id);
+            else
+                id = conn.ExecuteScalar<long?>("SELECT id FROM Albums WHERE name=? AND artist_collection_ID is null", entry);
+
+            if (id.HasValue)
+                return id.Value;
             try
             {
-                conn.Insert(new Album() { Name = entry, ArtistCollectionId = artist_collection_id });
+                if (artist_collection_id.HasValue)
+                    conn.Insert(new Album() { Name = entry, ArtistCollectionId = artist_collection_id.Value });
+                else
+                    conn.Insert(new Album() { Name = entry });
+
                 return GetLastInsertRowID();
             }
             catch (SQLite.SQLiteException ex)

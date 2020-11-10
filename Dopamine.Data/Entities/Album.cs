@@ -14,7 +14,7 @@ namespace Dopamine.Data.Entities
         public string Name { get; set; }
 
         [Column("artist_collection_id"), Indexed()]
-        public long ArtistCollectionId { get; set; }
+        public long? ArtistCollectionId { get; set; }
 
     }
 }
