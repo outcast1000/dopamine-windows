@@ -54,6 +54,7 @@ namespace Dopamine.Services.Entities
         }
 
         public AlbumV Data { get { return data; } }
+
         public String AlbumItemInfo
         {
             get
@@ -141,17 +142,8 @@ namespace Dopamine.Services.Entities
                 return string.Format("{0} ({1})", AlbumArtists, Artists);
             }
         }
-		
-		public DateTime DateAdded { get { return data.DateAdded; } }
 
-        public DateTime DateFileCreated { get { return data.DateFileCreated; } }
-		
-		public string Year
-        {
-            get { return data.MinYear.HasValue ? data.MinYear.ToString() : ""; }
-        }
-
-        public string Header => SemanticZoomUtils.GetGroupHeader(Name, true);
+        public string Header => SemanticZoomUtils.GetGroupHeader(Data.Name, true);
 
         public bool IsHeader
         {

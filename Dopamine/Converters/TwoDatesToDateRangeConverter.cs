@@ -14,7 +14,7 @@ namespace Dopamine.Converters
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
             if (values.Length != 2)
-                return false;
+                return String.Empty;
             string d1 = Date2String((DateTime)values[0]);
             string d2 = Date2String((DateTime)values[0]);
             if (d1.Equals(d2))
@@ -41,9 +41,9 @@ namespace Dopamine.Converters
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
             if (values.Length != 2)
-                return false;
+                return String.Empty;
             if (values[0] == null || values[1] == null)
-                return false;
+                return String.Empty;
             long y1 = (long)values[0];
             long y2 = (long)values[1];
             if (y1 == y2)

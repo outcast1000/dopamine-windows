@@ -215,7 +215,7 @@ namespace Dopamine.Services.Collection
             IList<AlbumViewModel> avm = new List<AlbumViewModel>();
             await Task.Run(() =>
             {
-                IList<AlbumV> items = albumVRepository.GetAlbums(false, searchString);
+                IList<AlbumV> items = albumVRepository.GetAlbums(true, searchString);
                 if (items == null)
                     Logger.Warn($"GetAlbumsAsync albumVRepository.GetAlbums({searchString}) return null");
                 else
@@ -261,7 +261,7 @@ namespace Dopamine.Services.Collection
                         orderedAlbums = albums.OrderByDescending((a) => FormatUtils.GetSortableString(a.Name)).ToList();
                         break;
                     case AlbumOrder.ByDateAdded:
-                        orderedAlbums = albums.OrderByDescending((a) => a.DateAdded).ToList();
+                        orderedAlbums = albums.OrderByDescending((a) => a.Data.MinDateAdded).ToList();
                         break;
                     case AlbumOrder.ByAlbumArtistAscending:
                         orderedAlbums = albums.OrderBy((a) => FormatUtils.GetSortableString(a.AlbumArtists, true)).ToList();
@@ -270,10 +270,10 @@ namespace Dopamine.Services.Collection
                         orderedAlbums = albums.OrderBy((a) => FormatUtils.GetSortableString(a.AlbumArtists, true)).ToList();
                         break;
                     case AlbumOrder.ByYearAscending:
-                        orderedAlbums = albums.OrderBy((a) => a.Year).ToList();
+                        orderedAlbums = albums.OrderBy((a) => a.Data.MinYear).ToList();
                         break;
                     case AlbumOrder.ByYearDescending:
-                        orderedAlbums = albums.OrderByDescending((a) => a.Year).ToList();
+                        orderedAlbums = albums.OrderByDescending((a) => a.Data.MinYear).ToList();
                         break;
                     default:
                         // Alphabetical

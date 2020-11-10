@@ -29,32 +29,35 @@
     public enum AlbumOrder
     {
         AlphabeticalAscending = 1,
-        AlphabeticalDescending = 2,
-        ByDateAdded = 3,
-        ByAlbumArtistAscending = 4,
-        ByAlbumArtistDescending = 5,
-        ByYearDescending = 6,
-        ByYearAscending = 7
+        AlphabeticalDescending,
+        ByAlbumArtistAscending,
+        ByAlbumArtistDescending,
+        ByDateAdded,
+        ByDateCreated,
+        ByTrackCount,
+        ByYearDescending,
+        ByYearAscending,
+        ByPlayCount
     }
 
     public enum ArtistOrder
     {
         AlphabeticalAscending = 1,
-        AlphabeticalDescending = 2,
-        ByDateAdded = 3,
-        ByDateCreated = 4,
-        ByTrackCount = 5,
-        ByYearDescending = 6,
-        ByYearAscending = 7,
-        ByPlayCount = 8
+        AlphabeticalDescending,
+        ByDateAdded ,
+        ByDateCreated,
+        ByTrackCount,
+        ByYearDescending,
+        ByYearAscending,
+        ByPlayCount
     }
 
     public enum GenreOrder
     {
         AlphabeticalAscending = 1,
-        AlphabeticalDescending = 2,
-        ByTrackCount = 3,
-        ByPlayCount = 4
+        AlphabeticalDescending,
+        ByTrackCount,
+        ByPlayCoun
     }
 
 

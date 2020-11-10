@@ -11,7 +11,7 @@ namespace Dopamine.Data.Repositories
     public class SQLiteAlbumVRepository: IAlbumVRepository
     {
         private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-        private ISQLiteConnectionFactory factory;
+        private readonly ISQLiteConnectionFactory factory;
 
         public SQLiteAlbumVRepository(ISQLiteConnectionFactory factory)
         {
@@ -110,31 +110,34 @@ namespace Dopamine.Data.Repositories
         }
         private string GetSQLTemplate()
         {
-            return @"SELECT 
+            return @"
+SELECT
 Albums.ID as Id, 
 Albums.name as Name, 
-COUNT(DISTINCT t.id) as TrackCount, 
+COUNT(DISTINCT t.id) as TrackCount,
 COUNT(DISTINCT AlbumArtists.id) as AlbumArtistCount, 
 GROUP_CONCAT(DISTINCT AlbumArtists.name) as AlbumArtists,
+COUNT(DISTINCT Genres.id) as GenreCount,
+GROUP_CONCAT(DISTINCT Genres.name) as Genres,
 COUNT(DISTINCT Artists.id) as ArtistCount, 
 GROUP_CONCAT(DISTINCT Artists.name) as Artists,
-COUNT(DISTINCT Genres.id) as GenreCount, 
-GROUP_CONCAT(DISTINCT Genres.name) as Genres, 
 MIN(t.year) as MinYear,
 MAX(t.year) as MaxYear,
 AlbumImages.Location as Thumbnail,
-MIN(t.date_added) as DateAdded,
-MIN(t.date_file_created) as DateFileCreated #SELECT#
+MIN(t.date_added) as MinDateAdded,
+MAX(t.date_added) as MaxDateAdded,
+MIN(t.date_file_created) as MinDateFileCreated,
+MIN(t.date_file_created) as MaxDateFileCreated #SELECT#
 from Tracks t
+LEFT JOIN TrackArtists  ON TrackArtists.track_id = t.id
+LEFT JOIN Artists ON Artists.id = TrackArtists.artist_id
 LEFT JOIN TrackAlbums ON TrackAlbums.track_id = t.id
 LEFT JOIN Albums ON Albums.id = TrackAlbums.album_id
 LEFT JOIN AlbumImages ON Albums.id = AlbumImages.album_id
 LEFT JOIN ArtistCollectionsArtists ON ArtistCollectionsArtists.artist_collection_id = Albums.artist_collection_id
 LEFT JOIN Artists AlbumArtists ON AlbumArtists.id = ArtistCollectionsArtists.artist_id
 LEFT JOIN TrackGenres ON TrackGenres.track_id = t.id
-LEFT JOIN Genres ON TrackGenres.genre_id = Genres.id 
-LEFT JOIN TrackArtists ON TrackArtists.track_id = t.id
-LEFT JOIN Artists ON Artists.id = TrackArtists.artist_id
+LEFT JOIN Genres ON TrackGenres.genre_id = Genres.id
 LEFT JOIN Folders ON Folders.id = t.folder_id #JOIN#
 #WHERE#
 GROUP BY Albums.id

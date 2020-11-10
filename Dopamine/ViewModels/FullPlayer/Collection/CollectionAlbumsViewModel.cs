@@ -251,6 +251,13 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         public bool IsMediumListItemSizeSelected => this.selectedListItemSizeType == ListItemSizeType.Medium;
         public bool IsLargeListItemSizeSelected => this.selectedListItemSizeType == ListItemSizeType.Large;
 
+
+        public bool ShowTrackCount => _order == AlbumOrder.ByTrackCount;
+        public bool ShowYear => _order == AlbumOrder.ByYearAscending || _order == AlbumOrder.ByYearDescending;
+        public bool ShowDateAdded => _order == AlbumOrder.ByDateAdded;
+        public bool ShowDateFileCreated => _order == AlbumOrder.ByDateCreated;
+        public bool ShowPlaycount => _order == AlbumOrder.ByPlayCount;
+
         public CollectionAlbumsViewModel(IContainerProvider container) : base(container)
         {
             // Dependency injection
@@ -482,35 +489,50 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
 		private void OrderItems()
         {
-            SortDescription sd = new SortDescription();
-            switch (AlbumOrder)
+            ItemsCvs.SortDescriptions.Clear();
+            switch (_order)
             {
                 case AlbumOrder.AlphabeticalAscending:
-                    sd = new SortDescription("Name", ListSortDirection.Ascending);
+                    ItemsCvs.SortDescriptions.Add(new SortDescription("Data.Name", ListSortDirection.Ascending));
                     break;
                 case AlbumOrder.AlphabeticalDescending:
-                    sd = new SortDescription("Name", ListSortDirection.Descending);
-                    break;
-                case AlbumOrder.ByDateAdded:
-                    sd = new SortDescription("DateAdded", ListSortDirection.Descending);
-                    break;
-                case AlbumOrder.ByYearAscending:
-                    sd = new SortDescription("Year", ListSortDirection.Ascending);
-                    break;
-                case AlbumOrder.ByYearDescending:
-                    sd = new SortDescription("Year", ListSortDirection.Descending);
+                    ItemsCvs.SortDescriptions.Add(new SortDescription("Data.Name", ListSortDirection.Descending));
                     break;
                 case AlbumOrder.ByAlbumArtistAscending:
-                    sd = new SortDescription("AlbumArtist", ListSortDirection.Ascending);
+                    ItemsCvs.SortDescriptions.Add(new SortDescription("AlbumArtistComplete", ListSortDirection.Ascending));
+                    ItemsCvs.SortDescriptions.Add(new SortDescription("Data.Name", ListSortDirection.Ascending));
                     break;
                 case AlbumOrder.ByAlbumArtistDescending:
-                    sd = new SortDescription("AlbumArtist", ListSortDirection.Descending);
+                    ItemsCvs.SortDescriptions.Add(new SortDescription("AlbumArtistComplete", ListSortDirection.Descending));
+                    ItemsCvs.SortDescriptions.Add(new SortDescription("Data.Name", ListSortDirection.Ascending));
+                    break;
+                case AlbumOrder.ByTrackCount:
+                    ItemsCvs.SortDescriptions.Add(new SortDescription("Data.TrackCount", ListSortDirection.Descending));
+                    ItemsCvs.SortDescriptions.Add(new SortDescription("Data.Name", ListSortDirection.Ascending));
+                    break;
+                case AlbumOrder.ByDateAdded:
+                    ItemsCvs.SortDescriptions.Add(new SortDescription("Data.MaxDateAdded", ListSortDirection.Descending));
+                    ItemsCvs.SortDescriptions.Add(new SortDescription("Data.Name", ListSortDirection.Ascending));
+                    break;
+                case AlbumOrder.ByDateCreated:
+                    ItemsCvs.SortDescriptions.Add(new SortDescription("Data.MaxDateFileCreated", ListSortDirection.Descending));
+                    ItemsCvs.SortDescriptions.Add(new SortDescription("Data.Name", ListSortDirection.Ascending));
+                    break;
+                case AlbumOrder.ByYearAscending:
+                    ItemsCvs.SortDescriptions.Add(new SortDescription("Data.MinYear", ListSortDirection.Ascending));
+                    ItemsCvs.SortDescriptions.Add(new SortDescription("Data.Name", ListSortDirection.Ascending));
+                    break;
+                case AlbumOrder.ByYearDescending:
+                    ItemsCvs.SortDescriptions.Add(new SortDescription("Data.MinYear", ListSortDirection.Descending));
+                    ItemsCvs.SortDescriptions.Add(new SortDescription("Data.Name", ListSortDirection.Ascending));
+                    break;
+                case AlbumOrder.ByPlayCount:
+                    ItemsCvs.SortDescriptions.Add(new SortDescription("Data.PlayCount", ListSortDirection.Descending));
+                    ItemsCvs.SortDescriptions.Add(new SortDescription("Data.Name", ListSortDirection.Ascending));
                     break;
                 default:
                     break;
             }
-            ItemsCvs.SortDescriptions.Clear();
-            ItemsCvs.SortDescriptions.Add(sd);
             UpdateSemanticZoomHeaders();
         }
 
@@ -721,26 +743,35 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                     this.AlbumOrder = AlbumOrder.AlphabeticalDescending;
                     break;
                 case AlbumOrder.AlphabeticalDescending:
-                    this.AlbumOrder = AlbumOrder.ByDateAdded;
-                    break;
-                case AlbumOrder.ByDateAdded:
                     this.AlbumOrder = AlbumOrder.ByAlbumArtistAscending;
                     break;
-                case AlbumOrder.ByAlbumArtistAscending:
+			    case AlbumOrder.ByAlbumArtistAscending:
                     this.AlbumOrder = AlbumOrder.ByAlbumArtistDescending;
                     break;
                 case AlbumOrder.ByAlbumArtistDescending:
-                    this.AlbumOrder = AlbumOrder.ByYearAscending;
+                    this.AlbumOrder = AlbumOrder.ByDateAdded;
+                    break;
+                case AlbumOrder.ByDateAdded:
+                    AlbumOrder = AlbumOrder.ByDateCreated;
+                    break;
+                case AlbumOrder.ByDateCreated:
+                    AlbumOrder = AlbumOrder.ByTrackCount;
+                    break;
+                case AlbumOrder.ByTrackCount:
+                    AlbumOrder = AlbumOrder.ByYearAscending;
                     break;
                 case AlbumOrder.ByYearAscending:
                     this.AlbumOrder = AlbumOrder.ByYearDescending;
                     break;
                 case AlbumOrder.ByYearDescending:
-                    this.AlbumOrder = AlbumOrder.AlphabeticalAscending;
+                    AlbumOrder = AlbumOrder.ByPlayCount;
+                    break;
+                case AlbumOrder.ByPlayCount:
+                    AlbumOrder = AlbumOrder.AlphabeticalAscending;
                     break;
                 default:
                     // Cannot happen, but just in case.
-                    this.AlbumOrder = AlbumOrder.AlphabeticalAscending;
+                    AlbumOrder = AlbumOrder.AlphabeticalAscending;
                     break;
             }
         }
@@ -764,15 +795,24 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 case AlbumOrder.ByAlbumArtistDescending:
                    _orderText = ResourceUtils.GetString("Language_By_Album_Artist") + " (\u2193)";
                     break;
+                case AlbumOrder.ByDateCreated:
+                    _orderText = ResourceUtils.GetString("Language_By_Date_Created");
+                    break;
+                case AlbumOrder.ByTrackCount:
+                    _orderText = ResourceUtils.GetString("Language_By_Track_Count");
+                    break;
                 case AlbumOrder.ByYearDescending:
                    _orderText = ResourceUtils.GetString("Language_By_Year_Descending");
                     break;
                 case AlbumOrder.ByYearAscending:
                    _orderText = ResourceUtils.GetString("Language_By_Year_Ascending");
                     break;
+                case AlbumOrder.ByPlayCount:
+                    _orderText = ResourceUtils.GetString("Language_By_PlayCount");
+                    break;
                 default:
                     // Cannot happen, but just in case.
-                   _orderText = ResourceUtils.GetString("Language_A_Z");
+                    _orderText = ResourceUtils.GetString("Language_A_Z");
                     break;
             }
 

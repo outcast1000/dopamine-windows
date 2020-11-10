@@ -8,8 +8,6 @@ namespace Dopamine.Data.Entities
 {
     public class ArtistV
     {
-        public ArtistV() { }
-
         public long Id { get; set; }
 
         public string Name { get; set; }

@@ -9,6 +9,7 @@ namespace Dopamine.Data.Repositories
 {
     public class SQLiteArtistVRepository: IArtistVRepository
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private readonly ISQLiteConnectionFactory factory;
 
         public SQLiteArtistVRepository(ISQLiteConnectionFactory factory)
