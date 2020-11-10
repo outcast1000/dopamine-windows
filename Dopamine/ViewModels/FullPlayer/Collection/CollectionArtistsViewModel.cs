@@ -175,13 +175,15 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         }
 
         private double _listBoxScrollPos;
+        private double _listBoxScrollPosInNormalMode = 0;
         public double ListBoxScrollPos
         {
             get { return _listBoxScrollPos; }
             set
             {
                 SetProperty<double>(ref _listBoxScrollPos, value);
-                SettingsClient.Set<double>(Settings_NameSpace, Setting_ListBoxScrollPos, value);
+                if (!InSearchMode)
+                    SettingsClient.Set<double>(Settings_NameSpace, Setting_ListBoxScrollPos, value);
             }
         }
 
@@ -213,7 +215,19 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         public bool InSearchMode
         {
             get { return _inSearchMode; }
-            set { SetProperty<bool>(ref _inSearchMode, value); }
+            set {
+                if (_inSearchMode != value)
+                {
+                    if (value == true)
+                    {
+                        _listBoxScrollPosInNormalMode = _listBoxScrollPos;
+                    }
+                    else
+                    {
+                        ListBoxScrollPos = _listBoxScrollPosInNormalMode;
+                    }
+                }
+                SetProperty<bool>(ref _inSearchMode, value); }
         }
         
         public CollectionViewSource ItemsCvs
@@ -749,6 +763,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         protected override async void FilterListsAsync(string searchText)
         {
             InSearchMode = !string.IsNullOrEmpty(searchText);
+            if (InSearchMode)
+                ListBoxScrollPos = 0;
             if (!_searchString.Equals(searchText))
             {
                 _searchString = searchText;
@@ -756,6 +772,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
             if (!string.IsNullOrEmpty(searchText))
                 base.FilterListsAsync(searchText);
+                
         }
 
         protected override void RefreshLanguage()
