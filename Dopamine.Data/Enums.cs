@@ -57,7 +57,7 @@
         AlphabeticalAscending = 1,
         AlphabeticalDescending,
         ByTrackCount,
-        ByPlayCoun
+        ByPlayCount
     }
 
 
