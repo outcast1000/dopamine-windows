@@ -214,7 +214,7 @@
                                         <Grid Width="64" Height="48">
                                             <Border
                                                 Name="Mask"
-                                                Background="White"
+                                                Background="{DynamicResource Brush_PaneBackground}"
                                                 BorderBrush="#FF3B5998"
                                                 BorderThickness=".5"
                                                 CornerRadius="10,10,10,10" />
