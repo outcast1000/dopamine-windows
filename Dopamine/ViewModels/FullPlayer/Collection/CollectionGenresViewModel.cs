@@ -79,7 +79,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         public DelegateCommand<string> SetListItemSizeCommand { get; set; }
         private double _listBoxScrollPos;
-        private double _listBoxScrollPosInNormalMode = 0;
         public double ListBoxScrollPos
         {
             get { return _listBoxScrollPos; }
@@ -629,18 +628,64 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             ClearTracks();
         }
 
+        private double _listBoxScrollPosInNormalMode = 0;
+        private bool _bSelectedItemChangedDuringSearchMode = false;
         protected override async void FilterListsAsync(string searchText)
         {
-            InSearchMode = !string.IsNullOrEmpty(searchText);
-            if (InSearchMode)
-                ListBoxScrollPos = 0;
-            if (!_searchString.Equals(searchText))
+            if (_searchString.Equals(searchText))
+                return;
+
+            if (!string.IsNullOrEmpty(searchText))
             {
+                _bSelectedItemChangedDuringSearchMode = false;
+                // We are searching
+                if (InSearchMode == false)
+                {
+                    // we are entering Search Mode
+                    InSearchMode = true;
+                    // Lets keep the current list pos
+                    _listBoxScrollPosInNormalMode = ListBoxScrollPos;
+                }
+                else
+                {
+                    // we are searching again something else
+                }
+                ListBoxScrollPos = 0;
                 _searchString = searchText;
                 await GetItemsAsync();
-            }
-            if (!string.IsNullOrEmpty(searchText))
+                // In every case we reset the ListBox Position
                 base.FilterListsAsync(searchText);
+            }
+            else
+            {
+                // We are not searching
+                if (InSearchMode == false)
+                {
+                    // Nothing changed. Nominal usage without search. Should not happen
+                }
+                else
+                {
+                    // We turned from search to normal mode
+                    InSearchMode = false;
+                    // Lets restore the list box position
+                    _searchString = "";
+                    await GetItemsAsync();
+                    if (_bSelectedItemChangedDuringSearchMode)
+                    {
+                        // Ensure Visible the new item. Less intrusively the last position
+                        ListBoxScrollPos = _listBoxScrollPosInNormalMode;
+                        // The track list have already been refreshed
+                    }
+                    else
+                    {
+                        // Refresh the track list
+                        // Restore the old list position
+                        ListBoxScrollPos = _listBoxScrollPosInNormalMode;
+                        await GetTracksAsync(null, SelectedItems, null, TrackOrder);
+                    }
+
+                }
+            }
         }
 
         protected override void RefreshLanguage()

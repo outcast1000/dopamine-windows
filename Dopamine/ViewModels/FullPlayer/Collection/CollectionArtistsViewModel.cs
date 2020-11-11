@@ -175,7 +175,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         }
 
         private double _listBoxScrollPos;
-        private double _listBoxScrollPosInNormalMode = 0;
         public double ListBoxScrollPos
         {
             get { return _listBoxScrollPos; }
@@ -587,7 +586,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             if (_ignoreSelectionChangedEvent)
                 return;
             // We should also ignore it if we are in Search Mode AND the user does not selected anything. For example when we enter the search mode
-            if (!string.IsNullOrEmpty(_searchString) && ((IList)parameter).Count == 0)
+            if (InSearchMode && ((IList)parameter).Count == 0)
                 return;
             // We should also ignore it if we have an empty list (for example when we clear the list)
             if (ItemsCvs == null)
@@ -760,19 +759,64 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             ClearTracks();
         }
 
+        private double _listBoxScrollPosInNormalMode = 0;
+        private bool _bSelectedItemChangedDuringSearchMode = false;
         protected override async void FilterListsAsync(string searchText)
         {
-            InSearchMode = !string.IsNullOrEmpty(searchText);
-            if (InSearchMode)
-                ListBoxScrollPos = 0;
-            if (!_searchString.Equals(searchText))
+            if (_searchString.Equals(searchText))
+                return;
+
+            if (!string.IsNullOrEmpty(searchText))
             {
+                _bSelectedItemChangedDuringSearchMode = false;
+                // We are searching
+                if (InSearchMode == false)
+                {
+                    // we are entering Search Mode
+                    InSearchMode = true;
+                    // Lets keep the current list pos
+                    _listBoxScrollPosInNormalMode = ListBoxScrollPos;
+                }
+                else
+                {
+                    // we are searching again something else
+                }
+                ListBoxScrollPos = 0;
                 _searchString = searchText;
                 await GetItemsAsync();
-            }
-            if (!string.IsNullOrEmpty(searchText))
+                // In every case we reset the ListBox Position
                 base.FilterListsAsync(searchText);
-                
+            }
+            else
+            {
+                // We are not searching
+                if (InSearchMode == false)
+                {
+                    // Nothing changed. Nominal usage without search. Should not happen
+                }
+                else
+                {
+                    // We turned from search to normal mode
+                    InSearchMode = false;
+                    // Lets restore the list box position
+                    _searchString = "";
+                    await GetItemsAsync();
+                    if (_bSelectedItemChangedDuringSearchMode)
+                    {
+                        // Ensure Visible the new item. Less intrusively the last position
+                        ListBoxScrollPos = _listBoxScrollPosInNormalMode;
+                        // The track list have already been refreshed
+                    }
+                    else
+                    {
+                        // Refresh the track list
+                        // Restore the old list position
+                        ListBoxScrollPos = _listBoxScrollPosInNormalMode;
+                        await GetTracksAsync(SelectedItems, null, null, TrackOrder);
+                    }
+
+                }
+            }
         }
 
         protected override void RefreshLanguage()
