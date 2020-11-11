@@ -77,6 +77,9 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         public DelegateCommand<GenreViewModel> EnqueueItemCommand { get; set; }
 
+        public DelegateCommand<CollectionViewGroup> PlayGroupItemCommand { get; set; }
+
+        public DelegateCommand<CollectionViewGroup> EnqueueGroupItemCommand { get; set; }
         public DelegateCommand<string> SetListItemSizeCommand { get; set; }
         private double _listBoxScrollPos;
         public double ListBoxScrollPos
@@ -86,7 +89,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             {
                 SetProperty<double>(ref _listBoxScrollPos, value);
                 if (!InSearchMode)
-                	SettingsClient.Set<double>(Settings_NameSpace, Setting_ListBoxScrollPos, value);
+                    SettingsClient.Set<double>(Settings_NameSpace, Setting_ListBoxScrollPos, value);
             }
         }
 
@@ -241,6 +244,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 await _playbackService.PlayGenresAsync(new List<GenreViewModel>() { vm }, PlaylistMode.Play);
             });
             EnqueueItemCommand = new DelegateCommand<GenreViewModel>(async (vm) => await _playbackService.PlayGenresAsync(new List<GenreViewModel>() { vm }, PlaylistMode.Enqueue));
+            PlayGroupItemCommand = new DelegateCommand<CollectionViewGroup>(async (vm) => await _playbackService.PlayTracksAsync(vm.Items.Cast<TrackViewModel>().ToList(), PlaylistMode.Play));
+            EnqueueGroupItemCommand = new DelegateCommand<CollectionViewGroup>(async (vm) => await _playbackService.PlayTracksAsync(vm.Items.Cast<TrackViewModel>().ToList(), PlaylistMode.Enqueue));
 
             SemanticJumpCommand = new DelegateCommand<string>((header) =>
             {

@@ -131,6 +131,10 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         public DelegateCommand<ArtistViewModel> LoveItemCommand { get; set; }
 
+        public DelegateCommand<CollectionViewGroup> PlayGroupItemCommand { get; set; }
+
+        public DelegateCommand<CollectionViewGroup> EnqueueGroupItemCommand { get; set; }
+
         public DelegateCommand<string> ArtistSearchOnlineCommand { get; set; }
 
         public DelegateCommand<string> SetListItemSizeCommand { get; set; }
@@ -345,11 +349,14 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             {
                 await artist.RequestImageDownload(true, true);
             });
-            PlayItemCommand = new DelegateCommand<ArtistViewModel>(async (vm) => {
-                await _playbackService.PlayArtistsAsync(new List<ArtistViewModel>() { vm }, PlaylistMode.Play);
-            });
+            PlayItemCommand = new DelegateCommand<ArtistViewModel>(async (vm) => await _playbackService.PlayArtistsAsync(new List<ArtistViewModel>() { vm }, PlaylistMode.Play));
             EnqueueItemCommand = new DelegateCommand<ArtistViewModel>(async (vm) => await _playbackService.PlayArtistsAsync(new List<ArtistViewModel>() { vm }, PlaylistMode.Enqueue));
             LoveItemCommand = new DelegateCommand<ArtistViewModel>((avm) => Debug.Assert(false, "ALEX TODO"));
+            
+            PlayGroupItemCommand = new DelegateCommand<CollectionViewGroup>(async (vm) => await _playbackService.PlayTracksAsync(vm.Items.Cast<TrackViewModel>().ToList(), PlaylistMode.Play));
+            EnqueueGroupItemCommand = new DelegateCommand<CollectionViewGroup>(async (vm) => await _playbackService.PlayTracksAsync(vm.Items.Cast<TrackViewModel>().ToList(), PlaylistMode.Enqueue));
+
+
 
             _providerService.SearchProvidersChanged += (_, __) => { GetArtistsSearchProvidersAsync(); };
             this.GetArtistsSearchProvidersAsync();

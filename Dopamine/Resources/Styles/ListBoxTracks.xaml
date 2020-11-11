@@ -5,7 +5,8 @@
     xmlns:converters="clr-namespace:Dopamine.Converters"
     xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
     xmlns:pc="clr-namespace:Dopamine.Controls"
-    xmlns:utils="clr-namespace:Dopamine.Utils">
+    xmlns:utils="clr-namespace:Dopamine.Utils"
+    xmlns:system="clr-namespace:System;assembly=mscorlib">
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/Dopamine;component/Resources/Styles/FontStyles.xaml" />
         <ResourceDictionary Source="/Dopamine;component/Resources/Styles/Buttons.xaml" />
@@ -116,9 +117,7 @@
             Command="{Binding JumpToPlayingTrackCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
         -->
         <Separator Visibility="{Binding DataContext.IsSingleItemSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}" />
-        <MenuItem
-            InputGestureText=""
-            Command="{Binding DataContext.EditTracksCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}">
+        <MenuItem InputGestureText="" Command="{Binding DataContext.EditTracksCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}">
             <MenuItem.Header>
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="{DynamicResource Language_Edit}" />
@@ -181,14 +180,16 @@
     <Style x:Key="TracksHeader" TargetType="{x:Type GroupItem}">
         <Style.Resources>
             <BitmapImage x:Key="DefaultImage" UriSource="/Resources/Media/no_album_image.png" />
+            <system:Double x:Key="ButtonSize">30</system:Double>
         </Style.Resources>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate>
                     <Border Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ScrollContentPresenter}}}" Background="#00000000">
                         <StackPanel Margin="0,0,0,15">
-                            <StackPanel Orientation="Horizontal">
+                            <DockPanel HorizontalAlignment="Stretch">
                                 <pc:SourceChangedImage
+                                    DockPanel.Dock="Left"
                                     DataContext="{Binding Items}"
                                     Width="128"
                                     Height="128"
@@ -214,16 +215,64 @@
                                         </EventTrigger>
                                     </pc:SourceChangedImage.Triggers>
                                 </pc:SourceChangedImage>
-                                <StackPanel>
-                                    <TextBlock
-                                        Text="{Binding GroupAlbumHeader}"
-                                        DataContext="{Binding Items}"
-                                        Margin="10,5,10,0"
-                                        HorizontalAlignment="Stretch"
-                                        FontSize="20"
-                                        FontWeight="Light"
-                                        TextTrimming="CharacterEllipsis"
-                                        Foreground="{DynamicResource Brush_PrimaryText}" />
+                                <StackPanel HorizontalAlignment="Stretch">
+                                    <DockPanel HorizontalAlignment="Stretch">
+                                        <TextBlock
+                                            Text="{Binding GroupAlbumHeader}"
+                                            DataContext="{Binding Items}"
+                                            Margin="10,5,10,0"
+                                            HorizontalAlignment="Stretch"
+                                            FontSize="20"
+                                            FontWeight="Light"
+                                            TextTrimming="CharacterEllipsis"
+                                            Foreground="{DynamicResource Brush_PrimaryText}" />
+                                        <StackPanel
+                                            x:Name="ExtraButtons"
+                                            Orientation="Horizontal"
+                                            HorizontalAlignment="Right"
+                                            DockPanel.Dock="Right"
+                                            Opacity="1">
+                                            <Button
+                                                Style="{StaticResource TransparentButton}"
+                                                Panel.ZIndex="10"
+                                                x:Name="EnqueueButton"
+                                                Width="{StaticResource ButtonSize}"
+                                                Height="{StaticResource ButtonSize}"
+                                                Margin="2,2,2,2"
+                                                HorizontalContentAlignment="Center"
+                                                VerticalContentAlignment="Center"
+                                                Command="{Binding DataContext.EnqueueGroupItemCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                                CommandParameter="{Binding .}"
+                                                ToolTip="{DynamicResource Language_Enqueue}">
+                                                <TextBlock
+                                                    FontSize="16"
+                                                    Foreground="{DynamicResource Brush_PrimaryText}"
+                                                    Style="{StaticResource SegoeAssets}"
+                                                    Text="&#xE710;" />
+                                            </Button>
+                                            <Button
+                                                Style="{StaticResource TransparentButton}"
+                                                Panel.ZIndex="10"
+                                                Background="Transparent"
+                                                x:Name="PlayButton"
+                                                Width="{StaticResource ButtonSize}"
+                                                Height="{StaticResource ButtonSize}"
+                                                DockPanel.Dock="Right"
+                                                Margin="2,2,2,2"
+                                                HorizontalContentAlignment="Center"
+                                                VerticalContentAlignment="Center"
+                                                Command="{Binding DataContext.PlayGroupItemCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                                CommandParameter="{Binding .}"
+                                                ToolTip="{DynamicResource Language_Play}">
+                                                <TextBlock
+                                                    FontSize="16"
+                                                    Foreground="{DynamicResource Brush_PrimaryText}"
+                                                    Style="{StaticResource SegoeAssets}"
+                                                    Text="&#xE768;" />
+                                            </Button>
+                                             
+                                        </StackPanel>
+                                    </DockPanel>
                                     <TextBlock
                                         Text="{Binding GroupAlbumSubHeader}"
                                         DataContext="{Binding Items}"
@@ -248,7 +297,7 @@
                                         TextTrimming="CharacterEllipsis"
                                         Foreground="{DynamicResource Brush_SecondaryText}" />
                                 </StackPanel>
-                            </StackPanel>
+                            </DockPanel>
                             <ItemsPresenter HorizontalAlignment="Stretch" />
                         </StackPanel>
                         <Border.ToolTip>
