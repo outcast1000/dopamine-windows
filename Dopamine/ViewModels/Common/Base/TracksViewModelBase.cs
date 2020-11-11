@@ -186,7 +186,7 @@ namespace Dopamine.ViewModels.Common.Base
             else
             {
                 // Only change the TrackOrder if it is not correct
-                if (this.TrackOrder != trackOrder) this.TrackOrder = trackOrder;
+                TrackOrder = trackOrder;
             }
         }
 
