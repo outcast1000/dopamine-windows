@@ -20,6 +20,7 @@ using System.ComponentModel;
 using Dopamine.ViewModels.FullPlayer.Collection;
 using Dopamine.Services.Playback;
 using System.Collections.Generic;
+using Dopamine.Data;
 
 namespace Dopamine.Views.FullPlayer.Collection
 {
@@ -39,7 +40,7 @@ namespace Dopamine.Views.FullPlayer.Collection
 
         private async void DataGridRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            await this.ActionHandler(sender, null, false, false);
+            await this.ActionHandler(sender, null, Services.Playback.PlaylistMode.Play);
         }
 
         private async void DataGridTracks_KeyUp(object sender, KeyEventArgs e)
@@ -65,7 +66,7 @@ namespace Dopamine.Views.FullPlayer.Collection
             }
         }
 
-        protected async override Task ActionHandler(Object sender, DependencyObject source, bool enqueue, bool includeTheRestOfTheList)
+        protected async override Task ActionHandler(Object sender, DependencyObject source, PlaylistMode playlistMode, bool includeTheRestOfTheList = false)
         {
             try
             {
@@ -73,7 +74,7 @@ namespace Dopamine.Views.FullPlayer.Collection
                 if (includeTheRestOfTheList)
                     await this.playbackService.PlayTracksAndStartOnTrack(dg.Items.OfType<TrackViewModel>().ToList(), (TrackViewModel)dg.SelectedItem);
                 else
-                    await this.playbackService.PlayTracksAsync(new List<TrackViewModel>() { (TrackViewModel)dg.SelectedItem }, enqueue ? PlaylistMode.Enqueue : PlaylistMode.Play);
+                    await this.playbackService.PlayTracksAsync(new List<TrackViewModel>() { (TrackViewModel)dg.SelectedItem }, playlistMode);
 
             }
             catch (Exception ex)

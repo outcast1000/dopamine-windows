@@ -15,6 +15,7 @@ using Digimezzo.Foundation.Core.IO;
 using Digimezzo.Foundation.Core.Logging;
 using Dopamine.Core.Base;
 using Dopamine.Services.Utils;
+using Dopamine.Data;
 
 namespace Dopamine.Views.Common
 {
@@ -33,10 +34,10 @@ namespace Dopamine.Views.Common
       
         private async void ListBoxTracks_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            await this.ActionHandler(sender, e.OriginalSource as DependencyObject, false, false);
+            await this.ActionHandler(sender, e.OriginalSource as DependencyObject, PlaylistMode.Play, false);
         }
 
-        protected override async Task ActionHandler(Object sender, DependencyObject source, bool enqueue, bool includeTheRestOfTheList)
+        protected override async Task ActionHandler(Object sender, DependencyObject source, PlaylistMode playlistMode, bool includeTheRestOfTheList = false)
         {
             PlaylistControlViewModel vm = (PlaylistControlViewModel)this.DataContext;
             if (vm.InSearchMode)
@@ -75,7 +76,7 @@ namespace Dopamine.Views.Common
         {
             if (e.Key == Key.Enter)
             {
-                Task unAwaitedTask = this.ActionHandler(sender, e.OriginalSource as DependencyObject, false, true);
+                Task unAwaitedTask = this.ActionHandler(sender, e.OriginalSource as DependencyObject, PlaylistMode.Play, true);
             }
         }
 

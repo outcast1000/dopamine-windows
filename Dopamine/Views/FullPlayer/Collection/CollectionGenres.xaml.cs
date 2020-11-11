@@ -75,35 +75,35 @@ namespace Dopamine.Views.FullPlayer.Collection
 
         private async void ListBoxGenres_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            await this.ActionHandler(sender, e.OriginalSource as DependencyObject, true, true);
+            await this.ActionHandler(sender, e.OriginalSource as DependencyObject, Services.Playback.PlaylistMode.Shuffle);
         }
 
         private async void ListBoxGenres_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
-                await this.ActionHandler(sender, e.OriginalSource as DependencyObject, true, true);
+                await this.ActionHandler(sender, e.OriginalSource as DependencyObject, Services.Playback.PlaylistMode.Shuffle);
             }
         }
 
         private async void ListBoxAlbums_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             CollectionGenresViewModel vm = (CollectionGenresViewModel)DataContext;
-            await this.ActionHandler(sender, e.OriginalSource as DependencyObject, false, !vm.InSearchMode);
+            await this.ActionHandler(sender, e.OriginalSource as DependencyObject, Services.Playback.PlaylistMode.Play, !vm.InSearchMode);
         }
 
         private async void ListBoxAlbums_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
-                await this.ActionHandler(sender, e.OriginalSource as DependencyObject, true, true);
+                await this.ActionHandler(sender, e.OriginalSource as DependencyObject, Services.Playback.PlaylistMode.Shuffle);
             }
         }
 
         private async void ListBoxTracks_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             CollectionGenresViewModel vm = (CollectionGenresViewModel)DataContext;
-            await this.ActionHandler(sender, e.OriginalSource as DependencyObject, false, !vm.InSearchMode);
+            await this.ActionHandler(sender, e.OriginalSource as DependencyObject, Services.Playback.PlaylistMode.Play, !vm.InSearchMode);
         }
 
         private async void ListBoxTracks_KeyUp(object sender, KeyEventArgs e)
@@ -116,7 +116,7 @@ namespace Dopamine.Views.FullPlayer.Collection
             if (e.Key == Key.Enter)
             {
                 CollectionGenresViewModel vm = (CollectionGenresViewModel)DataContext;
-                await this.ActionHandler(sender, e.OriginalSource as DependencyObject, false, !vm.InSearchMode);
+                await this.ActionHandler(sender, e.OriginalSource as DependencyObject, Services.Playback.PlaylistMode.Play, !vm.InSearchMode);
             }
         }
 

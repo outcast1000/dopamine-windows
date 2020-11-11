@@ -1248,7 +1248,12 @@ namespace Dopamine.Services.Playback
 
         public async Task PlayTracksAsync(IList<TrackViewModel> tracks, PlaylistMode mode, TrackOrder trackOrder)
         {
-            if (trackOrder != TrackOrder.None)
+            if (mode == PlaylistMode.Shuffle)
+            {
+                tracks = await EntityUtils.OrderTracksAsync(tracks, TrackOrder.Random);
+                mode = PlaylistMode.Play;
+            }
+            else if (trackOrder != TrackOrder.None)
                 tracks = await EntityUtils.OrderTracksAsync(tracks, trackOrder);
             await Task.Run(() =>
             {

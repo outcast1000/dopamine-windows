@@ -21,6 +21,7 @@ namespace Dopamine.Services.Playback
     public enum PlaylistMode
     {
         Play,
+        Shuffle,
         Enqueue,
         EnqueuNext
     }

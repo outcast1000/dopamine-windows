@@ -1,7 +1,9 @@
 ﻿using Digimezzo.Foundation.Core.Logging;
 using Digimezzo.Foundation.Core.Utils;
 using Dopamine.Core.Prism;
+using Dopamine.Data;
 using Dopamine.Services.Entities;
+using Dopamine.Services.Playback;
 using Dopamine.Services.Utils;
 using Dopamine.ViewModels.FullPlayer.Collection;
 using Dopamine.Views.Common.Base;
@@ -57,7 +59,7 @@ namespace Dopamine.Views.FullPlayer.Collection
 
         private async void ListBoxAlbums_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            await this.ActionHandler(sender, e.OriginalSource as DependencyObject, true, true);
+            await this.ActionHandler(sender, e.OriginalSource as DependencyObject, PlaylistMode.Shuffle);
         }
 
 
@@ -66,14 +68,14 @@ namespace Dopamine.Views.FullPlayer.Collection
         {
             if (e.Key == Key.Enter)
             {
-                await this.ActionHandler(sender, e.OriginalSource as DependencyObject, true, true);
+                await this.ActionHandler(sender, e.OriginalSource as DependencyObject, PlaylistMode.Shuffle);
             }
         }
 
         private async void ListBoxTracks_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             CollectionAlbumsViewModel vm = (CollectionAlbumsViewModel)DataContext;
-            await this.ActionHandler(sender, e.OriginalSource as DependencyObject, false, !vm.InSearchMode);
+            await this.ActionHandler(sender, e.OriginalSource as DependencyObject, PlaylistMode.Play, !vm.InSearchMode);
         }
 
         private async void ListBoxTracks_KeyUp(object sender, KeyEventArgs e)
@@ -86,7 +88,7 @@ namespace Dopamine.Views.FullPlayer.Collection
             if (e.Key == Key.Enter)
             {
                 CollectionAlbumsViewModel vm = (CollectionAlbumsViewModel)DataContext;
-                await this.ActionHandler(sender, e.OriginalSource as DependencyObject, false, !vm.InSearchMode);
+                await this.ActionHandler(sender, e.OriginalSource as DependencyObject, PlaylistMode.Play, !vm.InSearchMode);
             }
         }
 

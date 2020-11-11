@@ -16,19 +16,19 @@
 
     public enum TrackOrder
     {
-        Alphabetical = 1,
-        ByAlbum = 2,
-        ByFileName = 3,
-        ByRating = 4,
-        ReverseAlphabetical = 5,
-        Ranking = 6,
-        Random = 7,
-        None = 8
+        Alphabetical,
+        ByAlbum,
+        ByFileName,
+        ByRating,
+        ReverseAlphabetical,
+        Ranking,
+        Random,
+        None
     }
 
     public enum AlbumOrder
     {
-        AlphabeticalAscending = 1,
+        AlphabeticalAscending,
         AlphabeticalDescending,
         ByAlbumArtistAscending,
         ByAlbumArtistDescending,
@@ -42,7 +42,7 @@
 
     public enum ArtistOrder
     {
-        AlphabeticalAscending = 1,
+        AlphabeticalAscending,
         AlphabeticalDescending,
         ByDateAdded ,
         ByDateCreated,
@@ -54,7 +54,7 @@
 
     public enum GenreOrder
     {
-        AlphabeticalAscending = 1,
+        AlphabeticalAscending,
         AlphabeticalDescending,
         ByTrackCount,
         ByPlayCount

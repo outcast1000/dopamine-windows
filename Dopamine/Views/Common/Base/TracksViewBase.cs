@@ -1,7 +1,9 @@
 ﻿using Digimezzo.Foundation.Core.IO;
 using Digimezzo.Foundation.Core.Logging;
 using Digimezzo.Foundation.WPF.Controls;
+using Dopamine.Controls;
 using Dopamine.Core.Base;
+using Dopamine.Data;
 using Dopamine.Services.Entities;
 using Dopamine.Services.Playback;
 using Dopamine.Services.Utils;
@@ -36,7 +38,7 @@ namespace Dopamine.Views.Common.Base
             }
         }
 
-        protected override async Task ActionHandler(Object sender, DependencyObject source, bool enqueue, bool includeTheRestOfTheList)
+        protected override async Task ActionHandler(Object sender, DependencyObject source, PlaylistMode playlistMode, bool includeTheRestOfTheList = false)
         {
             try
             {
@@ -54,15 +56,17 @@ namespace Dopamine.Views.Common.Base
                     return;
                 }
 
-                while (source != null && !(source is MultiSelectListBox.MultiSelectListBoxItem))
+                while (source != null)
                 {
+                    if (source is MultiSelectListBox.MultiSelectListBoxItem)
+                        break;
+                    if (source is MultiSelectListBoxEx.MultiSelectListBoxItem)
+                        break;
                     source = VisualTreeHelper.GetParent(source);
                 }
 
-                if (source == null || source.GetType() != typeof(MultiSelectListBox.MultiSelectListBoxItem))
-                {
+                if (source == null)
                     return;
-                }
 
                 // The user wants to enqueue tracks for the selected item
                 if (lb.SelectedItem.GetType().Name == typeof(TrackViewModel).Name)
@@ -70,23 +74,23 @@ namespace Dopamine.Views.Common.Base
                     if (includeTheRestOfTheList)
                         await this.playbackService.PlayTracksAndStartOnTrack(lb.Items.OfType<TrackViewModel>().ToList(), (TrackViewModel)lb.SelectedItem);
                     else 
-                        await this.playbackService.PlayTracksAsync(new List<TrackViewModel>() { (TrackViewModel)lb.SelectedItem }, enqueue ? PlaylistMode.Enqueue : PlaylistMode.Play);
+                        await this.playbackService.PlayTracksAsync(new List<TrackViewModel>() { (TrackViewModel)lb.SelectedItem }, playlistMode);
                 }
                 else if (lb.SelectedItem.GetType().Name == typeof(ArtistViewModel).Name)
                 {
-                    await this.playbackService.PlayArtistsAsync(new List<ArtistViewModel> { ((ArtistViewModel)lb.SelectedItem) }, enqueue ? PlaylistMode.Enqueue : PlaylistMode.Play);
+                    await this.playbackService.PlayArtistsAsync(new List<ArtistViewModel> { ((ArtistViewModel)lb.SelectedItem) }, playlistMode);
                 }
                 else if (lb.SelectedItem.GetType().Name == typeof(GenreViewModel).Name)
                 {
-                    await this.playbackService.PlayGenresAsync(new List<GenreViewModel> { ((GenreViewModel)lb.SelectedItem) }, enqueue ? PlaylistMode.Enqueue : PlaylistMode.Play);
+                    await this.playbackService.PlayGenresAsync(new List<GenreViewModel> { ((GenreViewModel)lb.SelectedItem) }, playlistMode);
                 }
                 else if (lb.SelectedItem.GetType().Name == typeof(AlbumViewModel).Name)
                 {
-                    await this.playbackService.PlayAlbumsAsync(new List<AlbumViewModel> { (AlbumViewModel)lb.SelectedItem }, enqueue ? PlaylistMode.Enqueue : PlaylistMode.Play);
+                    await this.playbackService.PlayAlbumsAsync(new List<AlbumViewModel> { (AlbumViewModel)lb.SelectedItem }, playlistMode);
                 }
                 else if (lb.SelectedItem.GetType().Name == typeof(PlaylistViewModel).Name)
                 {
-                    await this.playbackService.PlayPlaylistsAsync(new List<PlaylistViewModel> { (PlaylistViewModel)lb.SelectedItem }, enqueue ? PlaylistMode.Enqueue : PlaylistMode.Play);
+                    await this.playbackService.PlayPlaylistsAsync(new List<PlaylistViewModel> { (PlaylistViewModel)lb.SelectedItem }, playlistMode);
                 }
             }
             catch (Exception ex)

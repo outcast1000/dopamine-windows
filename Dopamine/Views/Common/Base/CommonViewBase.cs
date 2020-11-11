@@ -27,7 +27,7 @@ namespace Dopamine.Views.Common.Base
         }
      
         protected abstract Task KeyUpHandlerAsync(object sender, KeyEventArgs e);
-        protected abstract Task ActionHandler(Object sender, DependencyObject source, bool enqueue, bool includeTheRestOfTheList);
+        protected abstract Task ActionHandler(Object sender, DependencyObject source, PlaylistMode playlistMode, bool includeTheRestOfTheList);
         protected abstract Task ScrollToPlayingTrackAsync(Object sender);
         protected abstract void ViewInExplorer(Object sender);
     }
