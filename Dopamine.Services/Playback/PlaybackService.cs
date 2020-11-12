@@ -943,6 +943,8 @@ namespace Dopamine.Services.Playback
 
             // Play the Track
             await Task.Run(() => this.player.Play(track.Path, this.audioDevice, bStartPaused));
+            if (bStartPaused)
+                this.PlaybackPaused(this, new PlaybackPausedEventArgs() { IsSilent = false });
 
             // Start reporting progress
             this.progressTimer.Start();
