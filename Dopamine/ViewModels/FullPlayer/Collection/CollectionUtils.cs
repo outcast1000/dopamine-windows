@@ -348,18 +348,29 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
 
         public static readonly string Setting_LeftPaneGridLength = "LeftPaneGridLength";
+        public static readonly string Setting_RightPaneGridLength = "RightPaneGridLength";
         public static readonly string Setting_TrackOrder = "TrackOrder";
         public static GridLength String2GridLength(string gridLength)
         {
-            if (gridLength.Equals("*") || string.IsNullOrWhiteSpace(gridLength))
-                return new GridLength(1, GridUnitType.Star);
+            //=== Forced Star Version
+            string val = gridLength.Replace("*", "");
+            int stars = string.IsNullOrWhiteSpace(val) ? 1 : (int) double.Parse(val);
+            return new GridLength(stars, GridUnitType.Star);
+            /*
+            //=== Correct version.
+            if (gridLength.Contains("*"))
+            {
+                string val = gridLength.Replace("*", "");
+                return new GridLength(string.IsNullOrWhiteSpace(val) ? 1 : int.Parse(val), GridUnitType.Star);
+            }
             return new GridLength(double.Parse(gridLength), GridUnitType.Pixel);
+            */
         }
 
         public static string GridLength2String(GridLength gridLength)
         {
             if (gridLength.IsStar)
-                return "*";
+                return gridLength.Value.ToString() + "*";
             return gridLength.Value.ToString();
         }
     }

@@ -2,7 +2,7 @@
 <Settings>
 	<Namespace Name="Configuration">
 		<Setting Name="Version">
-			<Value>132</Value>
+			<Value>134</Value>
 		</Setting>
 		<Setting Name="IsPortable">
 			<Value>False</Value>
@@ -23,12 +23,18 @@
 		<Setting Name="LeftPaneGridLength">
 			<Value>*</Value>
 		</Setting>
+		<Setting Name="RightPaneGridLength">
+			<Value>*</Value>
+		</Setting>
 	</Namespace>
 	<Namespace Name="CollectionArtists">
 		<Setting Name="ListBoxScrollPos">
 			<Value>0</Value>
 		</Setting>
 		<Setting Name="LeftPaneGridLength">
+			<Value>*</Value>
+		</Setting>
+		<Setting Name="RightPaneGridLength">
 			<Value>*</Value>
 		</Setting>
 		<Setting Name="SelectedIDs">
@@ -51,6 +57,9 @@
 		<Setting Name="LeftPaneGridLength">
 			<Value>*</Value>
 		</Setting>
+		<Setting Name="RightPaneGridLength">
+			<Value>*</Value>
+		</Setting>
 		<Setting Name="SelectedIDs">
 			<Value />
 		</Setting>
@@ -69,6 +78,9 @@
 			<Value>0</Value>
 		</Setting>
 		<Setting Name="LeftPaneGridLength">
+			<Value>*</Value>
+		</Setting>
+		<Setting Name="RightPaneGridLength">
 			<Value>*</Value>
 		</Setting>
 		<Setting Name="SelectedIDs">
@@ -91,9 +103,15 @@
 		<Setting Name="LeftPaneGridLength">
 			<Value>*</Value>
 		</Setting>
+		<Setting Name="RightPaneGridLength">
+			<Value>*</Value>
+		</Setting>
 	</Namespace>
 	<Namespace Name="CollectionFolders">
 		<Setting Name="LeftPaneGridLength">
+			<Value>*</Value>
+		</Setting>
+		<Setting Name="RightPaneGridLength">
 			<Value>*</Value>
 		</Setting>
 	</Namespace>

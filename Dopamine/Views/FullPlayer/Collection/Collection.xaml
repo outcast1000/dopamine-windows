@@ -27,9 +27,9 @@
         </Grid.RowDefinitions>
         <Grid HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="{Binding LeftPaneWidth, Mode=TwoWay}" MinWidth="400" />
+                <ColumnDefinition Width="{Binding LeftPaneWidth, Mode=TwoWay}" MinWidth="350" />
                 <ColumnDefinition Width="6" />
-                <ColumnDefinition Width="*" MinWidth="250"/>
+                <ColumnDefinition Width="{Binding RightPaneWidth, Mode=TwoWay}" MinWidth="250" />
             </Grid.ColumnDefinitions>
             <controls:TransitioningContentControl
                 Grid.Column="0"
@@ -48,7 +48,7 @@
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
                 Style="{StaticResource MainGridSplitterStyle}" />
-            <commonviews:PlaylistControl Grid.Column="2" Margin="5,5,5,5" />
+            <commonviews:PlaylistControl Grid.Column="2" Margin="5,5,5,5" HorizontalAlignment="Stretch"/>
         </Grid>
         <Grid
             Grid.Row="1"

@@ -23,19 +23,28 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             set { SetProperty<int>(ref this.slideInFrom, value); }
         }
 
+        // Comment: We need to keep Both Left & Right PaneWidth because we need to work with *. And we need to work with * because otherwise the Gridsplitter do not respect the min Widths.
+        //      In the previous implementation i was able to keep only the LeftPaneWidth in pixes but i had the forementioning problem.
+        //      Maybe there will be a better way
         private GridLength _leftPaneGridLength;
         public GridLength LeftPaneWidth
         {
-            get
-            {
-                return _leftPaneGridLength;
-            }
+            get => _leftPaneGridLength;
             set
             {
-                if (value.IsStar && value.Value > 1)
-                    value = new GridLength(value.Value);
                 SetProperty<GridLength>(ref _leftPaneGridLength, value);
                 SettingsClient.Set<string>(Settings_NameSpace, CollectionUtils.Setting_LeftPaneGridLength, CollectionUtils.GridLength2String(value));
+            }
+        }
+
+        private GridLength _rightPaneGridLength;
+        public GridLength RightPaneWidth
+        {
+            get => _rightPaneGridLength;
+            set
+            {
+                SetProperty<GridLength>(ref _rightPaneGridLength, value);
+                SettingsClient.Set<string>(Settings_NameSpace, CollectionUtils.Setting_RightPaneGridLength, CollectionUtils.GridLength2String(value));
             }
         }
 
@@ -48,6 +57,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 this.NagivateToPage(tuple.Item1, tuple.Item2);
             });
             LeftPaneWidth = CollectionUtils.String2GridLength(SettingsClient.Get<string>(Settings_NameSpace, CollectionUtils.Setting_LeftPaneGridLength));
+            RightPaneWidth = CollectionUtils.String2GridLength(SettingsClient.Get<string>(Settings_NameSpace, CollectionUtils.Setting_RightPaneGridLength));
         }
 
         private void NagivateToPage(SlideDirection direction, CollectionPage page)

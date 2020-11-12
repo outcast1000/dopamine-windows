@@ -43,16 +43,22 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private GridLength _leftPaneGridLength;
         public GridLength LeftPaneWidth
         {
-            get
-            {
-                return _leftPaneGridLength;
-            }
+            get => _leftPaneGridLength;
             set
             {
-                if (value.IsStar && value.Value > 1)
-                    value = new GridLength(value.Value);
                 SetProperty<GridLength>(ref _leftPaneGridLength, value);
                 SettingsClient.Set<string>(Settings_NameSpace, CollectionUtils.Setting_LeftPaneGridLength, CollectionUtils.GridLength2String(value));
+            }
+        }
+
+        private GridLength _rightPaneGridLength;
+        public GridLength RightPaneWidth
+        {
+            get => _rightPaneGridLength;
+            set
+            {
+                SetProperty<GridLength>(ref _rightPaneGridLength, value);
+                SettingsClient.Set<string>(Settings_NameSpace, CollectionUtils.Setting_RightPaneGridLength, CollectionUtils.GridLength2String(value));
             }
         }
 
@@ -104,6 +110,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 await this.GetSubfoldersAsync(activeSubfolder as SubfolderViewModel);
             });
             LeftPaneWidth = CollectionUtils.String2GridLength(SettingsClient.Get<string>(Settings_NameSpace, CollectionUtils.Setting_LeftPaneGridLength));
+            RightPaneWidth = CollectionUtils.String2GridLength(SettingsClient.Get<string>(Settings_NameSpace, CollectionUtils.Setting_RightPaneGridLength));
+
         }
 
         private async void FoldersService_FoldersChanged(object sender, EventArgs e)
