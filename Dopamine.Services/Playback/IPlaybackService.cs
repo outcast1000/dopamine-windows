@@ -60,7 +60,7 @@ namespace Dopamine.Services.Playback
 
         bool Shuffle { get; set; }
 
-        Task SetPlaylistPositionAsync(int newPosition);
+        Task SetPlaylistPositionAsync(int newPosition, bool bStartPaused);
 
         bool Mute { get; }
 

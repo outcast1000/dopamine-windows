@@ -90,14 +90,14 @@ namespace Dopamine.Services.Playback
 
         public bool HasMediaFoundationSupport => this.hasMediaFoundationSupport;
 
-        public async Task SetPlaylistPositionAsync(int newPosition)
+        public async Task SetPlaylistPositionAsync(int newPosition, bool bStartPaused)
         {
             queueManager.Position = newPosition;
             // NewPosition may be invalid
             if (queueManager.Position == newPosition)
             {
                 PlaylistPositionChanged(this, new EventArgs());
-                if (! await TryPlayAsync(queueManager.CurrentItem))
+                if (! await TryPlayAsync(queueManager.CurrentItem, bStartPaused, false))
                     StopPlayback();
             }
         }
@@ -533,7 +533,7 @@ namespace Dopamine.Services.Playback
                 {
                     // There are already tracks enqueued. Start playing immediately.
                     queueManager.Position = 0;
-                    await this.TryPlayAsync(this.queueManager.CurrentItem);
+                    await this.TryPlayAsync(this.queueManager.CurrentItem, false, false);
                 }
                 else
                 {
@@ -678,7 +678,7 @@ namespace Dopamine.Services.Playback
                 queueManager.Play(tracks, idx);
                 trackHistoryRepository.AddExecuted(track.Id);
             });
-            await TryPlayAsync(track);
+            await TryPlayAsync(track, false, false);
         }
 
         public async Task PlayArtistsAsync(IList<ArtistViewModel> artists, PlaylistMode mode, TrackOrder trackOrder = TrackOrder.ByAlbum)
@@ -738,7 +738,7 @@ namespace Dopamine.Services.Playback
             if (bAreWeRemovingTheCurrentTrack)
             {
                 if (IsPlaying)
-                    await TryPlayAsync(queueManager.CurrentItem);
+                    await TryPlayAsync(queueManager.CurrentItem, false, false);
                 else
                     StopPlayback();
             }
@@ -919,7 +919,7 @@ namespace Dopamine.Services.Playback
             }
         }
 
-        private async Task StartPlaybackAsync(TrackViewModel track, bool silent = false)
+        private async Task StartPlaybackAsync(TrackViewModel track, bool bStartPaused, bool silent)
         {
             // If we start playing a track, we need to make sure that
             // queued tracks are saved when the application is closed.
@@ -942,7 +942,7 @@ namespace Dopamine.Services.Playback
             //queueManager.Play(new List<TrackViewModel>() { track });
 
             // Play the Track
-            await Task.Run(() => this.player.Play(track.Path, this.audioDevice));
+            await Task.Run(() => this.player.Play(track.Path, this.audioDevice, bStartPaused));
 
             // Start reporting progress
             this.progressTimer.Start();
@@ -988,7 +988,7 @@ namespace Dopamine.Services.Playback
         }
         */
 
-        private async Task<bool> TryPlayAsync(TrackViewModel track, bool isSilent = false)
+        private async Task<bool> TryPlayAsync(TrackViewModel track, bool bStartPaused, bool isSilent)
         {
             if (track == null)
             {
@@ -1017,7 +1017,7 @@ namespace Dopamine.Services.Playback
                 }
 
                 // Start playing
-                await this.StartPlaybackAsync(track, isSilent);
+                await this.StartPlaybackAsync(track, bStartPaused, isSilent);
 
                 // Playing was successful
                 this.PlaybackSuccess(this, new PlaybackSuccessEventArgs()
@@ -1088,7 +1088,7 @@ namespace Dopamine.Services.Playback
             // When "loop one" is enabled and ignoreLoopOne is true, act like "loop all".
             LoopMode loopMode = this.LoopMode == LoopMode.One && ignoreLoopOne ? LoopMode.All : this.LoopMode;
             if (loopMode == LoopMode.One)
-                return await this.TryPlayAsync(queueManager.CurrentItem);
+                return await this.TryPlayAsync(queueManager.CurrentItem, false, false);
 
             if (!queueManager.Prev())
             {
@@ -1096,7 +1096,7 @@ namespace Dopamine.Services.Playback
                 return true;
             }
             PlaylistPositionChanged(this, new EventArgs());
-            return await this.TryPlayAsync(queueManager.CurrentItem);
+            return await this.TryPlayAsync(queueManager.CurrentItem, false, false);
         }
 
         private async Task<bool> TryPlayNextAsync(bool ignoreLoopOne)
@@ -1106,7 +1106,7 @@ namespace Dopamine.Services.Playback
             // When "loop one" is enabled and ignoreLoopOne is true, act like "loop all".
             LoopMode loopMode = this.LoopMode == LoopMode.One && ignoreLoopOne ? LoopMode.All : this.LoopMode;
             if (loopMode == LoopMode.One)
-                return await this.TryPlayAsync(queueManager.CurrentItem);
+                return await this.TryPlayAsync(queueManager.CurrentItem, false, false);
 
             //TrackViewModel nextTrack = await this.queueManager.NextTrackAsync(loopMode, returnToStart);
 
@@ -1134,15 +1134,15 @@ namespace Dopamine.Services.Playback
                     bool returnToStart = SettingsClient.Get<bool>("Playback", "LoopWhenShuffle") & queueManager.Shuffle;
                     if (returnToStart)
                     {
-                        await SetPlaylistPositionAsync(0);
-                        await PauseAsync();
+                        await SetPlaylistPositionAsync(0, true);
+                        //await PauseAsync();
                     }
                     Logger.Warn("ALEX TODO. Make it send an event that we found the end of the playlist");
                     return true;
                 }
             }
             PlaylistPositionChanged(this, new EventArgs());
-            return await this.TryPlayAsync(queueManager.CurrentItem);
+            return await this.TryPlayAsync(queueManager.CurrentItem, false, false);
         }
 
         private void ProgressTimeoutHandler(object sender, ElapsedEventArgs e)
@@ -1244,11 +1244,11 @@ namespace Dopamine.Services.Playback
 
         private async Task StartTrackPausedAsync(TrackViewModel track, int progressSeconds)
         {
-            if (await this.TryPlayAsync(track, true))
+            if (await this.TryPlayAsync(track, true, false))
             {
-                await this.PauseAsync(true);
+                //await this.PauseAsync(true);
                 this.player.Skip(progressSeconds);
-                await Task.Delay(200); // Small delay before unmuting
+                //await Task.Delay(200); // Small delay before unmuting
 
                 if (!this.mute)
                 {
@@ -1301,7 +1301,7 @@ namespace Dopamine.Services.Playback
                 }
             });
             if (mode == PlaylistMode.Play)
-                await TryPlayAsync(queueManager.CurrentItem);
+                await TryPlayAsync(queueManager.CurrentItem, false, false);
             this.PlaylistChanged(this, new EventArgs());
             this.ResetSaveQueuedTracksTimer(); // Save queued tracks to the database
         }
@@ -1313,7 +1313,7 @@ namespace Dopamine.Services.Playback
                 queueManager.Randomize();
                 PlaylistChanged(this, new EventArgs());
             });
-            await SetPlaylistPositionAsync(0);
+            await SetPlaylistPositionAsync(0, false);
         }
 
         private void ResetSaveQueuedTracksTimer()

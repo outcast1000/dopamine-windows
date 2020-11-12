@@ -115,14 +115,16 @@ namespace Dopamine.Core.Audio
             {
                 TimeSpan oldProgress = this.GetCurrentTime();
                 this.Stop();
-                this.Play(this.filename, audioDevice);
+                this.Play(this.filename, audioDevice, playerWasPaused);
                 this.Skip(Convert.ToInt32(oldProgress.TotalSeconds));
 
                 // The player was paused. Pause it again after switching audio device.
+                /*
                 if (playerWasPaused)
                 {
                     this.Pause();
                 }
+                */
             }
         }
 
@@ -248,21 +250,30 @@ namespace Dopamine.Core.Audio
             }
         }
 
-        public void Play(string filename, AudioDevice audioDevice)
+        public void Play(string filename, AudioDevice audioDevice, bool bStartPaused)
         {
             this.SetSelectedAudioDevice(audioDevice);
 
             this.filename = filename;
-
-            this.IsPlaying = true;
-
-            this.canPlay = false;
-            this.canPause = true;
-            this.canStop = true;
-
             this.InitializeSoundOut(this.GetCodec(this.filename));
             this.ApplyFilter(this.filterValues);
-            this.soundOut.Play();
+
+            if (bStartPaused)
+            {
+                this.IsPlaying = false;
+                this.canPlay = true;
+                this.canPause = false;
+                this.canStop = true;
+            }
+            else
+            {
+                this.IsPlaying = true;
+                this.canPlay = false;
+                this.canPause = true;
+                this.canStop = true;
+                this.soundOut.Play();
+            }
+
         }
 
         private IWaveSource GetCodec(string filename)

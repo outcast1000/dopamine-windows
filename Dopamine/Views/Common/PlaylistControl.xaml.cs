@@ -61,7 +61,7 @@ namespace Dopamine.Views.Common
                 // The user just wants to play the selected item. Don't enqueue.
                 if (lb.SelectedItem.GetType().Name == typeof(PlaylistItem).Name)
                 {
-                    await this.playbackService.SetPlaylistPositionAsync(lb.SelectedIndex);
+                    await this.playbackService.SetPlaylistPositionAsync(lb.SelectedIndex, false);
                     //await this.playbackService.PlaySelectedAsync((TrackViewModel)lb.SelectedItem);
                 }
             }
