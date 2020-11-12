@@ -25,6 +25,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Diagnostics;
+using System.ServiceModel.Description;
+using Dopamine.Services.Metadata;
+using Dopamine.Services.Scrobbling;
+using Dopamine.Services.Indexing;
 
 namespace Dopamine.Services.Playback
 {
@@ -93,7 +97,8 @@ namespace Dopamine.Services.Playback
             if (queueManager.Position == newPosition)
             {
                 PlaylistPositionChanged(this, new EventArgs());
-                await TryPlayAsync(queueManager.CurrentItem);
+                if (! await TryPlayAsync(queueManager.CurrentItem))
+                    StopPlayback();
             }
         }
 
@@ -605,7 +610,8 @@ namespace Dopamine.Services.Playback
         public async Task PlayNextAsync()
         {
             LogClient.Info("Request to play the next track.");
-            trackHistoryRepository.AddSkippedAction(CurrentTrack.Id, "PlayNext");
+            if (CurrentTrack != null)
+                trackHistoryRepository.AddSkippedAction(CurrentTrack.Id, "PlayNext");
             // We don't want interruptions when trying to play the next Track.
             // If the next Track cannot be played, keep skipping to the 
             // following Track until a working Track is found.
@@ -1102,14 +1108,38 @@ namespace Dopamine.Services.Playback
             if (loopMode == LoopMode.One)
                 return await this.TryPlayAsync(queueManager.CurrentItem);
 
-            bool returnToStart = SettingsClient.Get<bool>("Playback", "LoopWhenShuffle") & queueManager.Shuffle;
             //TrackViewModel nextTrack = await this.queueManager.NextTrackAsync(loopMode, returnToStart);
 
             if (!queueManager.Next())
             {
                 //this.Stop();
-                Logger.Warn("ALEX TODO. Make it send an event that we found the end of the playlist");
-                return true;
+                if (loopMode == LoopMode.AutoPlay)
+                {
+                    // Select a new track
+                    TrackV track = null;
+                    await Task.Run(() =>
+                    {
+                        track = trackRepository.SelectAutoPlayTrack(CurrentTrack?.Data);
+                    });
+                    if (track == null)
+                        return false;
+                    // Add it to the list as the last one
+                    await PlayTracksAsync(new List<TrackViewModel>() { new TrackViewModel(container.Resolve<IMetadataService>(), container.Resolve<IScrobblingService>(), container.Resolve<IAlbumVRepository>(), container.Resolve<IIndexingService>(), track) }, PlaylistMode.Enqueue, TrackOrder.None);
+                    if (!queueManager.Next())
+                        return false;// On failed
+                    // play it
+                }
+                else
+                {
+                    bool returnToStart = SettingsClient.Get<bool>("Playback", "LoopWhenShuffle") & queueManager.Shuffle;
+                    if (returnToStart)
+                    {
+                        await SetPlaylistPositionAsync(0);
+                        await PauseAsync();
+                    }
+                    Logger.Warn("ALEX TODO. Make it send an event that we found the end of the playlist");
+                    return true;
+                }
             }
             PlaylistPositionChanged(this, new EventArgs());
             return await this.TryPlayAsync(queueManager.CurrentItem);

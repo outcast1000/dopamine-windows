@@ -15,6 +15,7 @@
                 <TextBlock Text="&#xE8EE;" Style="{StaticResource SegoeAssets}" Foreground="{DynamicResource Brush_PrimaryText}" FontSize="14" Visibility="{Binding ShowLoopNone,Converter={StaticResource BooleanToVisibilityConverter}}"/>
                 <TextBlock Text="&#xE8ED;" Style="{StaticResource SegoeAssets}" Foreground="{DynamicResource Brush_Accent}" FontSize="14" Visibility="{Binding ShowLoopOne,Converter={StaticResource BooleanToVisibilityConverter}}"/>
                 <TextBlock Text="&#xE8EE;" Style="{StaticResource SegoeAssets}" Foreground="{DynamicResource Brush_Accent}" FontSize="14" Visibility="{Binding ShowLoopAll,Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                <TextBlock Text="&#xE890;" Style="{StaticResource SegoeAssets}" Foreground="{DynamicResource Brush_Accent}" FontSize="14" Visibility="{Binding ShowAutoPlay,Converter={StaticResource BooleanToVisibilityConverter}}"/>
             </Grid>
         </Button>
         <!-- Previous -->

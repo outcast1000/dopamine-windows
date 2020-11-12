@@ -239,6 +239,8 @@ namespace Dopamine.Services.Notification
                 case LoopMode.One:
                     systemMediaControls.AutoRepeatMode = MediaPlaybackAutoRepeatMode.Track;
                     break;
+                default:
+                // AutoRepeatMode will also get MediaPlaybackAutoRepeatMode.None when we are on autoplaymode
                 case LoopMode.None:
                     systemMediaControls.AutoRepeatMode = MediaPlaybackAutoRepeatMode.None;
                     break;

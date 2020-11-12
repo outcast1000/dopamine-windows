@@ -370,6 +370,18 @@ GROUP BY plays
             return tracks[0];
         }
 
+        public TrackV SelectAutoPlayTrack(TrackV baseTrack)
+        {
+            QueryOptions options = new QueryOptions();
+            if (baseTrack != null)
+            {
+                options.extraWhereClause.Add("t.id<>?");
+                options.extraWhereParams.Add(baseTrack.Id);
+            }
+            List<TrackV> tracks = GetTracksInternal(options);
+            return (tracks != null && tracks.Count > 0) ? tracks[new Random().Next(0, tracks.Count-1)] : null;
+        }
+
 
         public bool UpdateFolderIdValue(long trackId, long? newFolderId)
         {

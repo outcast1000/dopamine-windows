@@ -10,9 +10,10 @@
 
     public enum LoopMode
     {
-        None = 1,
-        One = 2,
-        All = 3
+        None,
+        One,
+        All,
+        AutoPlay
     }
 
     public enum CoverSizeType

@@ -36,6 +36,8 @@ namespace Dopamine.Data.Repositories
 
         List<TrackV> GetTracksWithWhereClause(string searchText, bool bGetHistory);
 
+        TrackV SelectAutoPlayTrack(TrackV baseTrack);
+
         Dictionary<long, long> GetRanking();
 
         RemoveTracksResult RemoveTracks(IList<long> tracksIds);

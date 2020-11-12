@@ -46,6 +46,12 @@ namespace Dopamine.ViewModels
             get { return this.loopMode == LoopMode.All; }
         }
 
+        public bool ShowAutoPlay
+        {
+            get { return this.loopMode == LoopMode.AutoPlay; }
+        }
+        
+
         public bool Shuffle
         {
             get { return this.shuffle; }
@@ -134,6 +140,9 @@ namespace Dopamine.ViewModels
                     this.playbackService.LoopMode = LoopMode.One;
                     break;
                 case LoopMode.One:
+                    this.playbackService.LoopMode = LoopMode.AutoPlay;
+                    break;
+                case LoopMode.AutoPlay:
                     this.playbackService.LoopMode = LoopMode.None;
                     break;
                 default:
@@ -156,6 +165,7 @@ namespace Dopamine.ViewModels
             RaisePropertyChanged(nameof(this.ShowLoopNone));
             RaisePropertyChanged(nameof(this.ShowLoopOne));
             RaisePropertyChanged(nameof(this.ShowLoopAll));
+            RaisePropertyChanged(nameof(this.ShowAutoPlay));
 
             // Save the Loop status in the Settings
             SettingsClient.Set<int>("Playback", "LoopMode", (int)this.loopMode);
