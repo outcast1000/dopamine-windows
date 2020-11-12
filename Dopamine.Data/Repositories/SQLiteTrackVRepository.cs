@@ -72,13 +72,11 @@ namespace Dopamine.Data.Repositories
 
         private List<TrackV> GetTracksInternal(QueryOptions queryOptions = null)
         {
-            if (connection != null)
-                return GetTracksInternal(connection, queryOptions);
             try
             {
-                using (var conn = factory.GetConnection())
+                using (var conn = GetConnectionHandler())
                 {
-                    return GetTracksInternal(conn, queryOptions);
+                    return GetTracksInternal(conn.Connection, queryOptions);
                 }
             }
             catch (Exception ex)
@@ -87,6 +85,33 @@ namespace Dopamine.Data.Repositories
             }
 
             return null;
+        }
+
+        private ConnectionHandler GetConnectionHandler()
+        {
+            if (connection != null)
+                return new ConnectionHandler(connection, false);
+            return new ConnectionHandler(factory.GetConnection(), true);
+        }
+
+        private class ConnectionHandler: IDisposable
+        {
+            private bool _bRelease = false;
+            private SQLiteConnection _connection;
+
+            public ConnectionHandler(SQLiteConnection connection, bool bRelease)
+            {
+                _bRelease = bRelease;
+                _connection = connection;
+            }
+            public SQLiteConnection Connection => _connection;
+
+            public void Dispose()
+            {
+                if (_bRelease)
+                    _connection.Dispose();
+                _connection = null;
+            }
         }
 
 
@@ -106,13 +131,11 @@ namespace Dopamine.Data.Repositories
 
         private List<T> RawQueryInternal<T>(string sql, params object[] args) where T : new()
         {
-            if (connection != null)
-                return RepositoryCommon.RawQuery<T>(connection, sql, args);
             try
             {
-                using (var conn = factory.GetConnection())
+                using (var conn = GetConnectionHandler())
                 {
-                    return RepositoryCommon.RawQuery<T>(conn, sql, args);
+                    return RepositoryCommon.RawQuery<T>(conn.Connection, sql, args);
                 }
             }
             catch (Exception ex)
@@ -429,9 +452,9 @@ GROUP BY plays
         {
             try
             {
-                using (var conn = this.factory.GetConnection())
+                using (var conn = GetConnectionHandler())
                 {
-                    int ret = conn.Execute(sql, args);
+                    int ret = conn.Connection.Execute(sql, args);
                     return ret == 1;
                 }
             }
@@ -449,7 +472,7 @@ GROUP BY plays
             {
                 using (var conn = this.factory.GetConnection())
                 {
-                    int ret = conn.Update(new Track2()
+                    int ret = conn.Connection.Update(new Track2()
                     {
                         Id = track.Id,
                         Name = track.TrackTitle,
@@ -582,13 +605,11 @@ GROUP BY plays
 
         private List<TrackV> GetTracksHistoryLogInternal(QueryOptions queryOptions = null)
         {
-            if (connection != null)
-                return GetTracksHistoryLogInternal(connection, queryOptions);
             try
             {
-                using (var conn = factory.GetConnection())
+                using (var conn = GetConnectionHandler())
                 {
-                    return GetTracksHistoryLogInternal(conn, queryOptions);
+                    return GetTracksHistoryLogInternal(conn.Connection, queryOptions);
                 }
             }
             catch (Exception ex)
