@@ -16,7 +16,7 @@
     <UserControl.Resources>
         <BitmapImage x:Key="DefaultImage" UriSource="/Resources/Media/no_album_image.png" />
         <DataTemplate DataType="{x:Type pv:CoverArtViewModel}">
-            <Grid>
+            <Grid Width="{Binding ActualWidth, ElementName=ThisControl}" Height="{Binding ActualHeight, ElementName=ThisControl}">
                 <Border
                     Width="{Binding ActualWidth, ElementName=ThisControl}"
                     Height="{Binding ActualHeight, ElementName=ThisControl}"
@@ -29,7 +29,7 @@
                             Fill="{DynamicResource Brush_CoverTileIcon}" />
                     </Viewbox>
                 </Border>
-                <Image Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality">
+                <Image Stretch="UniformToFill" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderOptions.BitmapScalingMode="HighQuality">
                     <Image.Source>
                         <Binding
                             Converter="{StaticResource KeyToPathConverter}"
