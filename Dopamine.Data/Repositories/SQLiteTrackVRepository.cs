@@ -470,7 +470,7 @@ GROUP BY plays
         {
             try
             {
-                using (var conn = this.factory.GetConnection())
+                using (var conn = GetConnectionHandler())
                 {
                     int ret = conn.Connection.Update(new Track2()
                     {
@@ -605,11 +605,13 @@ GROUP BY plays
 
         private List<TrackV> GetTracksHistoryLogInternal(QueryOptions queryOptions = null)
         {
+            if (connection != null)
+                return GetTracksHistoryLogInternal(connection, queryOptions);
             try
             {
-                using (var conn = GetConnectionHandler())
+                using (var conn = factory.GetConnection())
                 {
-                    return GetTracksHistoryLogInternal(conn.Connection, queryOptions);
+                    return GetTracksHistoryLogInternal(conn, queryOptions);
                 }
             }
             catch (Exception ex)
