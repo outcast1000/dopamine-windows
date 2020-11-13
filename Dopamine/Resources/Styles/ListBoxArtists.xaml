@@ -11,6 +11,7 @@
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/DopamineJ;component/Resources/Styles/FontStyles.xaml" />
         <ResourceDictionary Source="/DopamineJ;component/Resources/Styles/Buttons.xaml" />
+        <ResourceDictionary Source="/DopamineJ;component/Resources/Themes/Common.xaml" />
     </ResourceDictionary.MergedDictionaries>
     <converters:BooleanToCollapsedConverter x:Key="BooleanToCollapsedConverter" />
     <converters:InvertingBooleanToCollapsedConverter x:Key="InvertingBooleanToCollapsedConverter" />
@@ -153,11 +154,7 @@
 
     <Style x:Key="ListBoxArtistsItem_v2" TargetType="{x:Type ListBoxItem}">
         <Style.Resources>
-            <BitmapImage x:Key="DefaultImage" UriSource="/Resources/Media/no_album_image.png" />
-            <system:Double x:Key="ImageMaxWidth">220</system:Double>
             <system:Double x:Key="ImageMinWidth">100</system:Double>
-            <system:Double x:Key="ImageHeight">100</system:Double>
-            <system:Double x:Key="ButtonSize">30</system:Double>
         </Style.Resources>
 
         <Setter Property="ContextMenu" Value="{StaticResource ListBoxArtistsContextMenu}" />
@@ -243,7 +240,7 @@
                                         <pc:SourceChangedImage.Source>
                                             <Binding
                                                 Converter="{StaticResource KeyToPathConverter}"
-                                                ConverterParameter="{StaticResource DefaultImage}"
+                                                ConverterParameter="{StaticResource MissingImage}"
                                                 IsAsync="False"
                                                 Path="Thumbnail" />
                                         </pc:SourceChangedImage.Source>
@@ -390,8 +387,8 @@
                                                     Style="{StaticResource TransparentButton}"
                                                     Panel.ZIndex="10"
                                                     x:Name="EnqueueButton"
-                                                    Width="{StaticResource ButtonSize}"
-                                                    Height="{StaticResource ButtonSize}"
+                                                    Width="{StaticResource DefaultListItemButtonSize}"
+                                                    Height="{StaticResource DefaultListItemButtonSize}"
                                                     Margin="2,2,2,2"
                                                     HorizontalContentAlignment="Center"
                                                     VerticalContentAlignment="Center"
@@ -409,8 +406,8 @@
                                                     Panel.ZIndex="10"
                                                     Background="Transparent"
                                                     x:Name="PlayButton"
-                                                    Width="{StaticResource ButtonSize}"
-                                                    Height="{StaticResource ButtonSize}"
+                                                    Width="{StaticResource DefaultListItemButtonSize}"
+                                                    Height="{StaticResource DefaultListItemButtonSize}"
                                                     DockPanel.Dock="Right"
                                                     Margin="2,2,2,2"
                                                     HorizontalContentAlignment="Center"
