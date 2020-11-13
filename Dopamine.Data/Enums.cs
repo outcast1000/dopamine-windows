@@ -17,10 +17,10 @@
     public enum TrackOrder
     {
         Alphabetical,
+        ReverseAlphabetical,
         ByAlbum,
         ByFileName,
         ByRating,
-        ReverseAlphabetical,
         Ranking,
         Random,
         None

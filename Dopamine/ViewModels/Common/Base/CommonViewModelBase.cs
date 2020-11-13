@@ -215,6 +215,9 @@ namespace Dopamine.ViewModels.Common.Base
                 case TrackOrder.ByRating:
                     this.trackOrderText = ResourceUtils.GetString("Language_By_Rating");
                     break;
+                case TrackOrder.Ranking:
+                    this.trackOrderText = ResourceUtils.GetString("Language_Rank");
+                    break;
                 default:
                     // Cannot happen, but just in case.
                     this.trackOrderText = ResourceUtils.GetString("Language_By_Album");

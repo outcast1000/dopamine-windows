@@ -2,7 +2,7 @@
 <Settings>
 	<Namespace Name="Configuration">
 		<Setting Name="Version">
-			<Value>134</Value>
+			<Value>135</Value>
 		</Setting>
 		<Setting Name="IsPortable">
 			<Value>False</Value>
@@ -21,10 +21,10 @@
 	</Namespace>
 	<Namespace Name="Collection">
 		<Setting Name="LeftPaneGridLength">
-			<Value>*</Value>
+			<Value>2*</Value>
 		</Setting>
 		<Setting Name="RightPaneGridLength">
-			<Value>*</Value>
+			<Value>1*</Value>
 		</Setting>
 	</Namespace>
 	<Namespace Name="CollectionArtists">
@@ -41,7 +41,8 @@
 			<Value />
 		</Setting>
 		<Setting Name="ItemOrder">
-			<Value>1</Value>
+			<Comment>Artists Order defaults to '0' or ArtistOrder.AlphabeticalAscending</Comment>
+			<Value>0</Value>
 		</Setting>
 		<Setting Name="TrackOrder">
 			<Value>2</Value>
@@ -305,7 +306,7 @@
 			<Value>False</Value>
 		</Setting>
 		<Setting Name="LoopMode">
-			<Value>1</Value>
+			<Value>3</Value>
 		</Setting>
 		<Setting Name="Shuffle">
 			<Value>False</Value>
