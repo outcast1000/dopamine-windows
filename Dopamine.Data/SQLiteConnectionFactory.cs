@@ -9,7 +9,15 @@ namespace Dopamine.Data
 {
     public class SQLiteConnectionFactory : ISQLiteConnectionFactory
     {
-        public string DatabaseFile => Path.Combine(Dopamine.Core.Alex.SettingsClient.ApplicationFolder(), ProductInformation.ApplicationName + ".db");
+        public string DatabaseFile
+        {
+            get
+            {
+                String appFolder = Dopamine.Core.Alex.SettingsClient.ApplicationFolder();
+                string path = Path.Combine(appFolder, ProductInformation.ApplicationName + ".db");
+                return path;
+            }
+        }
         public SQLiteConnection GetConnection()
         {
             return new SQLiteConnection(this.DatabaseFile) { BusyTimeout = new TimeSpan(0, 0, 0, 10) };

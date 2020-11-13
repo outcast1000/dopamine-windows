@@ -3,7 +3,7 @@
 
     <Style x:Key="MainGridSplitterStyle" TargetType="{x:Type GridSplitter}">
         <Style.Resources>
-            <ResourceDictionary Source="/Dopamine;component/Resources/Styles/FontStyles.xaml" />
+            <ResourceDictionary Source="/DopamineJ;component/Resources/Styles/FontStyles.xaml" />
         </Style.Resources>
         <Setter Property="Background" Value="{DynamicResource Brush_MainWindowBackground}" />
         <Setter Property="Foreground" Value="{DynamicResource Brush_SecondaryText}" />

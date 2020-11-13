@@ -4,7 +4,7 @@
                     xmlns:base="clr-namespace:Dopamine.Core.Base;assembly=Dopamine.Core">
 
     <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/Dopamine;component/Resources/Styles/FontStyles.xaml" />
+        <ResourceDictionary Source="/DopamineJ;component/Resources/Styles/FontStyles.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <converters:InvertingBooleanConverter x:Key="InvertingBooleanConverter" />

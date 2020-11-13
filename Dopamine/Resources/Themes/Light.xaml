@@ -4,7 +4,7 @@
     xmlns:core="clr-namespace:System;assembly=mscorlib">
 
     <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/Dopamine;component/Resources/Themes/Common.xaml" />
+        <ResourceDictionary Source="/DopamineJ;component/Resources/Themes/Common.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <!--  Brush_AppearanceService is used by the AppearanceService to find this dictionary  -->
