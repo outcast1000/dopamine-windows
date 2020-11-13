@@ -5,9 +5,9 @@ namespace Dopamine.Core.Base
 {
     public sealed class ProductInformation
     {
-        public static string ApplicationGuid = "75ba9e1e-9eff-4a8e-845e-125dc4318c3b";
-        public static string ApplicationName = "Dopamine";
-        public static string Copyright = "Copyright Digimezzo © 2014-" + DateTime.Now.Year;
+        public static string ApplicationGuid = "613a2ab2-ac76-4dfa-86c8-944d645cbf72";
+        public static string ApplicationName = "DopamineJ";
+        public static string Copyright = "Copyright Digimezzo © 2014-2020 + ArtificialSpirit © " + DateTime.Now.Year;
 
         public static readonly ExternalComponent[] Components =
         {
