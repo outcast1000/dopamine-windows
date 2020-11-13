@@ -161,7 +161,7 @@ namespace Dopamine
 
                 // Show the OOBE window. Don't tell the Indexer to start. 
                 // It will get a signal to start when the OOBE window closes.
-                LogClient.Info("Showing Oobe screen");
+                Logger.Info("Showing Oobe screen");
 
                 // Disable shutdown when the dialogs close
                 Application.Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
@@ -175,7 +175,7 @@ namespace Dopamine
             Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
 
             // Show the main window
-            LogClient.Info("Showing Main screen");
+            Logger.Info("Showing Main screen");
             shell.Show();
 
             // We're not showing the OOBE screen, tell the IndexingService to start.
@@ -198,11 +198,11 @@ namespace Dopamine
             try
             {
                 commandServicehost.Open();
-                LogClient.Info("CommandService was started successfully");
+                Logger.Info("CommandService was started successfully");
             }
             catch (Exception ex)
             {
-                LogClient.Error("Could not start CommandService. Exception: {0}", ex.Message);
+                Logger.Error(ex, "Could not start CommandService. Exception: {0}", ex.Message);
             }
 
             // FileService
@@ -213,11 +213,11 @@ namespace Dopamine
             try
             {
                 fileServicehost.Open();
-                LogClient.Info("FileService was started successfully");
+                Logger.Info("FileService was started successfully");
             }
             catch (Exception ex)
             {
-                LogClient.Error("Could not start FileService. Exception: {0}", ex.Message);
+                Logger.Error(ex, "Could not start FileService. Exception: {0}", ex.Message);
             }
         }
 
@@ -311,7 +311,7 @@ namespace Dopamine
                     }
                     catch (Exception ex)
                     {
-                        LogClient.Error("Constructing NotificationService failed. Falling back to LegacyNotificationService. Exception: {0}", ex.Message);
+                        Logger.Error(ex, "Constructing NotificationService failed. Falling back to LegacyNotificationService. Exception: {0}", ex.Message);
                         notificationService = new LegacyNotificationService(
                         Container.Resolve<IPlaybackService>(),
                         Container.Resolve<IMetadataService>());
@@ -405,12 +405,12 @@ namespace Dopamine
 
             if (args.Length > 1)
             {
-                LogClient.Info("Found command-line arguments.");
+                Logger.Info("Found command-line arguments.");
 
                 switch (args[1])
                 {
                     case "/donate":
-                        LogClient.Info("Detected DonateCommand from JumpList.");
+                        Logger.Info("Detected DonateCommand from JumpList.");
 
                         try
                         {
@@ -418,13 +418,13 @@ namespace Dopamine
                         }
                         catch (Exception ex)
                         {
-                            LogClient.Error("Could not open the link {0} in Internet Explorer. Exception: {1}", args[2], ex.Message);
+                            Logger.Error(ex, "Could not open the link {0} in Internet Explorer. Exception: {1}", args[2], ex.Message);
                         }
                         this.Shutdown();
                         break;
                     default:
 
-                        LogClient.Info("Processing Non-JumpList command-line arguments.");
+                        Logger.Info("Processing Non-JumpList command-line arguments.");
 
 
                         if (!isNewInstance)
@@ -455,17 +455,17 @@ namespace Dopamine
             {
                 var commandServiceProxy = commandServiceFactory.CreateChannel();
                 commandServiceProxy.ShowMainWindowCommand();
-                LogClient.Info("Trying to show the running instance");
+                Logger.Info("Trying to show the running instance");
             }
             catch (Exception ex)
             {
-                LogClient.Error("A problem occurred while trying to show the running instance. Exception: {0}", ex.Message);
+                Logger.Error(ex, "A problem occurred while trying to show the running instance. Exception: {0}", ex.Message);
             }
         }
 
         private void TrySendCommandlineArguments(string[] args)
         {
-            LogClient.Info("Trying to send {0} command-line arguments to the running instance", args.Count());
+            Logger.Info("Trying to send {0} command-line arguments to the running instance", args.Count());
 
             var needsSending = true;
             var startTime = DateTime.Now;
@@ -480,7 +480,7 @@ namespace Dopamine
                     // Try to send the command-line arguments to the running instance
                     var fileServiceProxy = fileServiceFactory.CreateChannel();
                     fileServiceProxy.ProcessArguments(args);
-                    LogClient.Info("Sent {0} command-line arguments to the running instance", args.Count());
+                    Logger.Info("Sent {0} command-line arguments to the running instance", args.Count());
 
                     needsSending = false;
                 }
@@ -499,7 +499,7 @@ namespace Dopamine
                     {
                         // Log any other Exception and stop trying to send the file to the running instance
                         needsSending = false;
-                        LogClient.Info("A problem occurred while trying to send {0} command-line arguments to the running instance. Exception: {1}", args.Count().ToString(), ex.Message);
+                        Logger.Info("A problem occurred while trying to send {0} command-line arguments to the running instance. Exception: {1}", args.Count().ToString(), ex.Message);
                     }
                 }
 
@@ -554,7 +554,7 @@ namespace Dopamine
             {
                 if (this.CanLogUnhandledException())
                 {
-                    LogClient.Warning($"Ignored Unhandled Exception: {ex.Message}");
+                    Logger.Warn($"Ignored Unhandled Exception: {ex.Message}");
                 }
 
                 return;
@@ -567,7 +567,7 @@ namespace Dopamine
             {
                 if (this.CanLogUnhandledException())
                 {
-                    LogClient.Warning($"Ignored Unhandled Exception: {ex.Message}");
+                    Logger.Warn($"Ignored Unhandled Exception: {ex.Message}");
                 }
 
                 return;
@@ -581,7 +581,7 @@ namespace Dopamine
             {
                 if (this.CanLogUnhandledException())
                 {
-                    LogClient.Warning($"Ignored Unhandled Exception: {ex.Message}");
+                    Logger.Warn($"Ignored Unhandled Exception: {ex.Message}");
                 }
 
                 return;
@@ -592,10 +592,10 @@ namespace Dopamine
             // LogClient.Warning($"Ignored Unhandled Exception: Source=<<<<{ex.Source.ToString()}>>>>");
             // return;
 
-            LogClient.Error("Unhandled Exception. {0}", LogClient.GetAllExceptions(ex));
+            Logger.Error(ex, "Unhandled Exception. {0}", ex.Message);
 
             // Close the application to prevent further problems
-            LogClient.Info("### FORCED STOP of {0}, version {1} ###", ProductInformation.ApplicationName, ProcessExecutable.AssemblyVersion());
+            Logger.Info("### FORCED STOP of {0}, version {1} ###", ProductInformation.ApplicationName, ProcessExecutable.AssemblyVersion());
 
             // Stop playing (This avoids remaining processes in Task Manager)
             var playbackService = ServiceLocator.Current.GetInstance<IPlaybackService>();
