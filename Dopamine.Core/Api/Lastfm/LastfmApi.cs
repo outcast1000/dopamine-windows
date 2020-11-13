@@ -12,6 +12,7 @@ namespace Dopamine.Core.Api.Lastfm
     public static class LastfmApi
     {
         private const string apiRootFormat = "{0}://ws.audioscrobbler.com/2.0/?method={1}";
+        public static readonly string NetworkError = "Network Error";
 
         /// <summary>
         /// Performs a POST request over HTTP or HTTPS
@@ -57,13 +58,19 @@ namespace Dopamine.Core.Api.Lastfm
 
             Uri uri = new Uri(string.Format(apiRootFormat + "&{2}", protocol, method, string.Join("&", dataList.ToArray())));
 
-            using (var client = new HttpClient())
+            try
             {
-                client.DefaultRequestHeaders.ExpectContinue = false;
-                var response = await client.GetAsync(uri);
-                result = await response.Content.ReadAsStringAsync();
+                using (var client = new HttpClient())
+                {
+                    client.DefaultRequestHeaders.ExpectContinue = false;
+                    var response = await client.GetAsync(uri);
+                    result = await response.Content.ReadAsStringAsync();
+                }
             }
-
+            catch (Exception e)
+            {
+                throw new Exception(NetworkError);
+            }
             return result;
         }
 
