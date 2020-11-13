@@ -907,6 +907,11 @@ namespace Dopamine.Services.Indexing
                 Logger.Warn("RequestArtistInfoAsync. Image Already Present. Exiting");
                 return false;
             }
+            if (!InternetAvailability.IsInternetAvailable())
+            {
+                Logger.Warn("RequestArtistInfoAsync. No Internet is Available. Exiting");
+                return false;
+            }
             bool bRet = true;
             await Task.Run(() =>
             {
@@ -937,6 +942,11 @@ namespace Dopamine.Services.Indexing
             if (album.Thumbnail != null && !bForce)
             {
                 Logger.Warn("RequestAlbumInfo. Image Already Present. Exiting");
+                return false;
+            }
+            if (!InternetAvailability.IsInternetAvailable())
+            {
+                Logger.Warn("RequestArtistInfoAsync. No Internet is Available. Exiting");
                 return false;
             }
             bool bRet = true;
