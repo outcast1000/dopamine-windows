@@ -74,5 +74,6 @@
 
     <BitmapImage x:Key="MissingImage" UriSource="/Resources/Media/no_album_image.png" />
     <system:Double x:Key="DefaultListItemButtonSize">30</system:Double>
+    <GridLength  x:Key="SplitterWidth">6</GridLength>
 
 </ResourceDictionary>

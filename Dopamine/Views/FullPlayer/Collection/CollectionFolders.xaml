@@ -27,7 +27,7 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="{Binding LeftPaneWidth, Mode=TwoWay}" MinWidth="250" />
-            <ColumnDefinition Width="6" />
+            <ColumnDefinition Width="{StaticResource SplitterWidth}" />
             <ColumnDefinition Width="{Binding RightPaneWidth, Mode=TwoWay}" MinWidth="250" />
         </Grid.ColumnDefinitions>
         <Border Background="{DynamicResource Brush_PaneBackground}">

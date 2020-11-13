@@ -19,6 +19,9 @@
     d:DesignWidth="300"
     Background="{DynamicResource Brush_MainWindowBackground}"
     prismMvvm:ViewModelLocator.AutoWireViewModel="True">
+    <UserControl.Resources>
+        <ResourceDictionary Source="/DopamineJ;component/Resources/Themes/Common.xaml" />
+    </UserControl.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -28,7 +31,7 @@
         <Grid HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="{Binding LeftPaneWidth, Mode=TwoWay}" MinWidth="350" />
-                <ColumnDefinition Width="6" />
+                <ColumnDefinition Width="{StaticResource SplitterWidth}" />
                 <ColumnDefinition Width="{Binding RightPaneWidth, Mode=TwoWay}" MinWidth="250" />
             </Grid.ColumnDefinitions>
             <controls:TransitioningContentControl
