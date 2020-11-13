@@ -41,7 +41,19 @@ namespace Dopamine.Data.Providers
             {
                 foreach (string artist in artists)
                 {
-                    LastFmAlbum lfmAlbum = LastfmApi.AlbumGetInfo(artist, albumAlt, false, "EN").Result;
+                    LastFmAlbum lfmAlbum = null;
+                    try
+                    {
+                        lfmAlbum = LastfmApi.AlbumGetInfo(artist, albumAlt, false, "EN").Result;
+                    }
+                    catch (Exception ex)
+                    {
+                        NLog.LogManager.GetLogger("AlbumInfoProviderData").Error(ex, "LastfmApi.AlbumGetInf");
+                        if (ex.Message.Equals(LastfmApi.NetworkError))
+                        {
+                            return new AlbumInfoProviderData() { result = InfoProviderResult.Fail_InternetFailed };
+                        }
+                    }
 
                     if (!string.IsNullOrEmpty(lfmAlbum.LargestImage()))
                     {
