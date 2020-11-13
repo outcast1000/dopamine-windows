@@ -603,6 +603,9 @@ namespace Dopamine.ViewModels.Common.Base
 
                     break;
                 case TrackOrder.ByRating:
+                    this.TrackOrder = TrackOrder.Ranking;
+                    break;
+                case TrackOrder.Ranking:
                     this.TrackOrder = TrackOrder.Alphabetical;
                     break;
                 default:
