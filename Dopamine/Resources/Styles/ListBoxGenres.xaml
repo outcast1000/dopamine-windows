@@ -174,7 +174,7 @@
                                     Opacity="0"
                                     Margin="0,5,0,0"
                                     BorderThickness="5,0,0,0"
-                                    BorderBrush="{DynamicResource Brush_SelectionBorder}" />
+                                    BorderBrush="{DynamicResource Brush_Accent}" />
                                 <Border
                                     Panel.ZIndex="0"
                                     Name="OverlayBorder"
