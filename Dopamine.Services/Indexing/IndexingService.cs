@@ -252,6 +252,7 @@ namespace Dopamine.Services.Indexing
             bool bImageAdded = false;
             if (data?.result == InfoProviderResult.Success)
             {
+                Logger.Info($"_artistInfoIndexingQueue_InfoDownloaded. Success. {requestedArtist.Name}");
                 if (data.Images?.Length > 0)
                 {
                     string cacheId = fileStorage.SaveImageToCache(data.Images[0].Data, FileStorageItemType.Artist);
@@ -265,6 +266,7 @@ namespace Dopamine.Services.Indexing
                     });
                     requestedArtist.Thumbnail = cacheId;
                     bImageAdded = true;
+                    Logger.Info($"_artistInfoIndexingQueue_InfoDownloaded. Image Saved. {requestedArtist.Name}");
                 }
                 if (data.Biography?.Data?.Length > 0)
                 {
@@ -276,8 +278,12 @@ namespace Dopamine.Services.Indexing
                         Origin = data.Biography.Origin,
                         OriginType = OriginType.Internet
                     });
+                    Logger.Info($"_artistInfoIndexingQueue_InfoDownloaded. Bio Saved. {requestedArtist.Name}");
                 }
-
+            }
+            else
+            {
+                Logger.Warn($"_artistInfoIndexingQueue_InfoDownloaded. Failed for: {requestedArtist.Name} - Res: {data.result}");
             }
             if (!bImageAdded && !(data?.result == InfoProviderResult.Fail_InternetFailed))
                 infoRepository.SetArtistImageFailed(requestedArtist);
@@ -290,6 +296,7 @@ namespace Dopamine.Services.Indexing
             bool bImageAdded = false;
             if (data.result == InfoProviderResult.Success)
             {
+                Logger.Info($"_albumInfoIndexingQueue_InfoDownloaded. Success. {requestedAlbum.Name}");
                 if (data.Images?.Length > 0)
                 {
                     string cacheId = fileStorage.SaveImageToCache(data.Images[0].Data, FileStorageItemType.Album);
@@ -303,6 +310,7 @@ namespace Dopamine.Services.Indexing
                     }, true);
                     requestedAlbum.Thumbnail = cacheId;
                     bImageAdded = true;
+                    Logger.Info($"_albumInfoIndexingQueue_InfoDownloaded. Image Saved. {requestedAlbum.Name}");
                 }
                 if (data?.Review?.Data?.Length > 0)
                 {
@@ -314,7 +322,12 @@ namespace Dopamine.Services.Indexing
                         Origin = data.Review.Origin,
                         OriginType = OriginType.Internet
                     });
+                    Logger.Info($"_albumInfoIndexingQueue_InfoDownloaded. Review Saved. {requestedAlbum.Name}");
                 }
+            }
+            else
+            {
+                Logger.Warn($"_albumInfoIndexingQueue_InfoDownloaded. Feiled. {requestedAlbum.Name} - Res: {data.result}");
             }
             if (!bImageAdded && data.result != InfoProviderResult.Fail_InternetFailed)
                 infoRepository.SetAlbumImageFailed(requestedAlbum);
@@ -926,6 +939,7 @@ namespace Dopamine.Services.Indexing
                         return;
                     }
                 }
+                Logger.Info($"RequestArtistInfoAsync. Requesting. {artist.Name}");
                 _artistInfoIndexingQueue.Enqueue(new ArtistInfoIndexingQueueJob() { Artist = artist });
             });
             return bRet;
@@ -958,11 +972,12 @@ namespace Dopamine.Services.Indexing
                 {
                     if (infoRepository.HasAlbumImageFailed(album))
                     {
-                        Logger.Info("RequestAlbumInfo. Image has already failed once. Exiting");
+                        Logger.Warn("RequestAlbumInfo. Image has already failed once. Exiting");
                         bRet = false;
                         return;
                     }
                 }
+                Logger.Info($"RequestAlbumInfoAsync. Requesting. {album.Name}");
                 _albumInfoIndexingQueue.Enqueue(new AlbumInfoIndexingQueueJob() { Album = album });
             });
             return bRet;
