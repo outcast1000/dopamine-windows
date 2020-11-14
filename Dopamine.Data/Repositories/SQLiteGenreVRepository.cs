@@ -15,35 +15,44 @@ namespace Dopamine.Data.Repositories
             this.factory = factory;
         }
 
-        public List<GenreV> GetGenres(bool bGetHistory, string searchString = null)
+        public List<GenreV> GetGenres(QueryOptions qo = null)
         {
-            QueryOptions qo = new QueryOptions();
-            if (!string.IsNullOrEmpty(searchString))
-            {
-                qo.extraWhereClause.Add("Genres.Name like ?");
-                qo.extraWhereParams.Add("%" + searchString + "%");
-            }
-            qo.GetHistory = bGetHistory;
+            if (qo == null)
+                qo = new QueryOptions();
             return GetGenresInternal(qo);
         }
 
-        public List<GenreV> GetGenresByAlbumId(long albumId)
+        public List<GenreV> GetGenresWithText(string text, QueryOptions qo = null)
         {
-            QueryOptions qo = new QueryOptions();
+            if (qo == null)
+                qo = new QueryOptions();
+            if (!string.IsNullOrEmpty(text))
+            {
+                qo.extraWhereClause.Add("Genres.Name like ?");
+                qo.extraWhereParams.Add("%" + text + "%");
+            }
+            return GetGenresInternal(qo);
+        }
+
+        public List<GenreV> GetGenresByAlbumId(long albumId, QueryOptions qo = null)
+        {
+            if (qo == null)
+                qo = new QueryOptions();
             qo.extraWhereClause.Add("Albums.Id=?");
             qo.extraWhereParams.Add(albumId);
             return GetGenresInternal(qo);
         }
 
-        public List<GenreV> GetGenresByArtistId(long artistId)
+        public List<GenreV> GetGenresByArtistId(long artistId, QueryOptions qo = null)
         {
-            QueryOptions qo = new QueryOptions();
+            if (qo == null)
+                qo = new QueryOptions();
             qo.extraWhereClause.Add("Artists.Id=?");
             qo.extraWhereParams.Add(artistId);
             return GetGenresInternal(qo);
         }
 
-        private List<GenreV> GetGenresInternal(QueryOptions queryOptions = null)
+        private List<GenreV> GetGenresInternal(QueryOptions queryOptions)
         {
             try
             {

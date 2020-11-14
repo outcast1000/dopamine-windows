@@ -187,7 +187,12 @@ namespace Dopamine.Services.Collection
             List<GenreViewModel> viewModels = new List<GenreViewModel>();
             await Task.Run(() =>
             {
-                IList<GenreV> items = this.genreVRepository.GetGenres(true, searchString);
+                IList<GenreV> items;
+                if (string.IsNullOrEmpty(searchString))
+                    items = genreVRepository.GetGenres(new QueryOptions(DataRichnessEnum.History));
+                else
+                    items = genreVRepository.GetGenresWithText(searchString, new QueryOptions(DataRichnessEnum.History));
+
                 if (items == null)
                     Logger.Warn($"GetGenresAsync genreVRepository({searchString}) return null");
                 else
@@ -196,13 +201,17 @@ namespace Dopamine.Services.Collection
             return viewModels;
         }
 
-        public async Task<IList<ArtistViewModel>> GetArtistsAsync(bool bGetHistory, string searchString = null)
+        public async Task<IList<ArtistViewModel>> GetArtistsAsync(DataRichnessEnum dataRichness, string searchString = null)
         {
             List<ArtistViewModel> viewModels = new List<ArtistViewModel>();
             await Task.Run(() =>
             {
-               IList<ArtistV> items = artistVRepository.GetArtists(bGetHistory, searchString);
-               if (items == null)
+                IList<ArtistV> items;
+                if (string.IsNullOrEmpty(searchString))
+                    items = artistVRepository.GetArtists(new QueryOptions(dataRichness));
+                else
+                    items = artistVRepository.GetArtistsWithText(searchString, new QueryOptions(dataRichness));
+                if (items == null)
                     Logger.Warn($"GetArtistsAsync artistVRepository.GetArtists({searchString}) return null");
                else
                     viewModels = items.Select(x => new ArtistViewModel(indexingService, artistVRepository, x)).ToList();
@@ -215,7 +224,11 @@ namespace Dopamine.Services.Collection
             IList<AlbumViewModel> avm = new List<AlbumViewModel>();
             await Task.Run(() =>
             {
-                IList<AlbumV> items = albumVRepository.GetAlbums(true, searchString);
+                IList<AlbumV> items;
+                if (string.IsNullOrEmpty(searchString))
+                    items = albumVRepository.GetAlbums(new QueryOptions(DataRichnessEnum.History));
+                else
+                    items = albumVRepository.GetAlbumsWithText(searchString, new QueryOptions(DataRichnessEnum.History));
                 if (items == null)
                     Logger.Warn($"GetAlbumsAsync albumVRepository.GetAlbums({searchString}) return null");
                 else
@@ -229,7 +242,7 @@ namespace Dopamine.Services.Collection
             IList<AlbumViewModel> avm = null;
             await Task.Run(() =>
             {
-                IList<AlbumV> albums = albumVRepository.GetAlbumsWithArtists(selectedArtists.Select(x => x.Id).ToList(), true);
+                IList<AlbumV> albums = albumVRepository.GetAlbumsWithArtists(selectedArtists.Select(x => x.Id).ToList(), new QueryOptions(DataRichnessEnum.History));
                 avm = albums.Select(x => new AlbumViewModel(indexingService, albumVRepository, x)).ToList();
             });
             return avm;
@@ -240,7 +253,7 @@ namespace Dopamine.Services.Collection
             IList<AlbumViewModel> avm = null;
             await Task.Run(() =>
             {
-                IList<AlbumV> albums = albumVRepository.GetAlbumsWithGenres(selectedGenres.Select(x => x.Id).ToList(), true);
+                IList<AlbumV> albums = albumVRepository.GetAlbumsWithGenres(selectedGenres.Select(x => x.Id).ToList(), new QueryOptions(DataRichnessEnum.History));
                 avm = albums.Select(x => new AlbumViewModel(indexingService, albumVRepository, x)).ToList();
             });
             return avm;

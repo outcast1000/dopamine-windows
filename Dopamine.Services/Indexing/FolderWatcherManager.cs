@@ -60,7 +60,7 @@ namespace Dopamine.Services.Indexing
         public async Task StartWatchingAsync()
         {
             await this.StopWatchingAsync();
-            List<FolderV> folders = folderVRepository.GetFolders();
+            List<FolderV> folders = folderVRepository.GetShownFolders();
             foreach (FolderV fol in folders)
             {
                 if (Directory.Exists(fol.Path))

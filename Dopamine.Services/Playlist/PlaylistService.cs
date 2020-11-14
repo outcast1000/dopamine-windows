@@ -295,7 +295,7 @@ namespace Dopamine.Services.Playlist
 
         public async Task<AddTracksToPlaylistResult> AddArtistsToStaticPlaylistAsync(IList<ArtistViewModel> artists, string playlistName)
         {
-            IList<TrackV> tracks = trackRepository.GetTracksOfArtists(artists.Select(x => x.Id).ToList(), true);
+            IList<TrackV> tracks = trackRepository.GetTracksOfArtists(artists.Select(x => x.Id).ToList(), new QueryOptions(DataRichnessEnum.Normal));
             List<TrackViewModel> orderedTracks = await EntityUtils.OrderTracksAsync(tracks.Select(t => this.container.ResolveTrackViewModel(t)).ToList(), TrackOrder.ByAlbum);
             AddTracksToPlaylistResult result = await this.AddTracksToStaticPlaylistAsync(orderedTracks, playlistName);
 
@@ -304,7 +304,7 @@ namespace Dopamine.Services.Playlist
 
         public async Task<AddTracksToPlaylistResult> AddGenresToStaticPlaylistAsync(IList<GenreViewModel> genres, string playlistName)
         {
-            IList<TrackV> tracks = trackRepository.GetTracksWithGenres(genres.Select(x => x.Id).ToList(), true);
+            IList<TrackV> tracks = trackRepository.GetTracksWithGenres(genres.Select(x => x.Id).ToList(), new QueryOptions(DataRichnessEnum.Normal));
             List<TrackViewModel> orderedTracks = await EntityUtils.OrderTracksAsync(tracks.Select(t => this.container.ResolveTrackViewModel(t)).ToList(), TrackOrder.ByAlbum);
             AddTracksToPlaylistResult result = await this.AddTracksToStaticPlaylistAsync(orderedTracks, playlistName);
 
@@ -313,7 +313,7 @@ namespace Dopamine.Services.Playlist
 
         public async Task<AddTracksToPlaylistResult> AddAlbumsToStaticPlaylistAsync(IList<AlbumViewModel> albumViewModels, string playlistName)
         {
-            IList<TrackV> tracks = trackRepository.GetTracksOfAlbums(albumViewModels.Select(x => x.Id).ToList(), true);
+            IList<TrackV> tracks = trackRepository.GetTracksOfAlbums(albumViewModels.Select(x => x.Id).ToList(), new QueryOptions(DataRichnessEnum.Normal));
             List<TrackViewModel> orderedTracks = await EntityUtils.OrderTracksAsync(tracks.Select(t => this.container.ResolveTrackViewModel(t)).ToList(), TrackOrder.ByAlbum);
             AddTracksToPlaylistResult result = await this.AddTracksToStaticPlaylistAsync(orderedTracks, playlistName);
 
@@ -449,7 +449,7 @@ namespace Dopamine.Services.Playlist
                 return new List<TrackViewModel>();
             }
 
-            IList<TrackV> tracks = trackRepository.GetTracksWithWhereClause(whereClause, true);
+            IList<TrackV> tracks = trackRepository.GetTracksWithWhereClause(whereClause, new QueryOptions(DataRichnessEnum.History));
             IList<TrackViewModel> trackViewModels = new List<TrackViewModel>();
 
             try

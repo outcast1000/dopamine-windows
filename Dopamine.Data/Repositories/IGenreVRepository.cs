@@ -6,11 +6,13 @@ namespace Dopamine.Data.Repositories
 {
     public interface IGenreVRepository
     {
-        List<GenreV> GetGenres(bool bGetHistory, string searchString = null);
+        List<GenreV> GetGenres(QueryOptions qo = null);
 
-        List<GenreV> GetGenresByArtistId(long artistId);
+        List<GenreV> GetGenresWithText(string text, QueryOptions qo = null);
 
-        List<GenreV> GetGenresByAlbumId(long albumId);
+        List<GenreV> GetGenresByArtistId(long artistId, QueryOptions qo = null);
+
+        List<GenreV> GetGenresByAlbumId(long albumId, QueryOptions qo = null);
 
     }
 }

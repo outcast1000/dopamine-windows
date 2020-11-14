@@ -6,13 +6,16 @@ namespace Dopamine.Data.Repositories
 {
     public interface IArtistVRepository
     {
-        List<ArtistV> GetArtists(bool bGetHistory = false, string searchString = null);
+        List<ArtistV> GetArtists(QueryOptions qo = null);
 
-        List<ArtistV> GetArtistsOfTrack(long track_id);
+        List<ArtistV> GetArtistsWithText(string searchString, QueryOptions qo = null);
+
+
+        List<ArtistV> GetArtistsOfTrack(long track_id, QueryOptions qo = null);
 
         List<ArtistV> GetArtistsWithoutImages(bool incudeFailedDownloads);
 
-        ArtistV GetArtist(long artistID);
+        ArtistV GetArtist(long artistID, QueryOptions qo = null);
 
 
     }

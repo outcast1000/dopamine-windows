@@ -18,18 +18,26 @@ namespace Dopamine.Data.Repositories
             this.factory = factory;
         }
 
-        public List<AlbumV> GetAlbums(bool bGetHistory, string searchString = null)
+        public List<AlbumV> GetAlbums(QueryOptions qo = null)
         {
-            QueryOptions qo = new QueryOptions();
-            if (!string.IsNullOrEmpty(searchString))
-            {
-                qo.extraWhereClause.Add("(Albums.Name like ? OR Artists.Name like ?)");
-                qo.extraWhereParams.Add("%" + searchString + "%");
-                qo.extraWhereParams.Add("%" + searchString + "%");
-            }
-            qo.GetHistory = bGetHistory;
+            if (qo == null)
+                qo = new QueryOptions();
             return GetAlbumsInternal(qo);
         }
+
+        public List<AlbumV> GetAlbumsWithText(string text, QueryOptions qo = null)
+        {
+            if (qo == null)
+                qo = new QueryOptions();
+            if (!string.IsNullOrEmpty(text))
+            {
+                qo.extraWhereClause.Add("(Albums.Name like ? OR Artists.Name like ?)");
+                qo.extraWhereParams.Add("%" + text + "%");
+                qo.extraWhereParams.Add("%" + text + "%");
+            }
+            return GetAlbumsInternal(qo);
+        }
+
 
         public List<AlbumV> GetAlbumsWithoutImages(bool incudeFailedDownloads)
         {
@@ -43,40 +51,40 @@ namespace Dopamine.Data.Repositories
             return GetAlbumsInternal(qo);
         }
 
-        public List<AlbumV> GetAlbumsWithArtists(List<long> artistIds, bool bGetHistory)
+        public List<AlbumV> GetAlbumsWithArtists(List<long> artistIds, QueryOptions qo = null)
         {
-            QueryOptions qo = new QueryOptions();
+            if (qo == null)
+                qo = new QueryOptions();
             qo.extraWhereClause.Add("Artists.id in (" + string.Join(",", artistIds) + ")");
-            qo.GetHistory = bGetHistory;
             return GetAlbumsInternal(qo);
         }
 
-        public List<AlbumV> GetAlbumsWithGenres(List<long> genreIds, bool bGetHistory)
+        public List<AlbumV> GetAlbumsWithGenres(List<long> genreIds, QueryOptions qo = null)
         {
-            QueryOptions qo = new QueryOptions();
+            if (qo == null)
+                qo = new QueryOptions();
             qo.extraWhereClause.Add("Genres.id in (" + string.Join(",", genreIds) + ")");
-            qo.GetHistory = bGetHistory;
             return GetAlbumsInternal(qo);
         }
 
-        public AlbumV GetAlbum(long albumId, bool bGetHistory)
+        public AlbumV GetAlbum(long albumId, QueryOptions qo = null)
         {
-            QueryOptions qo = new QueryOptions();
+            if (qo == null)
+                qo = new QueryOptions();
             qo.extraWhereClause.Add("Albums.id=?");
             qo.extraWhereParams.Add(albumId);
-            qo.GetHistory = bGetHistory;
             List<AlbumV> result = GetAlbumsInternal(qo);
             if (result.Count == 0)
                 return null;
             Debug.Assert(result.Count == 1);
             return result[0];
         }
-        public AlbumV GetAlbumOfTrackId(long trackId, bool bGetHistory)
+        public AlbumV GetAlbumOfTrackId(long trackId, QueryOptions qo = null)
         {
-            QueryOptions qo = new QueryOptions();
+            if (qo == null)
+                qo = new QueryOptions();
             qo.extraWhereClause.Add("Albums.id=(SELECT album_id FROM TrackAlbums WHERE track_id=?)");
             qo.extraWhereParams.Add(trackId);
-            qo.GetHistory = bGetHistory;
             List<AlbumV> result = GetAlbumsInternal(qo);
             if (result.Count == 0)
                 return null;
@@ -84,7 +92,7 @@ namespace Dopamine.Data.Repositories
             return result[0];
         }
 
-        private List<AlbumV> GetAlbumsInternal(QueryOptions queryOptions = null)
+        private List<AlbumV> GetAlbumsInternal(QueryOptions queryOptions)
         {
             try
             {

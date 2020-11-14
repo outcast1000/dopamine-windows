@@ -814,7 +814,7 @@ namespace Dopamine.Services.Indexing
                 Logger.Debug("RefreshCollectionAsync ENTER Task");
                 UpdateStatistics totalStats = new UpdateStatistics();
                 TimeCounter timerTotal = new TimeCounter();
-                List<FolderV> folders = folderVRepository.GetFolders();
+                List<FolderV> folders = folderVRepository.GetShownFolders(DataRichnessEnum.Basic);
                 foreach (FolderV folder in folders)
                 {
                     TimeCounter timerFolderUpdate = new TimeCounter();
@@ -861,7 +861,7 @@ namespace Dopamine.Services.Indexing
             {
                 try
                 {
-                    IList<AlbumV> albumDatasToIndex = rescanAll ? albumVRepository.GetAlbums(true) : albumVRepository.GetAlbumsWithoutImages(rescanFailed);
+                    IList<AlbumV> albumDatasToIndex = rescanAll ? albumVRepository.GetAlbums() : albumVRepository.GetAlbumsWithoutImages(rescanFailed);
                     IAlbumInfoProvider aip = infoProviderFactory.GetAlbumInfoProvider();
                     foreach (AlbumV album in albumDatasToIndex)
                     {
@@ -882,7 +882,7 @@ namespace Dopamine.Services.Indexing
             {
                 try
                 {
-                    IList<ArtistV> artistsToIndex = rescanAll ? artistVRepository.GetArtists() : artistVRepository.GetArtistsWithoutImages(rescanFailed);
+                    IList<ArtistV> artistsToIndex = rescanAll ? artistVRepository.GetArtists(new QueryOptions(DataRichnessEnum.Basic)) : artistVRepository.GetArtistsWithoutImages(rescanFailed);
                     IArtistInfoProvider ip = infoProviderFactory.GetArtistInfoProvider();
                     foreach (ArtistV artist in artistsToIndex)
                     {

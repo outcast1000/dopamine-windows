@@ -20,9 +20,31 @@ namespace Dopamine.Data.Repositories
             this.factory = factory;
         }
 
-        public List<FolderV> GetFolders()
+        public List<FolderV> Get_Folders(QueryOptions qo = null)
         {
-            return GetFoldersInternal();
+            if (qo == null)
+                qo = new QueryOptions();
+            return GetFoldersInternal(qo);
+        }
+
+        List<FolderV> IFolderVRepository.GetFolders(QueryOptions qo)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<FolderV> GetAllFolders(DataRichnessEnum dataRichness = DataRichnessEnum.Normal)
+        {
+            QueryOptions qo = QueryOptions.IncludeAll();
+            qo.DataRichness = dataRichness;
+            return GetFoldersInternal(qo);
+        }
+
+        public List<FolderV> GetShownFolders(DataRichnessEnum dataRichness = DataRichnessEnum.Normal)
+        {
+            QueryOptions qo = QueryOptions.IncludeAll();
+            qo.DataRichness = dataRichness;
+            qo.extraWhereClause.Add("folders.show=1");
+            return GetFoldersInternal(qo);
         }
 
         public bool SetFolderIndexing(FolderIndexing folderIndexing)
@@ -58,7 +80,7 @@ namespace Dopamine.Data.Repositories
         }
 
 
-        private List<FolderV> GetFoldersInternal()
+        private List<FolderV> GetFoldersInternal(QueryOptions qo)
         {
             try
             {
@@ -66,8 +88,6 @@ namespace Dopamine.Data.Repositories
                 {
                     try
                     {
-                        QueryOptions qo = QueryOptions.IncludeAll();
-                        qo.GetHistory = false;
                         return RepositoryCommon.Query<FolderV>(conn, GetSQLTemplate(), qo);
                     }
                     catch (Exception ex)

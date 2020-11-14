@@ -29,17 +29,14 @@ namespace Dopamine.Data.Repositories
             this.connection = connection;
         }
 
-        public List<TrackV> GetTracks(bool bGetHistory, QueryOptions options = null)
+        public List<TrackV> GetTracks(QueryOptions qo = null)
         {
-            if (options == null)
-            {
-                options = new QueryOptions();
-            }
-            options.GetHistory = bGetHistory;
-            return GetTracksInternal(options);
+            if (qo == null)
+                qo = new QueryOptions();
+            return GetTracksInternal(qo);
         }
 
-        public List<TrackV> GetTracksWithText(string text, bool bGetHistory, QueryOptions qo = null)
+        public List<TrackV> GetTracksWithText(string text, QueryOptions qo = null)
         {
             if (qo == null)
                 qo = new QueryOptions();
@@ -58,7 +55,6 @@ namespace Dopamine.Data.Repositories
                     }
                 }
             }
-            qo.GetHistory = bGetHistory;
             return GetTracksInternal(qo);
         }
 
@@ -70,7 +66,7 @@ namespace Dopamine.Data.Repositories
             return GetTracksInternal(options);
         }
 
-        private List<TrackV> GetTracksInternal(QueryOptions queryOptions = null)
+        private List<TrackV> GetTracksInternal(QueryOptions queryOptions)
         {
             try
             {
@@ -219,11 +215,11 @@ ORDER BY Score DESC
          */
 
 
-        public List<TrackV> GetTracksWithWhereClause(string whereClause, bool bGetHistory)
+        public List<TrackV> GetTracksWithWhereClause(string whereClause, QueryOptions qo = null)
         {
-            QueryOptions qo = new QueryOptions();
+            if (qo == null)
+                qo = new QueryOptions();
             qo.extraWhereClause.Add(whereClause);
-            qo.GetHistory = bGetHistory;
             return GetTracksInternal(qo);
         }
 
@@ -264,7 +260,7 @@ GROUP BY plays
             throw new NotImplementedException();
         }
 
-        public List<TrackV> GetTracksOfArtists(IList<long> artistIds, bool bGetHistory)
+        public List<TrackV> GetTracksOfArtists(IList<long> artistIds, QueryOptions options = null)
         {
             QueryOptions qo = new QueryOptions();
             bool bHasNull = false;
@@ -290,11 +286,10 @@ GROUP BY plays
             {
                 qo.extraWhereClause.Add("Artists.id in (" + string.Join(",", artistIds) + ")");
             }
-            qo.GetHistory = bGetHistory;
             return GetTracksInternal(qo);
         }
 
-        public List<TrackV> GetTracksOfAlbums(IList<long> albumIds, bool bGetHistory)
+        public List<TrackV> GetTracksOfAlbums(IList<long> albumIds, QueryOptions options = null)
         {
             QueryOptions qo = new QueryOptions();
             bool bHasNull = false;
@@ -320,11 +315,10 @@ GROUP BY plays
             {
                 qo.extraWhereClause.Add("Albums.id in (" + string.Join(",", albumIds) + ")");
             }
-            qo.GetHistory = bGetHistory;
             return GetTracksInternal(qo);
         }
 
-        public List<TrackV> GetTracksWithGenres(IList<long> genreIds, bool bGetHistory)
+        public List<TrackV> GetTracksWithGenres(IList<long> genreIds, QueryOptions options = null)
         {
             QueryOptions qo = new QueryOptions();
             bool bHasNull = false;
@@ -350,11 +344,10 @@ GROUP BY plays
             {
                 qo.extraWhereClause.Add("Genres.id in (" + string.Join(",", genreIds) + ")");
             }
-            qo.GetHistory = bGetHistory;
             return GetTracksInternal(qo);
         }
 
-        public List<TrackV> GetTracksWithPaths(IList<string> paths, bool bGetHistory)
+        public List<TrackV> GetTracksWithPaths(IList<string> paths, DataRichnessEnum dataRichness)
         {
             if (paths.Count == 0)
                 return new List<TrackV>();
@@ -372,7 +365,7 @@ GROUP BY plays
             qo.extraWhereClause.Add(where + ")");
             */
             qo.extraWhereClause.Add("t.path in (" + string.Join(",", paths.Select(x => String.Format("\"{0}\"", x))) + ")");
-            qo.GetHistory = bGetHistory;
+            qo.DataRichness = dataRichness;
             return GetTracksInternal(qo);
             //return GetTracksInternal("t.path in (" + string.Join(",", paths.Select(x => String.Format("\"{0}\"", x))) + ")");
         }
@@ -534,7 +527,7 @@ GROUP BY plays
         {
             QueryOptions qo = QueryOptions.IncludeAll();
             qo.extraWhereClause.Add("t.id in (SELECT track_id from PlaylistTracks)");
-            qo.GetHistory = true;
+            qo.DataRichness = DataRichnessEnum.History;
             return GetTracksInternal(qo);
         }
         public void SavePlaylistTracks(IList<TrackV> tracks)
@@ -565,7 +558,7 @@ GROUP BY plays
         public List<TrackV> GetTracksHistoryLog(TracksHistoryLogMode tracksHistoryLogMode, string searchText = null)
         {
             QueryOptions qo = QueryOptions.IncludeAll();
-            qo.GetHistory = true;
+            qo.DataRichness = DataRichnessEnum.History;
             if (tracksHistoryLogMode != TracksHistoryLogMode.All)
             {
                 qo.extraWhereClause.Add("th.history_action_id=?");
@@ -689,6 +682,8 @@ GROUP BY th.id
 ORDER BY th.id DESC
 #LIMIT#";
         }
+
+
 
 
 

@@ -124,7 +124,7 @@ namespace Dopamine.Services.Entities
                 ImageRequestCompleted?.Invoke();
                 return;// Nothing to change
             }
-            AlbumV album = _albumVRepository.GetAlbum(Data.Id, true);
+            AlbumV album = _albumVRepository.GetAlbum(Data.Id, new QueryOptions(DataRichnessEnum.History));
             if (album == null)
                 return;// Should not happen
             data = album;

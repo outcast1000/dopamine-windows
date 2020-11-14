@@ -16,13 +16,19 @@ namespace Dopamine.Data.Repositories
             throw new System.NotImplementedException();
         }
 
-        public List<AlbumV> GetAlbums(bool bGetHistory, string searchString = null)
+        public List<AlbumV> GetAlbums(QueryOptions qo = null)
         {
             return new List<AlbumV>() { 
                 new AlbumV() { Id = 1, Name = "album 1", TrackCount = 2, Genres = "Genre 1, Genre 2", MinYear = 1999, AlbumArtists="Album Artist 1", Artists="Artist 1" },
                 new AlbumV() { Id = 2, Name = "album 2", TrackCount = 3, Genres = "Genre 1, Genre 3", Artists="Artist 2"   } 
             };
         }
+
+        public List<AlbumV> GetAlbumsWithText(string text, QueryOptions qo = null)
+        {
+            return GetAlbums(qo);
+        }
+
 
         public List<AlbumV> GetAlbumsToIndex(bool includeFailed)
         {
@@ -34,21 +40,21 @@ namespace Dopamine.Data.Repositories
             throw new System.NotImplementedException();
         }
 
-        public List<AlbumV> GetAlbumsWithArtists(List<long> artistIds, bool bGetHistory)
+        public List<AlbumV> GetAlbumsWithArtists(List<long> artistIds, QueryOptions qo = null)
         {
-            return GetAlbums(false);
+            return GetAlbums(qo);
         }
 
-        public List<AlbumV> GetAlbumsWithGenres(List<long> genreIds, bool bGetHistory)
+        public List<AlbumV> GetAlbumsWithGenres(List<long> genreIds, QueryOptions qo = null)
         {
             throw new System.NotImplementedException();
         }
-        public AlbumV GetAlbumOfTrackId(long trackId, bool bGetHistory)
+        public AlbumV GetAlbumOfTrackId(long trackId, QueryOptions qo = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public AlbumV GetAlbum(long albumId, bool bGetHistory)
+        public AlbumV GetAlbum(long albumId, QueryOptions qo = null)
         {
             throw new System.NotImplementedException();
         }

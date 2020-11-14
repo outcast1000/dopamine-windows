@@ -1,5 +1,6 @@
 ﻿using Dopamine.Data;
 using Dopamine.Data.Entities;
+using Dopamine.Data.Repositories;
 using Dopamine.Services.Entities;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ namespace Dopamine.Services.Collection
     {
         Task<RemoveTracksResult> RemoveTracksFromCollectionAsync(IList<TrackViewModel> selectedTracks, bool bAlsoDeleteFromDisk);
 
-        Task<IList<ArtistViewModel>> GetArtistsAsync(bool bGetHistory, string searchString = null);
+        Task<IList<ArtistViewModel>> GetArtistsAsync(DataRichnessEnum dataRichness, string searchString = null);
 
         Task<IList<GenreViewModel>> GetGenresAsync(string searchString = null);
 

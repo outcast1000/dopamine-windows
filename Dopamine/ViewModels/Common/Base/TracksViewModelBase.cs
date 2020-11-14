@@ -212,22 +212,22 @@ namespace Dopamine.ViewModels.Common.Base
             if (albums != null && albums.Count > 0)
             {
                 // First, check Albums. They topmost have priority.
-                tracks = trackRepository.GetTracksOfAlbums(albums.Select(x => x.Id).ToList(), true);
+                tracks = trackRepository.GetTracksOfAlbums(albums.Select(x => x.Id).ToList(), new QueryOptions(DataRichnessEnum.History));
             }
             else if (!artists.IsNullOrEmpty())
             {
                 // Artists and Genres have the same priority
-                tracks = trackRepository.GetTracksOfArtists(artists.Select(x => x.Id).ToList(), true);
+                tracks = trackRepository.GetTracksOfArtists(artists.Select(x => x.Id).ToList(), new QueryOptions(DataRichnessEnum.History));
             }
             else if (!genres.IsNullOrEmpty())
             {
                 // Artists and Genres have the same priority
-                tracks = trackRepository.GetTracksWithGenres(genres.Select(x => x.Id).ToList(), true);
+                tracks = trackRepository.GetTracksWithGenres(genres.Select(x => x.Id).ToList(), new QueryOptions(DataRichnessEnum.History));
             }
             else
             {
                 // Tracks have lowest priority
-                tracks = trackRepository.GetTracks(true, null);
+                tracks = trackRepository.GetTracks(new QueryOptions(DataRichnessEnum.History));
             }
             await this.GetTracksCommonAsync(await this.container.ResolveTrackViewModelsAsync(tracks), trackOrder);
 
@@ -236,7 +236,7 @@ namespace Dopamine.ViewModels.Common.Base
 
         protected async Task GetFilteredTracksAsync(string searchFilter, TrackOrder trackOrder)
         {
-            IList<TrackV> tracks = trackRepository.GetTracksWithText(searchFilter, true);
+            IList<TrackV> tracks = trackRepository.GetTracksWithText(searchFilter, new QueryOptions(DataRichnessEnum.History));
             await this.GetTracksCommonAsync(await this.container.ResolveTrackViewModelsAsync(tracks), trackOrder);
         }
 

@@ -14,12 +14,26 @@ namespace Dopamine.Data.Repositories
         Ignore = 2
     }
 
+    public enum DataRichnessEnum
+    {
+        IDsOnly,
+        Basic,
+        Normal,
+        History
+    }
+
     public class QueryOptions
     {
+        public QueryOptions() : this(DataRichnessEnum.Normal) { }
+        public QueryOptions(DataRichnessEnum dataRichness)
+        {
+            DataRichness = dataRichness;
+        }
         public bool UseLimit = false;
-        public bool GetHistory = false;
+        //public bool GetHistory = false;
         public long Limit = 0;
         public long Offset = 0;
+        public DataRichnessEnum DataRichness = DataRichnessEnum.Normal;
         public QueryOptionsBool WhereVisibleFolders = QueryOptionsBool.True;
         public QueryOptionsBool WhereIgnored = QueryOptionsBool.False;
         public QueryOptionsBool WhereDeleted = QueryOptionsBool.False;
@@ -54,7 +68,7 @@ namespace Dopamine.Data.Repositories
             if (queryOptions == null)
                 queryOptions = new QueryOptions();
             //=== History
-            if (queryOptions.GetHistory == true)
+            if (queryOptions.DataRichness == DataRichnessEnum.History)
             {
                 queryOptions.extraSelectClause.Add("SUM(TrackHistoryStats.plays) as PlayCount");
                 queryOptions.extraSelectClause.Add("SUM(TrackHistoryStats.skips) as SkipCount");

@@ -56,7 +56,7 @@ namespace Dopamine.Services.Indexing
         public void Initialize()
         {
             // Comparing new and existing objects will happen in a Dictionary cache. This should improve performance.
-            this.cachedTracks = trackVRepository.GetTracks(false, null).ToDictionary(trk => trk.Id, trk => trk);
+            this.cachedTracks = trackVRepository.GetTracks().ToDictionary(trk => trk.Id, trk => trk);
         }
     }
 }

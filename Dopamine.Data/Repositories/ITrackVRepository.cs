@@ -16,25 +16,25 @@ namespace Dopamine.Data.Repositories
     public interface ITrackVRepository
     {
 
-        List<TrackV> GetTracks(bool bGetHistory, QueryOptions options);
+        List<TrackV> GetTracks(QueryOptions options = null);
 
-        List<TrackV> GetTracksWithText(string text, bool bGetHistory, QueryOptions options = null);
+        List<TrackV> GetTracksWithText(string text, QueryOptions options = null);
 
-        List<TrackV> GetTracksOfArtists(IList<long> artistIds, bool bGetHistory);
+        List<TrackV> GetTracksOfArtists(IList<long> artistIds, QueryOptions options = null);
 
-        List<TrackV> GetTracksOfAlbums(IList<long> albumIds, bool bGetHistory);
+        List<TrackV> GetTracksOfAlbums(IList<long> albumIds, QueryOptions options = null);
 
-        List<TrackV> GetTracksWithGenres(IList<long> genreIds, bool bGetHistory);
+        List<TrackV> GetTracksWithGenres(IList<long> genreIds, QueryOptions options = null);
 
         List<TrackV> GetTracksOfFolders(IList<long> folderIds, QueryOptions options = null);
 
-        List<TrackV> GetTracksWithPaths(IList<string> paths, bool bGetHistory);
+        //List<TrackV> GetTracksWithPaths(IList<string> paths, QueryOptions options = null);
 
-        List<TrackV> GetTracksHistoryLog(TracksHistoryLogMode tracksHistoryLogMode, string searchText = null);
+        List<TrackV> GetTracksHistoryLog(TracksHistoryLogMode tracksHistoryLogMode, string searchText);
 
         TrackV GetTrackWithPath(string path, QueryOptions options = null);
 
-        List<TrackV> GetTracksWithWhereClause(string searchText, bool bGetHistory);
+        List<TrackV> GetTracksWithWhereClause(string searchText, QueryOptions options = null);
 
         TrackV SelectAutoPlayTrack(TrackV baseTrack);
 

@@ -17,22 +17,31 @@ namespace Dopamine.Data.Repositories
             this.factory = factory;
         }
 
-        public List<ArtistV> GetArtists(bool bGetHistory, string searchString = null)
+        public List<ArtistV> GetArtists(QueryOptions qo = null)
         {
-            QueryOptions qo = new QueryOptions();
-            if (!string.IsNullOrEmpty(searchString))
-            {
-                qo.extraWhereClause.Add("Artists.Name like ?");
-                qo.extraWhereParams.Add("%" + searchString + "%");
-            }
-            qo.GetHistory = bGetHistory;
+            if (qo == null)
+                qo = new QueryOptions();
             return GetArtistsInternal(qo);
         }
 
-        public ArtistV GetArtist(long artistID)
+
+        public List<ArtistV> GetArtistsWithText(string text, QueryOptions qo = null)
+        {
+            if (qo == null)
+                qo = new QueryOptions();
+            if (!string.IsNullOrEmpty(text))
+            {
+                qo.extraWhereClause.Add("Artists.Name like ?");
+                qo.extraWhereParams.Add("%" + text + "%");
+            }
+            return GetArtistsInternal(qo);
+        }
+
+        public ArtistV GetArtist(long artistID, QueryOptions qo = null)
         {
             Debug.Assert(artistID > 0);
-            QueryOptions qo = new QueryOptions();
+            if (qo == null)
+                qo = new QueryOptions();
             qo.extraWhereClause.Add("Artists.id=?");
             qo.extraWhereParams.Add(artistID);
             IList<ArtistV> artists = GetArtistsInternal(qo);
@@ -55,16 +64,16 @@ namespace Dopamine.Data.Repositories
             return GetArtistsInternal(qo);
         }
 
-        public List<ArtistV> GetArtistsOfTrack(long track_id)
+        public List<ArtistV> GetArtistsOfTrack(long track_id, QueryOptions qo = null)
         {
-            QueryOptions qo = new QueryOptions();
+            if (qo == null)
+                qo = new QueryOptions();
             qo.extraWhereClause.Add("t.id=?");
             qo.extraWhereParams.Add(track_id);
-            qo.GetHistory = false;
             return GetArtistsInternal(qo);
         }
 
-        private List<ArtistV> GetArtistsInternal(QueryOptions queryOptions = null)
+        private List<ArtistV> GetArtistsInternal(QueryOptions queryOptions)
         {
             try
             {

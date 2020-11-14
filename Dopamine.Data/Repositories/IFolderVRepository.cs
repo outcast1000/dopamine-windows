@@ -8,7 +8,11 @@ namespace Dopamine.Data.Repositories
 {
     public interface IFolderVRepository
     {
-        List<FolderV> GetFolders();
+        List<FolderV> GetFolders(QueryOptions qo = null);
+
+        List<FolderV> GetAllFolders(DataRichnessEnum dataRichness = DataRichnessEnum.Normal);
+
+        List<FolderV> GetShownFolders(DataRichnessEnum dataRichness = DataRichnessEnum.Normal);
 
         bool SetFolderIndexing(FolderIndexing folderIndexing);
     }

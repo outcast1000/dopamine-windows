@@ -664,7 +664,7 @@ namespace Dopamine.Services.Playback
 
         public async Task PlayAllTracksAsync(PlaylistMode mode, TrackOrder trackOrder = TrackOrder.None)
         {
-            IList<TrackV> tracks = this.trackRepository.GetTracks(false, null);
+            IList<TrackV> tracks = this.trackRepository.GetTracks(new QueryOptions(DataRichnessEnum.History));
             await this.PlayTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), mode, trackOrder);
         }
 
@@ -685,7 +685,7 @@ namespace Dopamine.Services.Playback
         {
             if (artists == null)
                 return;
-            IList<TrackV> tracks = trackRepository.GetTracksOfArtists(artists.Select(x => x.Id).ToList(), true);
+            IList<TrackV> tracks = trackRepository.GetTracksOfArtists(artists.Select(x => x.Id).ToList(), new QueryOptions(DataRichnessEnum.History));
             await this.PlayTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), mode, trackOrder);
         }
 
@@ -693,7 +693,7 @@ namespace Dopamine.Services.Playback
         {
             if (genres == null)
                 return;
-            List<TrackV> tracks = trackRepository.GetTracksWithGenres(genres.Select(x => x.Id).ToList(), true);
+            List<TrackV> tracks = trackRepository.GetTracksWithGenres(genres.Select(x => x.Id).ToList(), new QueryOptions(DataRichnessEnum.History));
             await this.PlayTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), mode, trackOrder);
         }
 
@@ -701,7 +701,7 @@ namespace Dopamine.Services.Playback
         {
             if (albums == null)
                 return;
-            List<TrackV> tracks = trackRepository.GetTracksOfAlbums(albums.Select(x => x.Id).ToList(), true);
+            List<TrackV> tracks = trackRepository.GetTracksOfAlbums(albums.Select(x => x.Id).ToList(), new QueryOptions(DataRichnessEnum.History));
             await this.PlayTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), mode, trackOrder);
 
         }
@@ -819,21 +819,21 @@ namespace Dopamine.Services.Playback
 
         public async Task<EnqueueResult> AddArtistsToQueueAsync(IList<ArtistViewModel> artists)
         {
-            IList<TrackV> tracks = trackRepository.GetTracksOfArtists(artists.Select(x=>x.Id).ToList(), true);
+            IList<TrackV> tracks = trackRepository.GetTracksOfArtists(artists.Select(x=>x.Id).ToList(), new QueryOptions(DataRichnessEnum.History));
             List<TrackViewModel> orederedTracks = await EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
             return await this.AddToQueueAsync(orederedTracks);
         }
 
         public async Task<EnqueueResult> AddGenresToQueueAsync(IList<GenreViewModel> genres)
         {
-            IList<TrackV> tracks = trackRepository.GetTracksWithGenres(genres.Select(x => x.Id).ToList(), true);
+            IList<TrackV> tracks = trackRepository.GetTracksWithGenres(genres.Select(x => x.Id).ToList(), new QueryOptions(DataRichnessEnum.History));
             List<TrackViewModel> orederedTracks = await EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
             return await this.AddToQueueAsync(orederedTracks);
         }
 
         public async Task<EnqueueResult> AddAlbumsToQueueAsync(IList<AlbumViewModel> albums)
         {
-            IList<TrackV> tracks = trackRepository.GetTracksOfAlbums(albums.Select(x => x.Id).ToList(), true);
+            IList<TrackV> tracks = trackRepository.GetTracksOfAlbums(albums.Select(x => x.Id).ToList(), new QueryOptions(DataRichnessEnum.History));
             List<TrackViewModel> orederedTracks = await EntityUtils.OrderTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), TrackOrder.ByAlbum);
             return await this.AddToQueueAsync(orederedTracks);
         }

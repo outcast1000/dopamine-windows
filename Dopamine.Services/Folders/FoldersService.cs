@@ -91,7 +91,7 @@ namespace Dopamine.Services.Folders
 
         public async Task<IList<FolderViewModel>> GetFoldersAsync()
         {
-            IList<FolderV> folders = folderVRepository.GetFolders();
+            IList<FolderV> folders = folderVRepository.GetAllFolders(DataRichnessEnum.Normal);
 
             IList<FolderViewModel> folderViewModels = new List<FolderViewModel>();
 

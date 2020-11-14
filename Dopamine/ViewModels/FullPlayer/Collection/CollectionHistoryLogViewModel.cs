@@ -321,7 +321,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                     // Get the tracks
                     QueryOptions qo = new QueryOptions();
                     qo.extraWhereClause.Add("plays>0");
-                    IList<TrackV> tracks = trackVRepository.GetTracksWithText(_searchText, true, qo);
+                    IList<TrackV> tracks = trackVRepository.GetTracksWithText(_searchText, new QueryOptions(DataRichnessEnum.History));
                     trackViewModels = tracks.OrderByDescending(x => x.PlayCount).
                                                                     Select(x => new TrackViewModel(metadataService, scrobblingService, albumVRepository, indexingService, x)
                                                                     {

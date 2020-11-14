@@ -29,6 +29,7 @@ using System.Diagnostics;
 using Dopamine.Services.Provider;
 using Dopamine.Views.Common;
 using Dopamine.ViewModels.Common;
+using Dopamine.Data.Repositories;
 
 /* ALEX COMMENT
 --- MAP OF VARIOUS EVENTS THAT TRIGGERS Data Refresh
@@ -504,7 +505,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             try
             {
                 // Get the viewModels
-                var viewModels = new ObservableCollection<ArtistViewModel>(await _collectionService.GetArtistsAsync(true, _searchString));// Using history
+                var viewModels = new ObservableCollection<ArtistViewModel>(await _collectionService.GetArtistsAsync(DataRichnessEnum.History, _searchString));// Using history
                 // Unless we are in Search Mode, we should re-store the selected items. The cases are:
                 //  1. at the beginning of the application
                 //  2. after the search mode is finished 
