@@ -6,8 +6,8 @@
     xmlns:utils="clr-namespace:Dopamine.Utils">
 
     <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/Dopamine;component/Resources/Styles/FontStyles.xaml" />
-        <ResourceDictionary Source="/Dopamine;component/Resources/Styles/ScrollBar.xaml" />
+        <ResourceDictionary Source="/DopamineJ;component/Resources/Styles/FontStyles.xaml" />
+        <ResourceDictionary Source="/DopamineJ;component/Resources/Styles/ScrollBar.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />

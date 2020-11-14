@@ -48,11 +48,12 @@ namespace Dopamine.Data.Providers
                     }
                     catch (Exception ex)
                     {
-                        NLog.LogManager.GetLogger("AlbumInfoProviderData").Error(ex, "LastfmApi.AlbumGetInf");
-                        if (ex.Message.Equals(LastfmApi.NetworkError))
+                        NLog.LogManager.GetLogger("AlbumInfoProviderData").Error(ex, "LastfmApi.AlbumGetInfo");
+                        if (ex.Message.Equals(LastfmApi.NetworkError) || (ex.InnerException != null && ex.InnerException.Message.Equals(LastfmApi.NetworkError)))
                         {
                             return new AlbumInfoProviderData() { result = InfoProviderResult.Fail_InternetFailed };
                         }
+                        continue;
                     }
 
                     if (!string.IsNullOrEmpty(lfmAlbum.LargestImage()))

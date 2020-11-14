@@ -17,7 +17,7 @@ namespace Dopamine.Core.Alex
         public static string ApplicationFolder()
         {
 #if DEBUG //=== ALEX: Add this code in order to debug the program while using tha app
-            return System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Assembly.GetEntryAssembly().GetName().Name + "\\Debug");
+            return System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Dopamine\\Debug");
 #else
             return Digimezzo.Foundation.Core.Settings.SettingsClient.ApplicationFolder();
 #endif

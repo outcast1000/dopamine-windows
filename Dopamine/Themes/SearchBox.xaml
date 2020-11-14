@@ -4,7 +4,7 @@
                     xmlns:fwc="clr-namespace:Digimezzo.Foundation.WPF.Controls;assembly=Digimezzo.Foundation.WPF">
 
     <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/Dopamine;component/Resources/Styles/FontStyles.xaml" />
+        <ResourceDictionary Source="/DopamineJ;component/Resources/Styles/FontStyles.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <Style x:Key="{x:Type controls:SearchBox}" TargetType="{x:Type controls:SearchBox}">

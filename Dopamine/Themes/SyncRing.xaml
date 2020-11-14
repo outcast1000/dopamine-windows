@@ -3,7 +3,7 @@
     xmlns:controls="clr-namespace:Dopamine.Controls">
 
     <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/Dopamine;component/Resources/Styles/FontStyles.xaml" />
+        <ResourceDictionary Source="/DopamineJ;component/Resources/Styles/FontStyles.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <Style x:Key="{x:Type controls:SyncRing}" TargetType="{x:Type controls:SyncRing}">

@@ -9,8 +9,9 @@
     xmlns:utils="clr-namespace:Dopamine.Utils"
     xmlns:system="clr-namespace:System;assembly=mscorlib">
     <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/Dopamine;component/Resources/Styles/FontStyles.xaml" />
-        <ResourceDictionary Source="/Dopamine;component/Resources/Styles/Buttons.xaml" />
+        <ResourceDictionary Source="/DopamineJ;component/Resources/Styles/FontStyles.xaml" />
+        <ResourceDictionary Source="/DopamineJ;component/Resources/Styles/Buttons.xaml" />
+        <ResourceDictionary Source="/DopamineJ;component/Resources/Themes/Common.xaml" />
     </ResourceDictionary.MergedDictionaries>
     <converters:BooleanToCollapsedConverter x:Key="BooleanToCollapsedConverter" />
     <converters:InvertingBooleanToCollapsedConverter x:Key="InvertingBooleanToCollapsedConverter" />
@@ -152,13 +153,6 @@
     <!--  ListBoxItem  -->
 
     <Style x:Key="ListBoxAlbumsItem" TargetType="{x:Type ListBoxItem}">
-        <Style.Resources>
-            <BitmapImage x:Key="DefaultImage" UriSource="/Resources/Media/no_album_image.png" />
-            <system:Double x:Key="ImageMaxWidth">220</system:Double>
-            <system:Double x:Key="ImageMinWidth">100</system:Double>
-            <system:Double x:Key="ImageHeight">100</system:Double>
-            <system:Double x:Key="ButtonSize">30</system:Double>
-        </Style.Resources>
         <Setter Property="ContextMenu" Value="{StaticResource ListBoxAlbumsContextMenu}" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -214,7 +208,7 @@
                                     Opacity="0"
                                     Margin="0,5,0,0"
                                     BorderThickness="5,0,0,0"
-                                    BorderBrush="{DynamicResource Brush_SelectionBorder}" />
+                                    BorderBrush="{DynamicResource Brush_Accent}" />
                                 <Border
                                     Panel.ZIndex="0"
                                     Name="OverlayBorder"
@@ -358,8 +352,8 @@
                                                     Style="{StaticResource TransparentButton}"
                                                     Panel.ZIndex="10"
                                                     x:Name="EnqueueButton"
-                                                    Width="{StaticResource ButtonSize}"
-                                                    Height="{StaticResource ButtonSize}"
+                                                    Width="{StaticResource DefaultListItemButtonSize}"
+                                                    Height="{StaticResource DefaultListItemButtonSize}"
                                                     Margin="2,2,2,2"
                                                     HorizontalContentAlignment="Center"
                                                     VerticalContentAlignment="Center"
@@ -377,8 +371,8 @@
                                                     Panel.ZIndex="10"
                                                     Background="Transparent"
                                                     x:Name="PlayButton"
-                                                    Width="{StaticResource ButtonSize}"
-                                                    Height="{StaticResource ButtonSize}"
+                                                    Width="{StaticResource DefaultListItemButtonSize}"
+                                                    Height="{StaticResource DefaultListItemButtonSize}"
                                                     DockPanel.Dock="Right"
                                                     Margin="2,2,2,2"
                                                     HorizontalContentAlignment="Center"
@@ -427,7 +421,7 @@
                                                     <pc:SourceChangedImage.Source>
                                                         <Binding
                                                             Converter="{StaticResource KeyToPathConverter}"
-                                                            ConverterParameter="{StaticResource DefaultImage}"
+                                                            ConverterParameter="{StaticResource MissingImage}"
                                                             IsAsync="False"
                                                             Path="Thumbnail" />
                                                     </pc:SourceChangedImage.Source>

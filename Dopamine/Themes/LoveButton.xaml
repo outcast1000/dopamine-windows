@@ -4,7 +4,7 @@
                     xmlns:converters="clr-namespace:Dopamine.Converters">
 
     <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/Dopamine;component/Resources/Styles/FontStyles.xaml" />
+        <ResourceDictionary Source="/DopamineJ;component/Resources/Styles/FontStyles.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <converters:LoveConverter x:Key="LoveConverter" />

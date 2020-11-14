@@ -131,11 +131,29 @@ namespace Dopamine.Data.Repositories
             return RawQuery<T>(connection, sql, allParams.ToArray());
         }
 
+        private static long _debugQueryCounter = 0;
+        private static double _debugQueryCounterDelay = 0;
         public static List<T> RawQuery<T>(SQLiteConnection connection, string sql, params object[] args) where T : new()
         {
             try
             {
+                long ticks = DateTime.Now.Ticks;
                 List<T> list = connection.Query<T>(sql, args);
+                double delay = (DateTime.Now.Ticks - ticks) / 10000.0;
+                _debugQueryCounter++;
+                _debugQueryCounterDelay += delay;
+                if (delay >= 10)
+                {
+                    _debugQueryCounter++;
+                    if (delay >= 100)
+                        Logger.Warn($"STATS: RawQuery QueryNo:{_debugQueryCounter} Type: {typeof(T).Name} Delay: {delay:0.#} ms");
+                    else
+                        Logger.Info($"STATS: RawQuery QueryNo:{_debugQueryCounter} Type: {typeof(T).Name} Delay: {delay:0.#} ms");
+                }
+                if ((_debugQueryCounter % 100) == 0)
+                {
+                    Logger.Info($"STATS: RawQuery QueryNo:{_debugQueryCounter} AverageDelay: {_debugQueryCounterDelay/ _debugQueryCounter:0.#} ms");
+                }
                 return list;
             }
             catch (Exception ex)

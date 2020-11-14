@@ -3,10 +3,10 @@
                     xmlns:pc="clr-namespace:Dopamine.Controls">
 
     <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/Dopamine;component/Resources/Styles/Buttons.xaml" />
-        <ResourceDictionary Source="/Dopamine;component/Resources/Styles/FontStyles.xaml" />
-        <ResourceDictionary Source="/Dopamine;component/Resources/Styles/MetroComboBox.xaml" />
-        <ResourceDictionary Source="/Dopamine;component/Resources/Styles/MetroTextBox.xaml" />
+        <ResourceDictionary Source="/DopamineJ;component/Resources/Styles/Buttons.xaml" />
+        <ResourceDictionary Source="/DopamineJ;component/Resources/Styles/FontStyles.xaml" />
+        <ResourceDictionary Source="/DopamineJ;component/Resources/Styles/MetroComboBox.xaml" />
+        <ResourceDictionary Source="/DopamineJ;component/Resources/Styles/MetroTextBox.xaml" />
     </ResourceDictionary.MergedDictionaries>
     
     <Style x:Key="ListBoxSmartPlaylistRulesItem" TargetType="{x:Type ListBoxItem}">

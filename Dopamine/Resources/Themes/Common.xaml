@@ -1,4 +1,7 @@
-﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:system="clr-namespace:System;assembly=mscorlib">
 
     <!--  Opacity % to hex conversions  -->
     <!--
@@ -68,4 +71,9 @@
         <GradientStop Color="{DynamicResource Color_BlackInvisible}" Offset="0.0" />
         <GradientStop Color="{DynamicResource Color_Black}" Offset="1.0" />
     </LinearGradientBrush>
+
+    <BitmapImage x:Key="MissingImage" UriSource="/Resources/Media/no_album_image.png" />
+    <system:Double x:Key="DefaultListItemButtonSize">30</system:Double>
+    <GridLength  x:Key="SplitterWidth">6</GridLength>
+
 </ResourceDictionary>

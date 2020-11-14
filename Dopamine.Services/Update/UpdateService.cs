@@ -34,6 +34,7 @@ namespace Dopamine.Services.Update
 
     public class UpdateService : IUpdateService
     {
+        // ALEX TODO. Change the Update URL LINK
         private string apiRootFormat = Constants.HomeLink + "/content/software/updateapi.php?function=getnewversion&application=Dopamine&version={0}&getprerelease={1}";
         private Timer checkTimer = new Timer();
         private string updatesSubDirectory;
@@ -71,6 +72,8 @@ namespace Dopamine.Services.Update
             // Create a dummy package. If the version remains 0.0.0.0, no new version was found.
             Package newVersion = this.CreateDummyPackage();
 
+            // ALEX TODO. Reenable the fuctionality when the new link will be available
+            /*
             try
             {
                 // Download a new version from Internet
@@ -99,6 +102,7 @@ namespace Dopamine.Services.Update
             {
                 LogClient.Error("Update check: could not retrieve online version information. Exception: {0}", ex.Message);
             }
+            */
 
             return newVersion;
         }

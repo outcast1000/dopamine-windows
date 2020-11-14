@@ -9,7 +9,7 @@
     xmlns:utils="clr-namespace:Dopamine.Utils"
     xmlns:system="clr-namespace:System;assembly=mscorlib">
     <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/Dopamine;component/Resources/Styles/FontStyles.xaml" />
+        <ResourceDictionary Source="/DopamineJ;component/Resources/Styles/FontStyles.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <converters:AddEllipsisConverter x:Key="AddEllipsisConverter" />
