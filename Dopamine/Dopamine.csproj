@@ -751,9 +751,7 @@
     <Content Include="Icons\Dopamine.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Icons\Dopamine.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <Resource Include="Icons\Dopamine.png" />
     <Content Include="Icons\Flac.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

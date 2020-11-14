@@ -48,16 +48,22 @@
                 <!-- Logo/Back button -->
                 <Grid DockPanel.Dock="Left" MouseEnter="Grid_MouseEnter" MouseLeave="Grid_MouseLeave"
                       VerticalAlignment="Top" Width="50" Height="50" Background="#00000000">
-                    <!-- Droplet -->
+                    <Grid.Resources>
+                        <BitmapImage x:Key="Dopamine" UriSource="/Icons/Dopamine.png" />
+                    </Grid.Resources>
+                    <Image Width="30" Height="30" Source="{StaticResource Dopamine}" Panel.ZIndex="1" />
+                    <!--
+                    <!- - Droplet - ->
                     <Viewbox Width="30" Height="30" Panel.ZIndex="0">
                         <Path x:Name="Droplet" Data="{StaticResource Droplet}" Fill="{DynamicResource Brush_Accent}"/>
                     </Viewbox>
-                    <!-- Headphone -->
+                    <!- - Headphone - ->
                     <Viewbox x:Name="HeadPhoneIcon" Panel.ZIndex="1" Width="20" Height="20" Opacity="1"
                              Visibility="{Binding ShowBackButton, Converter={StaticResource InvertingBooleanToCollapsedConverter}}">
                         <Path x:Name="HeadPhone" Data="{StaticResource HeadPhone}" Fill="{DynamicResource Brush_WindowIcon}" 
                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Viewbox>
+                    -->
                     <!-- Back button -->
                     <Button x:Name="BackButton" Panel.ZIndex="1" 
                             Style="{StaticResource TransparentFixedButton}" 
