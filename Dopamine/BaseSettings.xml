@@ -427,7 +427,7 @@
 			<Value>False</Value>
 		</Setting>
 		<Setting Name="FontSize">
-			<Value>18</Value>
+			<Value>16</Value>
 		</Setting>
 		<Setting Name="DownloadLyrics">
 			<Value>True</Value>

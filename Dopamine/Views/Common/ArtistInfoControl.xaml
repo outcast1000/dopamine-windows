@@ -103,6 +103,8 @@
                         <Grid>
                             <StackPanel>
                                 <TextBlock
+                                    FontSize="16"
+                                    FontWeight="Light"
                                     TextWrapping="Wrap"
                                     Foreground="{DynamicResource Brush_PrimaryText}"
                                     Text="{Binding Path=Biography}"

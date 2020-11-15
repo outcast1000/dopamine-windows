@@ -159,7 +159,7 @@
                     </dc:PivotItem>
                     <dc:PivotItem>
                         <!-- Displayed when tracks are queued -->
-                        <dc:SlidingContentControl x:Name="NowPlayingSubPageRegion" FeatheringRadius="24" Margin="100,90,100,40"
+                        <dc:SlidingContentControl x:Name="NowPlayingSubPageRegion" FeatheringRadius="24" Margin="20,20,20,20"
                                                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                                                   SlideDirection="{Binding Direction}" SlideFadeIn="True" 
                                                   prism:RegionManager.RegionName="{x:Static cp:RegionNames.NowPlayingSubPageRegion}"/>
