@@ -16,7 +16,6 @@ namespace Dopamine.Data.Repositories
 
     public enum DataRichnessEnum
     {
-        IDsOnly,
         Basic,
         Normal,
         History
