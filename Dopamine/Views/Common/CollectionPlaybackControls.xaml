@@ -34,7 +34,6 @@
                 Background="#00000000"
                 Grid.Column="0"
                 Height="70"
-                Cursor="Hand"
                 ToolTip="{DynamicResource Language_Now_Playing}">
                 <DockPanel.ContextMenu>
                     <ContextMenu>
@@ -58,11 +57,13 @@
                         </MenuItem>
                     </ContextMenu>
                 </DockPanel.ContextMenu>
+                <!--
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="MouseLeftButtonUp">
                         <i:InvokeCommandAction Command="{x:Static cp:ApplicationCommands.ShowNowPlayingCommand}" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
+                -->
                 <commonviews:CoverArtControl
                     x:Name="CoverArtControl"
                     DockPanel.Dock="Left"
@@ -113,6 +114,7 @@
                     </ToggleButton.Content>
                 </ToggleButton>
                 <!--  Now Playing button  -->
+                <!--
                 <Button
                     x:Name="NowPlayingButton"
                     Margin="10,0,0,0"
@@ -131,6 +133,7 @@
                         Foreground="{DynamicResource Brush_PrimaryText}"
                         FontSize="16" />
                 </Button>
+                -->
                 <!--  Time  -->
                 <commonviews:TimeControl Margin="0,0,10,0" />
             </DockPanel>

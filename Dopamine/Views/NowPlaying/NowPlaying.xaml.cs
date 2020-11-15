@@ -36,6 +36,7 @@ namespace Dopamine.Views.NowPlaying
 
         public void CleanupNowPlayingHandler(object sender, ElapsedEventArgs e)
         {
+            /*
             this.Dispatcher.BeginInvoke(new Action(() =>
             {
                 if (!this.BackButton.IsMouseOver)
@@ -43,6 +44,7 @@ namespace Dopamine.Views.NowPlaying
                     this.CanShowControls = false;
                 }
             }));
+            */
         }
 
         private void NowPlaying_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
@@ -50,17 +52,20 @@ namespace Dopamine.Views.NowPlaying
             this.ShowControls();
         }
 
+        /*
         private void SpectrumAnalyzer_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             this.AlignSpectrumAnalyzer();
         }
+        */
 
         private void NowPlaying_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            this.AlignSpectrumAnalyzer();
+            //this.AlignSpectrumAnalyzer();
             this.AlignBackgroundCoverArt();
         }
 
+        /*
         private void AlignSpectrumAnalyzer()
         {
             // This makes sure the spectrum analyzer is centered on the screen, based on the left pixel.
@@ -75,6 +80,7 @@ namespace Dopamine.Views.NowPlaying
                 // Swallow this exception
             }
         }
+        */
 
         private void AlignBackgroundCoverArt()
         {

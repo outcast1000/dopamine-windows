@@ -19,17 +19,19 @@
         </i:EventTrigger>
     </i:Interaction.Triggers>
 
-    <DockPanel Height="80">
+    <DockPanel>
         <!-- Progress slider -->
+        <!--
         <commonviews:ProgressControls DockPanel.Dock="Top"/>
-        <Grid Margin="0,-6,0,0">
+        -->
+        <Grid Margin="0,0,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <!-- Buttons -->
-            <dc:Pivot Grid.Column="0" Margin="25,0,0,0" Visibility="{Binding HasPlaybackQueue,Converter={StaticResource BooleanToCollapsedConverter}}"
+            <dc:Pivot Grid.Column="0" Margin="25,10,0,25" Visibility="{Binding HasPlaybackQueue,Converter={StaticResource BooleanToCollapsedConverter}}"
                       VerticalAlignment="Center" SelectedIndex="{Binding SelectedNowPlayingSubPage,Converter={StaticResource EnumConverter},ConverterParameter={x:Type enums:NowPlayingSubPage}}">
                 <!-- Showcase button -->
                 <dc:PivotItem HeaderForeground="{DynamicResource Brush_PrimaryText}" 
@@ -66,10 +68,13 @@
                 </dc:PivotItem>
             </dc:Pivot>
             <!-- Playback controls -->
+            <!--
             <commonviews:PlaybackControlsWithPlaylistNotification Grid.Column="1" HorizontalAlignment="Center" UseLayoutRounding="True" SnapsToDevicePixels="True"/>
+            -->
             <!-- Right pane -->
+            <!--
             <DockPanel Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,25,0">
-                <!-- Volume button -->
+                <!- - Volume button - ->
                 <commonviews:PopupVolumeControls 
                     DockPanel.Dock="Right" 
                     Margin="10,0,0,0" 
@@ -77,7 +82,7 @@
                     Height="30" 
                     ToolTip="{DynamicResource Language_Volume}" 
                     VerticalAlignment="Center"/>
-                <!-- Equalizer button -->
+                <!- - Equalizer button - ->
                 <ToggleButton 
                     x:Name="EqualizerButton" 
                     Margin="10,0,0,0"
@@ -94,9 +99,10 @@
                         <commonviews:EqualizerIcon/>
                     </ToggleButton.Content>
                 </ToggleButton>
-                <!-- Time -->
+                <!- - Time - ->
                 <commonviews:TimeControl Margin="0,0,10,0"/>
             </DockPanel>
+            -->
         </Grid>
     </DockPanel>
 </UserControl>

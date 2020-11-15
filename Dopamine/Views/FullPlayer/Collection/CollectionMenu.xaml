@@ -36,6 +36,7 @@
             <dc:PivotItem Header="{DynamicResource Language_Playlists}" Style="{StaticResource MenuPivotItem}" />
             <dc:PivotItem Header="{DynamicResource Language_Folders}" Style="{StaticResource MenuPivotItem}" />
             <dc:PivotItem Header="{DynamicResource Language_History}" Style="{StaticResource MenuPivotItem}" />
+            <dc:PivotItem Header="{DynamicResource Language_Now_Playing}" Style="{StaticResource MenuPivotItem}" HeaderForeground="{DynamicResource Brush_Accent}" SelectedHeaderForeground="{DynamicResource Brush_Accent}"/>
         </dc:Pivot>
     </DockPanel>
 </UserControl>

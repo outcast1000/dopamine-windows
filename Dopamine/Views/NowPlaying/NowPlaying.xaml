@@ -18,9 +18,11 @@
              prismMvvm:ViewModelLocator.AutoWireViewModel="True">
 
     <Grid>
+        <!--
         <commonviews:WindowControls Panel.ZIndex="99" ButtonHeight="29" ButtonWidth="45" 
                                     HorizontalAlignment="Right" VerticalAlignment="Top"
                                     ShowMaximizeRestoreButton="True"/>
+        -->
         <!-- Background -->
         <Border Panel.ZIndex="0" ClipToBounds="True">
             <commonviews:BackgroundCoverArtControl x:Name="BackgroundCoverArtControl" />
@@ -29,6 +31,7 @@
                 Background="{DynamicResource Brush_NowPlayingBackground}"/>
         <DockPanel Panel.ZIndex="2">
             <!-- Titlebar -->
+            <!--
             <Border DockPanel.Dock="Top" HorizontalAlignment="Stretch">
                 <DockPanel Height="29">
                     <Button x:Name="BackButton" 
@@ -78,9 +81,11 @@
                     </Style>
                 </Border.Style>
             </Border>
+            -->
             <!-- Window -->
             <Grid>
                 <!-- Background -->
+                <!--
                 <Border Panel.ZIndex="0" Background="{DynamicResource Brush_WindowHeaderBackground}" 
                         HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="70">
                     <Border.Style>
@@ -110,9 +115,12 @@
                         </Style>
                     </Border.Style>
                 </Border>
+                -->
                 <!-- Playback controls + spectrum -->
                 <Grid Panel.ZIndex="1" VerticalAlignment="Bottom">
+                    <!--
                     <commonviews:SpectrumAnalyzerControl x:Name="SpectrumAnalyzer" VerticalAlignment="Bottom" HorizontalAlignment="Left" SizeChanged="SpectrumAnalyzer_SizeChanged"/>
+                    -->
                     <commonviews:NowPlayingPlaybackControls x:Name="NowPlayingPlaybackControls">
                         <commonviews:NowPlayingPlaybackControls.Style>
                             <Style>
