@@ -1,31 +1,56 @@
 ﻿using Dopamine.Core.Enums;
 using Dopamine.Services.Playback;
+using Prism.Commands;
 using Prism.Mvvm;
 
 namespace Dopamine.ViewModels.Common.Base
 {
     public abstract class NowPlayingViewModelBase : BindableBase
     {
-        private IPlaybackService playbackService;
-        private NowPlayingPage selectedNowPlayingPage;
+        private IPlaybackService _playbackService;
+        private NowPlayingPage _selectedNowPlayingPage;
+        public DelegateCommand LoadedCommand { get; set; }
+        public DelegateCommand UnloadedCommand { get; set; }
 
         public NowPlayingPage SelectedNowPlayingPage
         {
-            get { return selectedNowPlayingPage; }
-            set { SetProperty<NowPlayingPage>(ref this.selectedNowPlayingPage, value); }
+            get { return _selectedNowPlayingPage; }
+            set { SetProperty<NowPlayingPage>(ref this._selectedNowPlayingPage, value); }
         }
 
         public NowPlayingViewModelBase(IPlaybackService playbackService)
         {
-            this.playbackService = playbackService;
-            this.playbackService.PlaybackSuccess += (_,__) => this.SetNowPlaying();
-            this.playbackService.PlaylistChanged += (_, __) => this.SetNowPlaying();
-            this.SetNowPlaying();
+            _playbackService = playbackService;
+            LoadedCommand = new DelegateCommand(() => { OnLoad();  });
+            UnloadedCommand = new DelegateCommand(() => { OnUnload(); });
+        }
+
+        private void PlaybackService_PlaylistChanged(object sender, System.EventArgs e)
+        {
+            SetNowPlaying();
+        }
+
+        private void PlaybackService_PlaybackSuccess(object sender, PlaybackSuccessEventArgs e)
+        {
+            SetNowPlaying();
         }
 
         private void SetNowPlaying()
         {
-            this.SelectedNowPlayingPage = this.playbackService.PlaylistItems.Count > 0 ? NowPlayingPage.NowPlaying : NowPlayingPage.NothingPlaying;
+            SelectedNowPlayingPage = _playbackService.PlaylistItems.Count > 0 ? NowPlayingPage.NowPlaying : NowPlayingPage.NothingPlaying;
+        }
+
+        private void OnLoad()
+        {
+            _playbackService.PlaybackSuccess += PlaybackService_PlaybackSuccess;
+            _playbackService.PlaylistChanged += PlaybackService_PlaylistChanged;
+            SetNowPlaying();
+        }
+        private void OnUnload()
+        {
+            _playbackService.PlaybackSuccess -= PlaybackService_PlaybackSuccess;
+            _playbackService.PlaylistChanged -= PlaybackService_PlaylistChanged;
+
         }
     }
 }

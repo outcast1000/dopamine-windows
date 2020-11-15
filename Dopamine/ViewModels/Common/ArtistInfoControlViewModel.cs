@@ -36,6 +36,8 @@ namespace Dopamine.ViewModels.Common
         private IArtistVRepository _artistVRepository;
         private IInfoRepository _infoRepository;
 
+        public DelegateCommand LoadedCommand { get; set; }
+        public DelegateCommand UnloadedCommand { get; set; }
         public DelegateCommand<string> OpenLinkCommand { get; set; }
 
         public SlideDirection SlideDirection
@@ -64,6 +66,9 @@ namespace Dopamine.ViewModels.Common
             _artistVRepository = container.Resolve<IArtistVRepository>();
             _infoRepository = container.Resolve<IInfoRepository>();
 
+            LoadedCommand = new DelegateCommand(() => { OnLoad(); });
+            UnloadedCommand = new DelegateCommand(() => { OnUnload(); });
+
             this.OpenLinkCommand = new DelegateCommand<string>((url) =>
             {
                 try
@@ -76,21 +81,38 @@ namespace Dopamine.ViewModels.Common
                 }
             });
 
-            this.playbackService.PlaybackSuccess += async (_, e) =>
-            {
-                this.SlideDirection = e.IsPlayingPreviousTrack ? SlideDirection.RightToLeft : SlideDirection.LeftToRight;
-                await this.ShowArtistInfoAsync(this.playbackService.CurrentTrack, true);
-            };
 
-            this.i18nService.LanguageChanged += async (_, __) =>
-            {
-                if (this.playbackService.HasCurrentTrack) await this.ShowArtistInfoAsync(this.playbackService.CurrentTrack, true);
-            };
+        }
+
+        private void OnLoad()
+        {
+            this.playbackService.PlaybackSuccess += PlaybackService_PlaybackSuccess;
+            this.i18nService.LanguageChanged += I18nService_LanguageChanged;
 
             // Defaults
             this.SlideDirection = SlideDirection.LeftToRight;
             Task unAwaitedTask = this.ShowArtistInfoAsync(this.playbackService.CurrentTrack, true);
         }
+
+        private void OnUnload()
+        {
+            this.playbackService.PlaybackSuccess -= PlaybackService_PlaybackSuccess;
+            this.i18nService.LanguageChanged -= I18nService_LanguageChanged;
+        }
+
+        private async void I18nService_LanguageChanged(object sender, EventArgs e)
+        {
+            if (this.playbackService.HasCurrentTrack) await this.ShowArtistInfoAsync(this.playbackService.CurrentTrack, true);
+        }
+
+
+        private async void PlaybackService_PlaybackSuccess(object sender, PlaybackSuccessEventArgs e)
+        {
+            this.SlideDirection = e.IsPlayingPreviousTrack ? SlideDirection.RightToLeft : SlideDirection.LeftToRight;
+            await this.ShowArtistInfoAsync(this.playbackService.CurrentTrack, true);
+        }
+
+
 
         private async Task ShowArtistInfoAsync(TrackViewModel track, bool forceReload)
         {

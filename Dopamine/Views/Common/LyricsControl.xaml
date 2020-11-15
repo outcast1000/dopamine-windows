@@ -11,11 +11,19 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:prismMvvm="clr-namespace:Prism.Mvvm;assembly=Prism.Wpf"
     xmlns:utils="clr-namespace:Dopamine.Utils"
+    xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     d:DesignHeight="300"
     d:DesignWidth="300"
     prismMvvm:ViewModelLocator.AutoWireViewModel="True"
     mc:Ignorable="d">
-
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Loaded">
+            <i:InvokeCommandAction Command="{Binding LoadedCommand}" />
+        </i:EventTrigger>
+        <i:EventTrigger EventName="Unloaded">
+            <i:InvokeCommandAction Command="{Binding UnloadedCommand}" />
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
     <UserControl.Resources>
         <!--  Setting this CollectionViewSource as a ContextMenu resource doesn't work. Binding with ContextMenuPlaylists fails. No idea why.  -->
         <CollectionViewSource x:Key="PlaylistsDataSource" Source="{Binding ContextMenuPlaylists}" />

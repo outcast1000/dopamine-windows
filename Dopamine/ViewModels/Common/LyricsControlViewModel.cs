@@ -47,9 +47,12 @@ namespace Dopamine.ViewModels.Common
         private bool canHighlight;
         private Timer refreshTimer = new Timer();
         private int refreshTimerIntervalMilliseconds = 500;
-        private bool isNowPlayingPageActive;
-        private bool isNowPlayingLyricsPageActive;
+        //private bool isNowPlayingPageActive;
+        //private bool isNowPlayingLyricsPageActive;
         private LyricsFactory lyricsFactory;
+
+        public DelegateCommand LoadedCommand { get; set; }
+        public DelegateCommand UnloadedCommand { get; set; }
 
         public DelegateCommand RefreshLyricsCommand { get; set; }
 
@@ -85,48 +88,16 @@ namespace Dopamine.ViewModels.Common
             this.i18NService = container.Resolve<II18nService>();
             this.infoRepository = container.Resolve<IInfoRepository>();
 
-            this.highlightTimer.Interval = this.highlightTimerIntervalMilliseconds;
-            this.highlightTimer.Elapsed += HighlightTimer_Elapsed;
+            LoadedCommand = new DelegateCommand(() => { OnLoad(); });
+            UnloadedCommand = new DelegateCommand(() => { OnUnload(); });
 
-            this.updateLyricsAfterEditingTimer.Interval = this.updateLyricsAfterEditingTimerIntervalMilliseconds;
-            this.updateLyricsAfterEditingTimer.Elapsed += UpdateLyricsAfterEditingTimer_Elapsed;
-
-            this.refreshTimer.Interval = this.refreshTimerIntervalMilliseconds;
-            this.refreshTimer.Elapsed += RefreshTimer_Elapsed;
-
-            this.playbackService.PlaybackPaused += (_, __) => this.highlightTimer.Stop();
-            this.playbackService.PlaybackResumed += (_, __) => this.highlightTimer.Start();
-
-            this.metadataService.MetadataChanged += (_) => this.RestartRefreshTimer();
-
-            I18NService_LanguageChanged(null, null);
-            this.i18NService.LanguageChanged += I18NService_LanguageChanged;
-
-            Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += (_, e) =>
-            {
-                if (SettingsClient.IsSettingChanged(e, "Lyrics", "DownloadLyrics"))
-                {
-                    if ((bool)e.Entry.Value)
-                    {
-                        this.RestartRefreshTimer();
-                    }
-                }
-            };
-
-            this.isNowPlayingPageActive = SettingsClient.Get<bool>("FullPlayer", "IsNowPlayingSelected");
-            this.isNowPlayingLyricsPageActive = ((NowPlayingSubPage)SettingsClient.Get<int>("FullPlayer", "SelectedNowPlayingSubPage")) == NowPlayingSubPage.Lyrics;
-
-            this.eventAggregator.GetEvent<IsNowPlayingPageActiveChanged>().Subscribe(isNowPlayingPageActive =>
-            {
-                this.isNowPlayingPageActive = isNowPlayingPageActive;
-                this.RestartRefreshTimer();
-            });
-
+            /*
             this.eventAggregator.GetEvent<IsNowPlayingSubPageChanged>().Subscribe(tuple =>
             {
                 this.isNowPlayingLyricsPageActive = tuple.Item2 == NowPlayingSubPage.Lyrics;
                 this.RestartRefreshTimer();
             });
+            */
 
             this.RefreshLyricsCommand = new DelegateCommand(async () => {
                 TrackViewModel track = playbackService.CurrentTrack;
@@ -141,16 +112,99 @@ namespace Dopamine.ViewModels.Common
 
             ApplicationCommands.RefreshLyricsCommand.RegisterCommand(this.RefreshLyricsCommand);
 
-            this.playbackService.PlaybackSuccess += (_, e) =>
-            {
-                this.ContentSlideInFrom = e.IsPlayingPreviousTrack ? -30 : 30;
-                this.RestartRefreshTimer();
-            };
+        }
+
+        private void OnLoad()
+        {
+            this.highlightTimer.Interval = this.highlightTimerIntervalMilliseconds;
+            this.highlightTimer.Elapsed += HighlightTimer_Elapsed;
+
+            this.updateLyricsAfterEditingTimer.Interval = this.updateLyricsAfterEditingTimerIntervalMilliseconds;
+            this.updateLyricsAfterEditingTimer.Elapsed += UpdateLyricsAfterEditingTimer_Elapsed;
+
+            this.refreshTimer.Interval = this.refreshTimerIntervalMilliseconds;
+            this.refreshTimer.Elapsed += RefreshTimer_Elapsed;
+
+            this.playbackService.PlaybackPaused += PlaybackService_PlaybackPaused;
+            this.playbackService.PlaybackResumed += PlaybackService_PlaybackResumed;
+            this.playbackService.PlaybackSuccess += PlaybackService_PlaybackSuccess;
+
+            this.metadataService.MetadataChanged += MetadataService_MetadataChanged;
+
+
+            I18NService_LanguageChanged(null, null);
+            this.i18NService.LanguageChanged += I18NService_LanguageChanged;
+
+            Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += SettingsClient_SettingChanged;
+
+
+
+
+            //this.isNowPlayingPageActive = SettingsClient.Get<bool>("FullPlayer", "IsNowPlayingSelected");
+            //this.isNowPlayingLyricsPageActive = ((NowPlayingSubPage)SettingsClient.Get<int>("FullPlayer", "SelectedNowPlayingSubPage")) == NowPlayingSubPage.Lyrics;
+
+
 
             this.ClearLyrics(null); // Makes sure the loading animation can be shown even at first start
 
             this.RestartRefreshTimer();
         }
+
+        private void OnUnload()
+        {
+            this.highlightTimer.Elapsed -= HighlightTimer_Elapsed;
+            this.updateLyricsAfterEditingTimer.Elapsed -= UpdateLyricsAfterEditingTimer_Elapsed;
+            this.refreshTimer.Elapsed -= RefreshTimer_Elapsed;
+
+            this.playbackService.PlaybackPaused -= PlaybackService_PlaybackPaused;
+            this.playbackService.PlaybackResumed -= PlaybackService_PlaybackResumed;
+            this.playbackService.PlaybackSuccess -= PlaybackService_PlaybackSuccess;
+
+            this.metadataService.MetadataChanged -= MetadataService_MetadataChanged;
+
+            this.i18NService.LanguageChanged -= I18NService_LanguageChanged;
+
+            Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged -= SettingsClient_SettingChanged;
+
+            _lastTrackIdOnRefreshLyrics = 0;
+
+        }
+
+        private void PlaybackService_PlaybackSuccess(object sender, PlaybackSuccessEventArgs e)
+        {
+            this.ContentSlideInFrom = e.IsPlayingPreviousTrack ? -30 : 30;
+            this.RestartRefreshTimer();
+        }
+
+        private void SettingsClient_SettingChanged(object sender, Digimezzo.Foundation.Core.Settings.SettingChangedEventArgs e)
+        {
+            if (SettingsClient.IsSettingChanged(e, "Lyrics", "DownloadLyrics"))
+            {
+                if ((bool)e.Entry.Value)
+                {
+                    this.RestartRefreshTimer();
+                }
+            }
+        }
+
+
+
+        private void MetadataService_MetadataChanged(MetadataChangedEventArgs obj)
+        {
+            this.RestartRefreshTimer();
+        }
+
+        private void PlaybackService_PlaybackResumed(object sender, EventArgs e)
+        {
+            this.highlightTimer.Start();
+        }
+
+        private void PlaybackService_PlaybackPaused(object sender, PlaybackPausedEventArgs e)
+        {
+            this.highlightTimer.Stop();
+        }
+
+
 
         private void I18NService_LanguageChanged(object sender, EventArgs e)
         {
@@ -210,11 +264,13 @@ namespace Dopamine.ViewModels.Common
             await _semaphore.WaitAsync();
             try
             {
+                /*
                 if (!this.isNowPlayingPageActive || !this.isNowPlayingLyricsPageActive)
                 {
                     Logger.Debug("EXIT RefreshLyricsAsync (Now Playing is not active)");
                     return;
                 }
+                */
                 if (track == null)
                 {
                     Logger.Debug("EXIT RefreshLyricsAsync (No current track)");
