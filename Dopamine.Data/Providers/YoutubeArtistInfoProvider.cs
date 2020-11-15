@@ -92,7 +92,12 @@ namespace Dopamine.Data.Providers
                     if (matches.Count > 0)
                     {
                         // May have escape chars like  \\\"futuristic \/
-                        data.Biography = new OriginatedData<string>() { Data = matches[0].Groups[1].Value.Replace("\\\\\\\"", "\"").Replace("\\/", "/"), Origin = ProviderName };
+                        string bio = matches[0].Groups[1].Value;
+                        bio = bio.Replace(@"\\\""", "\"");
+                        bio = bio.Replace(@"\\n", "\n");
+                        bio = bio.Replace(@"\/", "/");
+                        bio = bio.Replace(@"\\u0026", "&");
+                        data.Biography = new OriginatedData<string>() { Data = bio, Origin = ProviderName };
                     }
                     else
                         Logger.Info($"Bio not found. Artist: '{artist}'. URL: {uri.AbsolutePath}");
