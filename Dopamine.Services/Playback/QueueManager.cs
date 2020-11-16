@@ -247,6 +247,7 @@ namespace Dopamine.Services.Playback
                 return false;
             }
             T current = CurrentItem;
+            positions = positions.OrderByDescending(p => p).ToList();
             foreach (int position in positions)
             {
                 _playList.RemoveAt(position);
