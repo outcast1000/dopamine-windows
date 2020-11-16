@@ -67,7 +67,7 @@
                 <commonviews:CoverArtControl
                     x:Name="CoverArtControl"
                     DockPanel.Dock="Left"
-                    Visibility="{Binding HasImage, Converter={StaticResource BooleanToVisibilityConverter}}" 
+                    Visibility="{Binding HasImage, Converter={StaticResource BooleanToCollapsedConverter}}" 
                     Width="70"
                     Height="70" />
                 <commonviews:PlaybackInfoControl

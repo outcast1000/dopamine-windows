@@ -118,6 +118,7 @@ namespace Dopamine.ViewModels.Common
                         try
                         {
                             this.CoverArtViewModel = new CoverArtViewModel { CoverArt = artwork };
+                            RaisePropertyChanged(nameof(this.HasImage));
                         }
                         catch (Exception ex)
                         {
