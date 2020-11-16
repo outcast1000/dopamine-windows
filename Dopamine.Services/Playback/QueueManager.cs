@@ -237,8 +237,6 @@ namespace Dopamine.Services.Playback
         }
 
         // Remove all tracks. Continue playing if active track is not affected. Next track if it is deleted. Nothing if the list is empty
-        // ALEX TODO: It should be refactored to use IList<int> removedTracks
-
         public bool Remove(IList<int> positions)
         {
             if (positions.Count > _playList.Count)
@@ -256,6 +254,11 @@ namespace Dopamine.Services.Playback
             if (idxCurrent != -1)
             {
                 _position = idxCurrent;
+            }
+            if (_playList.IsNullOrEmpty())
+            {
+                Clear();
+                return true;
             }
             if (_position > _playList.Count - 1)
                 _position = _playList.Count - 1;

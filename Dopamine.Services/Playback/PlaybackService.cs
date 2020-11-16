@@ -909,6 +909,7 @@ namespace Dopamine.Services.Playback
         {
             if (this.player != null)
             {
+                this.PlaybackStopped(this, new EventArgs());
                 // Remove the previous Stopped handler (not sure this is needed)
                 this.player.PlaybackInterrupted -= this.PlaybackInterruptedHandler;
                 this.player.PlaybackFinished -= this.PlaybackFinishedHandler;
@@ -994,7 +995,12 @@ namespace Dopamine.Services.Playback
         {
             if (track == null)
             {
-                return false;
+                // Should happen if
+                //  1. We clear the playlist
+                //  2. Delete the last track from the playlist
+                //  3. When we first start the application
+                Stop();
+                return true;
             }
 
             if (this.isLoadingTrack)
