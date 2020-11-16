@@ -38,10 +38,16 @@ namespace Dopamine.ViewModels.Common
             set { SetProperty<SlideDirection>(ref this.slideDirection, value); }
         }
 
+        public bool HasImage
+        {
+            get { return CoverArtViewModel == null ? false : !string.IsNullOrEmpty(CoverArtViewModel.CoverArt); }
+        }
+
         private void ClearArtwork()
         {
             this.CoverArtViewModel = new CoverArtViewModel { CoverArt = null };
             this.artwork = null;
+            RaisePropertyChanged(nameof(this.HasImage));
         }
 
         public CoverArtControlViewModel(IPlaybackService playbackService, IMetadataService metadataService)
