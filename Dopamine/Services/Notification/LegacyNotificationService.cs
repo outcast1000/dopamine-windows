@@ -121,11 +121,14 @@ namespace Dopamine.Services.Notification
         protected virtual bool CanShowNotification()
         {
             var showNotificationOnlyWhenPlayerNotVisible = SettingsClient.Get<bool>("Behaviour", "ShowNotificationOnlyWhenPlayerNotVisible");
-            if (this.trayControlsWindow != null && this.trayControlsWindow.IsActive) return false; // Never show a notification when the tray controls are visible.
-            if (this.mainWindow != null && this.mainWindow.IsActive && showNotificationOnlyWhenPlayerNotVisible) return false;
-            if (this.playlistWindow != null && this.playlistWindow.IsActive && showNotificationOnlyWhenPlayerNotVisible) return false;
-
-            return true;
+            bool bRet = true;
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                if (this.trayControlsWindow != null && this.trayControlsWindow.IsActive) bRet = false; // Never show a notification when the tray controls are visible.
+                if (this.mainWindow != null && this.mainWindow.IsActive && showNotificationOnlyWhenPlayerNotVisible) bRet = false;
+                if (this.playlistWindow != null && this.playlistWindow.IsActive && showNotificationOnlyWhenPlayerNotVisible) bRet = false;
+            });
+            return bRet;
         }
      
         private void ShowMainWindow(Object sender, EventArgs e)
