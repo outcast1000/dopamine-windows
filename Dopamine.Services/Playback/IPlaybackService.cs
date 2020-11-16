@@ -104,7 +104,7 @@ namespace Dopamine.Services.Playback
 
         Task PlayTracksAsync(IList<TrackViewModel> tracks, PlaylistMode mode, TrackOrder trackOrder = TrackOrder.ByAlbum);
 
-        Task PlayAllTracksAsync(PlaylistMode mode, TrackOrder trackOrder = TrackOrder.ByAlbum);//bool shuffle, bool unshuffle);
+        //Task PlayAllTracksAsync(PlaylistMode mode, TrackOrder trackOrder = TrackOrder.ByAlbum);//bool shuffle, bool unshuffle);
 
         Task PlayArtistsAsync(IList<ArtistViewModel> artists, PlaylistMode mode, TrackOrder trackOrder = TrackOrder.ByAlbum);//, bool shuffle, bool unshuffle);
 

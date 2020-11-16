@@ -108,7 +108,7 @@ namespace Dopamine.Services.Playback
 
         public void EnqueueNext(IList<T> items)
         {
-            if (_position == -1)
+            if (!_position.HasValue)
                 Enqueue(items);
             else
             {
@@ -138,6 +138,14 @@ namespace Dopamine.Services.Playback
 
         public bool Next()
         {
+            if (_playList.Count <= 0)
+                return false;
+            if (!_position.HasValue)
+            {
+                _position = 0;
+                return true;
+            }
+
             int playlistOrderIndex = _playlistOrder.FindIndex(x => x == _position);
             bool bHasMoreToPlay = Shuffle ? _nextCounter < _playList.Count - 1 : _position < _playList.Count - 1;
 

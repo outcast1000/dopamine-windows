@@ -26,6 +26,7 @@
                 FontSize="13"
                 Foreground="{DynamicResource Brush_Accent}"
                 DockPanel.Dock="Left" />
+            <!--
             <Button
                 x:Name="ShuffleAllButton"
                 DockPanel.Dock="Right"
@@ -47,6 +48,7 @@
                         Foreground="{DynamicResource Brush_SecondaryText}" />
                 </StackPanel>
             </Button>
+            -->
             <TextBlock
                 Text="{DynamicResource Language_Songs}"
                 FontSize="13"

@@ -15,7 +15,9 @@ namespace Dopamine.ViewModels.Common
             this.playbackService = playbackService;
 
             this.PlayAllCommand = new DelegateCommand(() => {
-                this.playbackService.PlayAllTracksAsync(PlaylistMode.Play);
+                playbackService.LoopMode = Core.Base.LoopMode.AutoPlay;
+                playbackService.PlayNextAsync();
+                //this.playbackService.PlayAllTracksAsync(PlaylistMode.Play);
                 });
         }
     }

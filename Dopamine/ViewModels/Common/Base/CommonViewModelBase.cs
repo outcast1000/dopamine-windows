@@ -57,7 +57,7 @@ namespace Dopamine.ViewModels.Common.Base
         public DelegateCommand ShuffleTracksCommand { get; set; }
         public DelegateCommand PlayTracksCommand { get; set; }
         public DelegateCommand EnqueueTracksCommand { get; set; }
-        public DelegateCommand ShuffleAllCommand { get; set; }
+        //public DelegateCommand ShuffleAllCommand { get; set; }
         public DelegateCommand LoadedCommand { get; set; }
         public DelegateCommand UnloadedCommand { get; set; }
 
@@ -121,11 +121,12 @@ namespace Dopamine.ViewModels.Common.Base
             this.EditTracksCommand = new DelegateCommand(() => this.EditSelectedTracks(), () => !this.IsIndexing);
             this.LoadedCommand = new DelegateCommand(async () => { RegisteEvents(); await this.LoadedCommandAsync(); });
             this.UnloadedCommand = new DelegateCommand(async () => { UnRegisteEvents(); await this.UnloadedCommandAsync(); });
+            /*
             this.ShuffleAllCommand = new DelegateCommand(() =>
             {
                 this.playbackService.PlayAllTracksAsync(PlaylistMode.Play, TrackOrder.Random);
             });
-
+            */
             // Events
             /*
             this.collectionService.CollectionChanged += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when the Collection has changed

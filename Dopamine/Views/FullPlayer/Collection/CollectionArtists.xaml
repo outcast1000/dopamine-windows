@@ -93,6 +93,7 @@
                             Foreground="{DynamicResource Brush_SecondaryText}"
                             Style="{StaticResource TransparentButton}"
                             ToolTip="{DynamicResource Language_Toggle_Artist_Order}" />
+                        <!--
                         <Button
                             Margin="10,0,5,0"
                             VerticalContentAlignment="Center"
@@ -104,6 +105,7 @@
                                 Foreground="{DynamicResource Brush_SecondaryText}"
                                 Text="&#xE8B1;" />
                         </Button>
+                        -->
                     </StackPanel>
                 </DockPanel>
                 <pc:TotalsInformation

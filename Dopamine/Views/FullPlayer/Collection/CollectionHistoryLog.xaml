@@ -35,6 +35,7 @@
                 Foreground="{DynamicResource Brush_SecondaryText}"
                 Style="{StaticResource TransparentButton}"
                 ToolTip="{DynamicResource Language_Mode}" />
+            <!--
             <Button
                 x:Name="ShuffleAllButton"
                 DockPanel.Dock="Right"
@@ -56,6 +57,7 @@
                         Foreground="{DynamicResource Brush_SecondaryText}" />
                 </StackPanel>
             </Button>
+            -->
             <TextBlock
                 Text="{DynamicResource Language_Records}"
                 FontSize="13"

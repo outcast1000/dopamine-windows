@@ -537,8 +537,8 @@ namespace Dopamine.Services.Playback
                 }
                 else
                 {
-                    // Enqueue all tracks before playing
-                    await this.PlayAllTracksAsync(PlaylistMode.Play);// false, false);
+                    LoopMode = LoopMode.AutoPlay;
+                    await TryPlayNextAsync(false);
                 }
             }
         }
@@ -662,11 +662,13 @@ namespace Dopamine.Services.Playback
             }
         }
 
+        /*
         public async Task PlayAllTracksAsync(PlaylistMode mode, TrackOrder trackOrder = TrackOrder.None)
         {
             IList<TrackV> tracks = this.trackRepository.GetTracks(new QueryOptions(DataRichnessEnum.History));
             await this.PlayTracksAsync(await this.container.ResolveTrackViewModelsAsync(tracks), mode, trackOrder);
         }
+        */
 
         public async Task PlayTracksAndStartOnTrack(IList<TrackViewModel> tracks, TrackViewModel track)
         {
