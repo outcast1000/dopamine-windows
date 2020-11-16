@@ -29,7 +29,10 @@ namespace Dopamine.ViewModels.Common
         public CoverArtViewModel CoverArtViewModel
         {
             get { return this.coverArtViewModel; }
-            set { SetProperty<CoverArtViewModel>(ref this.coverArtViewModel, value); }
+            set { 
+                SetProperty<CoverArtViewModel>(ref this.coverArtViewModel, value); 
+                RaisePropertyChanged(nameof(this.HasImage)); 
+            }
         }
 
         public SlideDirection SlideDirection
@@ -40,14 +43,13 @@ namespace Dopamine.ViewModels.Common
 
         public bool HasImage
         {
-            get { return CoverArtViewModel == null ? false : !string.IsNullOrEmpty(CoverArtViewModel.CoverArt); }
+            get { return coverArtViewModel == null ? false : !string.IsNullOrEmpty(coverArtViewModel.CoverArt); }
         }
 
         private void ClearArtwork()
         {
             this.CoverArtViewModel = new CoverArtViewModel { CoverArt = null };
             this.artwork = null;
-            RaisePropertyChanged(nameof(this.HasImage));
         }
 
         public CoverArtControlViewModel(IPlaybackService playbackService, IMetadataService metadataService)
@@ -58,6 +60,11 @@ namespace Dopamine.ViewModels.Common
             this.playbackService.PlaybackSuccess += (_, e) =>
             {
                 this.SlideDirection = e.IsPlayingPreviousTrack ? SlideDirection.UpToDown : SlideDirection.DownToUp;
+                this.RefreshCoverArtAsync(this.playbackService.CurrentTrack);
+            };
+
+            this.playbackService.PlaylistChanged += (_, e) =>
+            {
                 this.RefreshCoverArtAsync(this.playbackService.CurrentTrack);
             };
 
@@ -84,51 +91,47 @@ namespace Dopamine.ViewModels.Common
                 }
                 await Task.Delay(250);
 
-                await Task.Run(() =>
+                this.previousArtwork = this.artwork;
+
+                // Try to show the album Image
+                this.artwork = track.Data.AlbumImage;// == null ? track.Data.ArtistImage : track.Data.AlbumImage;
+                if (this.artwork == null)
                 {
-                    this.previousArtwork = this.artwork;
+                    // Album image again but now you will do a request to download it
+                    this.artwork = track.GroupAlbumThumbnailSource;
+                    track.PropertyChanged += Track_PropertyChanged;
+                }
+                if (this.artwork == null)
+                {
+                    // Temporary show the artist image
+                    this.artwork = track.Data.ArtistImage;
+                }
+                //this.CoverArtViewModel = new CoverArtViewModel { CoverArt = artwork };
 
-                    // Try to show the album Image
-                    this.artwork = track.Data.AlbumImage;// == null ? track.Data.ArtistImage : track.Data.AlbumImage;
-                    if (this.artwork == null)
+                // Verify if the artwork changed
+                if (this.artwork == previousArtwork)
+                {
+                    return;
+                }
+                else if (this.artwork == null)
+                {
+                    this.ClearArtwork();
+                    return;
+                }
+                else //if (artwork != null)
+                {
+                    try
                     {
-                        // Album image again but now you will do a request to download it
-                        this.artwork = track.GroupAlbumThumbnailSource;
-                        track.PropertyChanged += Track_PropertyChanged;
+                        this.CoverArtViewModel = new CoverArtViewModel { CoverArt = artwork };
                     }
-                    if (this.artwork == null)
+                    catch (Exception ex)
                     {
-                        // Temporary show the artist image
-                        this.artwork = track.Data.ArtistImage;
-                    }
-                    //this.CoverArtViewModel = new CoverArtViewModel { CoverArt = artwork };
-
-                    // Verify if the artwork changed
-                    if (this.artwork == previousArtwork)
-                    {
-                        return;
-                    }
-                    else if (this.artwork == null)
-                    {
+                        Logger.Error(ex, "Could not show file artwork for Track {0}. Exception: {1}", track.Path, ex.Message);
                         this.ClearArtwork();
-                        return;
                     }
-                    else //if (artwork != null)
-                    {
-                        try
-                        {
-                            this.CoverArtViewModel = new CoverArtViewModel { CoverArt = artwork };
-                            RaisePropertyChanged(nameof(this.HasImage));
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Error(ex, "Could not show file artwork for Track {0}. Exception: {1}", track.Path, ex.Message);
-                            this.ClearArtwork();
-                        }
 
-                        return;
-                    }
-                });
+                    return;
+                }
             }
             finally
             {
@@ -149,7 +152,11 @@ namespace Dopamine.ViewModels.Common
                 {
                     // We still have the same track. Lets Update the CoverArtViewModel
                     if (CoverArtViewModel != null && track.GroupAlbumThumbnailSource != null)
+                    {
                         CoverArtViewModel.CoverArt = track.GroupAlbumThumbnailSource;
+                        RaisePropertyChanged(nameof(this.CoverArtViewModel));
+                        RaisePropertyChanged(nameof(this.HasImage));
+                    }
                 }
             }
         }
