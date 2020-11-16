@@ -83,6 +83,9 @@ namespace Dopamine.ViewModels.Common
             set { SetProperty<CollectionViewSource>(ref this.tracksCvs, value); }
         }
 
+        public bool IsPlaylistEmpty => _playlistItems.IsNullOrEmpty();
+
+
         private void RefreshView()
         {
             System.Windows.Application.Current.Dispatcher.Invoke(() =>
@@ -96,6 +99,8 @@ namespace Dopamine.ViewModels.Common
 
                 this.CalculateSizeInformationAsync(this.TracksCvs);
             });
+            RaisePropertyChanged(nameof(this.IsPlaylistEmpty));
+
 
             // Update duration and size
 
