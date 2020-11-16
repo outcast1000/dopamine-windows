@@ -118,6 +118,8 @@ namespace Dopamine.Services.Playback
 
         Task RandomizePlaylistAsync();
 
+        void ClearPlaylist();
+
         Task<bool> RemovePlaylistItems(IList<TrackViewModel> tracks);
 
         Task<bool> RemovePlaylistItems(IList<PlaylistItem> items);

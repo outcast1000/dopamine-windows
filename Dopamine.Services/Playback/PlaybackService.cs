@@ -1357,5 +1357,11 @@ namespace Dopamine.Services.Playback
             Logger.Trace("SetAudioDeviceAsync (END)");
         }
 
+        public void ClearPlaylist()
+        {
+            Stop();
+            queueManager.Clear();
+            PlaylistChanged(this, new EventArgs());
+        }
     }
 }

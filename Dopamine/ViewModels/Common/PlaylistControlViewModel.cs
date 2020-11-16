@@ -31,6 +31,7 @@ namespace Dopamine.ViewModels.Common
 
         protected bool isDroppingTracks;
         public DelegateCommand ShufflePlaylistCommand { get; set; }
+        public DelegateCommand ClearPlaylistCommand { get; set; }
 
 
         public PlaylistControlViewModel(IContainerProvider container) : base(container)
@@ -49,6 +50,7 @@ namespace Dopamine.ViewModels.Common
             this.RemoveSelectedTracksCommand = new DelegateCommand(async () => await RemoveSelectedTracksFromNowPlayingAsync());
 
             ShufflePlaylistCommand = new DelegateCommand(async () => await ShufflePlaylistAsync());
+            ClearPlaylistCommand = new DelegateCommand(() => ClearPlaylist());
         }
 
         private void UpdateNowPlaying()
@@ -60,7 +62,11 @@ namespace Dopamine.ViewModels.Common
         {
             await playbackService.RandomizePlaylistAsync();
         }
-
+        private void ClearPlaylist()
+        {
+            playbackService.ClearPlaylist();
+        }
+        
         private ObservableCollection<PlaylistItem> _playlistItems;
 
         protected async Task GetTracksAsync()
