@@ -161,6 +161,7 @@
             Height="{Binding ActualHeight, ElementName=ThisControl}"
             EasingAmplitude="0"
             SlideDirection="{Binding SlideDirection}"
+            Duration="{Binding SlideDuration}"
             Content="{Binding ArtistInfoViewModel}">
             <dc:SlidingContentControl.Style>
                 <Style>

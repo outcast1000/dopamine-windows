@@ -32,11 +32,12 @@ namespace Dopamine.ViewModels.Common
         private II18nService i18nService;
         private string artistName;
         private SlideDirection slideDirection;
+        private double slideDuration;
         private bool isBusy;
         private IArtistVRepository _artistVRepository;
         private IInfoRepository _infoRepository;
         private IIndexingService _indexingService;
-        private TrackViewModel _currentTrack = null;
+        private static readonly double _normalSlideDuration = .5;
 
         public DelegateCommand LoadedCommand { get; set; }
         public DelegateCommand UnloadedCommand { get; set; }
@@ -46,6 +47,12 @@ namespace Dopamine.ViewModels.Common
         {
             get { return this.slideDirection; }
             set { SetProperty<SlideDirection>(ref this.slideDirection, value); }
+        }
+
+        public double SlideDuration
+        {
+            get { return this.slideDuration; }
+            set { SetProperty<double>(ref this.slideDuration, value); }
         }
 
         public ArtistInfoViewModel ArtistInfoViewModel
@@ -88,15 +95,27 @@ namespace Dopamine.ViewModels.Common
 
         }
 
+        private bool _alreadyLoaded = false;
         private void OnLoad()
         {
+            if (_alreadyLoaded == true)
+            {
+                // This is a workaround. I do not know why we get Load Again.
+                // The only different that I found in the call stack is that the "ogiginal" load comes form 'AnimatedRenderMessageHandler' and the later from 'RenderMessageHandler'
+                Logger.Warn("ArtistInfoControlViewModel Reloaded (!). Applying workaround");
+                return;
+            }
+
+            this.playbackService.PlaybackSuccess -= PlaybackService_PlaybackSuccess;
+            this.i18nService.LanguageChanged -= I18nService_LanguageChanged;
             this.playbackService.PlaybackSuccess += PlaybackService_PlaybackSuccess;
             this.i18nService.LanguageChanged += I18nService_LanguageChanged;
             _indexingService.ArtistInfoDownloaded += IndexingService_ArtistInfoDownloaded;
-            _currentTrack = null;
-
+            ClearInfo();
+            _alreadyLoaded = true;
             // Defaults
-            this.SlideDirection = SlideDirection.LeftToRight;
+            this.SlideDirection = SlideDirection.DownToUp;
+            SlideDuration = _normalSlideDuration;
             Task unAwaitedTask = this.ShowArtistInfoAsync(this.playbackService.CurrentTrack, true);
         }
 
@@ -105,18 +124,20 @@ namespace Dopamine.ViewModels.Common
             this.playbackService.PlaybackSuccess -= PlaybackService_PlaybackSuccess;
             this.i18nService.LanguageChanged -= I18nService_LanguageChanged;
             _indexingService.ArtistInfoDownloaded -= IndexingService_ArtistInfoDownloaded;
-            _currentTrack = null;
+            ClearInfo();
+            _alreadyLoaded = false;
         }
 
         private async void I18nService_LanguageChanged(object sender, EventArgs e)
         {
-            if (this.playbackService.HasCurrentTrack) await this.ShowArtistInfoAsync(this.playbackService.CurrentTrack, false);
+            if (this.playbackService.HasCurrentTrack) await this.ShowArtistInfoAsync(this.playbackService.CurrentTrack, true);
         }
 
 
         private async void PlaybackService_PlaybackSuccess(object sender, PlaybackSuccessEventArgs e)
         {
-            this.SlideDirection = e.IsPlayingPreviousTrack ? SlideDirection.RightToLeft : SlideDirection.LeftToRight;
+            this.SlideDirection = e.IsPlayingPreviousTrack ? SlideDirection.UpToDown : SlideDirection.DownToUp;
+            SlideDuration = _normalSlideDuration;
             await this.ShowArtistInfoAsync(this.playbackService.CurrentTrack, false);
         }
 
@@ -124,56 +145,59 @@ namespace Dopamine.ViewModels.Common
 
         private async Task ShowArtistInfoAsync(TrackViewModel track, bool forceReload)
         {
+            Logger.Info($"ShowArtistInfoAsync for {track?.ArtistName} - {track?.TrackTitle}, {forceReload}");
             await _semaphore.WaitAsync();
             try
             {
+                Logger.Info($"ShowArtistInfoAsync (Inside Semaphore) {track?.ArtistName}");
                 if (track == null)
                 {
-                    Logger.Info("ShowArtistInfoAsync (EXIT) Null Track");
+                    ClearInfo();
+                    Logger.Info("ShowArtistInfoAsync (ClearInfo / EXIT) Null Track");
                     return;
                 }
-                if (track.Id == _currentTrack?.Id)
-                {
-                    Logger.Info("ShowArtistInfoAsync (EXIT) Same Track");
-                    return;
-                }
-                _currentTrack = track;
                 if (string.IsNullOrEmpty(track.ArtistName))
                 {
-                    Logger.Info("ShowArtistInfoAsync (EXIT) Empty Artist");
+                    ClearInfo();
+                    Logger.Info("ShowArtistInfoAsync (ClearInfo / EXIT) Empty Artist");
                     return;
                 }
                 if (track.ArtistName.Equals(this.artistName) && !forceReload)
                 {
-                    Logger.Info("ShowArtistInfoAsync (EXIT) Same artist && !forceReload");
+                    Logger.Info("ShowArtistInfoAsync (Keep Old / EXIT) Same artist && !forceReload");
                     return;
                 }
 
                 await Task.Run(async () =>
                 {
                     List<ArtistV> artists = _artistVRepository.GetArtistsOfTrack(track.Id);
-
                     if (artists.Count == 0)
                     {
-                        this.ArtistInfoViewModel = this.container.Resolve<ArtistInfoViewModel>();
-                        this.artistName = string.Empty;
+                        ClearInfo();
+                        Logger.Warn("ShowArtistInfoAsync (Keep Old / EXIT) Artist Not Found(!)");
                         return;
                     }
-                    ArtistV mainArtist = artists[0]; // ALEX TODO. Arbitrary selection. You may improve it by showing all
-                    this.artistName = mainArtist.Name;
-
-                    // The artist changed: we need to show new artist info.
-                    string artworkPath = string.Empty;
-
-                    RefreshInfo(mainArtist);
-                    if (string.IsNullOrEmpty(ArtistInfoViewModel.ArtistImage) || string.IsNullOrEmpty(ArtistInfoViewModel.Biography))
+                    // There is a new artist to be displayed
+                    ArtistInfoViewModel vm = GetArtistInfoViewModel(artists[0]);
+                    artistName = artists[0].Name;
+                    IsBusy = false;
+                    if (string.IsNullOrEmpty(vm.ArtistImage) || string.IsNullOrEmpty(vm.Biography))
                     {
                         if (SettingsClient.Get<bool>("Lastfm", "DownloadArtistInformation"))
                         {
-                            if (await _indexingService.RequestArtistInfoAsync(mainArtist, true, true))
+                            Logger.Info("ShowArtistInfoAsync Requesting new Info");
+                            if (await _indexingService.RequestArtistInfoAsync(artists[0], false, false))
+                            {
                                 this.IsBusy = true;
+                            }
+                            else
+                            {
+                                Logger.Warn("ShowArtistInfoAsync Request Failed");
+                            }
                         }
                     }
+                    Logger.Info("ShowArtistInfoAsync Showing what we have");
+                    ArtistInfoViewModel = vm;
 
                 });
             }
@@ -186,23 +210,58 @@ namespace Dopamine.ViewModels.Common
 
         private void IndexingService_ArtistInfoDownloaded(ArtistV requestedArtist, bool success)
         {
+            Logger.Info($"IndexingService_ArtistInfoDownloaded Getting {requestedArtist.Name}");
             if (requestedArtist.Name.Equals(artistName))
             {
+                Logger.Info($"IndexingService_ArtistInfoDownloaded Got our Artist");
+                this.IsBusy = false;
                 if (success)
-                    RefreshInfo(requestedArtist);
+                {
+                    Logger.Info($"IndexingService_ArtistInfoDownloaded Success");
+                    ArtistInfoViewModel vm = GetArtistInfoViewModel(requestedArtist);
+                    if (vm.ArtistImage != null && !vm.ArtistImage.Equals(ArtistInfoViewModel.ArtistImage))
+                    {
+                        Logger.Info($"IndexingService_ArtistInfoDownloaded Upating Image");
+                        SlideDuration = 0;
+                        ArtistInfoViewModel = vm;
+                    }
+                    if (vm.Biography != null && !vm.Biography.Equals(ArtistInfoViewModel.Biography))
+                    {
+                        Logger.Info($"IndexingService_ArtistInfoDownloaded Upating Biography");
+                        SlideDuration = 0;
+                        ArtistInfoViewModel = vm;
+                    }
+                }
+                else
+                {
+                    Logger.Warn($"IndexingService_ArtistInfoDownloaded Failure");
+                }
             }
-            this.IsBusy = false;
         }
 
-        private void RefreshInfo(ArtistV artist)
+        private ArtistInfoViewModel GetArtistInfoViewModel(ArtistV artist)
         {
             ArtistInfoViewModel vm = this.container.Resolve<ArtistInfoViewModel>();
             ArtistBiography artistBiography = _infoRepository.GetArtistBiography(artist.Id);
             vm.ArtistName = artist.Name;
             vm.ArtistImage = artist.Thumbnail;
             vm.Biography = artistBiography?.Biography;
+            return vm;
+        }
+
+        private void RefreshInfo(ArtistV artist)
+        {
+            artistName = artist.Name;
+            ArtistInfoViewModel vm = GetArtistInfoViewModel(artist);
             if (vm != ArtistInfoViewModel)
                 ArtistInfoViewModel = vm;
+            IsBusy = false;
+        }
+
+        private void ClearInfo()
+        {
+            artistName = String.Empty;
+            ArtistInfoViewModel = this.container.Resolve<ArtistInfoViewModel>();
             IsBusy = false;
         }
     }
