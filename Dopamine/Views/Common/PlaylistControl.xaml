@@ -118,6 +118,19 @@
                     ItemsSource="{Binding TracksCvs.View, IsAsync=True}"
                     BorderThickness="0"
                     SelectionMode="Extended">
+                    <!-- Playlist: When you enter something on the playlist , it would be good if the playlist would flash (to show something changed) #102 -->
+                    <dc:MultiSelectListBox.Resources>
+                        <Storyboard x:Key="flash">
+                            <!--
+                            <DoubleAnimation Storyboard.TargetName="ListBoxTracks" Storyboard.TargetProperty="Opacity" From="1" To="0" AutoReverse="True" Duration="0:0:0.4" RepeatBehavior="0:0:0.8" />
+                            -->
+                            <ColorAnimation Storyboard.TargetName="ListBoxTracks" Storyboard.TargetProperty="Background.Color" From="#0000" To="#80FFA500" Duration="0:0:0.2" RepeatBehavior="0:0:0.4" AutoReverse="True">
+                                <ColorAnimation.EasingFunction>
+                                    <SineEase/>
+                                </ColorAnimation.EasingFunction>
+                            </ColorAnimation> 
+                        </Storyboard>
+                    </dc:MultiSelectListBox.Resources>
                     <dc:MultiSelectListBox.InputBindings>
                         <KeyBinding Key="Delete" Command="{Binding RemoveSelectedTracksCommand}" />
                     </dc:MultiSelectListBox.InputBindings>

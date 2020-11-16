@@ -16,6 +16,8 @@ using Digimezzo.Foundation.Core.Logging;
 using Dopamine.Core.Base;
 using Dopamine.Services.Utils;
 using Dopamine.Data;
+using System.Collections.Specialized;
+using System.Windows.Media.Animation;
 
 namespace Dopamine.Views.Common
 {
@@ -30,8 +32,19 @@ namespace Dopamine.Views.Common
 
             // PubSub Events
             this.eventAggregator.GetEvent<ScrollToPlayingTrack>().Subscribe(async (_) => await this.ScrollToPlayingTrackAsync(this.ListBoxTracks));
+
+            // Playlist: When you enter something on the playlist , it would be good if the playlist would flash (to show something changed) #102
+            // This is disable because at this point the collection always ges reset and not modified. TODO
+            //((INotifyCollectionChanged)ListBoxTracks.Items).CollectionChanged += PlaylistControl_CollectionChanged;
         }
-      
+
+        //Playlist: When you enter something on the playlist , it would be good if the playlist would flash (to show something changed) #102
+        private void PlaylistControl_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            Storyboard sb = ListBoxTracks.FindResource("flash") as Storyboard;
+            if (sb != null) { BeginStoryboard(sb); }
+        }
+
         private async void ListBoxTracks_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             await this.ActionHandler(sender, e.OriginalSource as DependencyObject, PlaylistMode.Play, false);
