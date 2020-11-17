@@ -58,14 +58,7 @@
             </Storyboard>
         </Storyboard>
         <BitmapImage x:Key="DefaultImage" UriSource="/Resources/Media/no_album_image.png" />
-        <Style x:Key="HeaderTitle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="20" />
-            <Setter Property="FontWeight" Value="Light" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="HorizontalAlignment" Value="Left" />
-            <Setter Property="Foreground" Value="{DynamicResource Brush_PrimaryText}" />
-            <Setter Property="Margin" Value="2" />
-        </Style>
+
     </baseviews:TracksViewBase.Resources>
 
 
@@ -75,7 +68,6 @@
             <ColumnDefinition Width="{StaticResource SplitterWidth}" />
             <ColumnDefinition Width="{Binding RightPaneWidth, Mode=TwoWay}" MinWidth="250" />
         </Grid.ColumnDefinitions>
-
         <Border Background="{DynamicResource Brush_PaneBackground}" Grid.Column="0">
             <DockPanel Margin="10,0,10,0">
                 <DockPanel
@@ -85,27 +77,12 @@
                     <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
                         <TextBlock Style="{StaticResource HeaderTitle}" Text="{DynamicResource Language_Artists}" />
                         <Button
-                            Margin="10,0,5,0"
-                            VerticalContentAlignment="Center"
                             Command="{Binding ToggleOrderCommand}"
                             Content="{Binding ItemOrderText}"
                             DockPanel.Dock="Right"
-                            Foreground="{DynamicResource Brush_SecondaryText}"
-                            Style="{StaticResource TransparentButton}"
+                            Style="{StaticResource HeaderButton}"
                             ToolTip="{DynamicResource Language_Toggle_Artist_Order}" />
-                        <!--
-                        <Button
-                            Margin="10,0,5,0"
-                            VerticalContentAlignment="Center"
-                            Command="{Binding DataContext.ShuffleAllCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
-                            Style="{StaticResource TransparentButton}"
-                            ToolTip="{DynamicResource Language_Shuffle_All}">
-                            <TextBlock
-                                Style="{StaticResource SegoeAssets}"
-                                Foreground="{DynamicResource Brush_SecondaryText}"
-                                Text="&#xE8B1;" />
-                        </Button>
-                        -->
+
                     </StackPanel>
                 </DockPanel>
                 <pc:TotalsInformation
@@ -257,23 +234,16 @@
                     </ItemsControl>
                     <TextBlock Style="{StaticResource HeaderTitle}" Text="{DynamicResource Language_Songs}" />
                     <Button
-                        Margin="10,0,5,0"
                         Command="{Binding ToggleTrackOrderCommand}"
                         Content="{Binding TrackOrderText}"
-                        VerticalAlignment="Center"
-                        Foreground="{DynamicResource Brush_SecondaryText}"
-                        Style="{StaticResource TransparentButton}"
+                        Style="{StaticResource HeaderButton}"
                         ToolTip="{DynamicResource Language_Toggle_Track_Order}" />
                     <Button
-                        Margin="10,0,5,0"
-                        VerticalContentAlignment="Center"
                         Command="{Binding DataContext.ShuffleAllTracksCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
-                        Style="{StaticResource TransparentButton}"
+                        Content="&#xE8B1;"
+                        Style="{StaticResource HeaderIconButton}"
                         ToolTip="{DynamicResource Language_Shuffle_All}">
-                        <TextBlock
-                            Style="{StaticResource SegoeAssets}"
-                            Foreground="{DynamicResource Brush_SecondaryText}"
-                            Text="&#xE8B1;" />
+
                     </Button>
                 </DockPanel>
                 <DockPanel>

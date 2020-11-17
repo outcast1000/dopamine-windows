@@ -43,33 +43,15 @@
             Height="64">
             <TextBlock Style="{StaticResource HeaderTitle}" Text="{DynamicResource Language_Playlist}" />
             <Button
-                Margin="10,0,5,0"
-                VerticalContentAlignment="Center"
                 Command="{Binding ClearPlaylistCommand}"
-                Style="{StaticResource TransparentButton}"
-                ToolTip="{DynamicResource Language_Shuffle}">
-                <Button.Content>
-                    <TextBlock
-                        Foreground="{DynamicResource Brush_SecondaryText}"
-                        Text="&#xE894;"
-                        FontSize="13"
-                        Style="{StaticResource SegoeAssets}" />
-                </Button.Content>
-            </Button>
+                Style="{StaticResource HeaderIconButton}"
+                Content="&#xE894;"
+                ToolTip="{DynamicResource Language_Shuffle}"/>
             <Button
-                Margin="10,0,5,0"
-                VerticalContentAlignment="Center"
                 Command="{Binding ShufflePlaylistCommand}"
-                Style="{StaticResource TransparentButton}"
-                ToolTip="{DynamicResource Language_Shuffle}">
-                <Button.Content>
-                    <TextBlock
-                        Foreground="{DynamicResource Brush_SecondaryText}"
-                        Text="&#xE8B1;"
-                        FontSize="13"
-                        Style="{StaticResource SegoeAssets}" />
-                </Button.Content>
-            </Button>
+                Style="{StaticResource HeaderIconButton}"
+                Content="&#xE8B1;"
+                ToolTip="{DynamicResource Language_Shuffle}"/>
         </StackPanel>
         <Grid>
             <Grid
