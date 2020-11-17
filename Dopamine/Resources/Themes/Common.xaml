@@ -182,4 +182,37 @@
         </Setter>
     </Style>
 
+    <Storyboard x:Key="ShowSemanticZoom">
+        <Storyboard>
+            <DoubleAnimation
+                    BeginTime="0:0:0"
+                    Storyboard.TargetProperty="Opacity"
+                    From="0"
+                    To="1"
+                    Duration="0:0:0.25" />
+            <ThicknessAnimation
+                    BeginTime="0:0:0"
+                    Storyboard.TargetProperty="Margin"
+                    From="-50"
+                    To="0"
+                    Duration="0:0:0.15" />
+        </Storyboard>
+    </Storyboard>
+    <Storyboard x:Key="HideSemanticZoom">
+        <Storyboard>
+            <DoubleAnimation
+                    BeginTime="0:0:0"
+                    Storyboard.TargetProperty="Opacity"
+                    From="1"
+                    To="0"
+                    Duration="0:0:0" />
+            <ThicknessAnimation
+                    BeginTime="0:0:0"
+                    Storyboard.TargetProperty="Margin"
+                    From="0"
+                    To="-50"
+                    Duration="0:0:0" />
+        </Storyboard>
+    </Storyboard>
+
 </ResourceDictionary>
