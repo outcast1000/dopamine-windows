@@ -10,6 +10,7 @@
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/DopamineJ;component/Resources/Styles/FontStyles.xaml" />
         <ResourceDictionary Source="/DopamineJ;component/Resources/Styles/Buttons.xaml" />
+        <ResourceDictionary Source="/DopamineJ;component/Resources/Themes/Common.xaml" />
     </ResourceDictionary.MergedDictionaries>
     <converters:InvertingBooleanConverter x:Key="InvertingBooleanConverter" />
     <converters:BooleanToCollapsedConverter x:Key="BooleanToCollapsedConverter" />
@@ -30,35 +31,23 @@
             Command="{Binding DataContext.ShuffleTracksCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
             Visibility="{Binding DataContext.IsMultipleItemsSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}"
             Header="{DynamicResource Language_Shuffle}"
+            Style="{StaticResource RegularMenuItem}"
+            Icon="&#xE8B1;"
             InputGestureText="">
-            <MenuItem.Icon>
-                <TextBlock
-                    FontSize="15"
-                    Style="{StaticResource SegoeAssets}"
-                    Text="&#xE8B1;" />
-            </MenuItem.Icon>
         </MenuItem>
         <MenuItem
             Command="{Binding DataContext.PlayTracksCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
             Header="{DynamicResource Language_Play}"
+            Style="{StaticResource RegularMenuItem}"
+            Icon="&#xE768;"
             InputGestureText="">
-            <MenuItem.Icon>
-                <TextBlock
-                    FontSize="15"
-                    Style="{StaticResource SegoeAssets}"
-                    Text="&#xE768;" />
-            </MenuItem.Icon>
         </MenuItem>
         <MenuItem
             Command="{Binding DataContext.EnqueueTracksCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
             Header="{DynamicResource Language_Enqueue}"
+            Style="{StaticResource RegularMenuItem}"
+            Icon="&#xE710;"
             InputGestureText="">
-            <MenuItem.Icon>
-                <TextBlock
-                    FontSize="15"
-                    Style="{StaticResource SegoeAssets}"
-                    Text="&#xE710;" />
-            </MenuItem.Icon>
         </MenuItem>
 
         <Separator />
@@ -107,28 +96,28 @@
         </MenuItem>
         <MenuItem
             Header="{DynamicResource Language_View_In_Explorer}"
+	    Style="{StaticResource RegularMenuItem}"
+            Icon="&#xE8A1;"
             Visibility="{Binding DataContext.IsSingleItemSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}"
             InputGestureText="{DynamicResource Language_Ctrl_E}"
             Command="{Binding ViewInExplorerCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
         <!--
         <MenuItem
             Header="{DynamicResource Language_Jump_To_Playing_Song}"
+	        Style="{StaticResource RegularMenuItem}"
+            Icon="&#xE754;"
             InputGestureText="{DynamicResource Language_Ctrl_J}"
             Command="{Binding JumpToPlayingTrackCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
         -->
         <Separator Visibility="{Binding DataContext.IsSingleItemSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}" />
-        <MenuItem InputGestureText="" Command="{Binding DataContext.EditTracksCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}">
-            <MenuItem.Header>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="{DynamicResource Language_Edit}" />
-                    <pc:SyncRing
-                        Width="11"
-                        Margin="15,0,0,0"
-                        VerticalAlignment="Center"
-                        Visibility="{Binding DataContext.IsIndexing, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                </StackPanel>
-            </MenuItem.Header>
-        </MenuItem>
+        <MenuItem
+            Header="{DynamicResource Language_Edit}"
+            InputGestureText=""
+            Command="{Binding DataContext.EditTracksCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+            Visibility="{Binding DataContext.IsSingleItemSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}"
+            Style="{StaticResource RegularMenuItem}"
+            Icon="&#xE70F;"/>
+
         <Separator />
 
 
@@ -171,6 +160,8 @@
         <Separator />
         <MenuItem
             Header="{DynamicResource Language_Information}"
+	    Style="{StaticResource RegularMenuItem}"
+	    Icon="&#xE946;"
             InputGestureText=""
             Visibility="{Binding DataContext.IsSingleItemSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}"
             Command="{Binding DataContext.ShowSelectedTrackInformationCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />

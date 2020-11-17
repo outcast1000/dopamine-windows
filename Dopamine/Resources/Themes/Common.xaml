@@ -74,6 +74,34 @@
 
     <BitmapImage x:Key="MissingImage" UriSource="/Resources/Media/no_album_image.png" />
     <system:Double x:Key="DefaultListItemButtonSize">30</system:Double>
-    <GridLength  x:Key="SplitterWidth">6</GridLength>
+    <GridLength x:Key="SplitterWidth">6</GridLength>
+
+    <Style x:Key="ItemSelectionBorderStyle" TargetType="{x:Type Border}">
+        <Setter Property="Opacity" Value="0" />
+        <Setter Property="Margin" Value="0,5,0,0" />
+        <Setter Property="BorderThickness" Value="5,0,0,0" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush_Accent}" />
+        <Setter Property="Panel.ZIndex" Value="1" />
+    </Style>
+
+    <Style x:Key="RegularMenuItem" TargetType="{x:Type MenuItem}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type MenuItem}">
+                    <MenuItem
+                        Command="{TemplateBinding Command}"
+                        Header="{TemplateBinding Header}"
+                        InputGestureText="">
+                        <MenuItem.Icon>
+                            <TextBlock
+                                FontSize="15"
+                                FontFamily="/DopamineJ;component/Resources/Fonts/#Segoe MDL2 Assets"
+                                Text="{TemplateBinding Icon}" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 
 </ResourceDictionary>

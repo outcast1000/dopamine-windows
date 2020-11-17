@@ -33,35 +33,23 @@
         <MenuItem
             Command="{Binding DataContext.ShuffleItemsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
             Header="{DynamicResource Language_Shuffle}"
+            Style="{StaticResource RegularMenuItem}"
+            Icon="&#xE8B1;"
             InputGestureText="">
-            <MenuItem.Icon>
-                <TextBlock
-                    FontSize="15"
-                    Style="{StaticResource SegoeAssets}"
-                    Text="&#xE8B1;" />
-            </MenuItem.Icon>
         </MenuItem>
         <MenuItem
             Command="{Binding DataContext.PlayItemsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
             Header="{DynamicResource Language_Play}"
+            Style="{StaticResource RegularMenuItem}"
+            Icon="&#xE768;"
             InputGestureText="">
-            <MenuItem.Icon>
-                <TextBlock
-                    FontSize="15"
-                    Style="{StaticResource SegoeAssets}"
-                    Text="&#xE768;" />
-            </MenuItem.Icon>
         </MenuItem>
         <MenuItem
             Command="{Binding DataContext.EnqueueItemsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
             Header="{DynamicResource Language_Enqueue}"
+            Style="{StaticResource RegularMenuItem}"
+            Icon="&#xE710;"
             InputGestureText="">
-            <MenuItem.Icon>
-                <TextBlock
-                    FontSize="15"
-                    Style="{StaticResource SegoeAssets}"
-                    Text="&#xE710;" />
-            </MenuItem.Icon>
         </MenuItem>
 
         <Separator />
@@ -88,6 +76,12 @@
         </MenuItem>
         <Separator />
         <MenuItem Header="{DynamicResource Language_Item_Style}" InputGestureText="">
+            <MenuItem.Icon>
+                <TextBlock
+                    FontSize="15"
+                    Style="{StaticResource SegoeAssets}"
+                    Text="&#xEDAD;" />
+            </MenuItem.Icon>
             <MenuItem
                 Command="{Binding DataContext.SetListItemSizeCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
                 CommandParameter="1"
@@ -166,12 +160,8 @@
                         <Border BorderBrush="#8888" BorderThickness="0">
                             <Grid x:Name="FullItem">
                                 <Border
-                                    Panel.ZIndex="1"
                                     Name="SelectionBorder"
-                                    Opacity="0"
-                                    Margin="0,5,0,0"
-                                    BorderThickness="5,0,0,0"
-                                    BorderBrush="{DynamicResource Brush_Accent}" />
+                                    Style="{StaticResource ItemSelectionBorderStyle}" />
                                 <Border
                                     Panel.ZIndex="0"
                                     Name="OverlayBorder"
