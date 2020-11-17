@@ -534,13 +534,6 @@ GROUP BY plays
             return false ;
         }
 
-        public PlaybackCounter GetPlaybackCounters(string path)
-        {
-            Logger.Warn("ALEX TODO - PlaybackCounter GetPlaybackCounters(string path)");
-            return new PlaybackCounter();
-            //throw new NotImplementedException();
-        }
-
         public void UpdatePlaybackCounters(PlaybackCounter counters)
         {
             Logger.Warn("ALEX TODO - void UpdatePlaybackCounters(PlaybackCounter counters)");

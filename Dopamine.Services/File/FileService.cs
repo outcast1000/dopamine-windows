@@ -149,9 +149,7 @@ namespace Dopamine.Services.File
 
             try
             {
-                PlaybackCounter playbackCounters = this.trackRepository.GetPlaybackCounters(path);
                 TrackV track = await MetadataUtils.Path2TrackAsync(path);
-
                 returnTrack = container.ResolveTrackViewModel(track);
             }
             catch (Exception ex)

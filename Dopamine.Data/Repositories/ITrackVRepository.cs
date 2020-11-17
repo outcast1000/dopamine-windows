@@ -55,8 +55,6 @@ namespace Dopamine.Data.Repositories
 
         void ClearRemovedTrack();
 
-        PlaybackCounter GetPlaybackCounters(string path);
-
         void UpdatePlaybackCounters(PlaybackCounter counters);
 
 
