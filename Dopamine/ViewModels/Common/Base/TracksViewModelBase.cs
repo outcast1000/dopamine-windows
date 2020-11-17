@@ -147,7 +147,7 @@ namespace Dopamine.ViewModels.Common.Base
             await this.FillListsAsync();
         }
 
-        private async void PlaybackService_TrackHistoryChanged(TrackViewModel track)
+        private async void PlaybackService_TrackHistoryChanged(object sender, TrackViewModel track)
         {
             if (this.Tracks == null)
             {

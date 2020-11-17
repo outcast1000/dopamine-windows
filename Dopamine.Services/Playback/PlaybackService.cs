@@ -329,19 +329,19 @@ namespace Dopamine.Services.Playback
             this.Initialize();
         }
 
-        public event PlaybackSuccessEventHandler PlaybackSuccess = delegate { };
-        public event PlaybackPausedEventHandler PlaybackPaused = delegate { };
-        public event PlaybackFailedEventHandler PlaybackFailed = delegate { };
+        public event EventHandler<PlaybackSuccessEventArgs> PlaybackSuccess = delegate { };
+        public event EventHandler<PlaybackPausedEventArgs> PlaybackPaused = delegate { };
+        public event EventHandler<PlaybackFailedEventArgs> PlaybackFailed = delegate { };
         public event EventHandler PlaybackProgressChanged = delegate { };
         public event EventHandler PlaybackResumed = delegate { };
         public event EventHandler PlaybackStopped = delegate { };
-        public event PlaybackVolumeChangedEventhandler PlaybackVolumeChanged = delegate { };
+        public event EventHandler<PlaybackVolumeChangedEventArgs> PlaybackVolumeChanged = delegate { };
         public event EventHandler PlaybackMuteChanged = delegate { };
         public event EventHandler PlaybackLoopChanged = delegate { };
         public event EventHandler PlaybackShuffleChanged = delegate { };
         public event Action<int> AddedTracksToQueue = delegate { };
         //public event PlaybackCountersChangedEventHandler PlaybackCountersChanged = delegate { };
-        public event TrackHistoryChangedEventHandler TrackHistoryChanged = delegate { };
+        public event EventHandler<TrackViewModel> TrackHistoryChanged = delegate { };
         public event Action<bool> LoadingTrack = delegate { };
         public event EventHandler PlayingTrackChanged = delegate { };
         public event EventHandler PlaylistChanged = delegate { };

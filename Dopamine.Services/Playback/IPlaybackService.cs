@@ -10,13 +10,6 @@ using System.Threading.Tasks;
 
 namespace Dopamine.Services.Playback
 {
-    public delegate void PlaybackFailedEventHandler(object sender, PlaybackFailedEventArgs e);
-    public delegate void PlaybackSuccessEventHandler(object sender, PlaybackSuccessEventArgs e);
-    public delegate void PlaybackPausedEventHandler(object sender, PlaybackPausedEventArgs e);
-    //public delegate void PlaybackCountersChangedEventHandler(IList<PlaybackCounter> counters);
-    public delegate void TrackHistoryChangedEventHandler(TrackViewModel track);
-    public delegate void PlaybackVolumeChangedEventhandler(object sender, PlaybackVolumeChangedEventArgs e);
-
 
     public enum PlaylistMode
     {
@@ -140,20 +133,20 @@ namespace Dopamine.Services.Playback
 
         Task<AudioDevice> GetSavedAudioDeviceAsync();
 
-        event PlaybackSuccessEventHandler PlaybackSuccess;
-        event PlaybackFailedEventHandler PlaybackFailed;
-        event PlaybackPausedEventHandler PlaybackPaused;
+        event EventHandler<PlaybackSuccessEventArgs> PlaybackSuccess;
+        event EventHandler<PlaybackFailedEventArgs> PlaybackFailed;
+        event EventHandler<PlaybackPausedEventArgs> PlaybackPaused;
         event EventHandler PlaybackSkipped;
         event EventHandler PlaybackStopped;
         event EventHandler PlaybackResumed;
         event EventHandler PlaybackProgressChanged;
-        event PlaybackVolumeChangedEventhandler PlaybackVolumeChanged;
+        event EventHandler<PlaybackVolumeChangedEventArgs> PlaybackVolumeChanged;
         event EventHandler PlaybackMuteChanged;
         event EventHandler PlaybackLoopChanged;
         event EventHandler PlaybackShuffleChanged;
         event Action<int> AddedTracksToQueue;
         //event PlaybackCountersChangedEventHandler PlaybackCountersChanged;
-        event TrackHistoryChangedEventHandler TrackHistoryChanged;
+        event EventHandler<TrackViewModel> TrackHistoryChanged;
         event Action<bool> LoadingTrack;
         event EventHandler PlayingTrackChanged;
         event EventHandler PlaylistChanged;
