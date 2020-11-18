@@ -71,14 +71,6 @@ namespace Dopamine.Services.Playback
         private IGeneralRepository generalRepository;
         private ITrackHistoryRepository trackHistoryRepository;
 
-        //private System.Timers.Timer savePlaybackCountersTimer = new System.Timers.Timer();
-        //private int savePlaybackCountersTimeoutSeconds = 2;
-
-        //private bool isSavingPLaybackCounters = false;
-        //private Dictionary<string, PlaybackCounter> playbackCounters = new Dictionary<string, PlaybackCounter>();
-
-        //private object playbackCountersLock = new object();
-
         private SynchronizationContext context;
         private bool isLoadingTrack;
 
@@ -1029,6 +1021,7 @@ namespace Dopamine.Services.Playback
                 // Start playing
                 await this.StartPlaybackAsync(track, bStartPaused, isSilent);
 
+                Debug(PlaybackSuccess);
                 // Playing was successful
                 this.PlaybackSuccess(this, new PlaybackSuccessEventArgs()
                 {
@@ -1264,7 +1257,6 @@ namespace Dopamine.Services.Playback
                 {
                     this.player.SetVolume(this.Volume);
                 }
-
                 PlaybackProgressChanged(this, new EventArgs());
             }
         }
@@ -1282,9 +1274,28 @@ namespace Dopamine.Services.Playback
             {
                 this.Progress = 0.0;
             }
-
             PlaybackProgressChanged(this, new EventArgs());
         }
+
+        //=== This is a way to debug the invocation list of the events
+        private void Debug(EventHandler eventHandler)
+        {
+            Logger.Info($"DEBUG EVENT Sending {eventHandler.ToString()} to:");
+            foreach (var listItem in eventHandler.GetInvocationList())
+            {
+                Logger.Info($"  -> {listItem.Method.DeclaringType} - {listItem.Method.Name}");
+            }
+        }
+
+        private void Debug<T>(EventHandler<T> eventHandler)
+        {
+            Logger.Info($"DEBUG EVENT Sending {eventHandler.ToString()} to:");
+            foreach (var listItem in eventHandler.GetInvocationList())
+            {
+                Logger.Info($"  -> {listItem.Method.DeclaringType} - {listItem.Method.Name}");
+            }
+        }
+        //=== END
 
         public async Task PlayTracksAsync(IList<TrackViewModel> tracks, PlaylistMode mode, TrackOrder trackOrder)
         {

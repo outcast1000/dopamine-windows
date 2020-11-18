@@ -119,8 +119,8 @@ namespace Dopamine.ViewModels.Common.Base
             this.ShowSelectedTrackInformationCommand = new DelegateCommand(() => this.ShowSelectedTrackInformation());
             this.SelectedTracksCommand = new DelegateCommand<object>((parameter) => this.SelectedTracksHandler(parameter));
             this.EditTracksCommand = new DelegateCommand(() => this.EditSelectedTracks(), () => !this.IsIndexing);
-            this.LoadedCommand = new DelegateCommand(async () => { RegisteEvents(); await this.LoadedCommandAsync(); });
-            this.UnloadedCommand = new DelegateCommand(async () => { UnRegisteEvents(); await this.UnloadedCommandAsync(); });
+            this.LoadedCommand = new DelegateCommand(async () => { OnLoad(); await this.LoadedCommandAsync(); });
+            this.UnloadedCommand = new DelegateCommand(async () => { OnUnLoad(); await this.UnloadedCommandAsync(); });
             /*
             this.ShuffleAllCommand = new DelegateCommand(() =>
             {
@@ -153,8 +153,9 @@ namespace Dopamine.ViewModels.Common.Base
             this.SetEditCommands();
         }
 
-        private void RegisteEvents()
+        protected override void OnLoad()
         {
+            base.OnLoad();
             this.collectionService.CollectionChanged += OnRefreshListsAsync; // Refreshes the lists when the Collection has changed
             this.foldersService.FoldersChanged += OnRefreshListsAsync; // Refreshes the lists when marked folders have changed
             this.indexingService.RefreshLists += OnRefreshListsAsync; // Refreshes the lists when the indexer has finished indexing
@@ -182,7 +183,7 @@ namespace Dopamine.ViewModels.Common.Base
             this.FilterListsAsync(searchText);
         }
 
-        private void UnRegisteEvents()
+        protected override void OnUnLoad()
         {
             this.collectionService.CollectionChanged -= OnRefreshListsAsync; // Refreshes the lists when the Collection has changed
             this.foldersService.FoldersChanged -= OnRefreshListsAsync; // Refreshes the lists when marked folders have changed
@@ -192,6 +193,7 @@ namespace Dopamine.ViewModels.Common.Base
             this.searchService.DoSearch -= OnSearchAsync;
             this.metadataService.RatingChanged -= MetadataService_RatingChangedAsync;
             this.metadataService.LoveChanged -= MetadataService_LoveChangedAsync;
+            base.OnUnLoad();
         }
 
         protected void SetSizeInformation(long totalDuration, long totalSize)

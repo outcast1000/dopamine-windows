@@ -63,27 +63,77 @@ namespace Dopamine.ViewModels.Common.Base
             this.AddPlayingTrackToPlaylistCommand = new DelegateCommand<string>(
             async (playlistName) => await this.AddPlayingTrackToPlaylistAsync(playlistName), (_) => this.playbackService.HasCurrentTrack);
 
-            // Events
-            this.playbackService.PlaybackFailed += (_, __) => this.AddPlayingTrackToPlaylistCommand.RaiseCanExecuteChanged();
-            this.playbackService.PlaybackSuccess += (_, __) => this.AddPlayingTrackToPlaylistCommand.RaiseCanExecuteChanged();
-            this.playbackService.PlaybackStopped += (_, __) => this.AddPlayingTrackToPlaylistCommand.RaiseCanExecuteChanged();
-            this.playbackService.PlaybackPaused += (_, __) => this.AddPlayingTrackToPlaylistCommand.RaiseCanExecuteChanged();
-            this.playbackService.PlaybackResumed += (_, __) => this.AddPlayingTrackToPlaylistCommand.RaiseCanExecuteChanged();
-            this.playlistService.PlaylistFolderChanged += (_, __) => this.GetContextMenuPlaylistsAsync();
-
-            // Initialize the search providers in the ContextMenu
-            SearchProvider.ProviderType? providerType = GetSearchProviderType();
-            if (providerType.HasValue)
-            {
-                this.providerService.SearchProvidersChanged += (_, __) => { this.GetSearchProvidersAsync(providerType.Value); };
-                this.GetSearchProvidersAsync(providerType.Value);
-            }
 
             // Initialize the playlists in the ContextMenu
             this.GetContextMenuPlaylistsAsync();
         }
 
-        
+        private void PlaylistService_PlaylistFolderChanged(object sender, EventArgs e)
+        {
+            this.GetContextMenuPlaylistsAsync();
+        }
+
+        private void PlaybackService_PlaybackResumed(object sender, EventArgs e)
+        {
+            this.AddPlayingTrackToPlaylistCommand.RaiseCanExecuteChanged();
+        }
+
+        private void PlaybackService_PlaybackPaused(object sender, PlaybackPausedEventArgs e)
+        {
+            this.AddPlayingTrackToPlaylistCommand.RaiseCanExecuteChanged();
+        }
+
+        private void PlaybackService_PlaybackStopped(object sender, EventArgs e)
+        {
+            this.AddPlayingTrackToPlaylistCommand.RaiseCanExecuteChanged();
+        }
+
+        private void PlaybackService_PlaybackFailed(object sender, PlaybackFailedEventArgs e)
+        {
+            this.AddPlayingTrackToPlaylistCommand.RaiseCanExecuteChanged();
+        }
+
+        private void PlaybackService_PlaybackSuccess(object sender, PlaybackSuccessEventArgs e)
+        {
+            this.AddPlayingTrackToPlaylistCommand.RaiseCanExecuteChanged();
+        }
+
+        private SearchProvider.ProviderType? _providerType;
+        protected virtual void OnLoad()
+        {
+            playbackService.PlaybackSuccess += PlaybackService_PlaybackSuccess;
+            this.playbackService.PlaybackFailed += PlaybackService_PlaybackFailed;
+            this.playbackService.PlaybackSuccess += PlaybackService_PlaybackSuccess;
+            this.playbackService.PlaybackStopped += PlaybackService_PlaybackStopped;
+            this.playbackService.PlaybackPaused += PlaybackService_PlaybackPaused;
+            this.playbackService.PlaybackResumed += PlaybackService_PlaybackResumed;
+            this.playlistService.PlaylistFolderChanged += PlaylistService_PlaylistFolderChanged;
+            // Initialize the search providers in the ContextMenu
+            _providerType = GetSearchProviderType();
+            if (_providerType.HasValue)
+            {
+                this.providerService.SearchProvidersChanged += ProviderService_SearchProvidersChanged;
+                this.GetSearchProvidersAsync(_providerType.Value);
+            }
+        }
+
+        private void ProviderService_SearchProvidersChanged(object sender, EventArgs e)
+        {
+            this.GetSearchProvidersAsync(_providerType.Value);
+        }
+
+        protected virtual void OnUnLoad()
+        {
+            playbackService.PlaybackSuccess -= PlaybackService_PlaybackSuccess;
+            this.playbackService.PlaybackFailed -= PlaybackService_PlaybackFailed;
+            this.playbackService.PlaybackSuccess -= PlaybackService_PlaybackSuccess;
+            this.playbackService.PlaybackStopped -= PlaybackService_PlaybackStopped;
+            this.playbackService.PlaybackPaused -= PlaybackService_PlaybackPaused;
+            this.playbackService.PlaybackResumed -= PlaybackService_PlaybackResumed;
+            this.playlistService.PlaylistFolderChanged -= PlaylistService_PlaylistFolderChanged;
+        }
+
+
         protected virtual SearchProvider.ProviderType? GetSearchProviderType()
         {
             return null;
