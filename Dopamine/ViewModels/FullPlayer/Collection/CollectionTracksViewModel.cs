@@ -139,20 +139,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             this.eventAggregator = container.Resolve<IEventAggregator>();
 
             // Settings
-            Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += (_, e) =>
-            {
-                if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableRating"))
-                {
-                    this.EnableRating = (bool)e.Entry.Value;
-                    this.GetVisibleColumns();
-                }
-
-                if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableLove"))
-                {
-                    this.EnableLove = (bool)e.Entry.Value;
-                    this.GetVisibleColumns();
-                }
-            };
+            Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += SettingsClient_SettingChanged;
 
             // Commands
             this.ChooseColumnsCommand = new DelegateCommand(this.ChooseColumns);
@@ -161,6 +148,35 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             // Show only the columns which are visible
             this.GetVisibleColumns();
         }
+
+        private void SettingsClient_SettingChanged(object sender, Digimezzo.Foundation.Core.Settings.SettingChangedEventArgs e)
+        {
+            if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableRating"))
+            {
+                this.EnableRating = (bool)e.Entry.Value;
+                this.GetVisibleColumns();
+            }
+
+            if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableLove"))
+            {
+                this.EnableLove = (bool)e.Entry.Value;
+                this.GetVisibleColumns();
+            }
+        }
+
+        protected override void OnLoad()
+        {
+            base.OnLoad();
+            Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += SettingsClient_SettingChanged;
+            this.GetVisibleColumns();
+        }
+
+        protected override void OnUnLoad()
+        {
+            Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged -= SettingsClient_SettingChanged;
+            base.OnUnLoad();
+        }
+
 
         private void ChooseColumns()
         {
