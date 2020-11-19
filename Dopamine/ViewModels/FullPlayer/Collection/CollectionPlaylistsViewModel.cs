@@ -100,16 +100,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             this.metadataService = metadataService;
             this.container = container;
 
-            // Events
-            this.playlistService.PlaylistFolderChanged += PlaylistService_PlaylistFolderChanged;
-            this.playlistService.TracksAdded += PlaylistService_TracksAdded;
-            this.playlistService.TracksDeleted += PlaylistService_TracksDeleted;
-
-            this.metadataService.LoveChanged += async (_) => await this.GetTracksIfSmartPlaylistSelectedAsync();
-            this.metadataService.RatingChanged += async (_) => await this.GetTracksIfSmartPlaylistSelectedAsync();
-            this.metadataService.MetadataChanged += async (_) => await this.GetTracksIfSmartPlaylistSelectedAsync();
-            this.playbackService.TrackHistoryChanged += async (object sender, TrackViewModel trackViewModel) => await this.GetTracksIfSmartPlaylistSelectedAsync();
-
             // Commands
             this.EditSelectedPlaylistCommand = new DelegateCommand(async () => await this.EditSelectedPlaylistAsync());
             this.DeletePlaylistCommand = new DelegateCommand<PlaylistViewModel>(async (playlist) => await this.ConfirmDeletePlaylistAsync(playlist));
@@ -128,24 +118,74 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 }
             });
 
-            // Settings changed
-            Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += (_, e) =>
-            {
-                if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableRating"))
-                {
-                    this.EnableRating = (bool)e.Entry.Value;
-                }
 
-                if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableLove"))
-                {
-                    this.EnableLove = (bool)e.Entry.Value;
-                }
-            };
+
+        }
+
+        protected override void OnLoad()
+        {
+            base.OnLoad();
+            this.playlistService.PlaylistFolderChanged += PlaylistService_PlaylistFolderChanged;
+            this.playlistService.TracksAdded += PlaylistService_TracksAdded;
+            this.playlistService.TracksDeleted += PlaylistService_TracksDeleted;
+            this.metadataService.LoveChanged += MetadataService_LoveChanged;
+            this.metadataService.RatingChanged += MetadataService_RatingChanged;
+            this.metadataService.MetadataChanged += MetadataService_MetadataChanged;
+            this.playbackService.TrackHistoryChanged += PlaybackService_TrackHistoryChanged;
+            Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += SettingsClient_SettingChanged;
 
             LeftPaneWidth = CollectionUtils.String2GridLength(SettingsClient.Get<string>(Settings_NameSpace, CollectionUtils.Setting_LeftPaneGridLength));
             RightPaneWidth = CollectionUtils.String2GridLength(SettingsClient.Get<string>(Settings_NameSpace, CollectionUtils.Setting_RightPaneGridLength));
-
         }
+        
+        protected override void OnUnLoad()
+        {
+            this.playlistService.PlaylistFolderChanged -= PlaylistService_PlaylistFolderChanged;
+            this.playlistService.TracksAdded -= PlaylistService_TracksAdded;
+            this.playlistService.TracksDeleted -= PlaylistService_TracksDeleted;
+            this.metadataService.LoveChanged -= MetadataService_LoveChanged;
+            this.metadataService.RatingChanged -= MetadataService_RatingChanged;
+            this.metadataService.MetadataChanged -= MetadataService_MetadataChanged;
+            this.playbackService.TrackHistoryChanged -= PlaybackService_TrackHistoryChanged;
+            Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged -= SettingsClient_SettingChanged;
+
+            base.OnUnLoad();
+        }
+
+        private void SettingsClient_SettingChanged(object sender, Digimezzo.Foundation.Core.Settings.SettingChangedEventArgs e)
+        {
+            if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableRating"))
+            {
+                this.EnableRating = (bool)e.Entry.Value;
+            }
+
+            if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableLove"))
+            {
+                this.EnableLove = (bool)e.Entry.Value;
+            }
+        }
+
+        private async void PlaybackService_TrackHistoryChanged(object sender, TrackViewModel e)
+        {
+            await this.GetTracksIfSmartPlaylistSelectedAsync();
+        }
+
+        private async void MetadataService_MetadataChanged(MetadataChangedEventArgs obj)
+        {
+            await this.GetTracksIfSmartPlaylistSelectedAsync();
+        }
+
+        private async void MetadataService_RatingChanged(RatingChangedEventArgs obj)
+        {
+            await this.GetTracksIfSmartPlaylistSelectedAsync();
+        }
+
+        private async void MetadataService_LoveChanged(LoveChangedEventArgs obj)
+        {
+            await this.GetTracksIfSmartPlaylistSelectedAsync();
+        }
+
+
 
         private async void PlaylistService_PlaylistFolderChanged(object sender, EventArgs e)
         {
