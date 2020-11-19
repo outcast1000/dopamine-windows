@@ -209,7 +209,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
             this.ToggleModeCommand = new DelegateCommand(async () => await this.ToggleHistoryListMode());
             _historyListMode = HistoryListMode.LogAll;
-            Task unAwaitedTask = UpdateHistoryListMode();
+            UpdateHistoryListMode();
 
             // Commands
             this.ChooseColumnsCommand = new DelegateCommand(this.ChooseColumns);
@@ -407,22 +407,17 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         protected async override Task EmptyListsAsync()
         {
-            TracksCvs = null;
-            tracks = null;
+            await Task.Run(() =>
+            {
+                TracksCvs = null;
+                tracks = null;
+            });
         }
 
-        protected override async void FilterListsAsync(string searchText)
+        protected override async Task FilterListsAsync(string searchText)
         {
             _searchText = searchText;
             await GetTracksAsync();
-            /*
-            GetFilteredTracksAsync(_searchText, TrackOrder);
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                this.CalculateSizeInformationAsync(this.TracksCvs);
-                this.ShowPlayingTrackAsync();
-            });
-            */
         }
 
         protected override void ConditionalScrollToPlayingTrack()
@@ -477,12 +472,12 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                     _historyListMode = HistoryListMode.LogAll;
                     break;
             }
-            await UpdateHistoryListMode();
+            UpdateHistoryListMode();
             await FillListsAsync();
         }
 
 
-        private async Task UpdateHistoryListMode()
+        private void UpdateHistoryListMode()
         {
             switch (_historyListMode)
             {

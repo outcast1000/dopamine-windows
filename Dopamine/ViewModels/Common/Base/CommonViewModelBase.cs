@@ -58,8 +58,6 @@ namespace Dopamine.ViewModels.Common.Base
         public DelegateCommand PlayTracksCommand { get; set; }
         public DelegateCommand EnqueueTracksCommand { get; set; }
         //public DelegateCommand ShuffleAllCommand { get; set; }
-        public DelegateCommand LoadedCommand { get; set; }
-        public DelegateCommand UnloadedCommand { get; set; }
 
         public string TotalSizeInformation => this.totalSize > 0 ? FormatUtils.FormatFileSize(this.totalSize, false) : string.Empty;
         public string TotalDurationInformation => this.totalDuration > 0 ? FormatUtils.FormatDuration(this.totalDuration) : string.Empty;
@@ -119,8 +117,6 @@ namespace Dopamine.ViewModels.Common.Base
             this.ShowSelectedTrackInformationCommand = new DelegateCommand(() => this.ShowSelectedTrackInformation());
             this.SelectedTracksCommand = new DelegateCommand<object>((parameter) => this.SelectedTracksHandler(parameter));
             this.EditTracksCommand = new DelegateCommand(() => this.EditSelectedTracks(), () => !this.IsIndexing);
-            this.LoadedCommand = new DelegateCommand(async () => { OnLoad(); await this.LoadedCommandAsync(); });
-            this.UnloadedCommand = new DelegateCommand(async () => { OnUnLoad(); await this.UnloadedCommandAsync(); });
 
             // Flags
             this.EnableRating = SettingsClient.Get<bool>("Behaviour", "EnableRating");
@@ -145,6 +141,7 @@ namespace Dopamine.ViewModels.Common.Base
             this.searchService.DoSearch += OnSearchAsync;
             this.metadataService.RatingChanged += MetadataService_RatingChangedAsync;
             this.metadataService.LoveChanged += MetadataService_LoveChangedAsync;
+            this.LoadedCommandAsync();
         }
 
         private void OnIndexingChanged(object sender, EventArgs e)
@@ -159,11 +156,12 @@ namespace Dopamine.ViewModels.Common.Base
 
         private async void OnSearchAsync(string searchText)
         {
-            this.FilterListsAsync(searchText);
+            await this.FilterListsAsync(searchText);
         }
 
         protected override void OnUnLoad()
         {
+            this.UnloadedCommandAsync();
             this.collectionService.CollectionChanged -= OnRefreshListsAsync; // Refreshes the lists when the Collection has changed
             this.foldersService.FoldersChanged -= OnRefreshListsAsync; // Refreshes the lists when marked folders have changed
             this.indexingService.RefreshLists -= OnRefreshListsAsync; // Refreshes the lists when the indexer has finished indexing
@@ -301,7 +299,7 @@ namespace Dopamine.ViewModels.Common.Base
 
         protected abstract Task FillListsAsync();
         protected abstract Task EmptyListsAsync();
-        protected abstract void FilterListsAsync(string searchText);
+        protected abstract Task FilterListsAsync(string searchText);
         protected abstract void ConditionalScrollToPlayingTrack();
         protected abstract void MetadataService_RatingChangedAsync(RatingChangedEventArgs e);
         protected abstract void MetadataService_LoveChangedAsync(LoveChangedEventArgs e);

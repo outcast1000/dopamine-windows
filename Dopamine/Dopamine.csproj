@@ -41,7 +41,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;WINDOWS_DESKTOP</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>0</WarningLevel>
+    <WarningLevel>1</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -263,7 +263,6 @@
     <Compile Include="ViewModels\Common\AppearanceThemeViewModel.cs" />
     <Compile Include="ViewModels\Common\ArtistInfoControlViewModel.cs" />
     <Compile Include="ViewModels\Common\BackgroundCoverArtControlViewModel.cs" />
-    <Compile Include="ViewModels\Common\Base\AlbumsViewModelBase.cs" />
     <Compile Include="ViewModels\Common\Base\CommonViewModelBase.cs" />
     <Compile Include="ViewModels\Common\Base\ContextMenuViewModelBase.cs" />
     <Compile Include="ViewModels\Common\Base\EditMetadataBase.cs" />

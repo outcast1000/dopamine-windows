@@ -299,7 +299,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             ShuffleItemsCommand = new DelegateCommand(async () => await _playbackService.PlayAlbumsAsync(SelectedItems, PlaylistMode.Play, TrackOrder.Random));
             PlayItemsCommand = new DelegateCommand(async () => await _playbackService.PlayAlbumsAsync(SelectedItems, PlaylistMode.Play));
             EnqueueItemsCommand = new DelegateCommand(async () => await _playbackService.PlayAlbumsAsync(SelectedItems, PlaylistMode.Enqueue));
-            EnsureItemVisibleCommand = new DelegateCommand<AlbumViewModel>(async (item) =>
+            EnsureItemVisibleCommand = new DelegateCommand<AlbumViewModel>((item) =>
             {
                 EnsureItemVisible?.Invoke(item);
             });
@@ -322,7 +322,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 _eventAggregator.GetEvent<PerformSemanticJump>().Publish(new Tuple<string, string>("Albums", header));
             });
 
-            SetListItemSizeCommand = new DelegateCommand<string>(async (listItemSize) =>
+            SetListItemSizeCommand = new DelegateCommand<string>((listItemSize) =>
             {
                 if (int.TryParse(listItemSize, out int selectedListItemSize))
                 {
@@ -710,10 +710,13 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         private async Task ToggleOrderAsync()
         {
-            ToggleAlbumOrder();
-            SettingsClient.Set<int>(Settings_NameSpace, Setting_ItemOrder, (int)AlbumOrder);
-            OrderItems();
-            //EnsureVisible();
+            await Task.Run(() =>
+            {
+                ToggleAlbumOrder();
+                SettingsClient.Set<int>(Settings_NameSpace, Setting_ItemOrder, (int)AlbumOrder);
+                OrderItems();
+                //EnsureVisible();
+            });
         }
 
         private void EnsureVisible()
@@ -735,7 +738,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 }
                 else
                 {
-                    FilterListsAsync(_searchString);
+                    await FilterListsAsync(_searchString);
                 }
                 _ignoreSelectionChangedEvent = false;
             });
@@ -744,13 +747,16 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         protected async override Task EmptyListsAsync()
         {
-            ClearItems();
-            ClearTracks();
+            await Task.Run(() =>
+            {
+                ClearItems();
+                ClearTracks();
+            });
         }
 
         private double _listBoxScrollPosInNormalMode = 0;
         private bool _bSelectedItemChangedDuringSearchMode = false;
-        protected override async void FilterListsAsync(string searchText)
+        protected override async Task FilterListsAsync(string searchText)
         {
             if (_searchString.Equals(searchText))
                 return;
@@ -774,7 +780,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 _searchString = searchText;
                 await GetItemsAsync();
                 // In every case we reset the ListBox Position
-                base.FilterListsAsync(searchText);
+                await base.FilterListsAsync(searchText);
             }
             else
             {

@@ -94,7 +94,7 @@ namespace Dopamine.Views.FullPlayer.Collection
 
 
 
-        private async void AlbumsButton_Click(object sender, RoutedEventArgs e)
+        private void AlbumsButton_Click(object sender, RoutedEventArgs e)
         {
             this.ListBoxAlbums.SelectedItem = null;
         }

@@ -439,7 +439,7 @@ namespace Dopamine.ViewModels.Common.Base
         }
 
 
-        protected override async void FilterListsAsync(string searchText)
+        protected override async Task FilterListsAsync(string searchText)
         {
             _searchText = searchText;
             await GetFilteredTracksAsync(_searchText, TrackOrder);

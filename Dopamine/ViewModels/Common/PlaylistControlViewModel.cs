@@ -79,9 +79,9 @@ namespace Dopamine.ViewModels.Common
             this.UpdateNowPlaying();
         }
 
-        private void UpdateNowPlaying()
+        private async void UpdateNowPlaying()
         {
-            GetTracksAsync();
+            await GetTracksAsync();
         }
 
         private async Task ShufflePlaylistAsync()
@@ -176,7 +176,7 @@ namespace Dopamine.ViewModels.Common
             RaisePropertyChanged(nameof(this.TotalTracksInformation));
         }
 
-        protected override async void FilterListsAsync(string searchText)
+        protected override async Task FilterListsAsync(string searchText)
         {
             if (string.IsNullOrEmpty(searchText))
             {
@@ -186,7 +186,7 @@ namespace Dopamine.ViewModels.Common
             else
             {
                 InSearchMode = true;
-                base.FilterListsAsync(searchText);
+                await base.FilterListsAsync(searchText);
             }
         }
 
@@ -199,7 +199,10 @@ namespace Dopamine.ViewModels.Common
 
         protected async override Task EmptyListsAsync()
         {
-            this.ClearTracks();
+            await Task.Run(() =>
+            {
+                this.ClearTracks();
+            });
         }
 
         protected async override Task LoadedCommandAsync()

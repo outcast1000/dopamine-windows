@@ -609,10 +609,13 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         private async Task ToggleOrderAsync()
         {
-            ToggleGenreOrder();
-            SettingsClient.Set<int>(Settings_NameSpace, Setting_ItemOrder, (int)GenreOrder);
-            OrderItems();
-            //EnsureVisible();
+            await Task.Run(() =>
+            {
+                ToggleGenreOrder();
+                SettingsClient.Set<int>(Settings_NameSpace, Setting_ItemOrder, (int)GenreOrder);
+                OrderItems();
+                //EnsureVisible();
+            });
         }
 
         private void EnsureVisible()
@@ -634,7 +637,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 }
                 else
                 {
-                    FilterListsAsync(_searchString);
+                    await FilterListsAsync(_searchString);
                 }
                 _ignoreSelectionChangedEvent = false;
             });
@@ -643,13 +646,16 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         protected async override Task EmptyListsAsync()
         {
-            ClearItems();
-            ClearTracks();
+            await Task.Run(() =>
+            {
+                ClearItems();
+                ClearTracks();
+            });
         }
 
         private double _listBoxScrollPosInNormalMode = 0;
         private bool _bSelectedItemChangedDuringSearchMode = false;
-        protected override async void FilterListsAsync(string searchText)
+        protected override async Task FilterListsAsync(string searchText)
         {
             if (_searchString.Equals(searchText))
                 return;
@@ -673,7 +679,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 _searchString = searchText;
                 await GetItemsAsync();
                 // In every case we reset the ListBox Position
-                base.FilterListsAsync(searchText);
+                await base.FilterListsAsync(searchText);
             }
             else
             {
