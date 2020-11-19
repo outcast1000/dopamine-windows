@@ -42,15 +42,41 @@ namespace Dopamine.ViewModels.Common
             this.fileService = container.Resolve<IFileService>();
             this.providerService = container.Resolve<IProviderService>();
 
-            this.playbackService.PlaybackSuccess += (_, __) => this.UpdateNowPlaying();
-            this.playbackService.PlaylistChanged += (_, __) => this.UpdateNowPlaying();
-            this.playbackService.PlaylistPositionChanged += (_, __) => this.UpdateNowPlaying();
-
             // Commands
             this.RemoveSelectedTracksCommand = new DelegateCommand(async () => await RemoveSelectedTracksFromNowPlayingAsync());
 
             ShufflePlaylistCommand = new DelegateCommand(async () => await ShufflePlaylistAsync());
             ClearPlaylistCommand = new DelegateCommand(() => ClearPlaylist());
+        }
+
+        protected override void OnLoad()
+        {
+            base.OnLoad();
+            this.playbackService.PlaybackSuccess += PlaybackService_PlaybackSuccess;
+            this.playbackService.PlaylistChanged += PlaybackService_PlaylistChanged;
+            this.playbackService.PlaylistPositionChanged += PlaybackService_PlaylistPositionChanged;
+        }
+        protected override void OnUnLoad()
+        {
+            this.playbackService.PlaybackSuccess -= PlaybackService_PlaybackSuccess;
+            this.playbackService.PlaylistChanged -= PlaybackService_PlaylistChanged;
+            this.playbackService.PlaylistPositionChanged -= PlaybackService_PlaylistPositionChanged;
+            base.OnUnLoad();
+        }
+
+        private void PlaybackService_PlaylistPositionChanged(object sender, EventArgs e)
+        {
+            this.UpdateNowPlaying();
+        }
+
+        private void PlaybackService_PlaylistChanged(object sender, EventArgs e)
+        {
+            this.UpdateNowPlaying();
+        }
+
+        private void PlaybackService_PlaybackSuccess(object sender, PlaybackSuccessEventArgs e)
+        {
+            this.UpdateNowPlaying();
         }
 
         private void UpdateNowPlaying()

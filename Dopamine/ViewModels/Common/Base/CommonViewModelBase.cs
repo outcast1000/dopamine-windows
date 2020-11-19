@@ -121,27 +121,6 @@ namespace Dopamine.ViewModels.Common.Base
             this.EditTracksCommand = new DelegateCommand(() => this.EditSelectedTracks(), () => !this.IsIndexing);
             this.LoadedCommand = new DelegateCommand(async () => { OnLoad(); await this.LoadedCommandAsync(); });
             this.UnloadedCommand = new DelegateCommand(async () => { OnUnLoad(); await this.UnloadedCommandAsync(); });
-            /*
-            this.ShuffleAllCommand = new DelegateCommand(() =>
-            {
-                this.playbackService.PlayAllTracksAsync(PlaylistMode.Play, TrackOrder.Random);
-            });
-            */
-            // Events
-            /*
-            this.collectionService.CollectionChanged += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when the Collection has changed
-            this.foldersService.FoldersChanged += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when marked folders have changed
-            this.indexingService.RefreshLists += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when the indexer has finished indexing
-            this.indexingService.IndexingStarted += (_, __) => this.SetEditCommands();
-            this.indexingService.IndexingStopped += (_, __) => this.SetEditCommands();
-            this.searchService.DoSearch += (searchText) => this.FilterListsAsync(searchText);
-            this.metadataService.RatingChanged += MetadataService_RatingChangedAsync;
-            this.metadataService.LoveChanged += MetadataService_LoveChangedAsync;
-            */
-            //=== ALEX TODO. CHECK IF WE NEED THIS SOMEHOW AFTER THE REFACTORING WHICH ASKS THE Images ON demand
-            //this.indexingService.AlbumImagesAdded += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when the indexer has finished indexing
-            //this.indexingService.ArtistImagesAdded += async (_, __) => await this.FillListsAsync(); // Refreshes the lists when the indexer has finished indexing
-
 
             // Flags
             this.EnableRating = SettingsClient.Get<bool>("Behaviour", "EnableRating");
