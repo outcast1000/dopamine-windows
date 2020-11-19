@@ -384,8 +384,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 }
             });
             EditArtistCommand = new DelegateCommand(() => this.EditSelectedArtist());
-            // Settings
-
         }
 
         private SubscriptionToken _shellMouseUpSubscriptionToken;
