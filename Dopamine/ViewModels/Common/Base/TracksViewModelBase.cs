@@ -555,7 +555,7 @@ namespace Dopamine.ViewModels.Common.Base
 
         protected async override Task LoadedCommandAsync()
         {
-            await Task.Delay(Constants.CommonListLoadDelay);  // Wait for the UI to slide in
+            //await Task.Delay(Constants.CommonListLoadDelay);  // Wait for the UI to slide in
             await this.FillListsAsync(); // Fill all the lists
         }
 
