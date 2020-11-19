@@ -10,6 +10,7 @@ using Prism.Mvvm;
 using System;
 using System.Threading.Tasks;
 using System.Timers;
+using Prism.Commands;
 
 namespace Dopamine.ViewModels.Common
 {
@@ -26,6 +27,9 @@ namespace Dopamine.ViewModels.Common
         private int refreshTimerIntervalMilliseconds = 250;
         private bool enableRating;
         private bool enableLove;
+
+        public DelegateCommand LoadedCommand { get; set; }
+        public DelegateCommand UnloadedCommand { get; set; }
 
         public int Rating
         {
@@ -98,56 +102,9 @@ namespace Dopamine.ViewModels.Common
             this.scrobblingService = scrobblingService;
 
             this.refreshTimer.Interval = this.refreshTimerIntervalMilliseconds;
-            this.refreshTimer.Elapsed += RefreshTimer_Elapsed;
 
-            this.playbackService.PlaybackSuccess += (_, e) =>
-            {
-                this.SlideDirection = e.IsPlayingPreviousTrack ? SlideDirection.UpToDown : SlideDirection.DownToUp;
-                this.refreshTimer.Stop();
-                this.refreshTimer.Start();
-            };
-
-            this.playbackService.PlaybackStopped += (_, e) =>
-            {
-                this.refreshTimer.Stop();
-                this.refreshTimer.Start();
-            };
-
-            this.playbackService.PlaybackProgressChanged += (_, __) => this.UpdateTime();
-            this.playbackService.PlayingTrackChanged += (_, __) => this.RefreshPlaybackInfoAsync(this.playbackService.CurrentTrack, true);
-
-            this.metadataService.RatingChanged += (e) =>
-            {
-                if (this.track != null && e.SafePath.Equals(this.track.SafePath))
-                {
-                    this.track.UpdateVisibleRating(e.Rating);
-                    this.RaisePropertyChanged(nameof(this.Rating));
-                }
-            };
-
-            this.metadataService.LoveChanged += (e) =>
-            {
-                if (this.track != null && e.SafePath.Equals(this.track.SafePath))
-                {
-                    this.track.UpdateVisibleLove(e.Love);
-                    this.RaisePropertyChanged(nameof(this.Love));
-                }
-            };
-
-            // Settings
-            Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += (_, e) =>
-            {
-                if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableRating"))
-                {
-                    this.EnableRating = (bool)e.Entry.Value;
-
-                }
-
-                if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableLove"))
-                {
-                    this.EnableLove = (bool)e.Entry.Value;
-                }
-            };
+            LoadedCommand = new DelegateCommand(() => { OnLoad(); });
+            UnloadedCommand = new DelegateCommand(() => { OnUnLoad(); });
 
             // Defaults
             this.SlideDirection = SlideDirection.DownToUp;
@@ -155,6 +112,88 @@ namespace Dopamine.ViewModels.Common
             this.EnableRating = SettingsClient.Get<bool>("Behaviour", "EnableRating");
             this.EnableLove = SettingsClient.Get<bool>("Behaviour", "EnableLove");
         }
+
+        protected virtual void OnLoad()
+        {
+            this.refreshTimer.Elapsed += RefreshTimer_Elapsed;
+            this.playbackService.PlaybackSuccess += PlaybackService_PlaybackSuccess;
+            this.playbackService.PlaybackStopped += PlaybackService_PlaybackStopped;
+            this.playbackService.PlaybackProgressChanged += PlaybackService_PlaybackProgressChanged;
+            this.playbackService.PlayingTrackChanged += PlaybackService_PlayingTrackChanged;
+            this.metadataService.RatingChanged += MetadataService_RatingChanged;
+            this.metadataService.LoveChanged += MetadataService_LoveChanged;
+            Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += SettingsClient_SettingChanged;
+        }
+
+        protected virtual void OnUnLoad()
+        {
+            this.refreshTimer.Elapsed -= RefreshTimer_Elapsed;
+            this.playbackService.PlaybackSuccess -= PlaybackService_PlaybackSuccess;
+            this.playbackService.PlaybackStopped -= PlaybackService_PlaybackStopped;
+            this.playbackService.PlaybackProgressChanged -= PlaybackService_PlaybackProgressChanged;
+            this.playbackService.PlayingTrackChanged -= PlaybackService_PlayingTrackChanged;
+            this.metadataService.RatingChanged -= MetadataService_RatingChanged;
+            this.metadataService.LoveChanged -= MetadataService_LoveChanged;
+            Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged -= SettingsClient_SettingChanged;
+        }
+
+        private void SettingsClient_SettingChanged(object sender, Digimezzo.Foundation.Core.Settings.SettingChangedEventArgs e)
+        {
+            if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableRating"))
+            {
+                this.EnableRating = (bool)e.Entry.Value;
+
+            }
+
+            if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableLove"))
+            {
+                this.EnableLove = (bool)e.Entry.Value;
+            }
+        }
+
+        private void MetadataService_LoveChanged(LoveChangedEventArgs e)
+        {
+            if (this.track != null && e.SafePath.Equals(this.track.SafePath))
+            {
+                this.track.UpdateVisibleLove(e.Love);
+                this.RaisePropertyChanged(nameof(this.Love));
+            }
+        }
+
+        private void MetadataService_RatingChanged(RatingChangedEventArgs e)
+        {
+            if (this.track != null && e.SafePath.Equals(this.track.SafePath))
+            {
+                this.track.UpdateVisibleRating(e.Rating);
+                this.RaisePropertyChanged(nameof(this.Rating));
+            }
+        }
+
+        private void PlaybackService_PlayingTrackChanged(object sender, EventArgs e)
+        {
+            this.RefreshPlaybackInfoAsync(this.playbackService.CurrentTrack, true);
+        }
+
+        private void PlaybackService_PlaybackProgressChanged(object sender, EventArgs e)
+        {
+            this.UpdateTime();
+        }
+
+        private void PlaybackService_PlaybackStopped(object sender, EventArgs e)
+        {
+            this.refreshTimer.Stop();
+            this.refreshTimer.Start();
+        }
+
+        private void PlaybackService_PlaybackSuccess(object sender, PlaybackSuccessEventArgs e)
+        {
+            this.SlideDirection = e.IsPlayingPreviousTrack ? SlideDirection.UpToDown : SlideDirection.DownToUp;
+            this.refreshTimer.Stop();
+            this.refreshTimer.Start();
+        }
+
+
+
 
         private void RefreshTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
