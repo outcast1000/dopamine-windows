@@ -388,12 +388,13 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         }
 
+        private SubscriptionToken _shellMouseUpSubscriptionToken;
         protected override void OnLoad()
         {
             base.OnLoad();
             _providerService.SearchProvidersChanged += _providerService_SearchProvidersChanged;
             Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += SettingsClient_SettingChanged;
-            _eventAggregator.GetEvent<ShellMouseUp>().Subscribe((_) => IsZoomVisible = false);
+            _shellMouseUpSubscriptionToken = _eventAggregator.GetEvent<ShellMouseUp>().Subscribe((_) => IsZoomVisible = false);
             ArtistOrder = (ArtistOrder)SettingsClient.Get<int>(Settings_NameSpace, Setting_ItemOrder);
             SetTrackOrder((TrackOrder)SettingsClient.Get<int>(Settings_NameSpace, CollectionUtils.Setting_TrackOrder));
             ListBoxScrollPos = SettingsClient.Get<double>(Settings_NameSpace, Setting_ListBoxScrollPos);
@@ -408,7 +409,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         {
             _providerService.SearchProvidersChanged -= _providerService_SearchProvidersChanged;
             Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged -= SettingsClient_SettingChanged;
-            _eventAggregator.GetEvent<ShellMouseUp>().Subscribe((_) => IsZoomVisible = false);
+            _eventAggregator.GetEvent<ShellMouseUp>().Unsubscribe(_shellMouseUpSubscriptionToken);
             base.OnUnLoad();
         }
 
