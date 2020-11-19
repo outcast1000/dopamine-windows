@@ -24,6 +24,8 @@ namespace Dopamine.ViewModels.Common.Base
         private IDialogService dialogService;
         private ObservableCollection<SearchProvider> contextMenuSearchProviders;
         private ObservableCollection<PlaylistViewModel> contextMenuPlaylists;
+        public DelegateCommand LoadedCommand { get; set; }
+        public DelegateCommand UnloadedCommand { get; set; }
 
         public DelegateCommand<string> SearchOnlineCommand { get; set; }
         public DelegateCommand<string> AddPlayingTrackToPlaylistCommand { get; set; }
@@ -63,7 +65,8 @@ namespace Dopamine.ViewModels.Common.Base
             this.AddPlayingTrackToPlaylistCommand = new DelegateCommand<string>(
             async (playlistName) => await this.AddPlayingTrackToPlaylistAsync(playlistName), (_) => this.playbackService.HasCurrentTrack);
 
-
+            LoadedCommand = new DelegateCommand(() => { OnLoad(); });
+            UnloadedCommand = new DelegateCommand(() => { OnUnLoad(); });
             // Initialize the playlists in the ContextMenu
             this.GetContextMenuPlaylistsAsync();
         }

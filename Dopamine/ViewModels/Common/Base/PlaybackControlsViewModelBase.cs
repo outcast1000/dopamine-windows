@@ -28,7 +28,7 @@ namespace Dopamine.ViewModels.Common.Base
         {
             this.PlaybackService = container.Resolve<IPlaybackService>();
             this.DialogService = container.Resolve<IDialogService>();
-            this.PlaybackService.PlaybackProgressChanged += (_, __) => this.UpdateTime();
+            
 
             this.ShowEqualizerCommand = new DelegateCommand(() =>
             {
@@ -53,6 +53,24 @@ namespace Dopamine.ViewModels.Common.Base
 
             this.Reset();
         }
+
+        protected override void OnLoad()
+        {
+            base.OnLoad();
+            this.PlaybackService.PlaybackProgressChanged += PlaybackService_PlaybackProgressChanged;
+        }
+        protected override void OnUnLoad()
+        {
+            this.PlaybackService.PlaybackProgressChanged -= PlaybackService_PlaybackProgressChanged;
+            base.OnUnLoad();
+        }
+
+        private void PlaybackService_PlaybackProgressChanged(object sender, System.EventArgs e)
+        {
+            this.UpdateTime();
+        }
+
+
 
         protected void UpdateTime()
         {

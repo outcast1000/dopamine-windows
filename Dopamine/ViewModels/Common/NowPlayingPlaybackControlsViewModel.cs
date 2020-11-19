@@ -16,8 +16,6 @@ namespace Dopamine.ViewModels.Common
         private NowPlayingSubPage previousSelectedNowPlayingSubPage;
         private NowPlayingSubPage selectedNowPlayingSubPage;
 
-        public DelegateCommand LoadedCommand { get; set; }
-
         public NowPlayingSubPage SelectedNowPlayingSubPage
         {
             get { return this.selectedNowPlayingSubPage; }
@@ -40,21 +38,46 @@ namespace Dopamine.ViewModels.Common
         {
             this.eventAggregator = eventAggregator;
 
-            this.PlaybackService.PlaybackSuccess += (_, __) => RaisePropertyChanged(nameof(this.HasPlaybackQueue));
-            this.PlaybackService.PlaylistChanged += (_, __) => RaisePropertyChanged(nameof(this.HasPlaybackQueue));
-            this.PlaybackService.PlaybackStopped += (_, __) => this.Reset();
 
-            this.LoadedCommand = new DelegateCommand(() =>
+        }
+
+        protected override void OnLoad()
+        {
+            base.OnLoad();
+            if (SettingsClient.Get<bool>("Startup", "ShowLastSelectedPage"))
             {
-                if (SettingsClient.Get<bool>("Startup", "ShowLastSelectedPage"))
-                {
-                    this.SelectedNowPlayingSubPage = (NowPlayingSubPage)SettingsClient.Get<int>("FullPlayer", "SelectedNowPlayingSubPage");
-                }
-                else
-                {
-                    this.SelectedNowPlayingSubPage = NowPlayingSubPage.ShowCase;
-                }
-            });
+                this.SelectedNowPlayingSubPage = (NowPlayingSubPage)SettingsClient.Get<int>("FullPlayer", "SelectedNowPlayingSubPage");
+            }
+            else
+            {
+                this.SelectedNowPlayingSubPage = NowPlayingSubPage.ShowCase;
+            }
+            this.PlaybackService.PlaybackSuccess += PlaybackService_PlaybackSuccess;
+            this.PlaybackService.PlaylistChanged += PlaybackService_PlaylistChanged;
+            this.PlaybackService.PlaybackStopped += PlaybackService_PlaybackStopped;
+        }
+
+        private void PlaybackService_PlaybackStopped(object sender, EventArgs e)
+        {
+            this.Reset();
+        }
+
+        private void PlaybackService_PlaylistChanged(object sender, EventArgs e)
+        {
+            RaisePropertyChanged(nameof(this.HasPlaybackQueue));
+        }
+
+        private void PlaybackService_PlaybackSuccess(object sender, Services.Playback.PlaybackSuccessEventArgs e)
+        {
+            RaisePropertyChanged(nameof(this.HasPlaybackQueue));
+        }
+
+        protected override void OnUnLoad()
+        {
+            this.PlaybackService.PlaybackSuccess -= PlaybackService_PlaybackSuccess;
+            this.PlaybackService.PlaylistChanged -= PlaybackService_PlaylistChanged;
+            this.PlaybackService.PlaybackStopped -= PlaybackService_PlaybackStopped;
+            base.OnUnLoad();
         }
     }
 }
