@@ -98,21 +98,65 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
 
             // Events
+
+            LeftPaneWidth = CollectionUtils.String2GridLength(SettingsClient.Get<string>(Settings_NameSpace, CollectionUtils.Setting_LeftPaneGridLength));
+            RightPaneWidth = CollectionUtils.String2GridLength(SettingsClient.Get<string>(Settings_NameSpace, CollectionUtils.Setting_RightPaneGridLength));
+
+        }
+
+        protected override void OnLoad()
+        {
+            base.OnLoad();
             this.foldersService.FoldersChanged += FoldersService_FoldersChanged;
-            this.playbackService.PlaybackFailed += (async(_,__) => await this.foldersService.SetPlayingSubFolderAsync(this.Subfolders));
-            this.playbackService.PlaybackPaused += (async (_, __) => await this.foldersService.SetPlayingSubFolderAsync(this.Subfolders));
-            this.playbackService.PlaybackResumed += (async (_, __) => await this.foldersService.SetPlayingSubFolderAsync(this.Subfolders));
-            this.playbackService.PlaybackSuccess += (async (_, __) => await this.foldersService.SetPlayingSubFolderAsync(this.Subfolders));
-            this.playbackService.PlaybackStopped += (async (_, __) => await this.foldersService.SetPlayingSubFolderAsync(this.Subfolders));
+            this.playbackService.PlaybackFailed += PlaybackService_PlaybackFailed;
+            this.playbackService.PlaybackPaused += PlaybackService_PlaybackPaused;
+            this.playbackService.PlaybackResumed += PlaybackService_PlaybackResumed;
+            this.playbackService.PlaybackSuccess += PlaybackService_PlaybackSuccess;
+            this.playbackService.PlaybackStopped += PlaybackService_PlaybackStopped;
 
             this.eventAggregator.GetEvent<ActiveSubfolderChanged>().Subscribe(async (activeSubfolder) =>
             {
                 await this.GetSubfoldersAsync(activeSubfolder as SubfolderViewModel);
             });
-            LeftPaneWidth = CollectionUtils.String2GridLength(SettingsClient.Get<string>(Settings_NameSpace, CollectionUtils.Setting_LeftPaneGridLength));
-            RightPaneWidth = CollectionUtils.String2GridLength(SettingsClient.Get<string>(Settings_NameSpace, CollectionUtils.Setting_RightPaneGridLength));
-
         }
+
+        protected override void OnUnLoad()
+        {
+            this.foldersService.FoldersChanged -= FoldersService_FoldersChanged;
+            this.playbackService.PlaybackFailed -= PlaybackService_PlaybackFailed;
+            this.playbackService.PlaybackPaused -= PlaybackService_PlaybackPaused;
+            this.playbackService.PlaybackResumed -= PlaybackService_PlaybackResumed;
+            this.playbackService.PlaybackSuccess -= PlaybackService_PlaybackSuccess;
+            this.playbackService.PlaybackStopped -= PlaybackService_PlaybackStopped;
+            base.OnUnLoad();
+        }
+
+        private async void PlaybackService_PlaybackStopped(object sender, EventArgs e)
+        {
+            await this.foldersService.SetPlayingSubFolderAsync(this.Subfolders);
+        }
+
+        private async void PlaybackService_PlaybackSuccess(object sender, PlaybackSuccessEventArgs e)
+        {
+            await this.foldersService.SetPlayingSubFolderAsync(this.Subfolders);
+        }
+
+        private async void PlaybackService_PlaybackResumed(object sender, EventArgs e)
+        {
+            await this.foldersService.SetPlayingSubFolderAsync(this.Subfolders);
+        }
+
+        private async void PlaybackService_PlaybackPaused(object sender, PlaybackPausedEventArgs e)
+        {
+            await this.foldersService.SetPlayingSubFolderAsync(this.Subfolders);
+        }
+
+        private async void PlaybackService_PlaybackFailed(object sender, PlaybackFailedEventArgs e)
+        {
+            await this.foldersService.SetPlayingSubFolderAsync(this.Subfolders);
+        }
+
+
 
         private async void FoldersService_FoldersChanged(object sender, EventArgs e)
         {

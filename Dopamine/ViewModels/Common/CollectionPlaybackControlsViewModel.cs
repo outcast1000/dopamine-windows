@@ -14,11 +14,6 @@ namespace Dopamine.ViewModels.Common
 
         public CollectionPlaybackControlsViewModel(IContainerProvider container, IDialogService dialogService) : base(container)
         {
-            this.PlaybackService.PlaybackStopped += (_, __) =>
-            {
-                this.Reset();
-                RaisePropertyChanged(nameof(this.IsPlaying));
-            };
         }
 
         protected override void OnLoad()
@@ -28,13 +23,23 @@ namespace Dopamine.ViewModels.Common
             this.PlaybackService.PlaybackPaused += PlaybackService_PlaybackPaused;
             this.PlaybackService.PlaybackResumed += PlaybackService_PlaybackResumed;
             this.PlaybackService.PlaybackSuccess += PlaybackService_PlaybackSuccess;
+            this.PlaybackService.PlaybackStopped += PlaybackService_PlaybackStopped;
         }
+
+        private void PlaybackService_PlaybackStopped(object sender, System.EventArgs e)
+        {
+            this.Reset();
+            RaisePropertyChanged(nameof(this.IsPlaying));
+        }
+
         protected override void OnUnLoad()
         {
             this.PlaybackService.PlaybackFailed -= PlaybackService_PlaybackFailed;
             this.PlaybackService.PlaybackPaused -= PlaybackService_PlaybackPaused;
             this.PlaybackService.PlaybackResumed -= PlaybackService_PlaybackResumed;
             this.PlaybackService.PlaybackSuccess -= PlaybackService_PlaybackSuccess;
+            this.PlaybackService.PlaybackStopped -= PlaybackService_PlaybackStopped;
+
             base.OnUnLoad();
         }
 
