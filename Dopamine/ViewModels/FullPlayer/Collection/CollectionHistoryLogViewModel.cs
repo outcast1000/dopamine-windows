@@ -205,20 +205,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             this.eventAggregator = container.Resolve<IEventAggregator>();
 
             // Settings
-            Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += (_, e) =>
-            {
-                if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableRating"))
-                {
-                    this.EnableRating = (bool)e.Entry.Value;
-                    this.GetVisibleColumns();
-                }
 
-                if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableLove"))
-                {
-                    this.EnableLove = (bool)e.Entry.Value;
-                    this.GetVisibleColumns();
-                }
-            };
 
             this.ToggleModeCommand = new DelegateCommand(async () => await this.ToggleHistoryListMode());
             _historyListMode = HistoryListMode.LogAll;
@@ -229,8 +216,37 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             //this.RemoveSelectedTracksCommand = new DelegateCommand(async () => await this.RemoveTracksFromCollectionAsync(this.SelectedTracks), () => !this.IsIndexing);
             
             // Show only the columns which are visible
+            
+
+        }
+
+        protected override void OnLoad()
+        {
+            base.OnLoad();
+            Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += SettingsClient_SettingChanged;
             this.GetVisibleColumns();
 
+        }
+
+        private void SettingsClient_SettingChanged(object sender, Digimezzo.Foundation.Core.Settings.SettingChangedEventArgs e)
+        {
+            if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableRating"))
+            {
+                this.EnableRating = (bool)e.Entry.Value;
+                this.GetVisibleColumns();
+            }
+
+            if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableLove"))
+            {
+                this.EnableLove = (bool)e.Entry.Value;
+                this.GetVisibleColumns();
+            }
+        }
+
+        protected override void OnUnLoad()
+        {
+            Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged -= SettingsClient_SettingChanged;
+            base.OnUnLoad();
         }
 
         private void ChooseColumns()
