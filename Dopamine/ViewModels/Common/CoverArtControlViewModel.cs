@@ -13,6 +13,7 @@ using Dopamine.Services.Entities;
 using Dopamine.Core.Alex;
 using System.Windows;
 using GongSolutions.Wpf.DragDrop.Utilities;
+using Prism.Commands;
 
 namespace Dopamine.ViewModels.Common
 {
@@ -25,6 +26,9 @@ namespace Dopamine.ViewModels.Common
         private SlideDirection slideDirection;
         private string previousArtwork;
         private string artwork;
+
+        public DelegateCommand LoadedCommand { get; set; }
+        public DelegateCommand UnloadedCommand { get; set; }
 
         public CoverArtViewModel CoverArtViewModel
         {
@@ -56,24 +60,45 @@ namespace Dopamine.ViewModels.Common
         {
             this.playbackService = playbackService;
             this.metadataService = metadataService;
-
-            this.playbackService.PlaybackSuccess += (_, e) =>
-            {
-                this.SlideDirection = e.IsPlayingPreviousTrack ? SlideDirection.UpToDown : SlideDirection.DownToUp;
-                this.RefreshCoverArtAsync(this.playbackService.CurrentTrack);
-            };
-
-            this.playbackService.PlaylistChanged += (_, e) =>
-            {
-                this.RefreshCoverArtAsync(this.playbackService.CurrentTrack);
-            };
-
-            this.playbackService.PlayingTrackChanged += (_, __) => this.RefreshCoverArtAsync(this.playbackService.CurrentTrack);
+            LoadedCommand = new DelegateCommand(() => { OnLoad(); });
+            UnloadedCommand = new DelegateCommand(() => { OnUnLoad(); });
 
             // Defaults
             this.SlideDirection = SlideDirection.DownToUp;
             this.RefreshCoverArtAsync(this.playbackService.CurrentTrack);
         }
+
+        protected virtual void OnLoad()
+        {
+            this.playbackService.PlaybackSuccess += PlaybackService_PlaybackSuccess;
+            this.playbackService.PlaylistChanged += PlaybackService_PlaylistChanged;
+            this.playbackService.PlayingTrackChanged += PlaybackService_PlayingTrackChanged;
+        }
+
+        protected virtual void OnUnLoad()
+        {
+            this.playbackService.PlaybackSuccess -= PlaybackService_PlaybackSuccess;
+            this.playbackService.PlaylistChanged -= PlaybackService_PlaylistChanged;
+            this.playbackService.PlayingTrackChanged -= PlaybackService_PlayingTrackChanged;
+        }
+
+        private void PlaybackService_PlayingTrackChanged(object sender, EventArgs e)
+        {
+            this.RefreshCoverArtAsync(this.playbackService.CurrentTrack);
+        }
+
+        private void PlaybackService_PlaylistChanged(object sender, EventArgs e)
+        {
+           this.RefreshCoverArtAsync(this.playbackService.CurrentTrack);
+        }
+
+        private void PlaybackService_PlaybackSuccess(object sender, PlaybackSuccessEventArgs e)
+        {
+            this.SlideDirection = e.IsPlayingPreviousTrack ? SlideDirection.UpToDown : SlideDirection.DownToUp;
+            this.RefreshCoverArtAsync(this.playbackService.CurrentTrack);
+        }
+
+
 
 
         private System.Threading.SemaphoreSlim _semaphore = new System.Threading.SemaphoreSlim(1);

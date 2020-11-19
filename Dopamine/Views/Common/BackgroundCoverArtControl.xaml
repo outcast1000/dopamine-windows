@@ -8,11 +8,21 @@
     xmlns:pc="clr-namespace:Dopamine.Controls"
     xmlns:pv="clr-namespace:Dopamine.ViewModels"
     xmlns:prismMvvm="clr-namespace:Prism.Mvvm;assembly=Prism.Wpf"
+    xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     mc:Ignorable="d"
     d:DesignHeight="300"
     d:DesignWidth="300"
     prismMvvm:ViewModelLocator.AutoWireViewModel="True"
     SizeChanged="UserControl_SizeChanged">
+
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Loaded">
+            <i:InvokeCommandAction Command="{Binding LoadedCommand}" />
+        </i:EventTrigger>
+        <i:EventTrigger EventName="Unloaded">
+            <i:InvokeCommandAction Command="{Binding UnloadedCommand}" />
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
 
     <UserControl.Resources>
         <BitmapImage x:Key="DefaultImage" UriSource="/Resources/Media/no_album_image.png" />
