@@ -365,7 +365,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
 
 
-            _providerService.SearchProvidersChanged += (_, __) => { GetArtistsSearchProvidersAsync(); };
+
             this.GetArtistsSearchProvidersAsync();
             this.ArtistSearchOnlineCommand = new DelegateCommand<string>((id) => ArtistSearchOnline(id));
 
@@ -385,38 +385,16 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             });
             EditArtistCommand = new DelegateCommand(() => this.EditSelectedArtist());
             // Settings
-            Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += async (_, e) =>
-            {
-                if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableRating"))
-                {
-                    EnableRating = (bool)e.Entry.Value;
-                    SetTrackOrder(TrackOrder);
-                    await GetTracksAsync(SelectedItems, null, null, TrackOrder);
-                }
 
-                if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableLove"))
-                {
-                    EnableLove = (bool)e.Entry.Value;
-                    SetTrackOrder(TrackOrder);
-                    await GetTracksAsync(SelectedItems, null, null, TrackOrder);
-                }
+        }
 
-                if (SettingsClient.IsSettingChanged(e, Settings_NameSpace, Setting_SelectedIDs))
-                {
-                    LoadSelectedItems();
-                }
-
-            };
-
-            // PubSub Events
+        protected override void OnLoad()
+        {
+            base.OnLoad();
+            _providerService.SearchProvidersChanged += _providerService_SearchProvidersChanged;
+            Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += SettingsClient_SettingChanged;
             _eventAggregator.GetEvent<ShellMouseUp>().Subscribe((_) => IsZoomVisible = false);
-
-            // ALEX WARNING. EVERYTIME YOU NEED TO ADD A NEW SETTING YOU HAVE TO:
-            //  1. Update the \BaseSettings.xml and add the new / modified value
-            //  2. Increase the version number (in order to update the C:\Users\Alex\AppData\Roaming\Dopamine\Settings.xml)
             ArtistOrder = (ArtistOrder)SettingsClient.Get<int>(Settings_NameSpace, Setting_ItemOrder);
-
-            // Set the initial TrackOrder
             SetTrackOrder((TrackOrder)SettingsClient.Get<int>(Settings_NameSpace, CollectionUtils.Setting_TrackOrder));
             ListBoxScrollPos = SettingsClient.Get<double>(Settings_NameSpace, Setting_ListBoxScrollPos);
             LeftPaneWidth = CollectionUtils.String2GridLength(SettingsClient.Get<string>(Settings_NameSpace, CollectionUtils.Setting_LeftPaneGridLength));
@@ -425,6 +403,43 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             LoadSelectedItems();
 
         }
+
+        protected override void OnUnLoad()
+        {
+            _providerService.SearchProvidersChanged -= _providerService_SearchProvidersChanged;
+            Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged -= SettingsClient_SettingChanged;
+            _eventAggregator.GetEvent<ShellMouseUp>().Subscribe((_) => IsZoomVisible = false);
+            base.OnUnLoad();
+        }
+
+        private async void SettingsClient_SettingChanged(object sender, Digimezzo.Foundation.Core.Settings.SettingChangedEventArgs e)
+        {
+            if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableRating"))
+            {
+                EnableRating = (bool)e.Entry.Value;
+                SetTrackOrder(TrackOrder);
+                await GetTracksAsync(SelectedItems, null, null, TrackOrder);
+            }
+
+            if (SettingsClient.IsSettingChanged(e, "Behaviour", "EnableLove"))
+            {
+                EnableLove = (bool)e.Entry.Value;
+                SetTrackOrder(TrackOrder);
+                await GetTracksAsync(SelectedItems, null, null, TrackOrder);
+            }
+
+            if (SettingsClient.IsSettingChanged(e, Settings_NameSpace, Setting_SelectedIDs))
+            {
+                LoadSelectedItems();
+            }
+        }
+
+        private void _providerService_SearchProvidersChanged(object sender, EventArgs e)
+        {
+            GetArtistsSearchProvidersAsync();
+        }
+
+
 
 
 
