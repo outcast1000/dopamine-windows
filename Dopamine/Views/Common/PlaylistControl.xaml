@@ -46,7 +46,7 @@
                 Command="{Binding ClearPlaylistCommand}"
                 Style="{StaticResource HeaderIconButton}"
                 Content="&#xE894;"
-                ToolTip="{DynamicResource Language_Shuffle}"/>
+                ToolTip="{DynamicResource Language_Clear_Playlist}"/>
             <Button
                 Command="{Binding ShufflePlaylistCommand}"
                 Style="{StaticResource HeaderIconButton}"

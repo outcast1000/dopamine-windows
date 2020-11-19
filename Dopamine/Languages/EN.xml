@@ -466,4 +466,6 @@
 	<Text Key="Image">Image</Text>
 	<Text Key="Item_Style">Item style</Text>
 	<Text Key="By_PlayCount">By play count</Text>
+	<Text Key="Clear_Playlist">Clear playlist</Text>
+	
 </Language>
