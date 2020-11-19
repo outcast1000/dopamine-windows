@@ -104,6 +104,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         }
 
+        SubscriptionToken _ActiveSubfolderChangedSubscriptionToken;
         protected override void OnLoad()
         {
             base.OnLoad();
@@ -114,7 +115,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             this.playbackService.PlaybackSuccess += PlaybackService_PlaybackSuccess;
             this.playbackService.PlaybackStopped += PlaybackService_PlaybackStopped;
 
-            this.eventAggregator.GetEvent<ActiveSubfolderChanged>().Subscribe(async (activeSubfolder) =>
+            _ActiveSubfolderChangedSubscriptionToken = this.eventAggregator.GetEvent<ActiveSubfolderChanged>().Subscribe(async (activeSubfolder) =>
             {
                 await this.GetSubfoldersAsync(activeSubfolder as SubfolderViewModel);
             });
@@ -128,6 +129,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             this.playbackService.PlaybackResumed -= PlaybackService_PlaybackResumed;
             this.playbackService.PlaybackSuccess -= PlaybackService_PlaybackSuccess;
             this.playbackService.PlaybackStopped -= PlaybackService_PlaybackStopped;
+            this.eventAggregator.GetEvent<ActiveSubfolderChanged>().Unsubscribe(_ActiveSubfolderChangedSubscriptionToken);
             base.OnUnLoad();
         }
 
