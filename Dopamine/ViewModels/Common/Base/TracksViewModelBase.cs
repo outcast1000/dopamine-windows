@@ -117,24 +117,38 @@ namespace Dopamine.ViewModels.Common.Base
             this.EnqueueTracksCommand = new DelegateCommand(async () => await this.playbackService.PlayTracksAsync(SelectedTracks, PlaylistMode.Enqueue));
             this.RemoveSelectedTracksFromDiskCommand = new DelegateCommand(async () => await this.RemoveTracksFromDiskAsync(this.SelectedTracks), () => !this.IsIndexing);
 
-            // Settings changed
-            Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += (_, e) =>
-            {
-                if (SettingsClient.IsSettingChanged(e, "Behaviour", "ShowRemoveFromDisk"))
-                {
-                    RaisePropertyChanged(nameof(this.ShowRemoveFromDisk));
-                }
-            };
 
-            // Events
-            this.i18nService.LanguageChanged += (_, __) =>
-            {
-                RaisePropertyChanged(nameof(this.TotalDurationInformation));
-                RaisePropertyChanged(nameof(this.TotalSizeInformation));
-                this.RefreshLanguage();
-            };
+        }
 
+        protected override void OnLoad()
+        {
+            base.OnLoad();
+            Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += SettingsClient_SettingChanged;
+            this.i18nService.LanguageChanged += I18nService_LanguageChanged;
             this.playbackService.TrackHistoryChanged += PlaybackService_TrackHistoryChanged;
+        }
+
+        protected override void OnUnLoad()
+        {
+            Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged -= SettingsClient_SettingChanged;
+            this.i18nService.LanguageChanged -= I18nService_LanguageChanged;
+            this.playbackService.TrackHistoryChanged -= PlaybackService_TrackHistoryChanged;
+            base.OnUnLoad();
+        }
+
+        private void I18nService_LanguageChanged(object sender, EventArgs e)
+        {
+            RaisePropertyChanged(nameof(this.TotalDurationInformation));
+            RaisePropertyChanged(nameof(this.TotalSizeInformation));
+            this.RefreshLanguage();
+        }
+
+        private void SettingsClient_SettingChanged(object sender, Digimezzo.Foundation.Core.Settings.SettingChangedEventArgs e)
+        {
+            if (SettingsClient.IsSettingChanged(e, "Behaviour", "ShowRemoveFromDisk"))
+            {
+                RaisePropertyChanged(nameof(this.ShowRemoveFromDisk));
+            }
         }
 
         override protected SearchProvider.ProviderType? GetSearchProviderType()
