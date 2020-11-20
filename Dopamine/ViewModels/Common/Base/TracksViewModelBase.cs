@@ -87,6 +87,13 @@ namespace Dopamine.ViewModels.Common.Base
             get { return selectedTracks?.Count == 1; }
         }
 
+        public bool IsInSearchMode
+        {
+            get { return string.IsNullOrEmpty(_searchText) == false; }
+        }
+
+        
+
         public double UpscaledCoverSize => 128 * Constants.CoverUpscaleFactor;
 
 
@@ -105,8 +112,6 @@ namespace Dopamine.ViewModels.Common.Base
             this.playlistService = container.Resolve<IPlaylistService>();
             this.metadataService = container.Resolve<IMetadataService>();
 
-            // Events
-            this.metadataService.MetadataChanged += MetadataChangedHandlerAsync;
 
             // Commands
             this.ToggleTrackOrderCommand = new DelegateCommand(() => this.ToggleTrackOrder());
@@ -116,8 +121,28 @@ namespace Dopamine.ViewModels.Common.Base
             this.PlayTracksCommand = new DelegateCommand(async () => await this.playbackService.PlayTracksAsync(SelectedTracks, PlaylistMode.Play));
             this.EnqueueTracksCommand = new DelegateCommand(async () => await this.playbackService.PlayTracksAsync(SelectedTracks, PlaylistMode.Enqueue));
             this.RemoveSelectedTracksFromDiskCommand = new DelegateCommand(async () => await this.RemoveTracksFromDiskAsync(this.SelectedTracks), () => !this.IsIndexing);
-
-
+            this.LocateTrackCommand = new DelegateCommand(async () =>
+            {
+                if (SelectedTracks.Count > 0)
+                {
+                    var vm = SelectedTracks[0];
+                    if (searchService.SearchText != "")
+                    {
+                        // Exit the search mode. 
+                        searchService.SearchText = "";
+                        // We will wait for the view to refill
+                        for (int i = 0; i < 20; i++)
+                        {
+                            NLog.LogManager.GetLogger("DEBUG").Info("Waiting to send locate message...");
+                            await Task.Delay(100);
+                            if (SelectedTracks.Count == 0) // This is when the list has been refreshed
+                                break;
+                        }
+                    }
+                    NLog.LogManager.GetLogger("DEBUG").Info("Sending locate message");
+                    eventAggregator.GetEvent<LocateItem<TrackViewModel>>().Publish(vm);
+                }
+            });
         }
 
         protected override void OnLoad()
@@ -125,6 +150,7 @@ namespace Dopamine.ViewModels.Common.Base
             base.OnLoad();
             Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += SettingsClient_SettingChanged;
             this.i18nService.LanguageChanged += I18nService_LanguageChanged;
+            this.metadataService.MetadataChanged += MetadataChangedHandlerAsync;
             this.playbackService.TrackHistoryChanged += PlaybackService_TrackHistoryChanged;
         }
 
@@ -133,6 +159,7 @@ namespace Dopamine.ViewModels.Common.Base
             Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged -= SettingsClient_SettingChanged;
             this.i18nService.LanguageChanged -= I18nService_LanguageChanged;
             this.playbackService.TrackHistoryChanged -= PlaybackService_TrackHistoryChanged;
+            this.metadataService.MetadataChanged -= MetadataChangedHandlerAsync;
             base.OnUnLoad();
         }
 
@@ -441,7 +468,11 @@ namespace Dopamine.ViewModels.Common.Base
 
         protected override async Task FilterListsAsync(string searchText)
         {
-            _searchText = searchText;
+            if (_searchText != searchText)
+            {
+                _searchText = searchText;
+                RaisePropertyChanged(nameof(this.IsInSearchMode));
+            }
             await GetFilteredTracksAsync(_searchText, TrackOrder);
             Application.Current.Dispatcher.Invoke(() =>
             {

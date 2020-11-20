@@ -53,4 +53,8 @@ namespace Dopamine.Core.Prism
     {
     }
 
+    public class LocateItem<T> : PubSubEvent<T>
+    {
+    }
+
 }

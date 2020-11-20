@@ -34,4 +34,19 @@ namespace Dopamine.Converters
             return (vis == Visibility.Collapsed);
         }
     }
+
+    public class TrueTrueToCollapsedConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            bool bool1 = bool.Parse(values[0].ToString());
+            bool bool2 = bool.Parse(values[1].ToString());
+            return (bool1 && bool2) ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

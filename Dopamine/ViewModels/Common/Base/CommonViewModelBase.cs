@@ -57,7 +57,7 @@ namespace Dopamine.ViewModels.Common.Base
         public DelegateCommand ShuffleTracksCommand { get; set; }
         public DelegateCommand PlayTracksCommand { get; set; }
         public DelegateCommand EnqueueTracksCommand { get; set; }
-        //public DelegateCommand ShuffleAllCommand { get; set; }
+        public DelegateCommand LocateTrackCommand { get; set; }
 
         public string TotalSizeInformation => this.totalSize > 0 ? FormatUtils.FormatFileSize(this.totalSize, false) : string.Empty;
         public string TotalDurationInformation => this.totalDuration > 0 ? FormatUtils.FormatDuration(this.totalDuration) : string.Empty;

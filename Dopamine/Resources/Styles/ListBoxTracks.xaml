@@ -14,6 +14,7 @@
     </ResourceDictionary.MergedDictionaries>
     <converters:InvertingBooleanConverter x:Key="InvertingBooleanConverter" />
     <converters:BooleanToCollapsedConverter x:Key="BooleanToCollapsedConverter" />
+    <converters:TrueTrueToCollapsedConverter x:Key="TrueTrueToCollapsedConverter" />
     <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     <converters:InvertingBooleanToVisibilityConverter x:Key="InvertingBooleanToVisibilityConverter" />
     <converters:AddEllipsisConverter x:Key="AddEllipsisConverter" />
@@ -33,22 +34,19 @@
             Header="{DynamicResource Language_Shuffle}"
             Style="{StaticResource RegularMenuItem}"
             Icon="&#xE8B1;"
-            InputGestureText="">
-        </MenuItem>
+            InputGestureText="" />
         <MenuItem
             Command="{Binding DataContext.PlayTracksCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
             Header="{DynamicResource Language_Play}"
             Style="{StaticResource RegularMenuItem}"
             Icon="&#xE768;"
-            InputGestureText="">
-        </MenuItem>
+            InputGestureText="" />
         <MenuItem
             Command="{Binding DataContext.EnqueueTracksCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
             Header="{DynamicResource Language_Enqueue}"
             Style="{StaticResource RegularMenuItem}"
             Icon="&#xE710;"
-            InputGestureText="">
-        </MenuItem>
+            InputGestureText="" />
 
         <Separator />
 
@@ -96,19 +94,24 @@
         </MenuItem>
         <MenuItem
             Header="{DynamicResource Language_View_In_Explorer}"
-	    Style="{StaticResource RegularMenuItem}"
+            Style="{StaticResource RegularMenuItem}"
             Icon="&#xE8A1;"
             Visibility="{Binding DataContext.IsSingleItemSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}"
             InputGestureText="{DynamicResource Language_Ctrl_E}"
             Command="{Binding ViewInExplorerCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
-        <!--
         <MenuItem
-            Header="{DynamicResource Language_Jump_To_Playing_Song}"
-	        Style="{StaticResource RegularMenuItem}"
-            Icon="&#xE754;"
-            InputGestureText="{DynamicResource Language_Ctrl_J}"
-            Command="{Binding JumpToPlayingTrackCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
-        -->
+            Header="{DynamicResource Language_Locate}"
+            Style="{StaticResource RegularMenuItem}"
+            Icon="&#xF272;"
+            InputGestureText="{DynamicResource Language_Ctrl_L}"
+            Command="{Binding DataContext.LocateTrackCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}">
+            <MenuItem.Visibility>
+                <MultiBinding Converter="{StaticResource TrueTrueToCollapsedConverter}">
+                    <Binding Path="DataContext.IsSingleItemSelected" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type UserControl}}" />
+                    <Binding Path="DataContext.IsInSearchMode" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type UserControl}}" />
+                </MultiBinding>
+            </MenuItem.Visibility>
+        </MenuItem>
         <Separator Visibility="{Binding DataContext.IsSingleItemSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}" />
         <MenuItem
             Header="{DynamicResource Language_Edit}"
@@ -116,7 +119,7 @@
             Command="{Binding DataContext.EditTracksCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
             Visibility="{Binding DataContext.IsSingleItemSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}"
             Style="{StaticResource RegularMenuItem}"
-            Icon="&#xE70F;"/>
+            Icon="&#xE70F;" />
 
         <Separator />
 
@@ -160,8 +163,8 @@
         <Separator />
         <MenuItem
             Header="{DynamicResource Language_Information}"
-	    Style="{StaticResource RegularMenuItem}"
-	    Icon="&#xE946;"
+            Style="{StaticResource RegularMenuItem}"
+            Icon="&#xE946;"
             InputGestureText=""
             Visibility="{Binding DataContext.IsSingleItemSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}"
             Command="{Binding DataContext.ShowSelectedTrackInformationCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
@@ -178,7 +181,8 @@
                 <ControlTemplate>
                     <Border Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ScrollContentPresenter}}}" Background="#00000000">
                         <StackPanel Margin="0,0,0,15">
-                            <DockPanel HorizontalAlignment="Stretch">
+                            <DockPanel HorizontalAlignment="Stretch" Height="144">
+                                <!--  I put that Fixed height here in order not to free stretch which causes many refreshes. Also this could break the LocateItem which works with a delay  -->
                                 <pc:SourceChangedImage
                                     DockPanel.Dock="Left"
                                     DataContext="{Binding Items}"
@@ -261,7 +265,7 @@
                                                     Style="{StaticResource SegoeAssets}"
                                                     Text="&#xE768;" />
                                             </Button>
-                                             
+
                                         </StackPanel>
                                     </DockPanel>
                                     <TextBlock

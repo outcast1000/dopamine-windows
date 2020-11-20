@@ -65,17 +65,19 @@
         </MenuItem>
         <MenuItem
             Header="{DynamicResource Language_View_In_Explorer}"
-	    Style="{StaticResource RegularMenuItem}"
+            Style="{StaticResource RegularMenuItem}"
             Icon="&#xE8A1;"
             Visibility="{Binding DataContext.IsSingleItemSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}"
             InputGestureText="{DynamicResource Language_Ctrl_E}"
             Command="{Binding ViewInExplorerCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
         <MenuItem
-            Header="{DynamicResource Language_Jump_To_Playing_Song}"
-	        Style="{StaticResource RegularMenuItem}"
-            Icon="&#xE754;"
-            InputGestureText="{DynamicResource Language_Ctrl_J}"
-            Command="{Binding JumpToPlayingTrackCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
+            Header="{DynamicResource Language_Locate}"
+            Style="{StaticResource RegularMenuItem}"
+            Icon="&#xF272;"
+            Visibility="{Binding DataContext.IsSingleItemSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}"
+            InputGestureText="{DynamicResource Language_Ctrl_L}"
+            Command="{Binding DataContext.LocateTrackCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}">
+        </MenuItem>
         <Separator Visibility="{Binding DataContext.IsSingleItemSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}" />
         <MenuItem
             Header="{DynamicResource Language_Edit}"
@@ -83,7 +85,7 @@
             Command="{Binding DataContext.EditTracksCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
             Visibility="{Binding DataContext.IsSingleItemSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}"
             Style="{StaticResource RegularMenuItem}"
-            Icon="&#xE70F;"/>
+            Icon="&#xE70F;" />
 
         <Separator />
 
@@ -120,8 +122,8 @@
         <Separator />
         <MenuItem
             Header="{DynamicResource Language_Information}"
-	    Style="{StaticResource RegularMenuItem}"
-	    Icon="&#xE946;"
+            Style="{StaticResource RegularMenuItem}"
+            Icon="&#xE946;"
             InputGestureText=""
             Visibility="{Binding DataContext.IsSingleItemSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}"
             Command="{Binding DataContext.ShowSelectedTrackInformationCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
