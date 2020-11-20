@@ -2,15 +2,18 @@
 using Digimezzo.Foundation.Core.Utils;
 using Dopamine.Core.Base;
 using Dopamine.Core.Extensions;
+using Dopamine.Core.Prism;
 using Dopamine.Data;
 using Dopamine.Services.Dialog;
 using Dopamine.Services.Entities;
 using Dopamine.Services.File;
 using Dopamine.Services.Playback;
 using Dopamine.Services.Provider;
+using Dopamine.Services.Search;
 using Dopamine.ViewModels.Common.Base;
 using GongSolutions.Wpf.DragDrop;
 using Prism.Commands;
+using Prism.Events;
 using Prism.Ioc;
 using System;
 using System.Collections;
@@ -28,6 +31,8 @@ namespace Dopamine.ViewModels.Common
         private IDialogService dialogService;
         private IFileService fileService;
         private IProviderService providerService;
+        private ISearchService searchService;
+        private IEventAggregator eventAggregator;
 
         protected bool isDroppingTracks;
         public DelegateCommand ShufflePlaylistCommand { get; set; }
@@ -41,9 +46,18 @@ namespace Dopamine.ViewModels.Common
             this.dialogService = container.Resolve<IDialogService>();
             this.fileService = container.Resolve<IFileService>();
             this.providerService = container.Resolve<IProviderService>();
+            this.searchService = container.Resolve<ISearchService>();
+            this.eventAggregator = container.Resolve<IEventAggregator>();
+
 
             // Commands
             this.RemoveSelectedTracksCommand = new DelegateCommand(async () => await RemoveSelectedTracksFromNowPlayingAsync());
+            this.AddTracksToPlaylistCommand = new DelegateCommand<string>(async (playlistName) => await this.AddTracksToPlaylistAsync(playlistName, this.SelectedTracks.Select(t => t.TrackViewModel).ToList()));
+            this.LocateTrackCommand = new DelegateCommand(async () =>
+            {
+                if (SelectedTracks.Count > 0)
+                    await LocateTrack(SelectedTracks[0].TrackViewModel);
+            });
 
             ShufflePlaylistCommand = new DelegateCommand(async () => await ShufflePlaylistAsync());
             ClearPlaylistCommand = new DelegateCommand(() => ClearPlaylist());
@@ -62,6 +76,25 @@ namespace Dopamine.ViewModels.Common
             this.playbackService.PlaylistChanged -= PlaybackService_PlaylistChanged;
             this.playbackService.PlaylistPositionChanged -= PlaybackService_PlaylistPositionChanged;
             base.OnUnLoad();
+        }
+
+        private async Task LocateTrack(TrackViewModel vm)
+        {
+            if (searchService.SearchText != "")
+            {
+                // Exit the search mode. 
+                searchService.SearchText = "";
+                // We will wait for the view to refill
+                for (int i = 0; i < 20; i++)
+                {
+                    NLog.LogManager.GetLogger("DEBUG").Info("Waiting to send locate message...");
+                    await Task.Delay(100);
+                    if (SelectedTracks.Count == 0) // This is when the list has been refreshed
+                        break;
+                }
+            }
+            NLog.LogManager.GetLogger("DEBUG").Info("Sending locate message");
+            eventAggregator.GetEvent<LocateItem<TrackViewModel>>().Publish(vm);
         }
 
         private void PlaybackService_PlaylistPositionChanged(object sender, EventArgs e)
@@ -178,31 +211,21 @@ namespace Dopamine.ViewModels.Common
 
         protected override async Task FilterListsAsync(string searchText)
         {
-            if (string.IsNullOrEmpty(searchText))
-            {
-                InSearchMode = false;
-                await GetTracksAsync();
-            }
-            else
-            {
-                InSearchMode = true;
-                await base.FilterListsAsync(searchText);
-            }
+            // Not implemented here. Maybe we should stop inheriting this
         }
-
-        public bool InSearchMode { get; set; }
 
         protected override async Task FillListsAsync()
         {
-            // Not implemented here. We use our own LoadedCommandAsync here, because we need our own delay and tracks source.
+            // Not implemented here. Maybe we should stop inheriting this
         }
 
         protected async override Task EmptyListsAsync()
         {
-            await Task.Run(() =>
+            // Not implemented here. Maybe we should stop inheriting this
+            /*await Task.Run(() =>
             {
                 this.ClearTracks();
-            });
+            });*/
         }
 
         protected async override Task LoadedCommandAsync()

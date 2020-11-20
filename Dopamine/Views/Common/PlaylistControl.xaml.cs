@@ -52,31 +52,23 @@ namespace Dopamine.Views.Common
 
         protected override async Task ActionHandler(Object sender, DependencyObject source, PlaylistMode playlistMode, bool includeTheRestOfTheList = false)
         {
-            PlaylistControlViewModel vm = (PlaylistControlViewModel)this.DataContext;
-            if (vm.InSearchMode)
+            ListBox lb = (ListBox)sender;
+            if (lb.SelectedItem == null)
+                return;
+            if (source == null)
+                return;
+            while (source != null && !(source is MultiSelectListBox.MultiSelectListBoxItem))
             {
-                //await base.ActionHandler(sender, source, enqueue, false);
+                source = VisualTreeHelper.GetParent(source);
             }
-            else
-            {
-                ListBox lb = (ListBox)sender;
-                if (lb.SelectedItem == null)
-                    return;
-                if (source == null)
-                    return;
-                while (source != null && !(source is MultiSelectListBox.MultiSelectListBoxItem))
-                {
-                    source = VisualTreeHelper.GetParent(source);
-                }
-                if (source == null || source.GetType() != typeof(MultiSelectListBox.MultiSelectListBoxItem))
-                    return;
+            if (source == null || source.GetType() != typeof(MultiSelectListBox.MultiSelectListBoxItem))
+                return;
 
-                // The user just wants to play the selected item. Don't enqueue.
-                if (lb.SelectedItem.GetType().Name == typeof(PlaylistItem).Name)
-                {
-                    await this.playbackService.SetPlaylistPositionAsync(lb.SelectedIndex, false);
-                    //await this.playbackService.PlaySelectedAsync((TrackViewModel)lb.SelectedItem);
-                }
+            // The user just wants to play the selected item. Don't enqueue.
+            if (lb.SelectedItem.GetType().Name == typeof(PlaylistItem).Name)
+            {
+                await this.playbackService.SetPlaylistPositionAsync(lb.SelectedIndex, false);
+                //await this.playbackService.PlaySelectedAsync((TrackViewModel)lb.SelectedItem);
             }
         }
 

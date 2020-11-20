@@ -124,25 +124,27 @@ namespace Dopamine.ViewModels.Common.Base
             this.LocateTrackCommand = new DelegateCommand(async () =>
             {
                 if (SelectedTracks.Count > 0)
-                {
-                    var vm = SelectedTracks[0];
-                    if (searchService.SearchText != "")
-                    {
-                        // Exit the search mode. 
-                        searchService.SearchText = "";
-                        // We will wait for the view to refill
-                        for (int i = 0; i < 20; i++)
-                        {
-                            NLog.LogManager.GetLogger("DEBUG").Info("Waiting to send locate message...");
-                            await Task.Delay(100);
-                            if (SelectedTracks.Count == 0) // This is when the list has been refreshed
-                                break;
-                        }
-                    }
-                    NLog.LogManager.GetLogger("DEBUG").Info("Sending locate message");
-                    eventAggregator.GetEvent<LocateItem<TrackViewModel>>().Publish(vm);
-                }
+                    await LocateTrack(SelectedTracks[0]);
             });
+        }
+
+        private async Task LocateTrack(TrackViewModel vm)
+        {
+            if (searchService.SearchText != "")
+            {
+                // Exit the search mode. 
+                searchService.SearchText = "";
+                // We will wait for the view to refill
+                for (int i = 0; i < 20; i++)
+                {
+                    NLog.LogManager.GetLogger("DEBUG").Info("Waiting to send locate message...");
+                    await Task.Delay(100);
+                    if (SelectedTracks.Count == 0) // This is when the list has been refreshed
+                        break;
+                }
+            }
+            NLog.LogManager.GetLogger("DEBUG").Info("Sending locate message");
+            eventAggregator.GetEvent<LocateItem<TrackViewModel>>().Publish(vm);
         }
 
         protected override void OnLoad()
