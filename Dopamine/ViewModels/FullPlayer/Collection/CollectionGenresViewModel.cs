@@ -37,6 +37,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private IIndexingService _indexingService;
         private IDialogService _dialogService;
         private IEventAggregator _eventAggregator;
+        private IContainerProvider _container;
         private CollectionViewSource _collectionViewSource;
         private CollectionViewSource _selectedItemsCvs;
         private IList<GenreViewModel> _selectedItems = new List<GenreViewModel>();
@@ -54,9 +55,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private readonly string Setting_SelectedIDs = "SelectedIDs";
         private readonly string Setting_ItemOrder = "ItemOrder";
         private readonly string Setting_ListItemSize = "ListItemSize";
-
-        public delegate void EnsureSelectedItemVisibleAction(GenreViewModel item);
-        public event EnsureSelectedItemVisibleAction EnsureItemVisible;
 
         public delegate void SelectionChangedAction();
         public event SelectionChangedAction SelectionChanged;
@@ -225,6 +223,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         public CollectionGenresViewModel(IContainerProvider container) : base(container)
         {
             // Dependency injection
+            _container = container;
             _collectionService = container.Resolve<ICollectionService>();
             _playbackService = container.Resolve<IPlaybackService>();
             _playlistService = container.Resolve<IPlaylistService>();
@@ -244,7 +243,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             EnqueueItemsCommand = new DelegateCommand(async () => await _playbackService.PlayGenresAsync(SelectedItems, PlaylistMode.Enqueue));
             EnsureItemVisibleCommand = new DelegateCommand<GenreViewModel>(async (item) =>
             {
-                EnsureItemVisible?.Invoke(item);
+                _eventAggregator.GetEvent<LocateItem<GenreViewModel>>().Publish(item);
             });
             PlayItemCommand = new DelegateCommand<GenreViewModel>(async (vm) => {
                 await _playbackService.PlayGenresAsync(new List<GenreViewModel>() { vm }, PlaylistMode.Play);
@@ -269,6 +268,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
 
         }
+
         private SubscriptionToken _shellMouseUpSubscriptionToken;
         protected override void OnLoad()
         {
@@ -616,12 +616,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 OrderItems();
                 //EnsureVisible();
             });
-        }
-
-        private void EnsureVisible()
-        {
-            if (SelectedItems.Count > 0)
-                EnsureItemVisible?.Invoke(SelectedItems[0]);
         }
 
         protected async override Task FillListsAsync()

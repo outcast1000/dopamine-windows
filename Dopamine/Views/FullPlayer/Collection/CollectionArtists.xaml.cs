@@ -82,8 +82,6 @@ namespace Dopamine.Views.FullPlayer.Collection
             await this.ActionHandler(sender, e.OriginalSource as DependencyObject, PlaylistMode.Shuffle);
         }
 
-
-
         private async void ListBoxArtists_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
@@ -116,12 +114,12 @@ namespace Dopamine.Views.FullPlayer.Collection
         {
             if (item == null)
                 return;
-            foreach (var artist in ListBoxArtists.Items)
+            foreach (var listBoxItem in ListBoxArtists.Items)
             {
-                if (item.Name.Equals(((ArtistViewModel)artist).Name))
+                if (item.Name.Equals(((ArtistViewModel)listBoxItem).Name))
                 {
-                    ListBoxArtists.SelectedItem = artist;
-                    ListBoxArtists.ScrollIntoView(artist);
+                    ListBoxArtists.SelectedItem = listBoxItem;
+                    ListBoxArtists.ScrollIntoView(listBoxItem);
                     break;
                 }
             }
@@ -131,12 +129,12 @@ namespace Dopamine.Views.FullPlayer.Collection
         {
             if (item == null)
                 return;
-            foreach (var artist in ListBoxArtists.Items)
+            foreach (var listBoxItem in ListBoxArtists.Items)
             {
-                if (item.ArtistName.Equals(((ArtistViewModel)artist).Name))
+                if (item.ArtistName.Equals(((ArtistViewModel)listBoxItem).Name))
                 {
-                    ListBoxArtists.SelectedItem = artist;
-                    ListBoxArtists.ScrollIntoView(artist);
+                    ListBoxArtists.SelectedItem = listBoxItem;
+                    ListBoxArtists.ScrollIntoView(listBoxItem);
                     SelectTrackId(item.Id);// We use this async function in order to give time to the control to fill with data
                     break;
                 }
@@ -156,15 +154,6 @@ namespace Dopamine.Views.FullPlayer.Collection
                 }
             }
         }
-
-        public void listBox_ScrollToSelectedItem(object sender, RoutedEventArgs e)
-        {
-            //ListBoxArtists.SelectedItem = lv.Items.GetItemAt(rows.Count - 1);
-            ListBoxArtists.ScrollIntoView(ListBoxArtists.SelectedItem);
-            //ListViewItem item = ListBoxArtists.ItemContainerGenerator.ContainerFromItem(lv.SelectedItem) as ListViewItem;
-            //item.Focus();
-        }
-
 
     }
 }
