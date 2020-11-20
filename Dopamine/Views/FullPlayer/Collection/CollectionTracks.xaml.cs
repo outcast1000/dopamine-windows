@@ -7,6 +7,7 @@ using Dopamine.ViewModels;
 using Dopamine.Views.Common.Base;
 using Dopamine.Core.Prism;
 using Prism.Commands;
+using Prism.Events;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -34,9 +35,23 @@ namespace Dopamine.Views.FullPlayer.Collection
             this.ViewInExplorerCommand = new DelegateCommand(() => this.ViewInExplorer(this.DataGridTracks));
             this.JumpToPlayingTrackCommand = new DelegateCommand(async () => await this.ScrollToPlayingTrackAsync(this.DataGridTracks));
 
-            // PubSub Events
-            this.eventAggregator.GetEvent<ScrollToPlayingTrack>().Subscribe(async (_) => await this.ScrollToPlayingTrackAsync(this.DataGridTracks));
         }
+
+
+        SubscriptionToken _stScrollToPlayingTrack;
+        SubscriptionToken _stLocateItemTrackViewModel;
+        void OnLoad(object sender, RoutedEventArgs e)
+        {
+            _stScrollToPlayingTrack = this.eventAggregator.GetEvent<ScrollToPlayingTrack>().Subscribe(async (_) => await this.ScrollToPlayingTrackAsync(this.DataGridTracks));
+            _stLocateItemTrackViewModel = eventAggregator.GetEvent<LocateItem<TrackViewModel>>().Subscribe((TrackViewModel item) => LocateItem(item));
+        }
+
+        void OnUnload(object sender, RoutedEventArgs e)
+        {
+            this.eventAggregator.GetEvent<ScrollToPlayingTrack>().Unsubscribe(_stScrollToPlayingTrack);
+            this.eventAggregator.GetEvent<LocateItem<TrackViewModel>>().Unsubscribe(_stLocateItemTrackViewModel);
+        }
+
 
         private async void DataGridRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
@@ -191,6 +206,18 @@ namespace Dopamine.Views.FullPlayer.Collection
                         // Sorting is incorrect when not done via dispatcher. Probably it happens too soon.
                         this.SortDataGrid(this.DataGridTracks, sortMemberPath, sortDirection);
                     }, null);
+                }
+            }
+        }
+        private void LocateItem(TrackViewModel item)
+        {
+            foreach (var listItem in DataGridTracks.Items)
+            {
+                if (item.Id == ((TrackViewModel)listItem).Id)
+                {
+                    DataGridTracks.SelectedItem = listItem;
+                    DataGridTracks.ScrollIntoView(listItem);
+                    break;
                 }
             }
         }
