@@ -74,7 +74,7 @@ namespace Dopamine.Views.FullPlayer.Collection
             this.eventAggregator.GetEvent<LocateItem<TrackViewModel>>().Unsubscribe(_stLocateItemTrackViewModel);
             this.eventAggregator.GetEvent<LocateItem<ArtistViewModel>>().Unsubscribe(_stLocateItemArtistViewModel);
             CollectionArtistsViewModel vm = (CollectionArtistsViewModel)DataContext;// I am trying to reset the TrackList when the list changes. This wild hack must be removed
-            vm.SelectionChanged += Vm_SelectionChanged;
+            vm.SelectionChanged -= Vm_SelectionChanged;
         }
 
         private async void ListBoxArtists_MouseDoubleClick(object sender, MouseButtonEventArgs e)

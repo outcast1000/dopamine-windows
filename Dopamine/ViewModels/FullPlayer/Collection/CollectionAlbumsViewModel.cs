@@ -60,9 +60,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
         private readonly string Setting_ItemOrder = "ItemOrder";
         private readonly string Setting_ListItemSize = "ListItemSize";
 
-        public delegate void EnsureSelectedItemVisibleAction(AlbumViewModel item);
-        public event EnsureSelectedItemVisibleAction EnsureItemVisible;
-
         public delegate void SelectionChangedAction();
         public event SelectionChangedAction SelectionChanged;
 
@@ -301,7 +298,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             EnqueueItemsCommand = new DelegateCommand(async () => await _playbackService.PlayAlbumsAsync(SelectedItems, PlaylistMode.Enqueue));
             EnsureItemVisibleCommand = new DelegateCommand<AlbumViewModel>((item) =>
             {
-                EnsureItemVisible?.Invoke(item);
+                _eventAggregator.GetEvent<LocateItem<AlbumViewModel>>().Publish(item);
             });
             DownloadImageAlbumsCommand = new DelegateCommand<AlbumViewModel>(async (artist) =>
             {
@@ -717,12 +714,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 OrderItems();
                 //EnsureVisible();
             });
-        }
-
-        private void EnsureVisible()
-        {
-            if (SelectedItems.Count > 0)
-                EnsureItemVisible?.Invoke(SelectedItems[0]);
         }
 
         protected async override Task FillListsAsync()

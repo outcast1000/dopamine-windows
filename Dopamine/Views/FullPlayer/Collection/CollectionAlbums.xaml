@@ -13,6 +13,8 @@
     d:DesignHeight="300"
     d:DesignWidth="300"
     prismMvvm:ViewModelLocator.AutoWireViewModel="True"
+    Loaded="OnLoad"
+    Unloaded="OnUnload"
     mc:Ignorable="d">
 
     <i:Interaction.Triggers>
@@ -213,9 +215,7 @@
                         Command="{Binding DataContext.ShuffleAllTracksCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
                         Content="&#xE8B1;"
                         Style="{StaticResource HeaderIconButton}"
-                        ToolTip="{DynamicResource Language_Shuffle_All}">
-
-                    </Button>
+                        ToolTip="{DynamicResource Language_Shuffle_All}"/>
                 </DockPanel>
                 <DockPanel>
                     <pc:TotalsInformation
