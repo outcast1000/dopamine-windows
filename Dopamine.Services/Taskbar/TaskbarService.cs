@@ -14,7 +14,7 @@ namespace Dopamine.Services.Taskbar
     public class TaskbarService : BindableBase, ITaskbarService
     {
         private IPlaybackService playbackService;
-        private string description;
+        private string description = string.Empty;
         private TaskbarItemProgressState progressState;
         private double progressValue;
         private string playPauseText;
