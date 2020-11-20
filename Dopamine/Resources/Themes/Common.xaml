@@ -113,7 +113,7 @@
         <Setter Property="Margin" Value="2" />
     </Style>
     <Style x:Key="HeaderButton" TargetType="{x:Type Button}">
-        <Setter Property="Margin" Value="5,0,5,0" />
+        <Setter Property="Margin" Value="14,0,2,0" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="Foreground" Value="{DynamicResource Brush_SecondaryText}" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
@@ -146,7 +146,7 @@
         </Setter>
     </Style>
     <Style x:Key="HeaderIconButton" TargetType="{x:Type Button}">
-        <Setter Property="Margin" Value="8,0,8,0" />
+        <Setter Property="Margin" Value="14,0,2,0" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="Foreground" Value="{DynamicResource Brush_SecondaryText}" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />

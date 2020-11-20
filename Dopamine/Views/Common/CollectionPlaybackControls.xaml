@@ -66,13 +66,11 @@
                         </MenuItem>
                     </ContextMenu>
                 </DockPanel.ContextMenu>
-                <!--
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="MouseLeftButtonUp">
-                        <i:InvokeCommandAction Command="{x:Static cp:ApplicationCommands.ShowNowPlayingCommand}" />
+                        <i:InvokeCommandAction Command="{Binding LocateTrack}" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
-                -->
                 <commonviews:CoverArtControl
                     x:Name="CoverArtControl"
                     DockPanel.Dock="Left"
