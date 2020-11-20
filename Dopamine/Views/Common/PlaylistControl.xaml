@@ -52,11 +52,13 @@
                 Style="{StaticResource HeaderIconButton}"
                 Content="&#xE8B1;"
                 ToolTip="{DynamicResource Language_Shuffle}"/>
+            <!--
             <Button
                 Command="{Binding LocatePlayingTrackCommand}"
                 Style="{StaticResource HeaderIconButton}"
                 Content="&#xF272;"
                 ToolTip="{DynamicResource Language_Locate}"/>
+            -->
         </StackPanel>
         <Grid>
             <Grid
