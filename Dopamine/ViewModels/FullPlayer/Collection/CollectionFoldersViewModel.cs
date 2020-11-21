@@ -210,8 +210,11 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         protected async override Task EmptyListsAsync()
         {
-            this.ClearFolders();
-            this.ClearTracks();
+            await Task.Run(() =>
+            {
+                this.ClearFolders();
+                this.ClearTracks();
+            });
         }
     }
 }

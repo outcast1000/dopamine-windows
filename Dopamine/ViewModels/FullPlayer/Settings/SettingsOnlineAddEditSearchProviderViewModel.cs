@@ -61,6 +61,7 @@ namespace Dopamine.ViewModels.FullPlayer.Settings
             this.Separator = provider.Separator;
         }
 
+#pragma warning disable 1998
         public async Task<bool> AddSearchProviderAsync()
         {
             var provider = new SearchProvider { Id = this.provider.Id, Name = this.Name, Url = this.Url, Separator = this.Separator };
@@ -128,5 +129,6 @@ namespace Dopamine.ViewModels.FullPlayer.Settings
                     return true;
             }
         }
+#pragma warning restore 1998
     }
 }

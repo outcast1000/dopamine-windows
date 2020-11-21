@@ -232,7 +232,7 @@ namespace Dopamine.ViewModels.Common
             try
             {
                 _indexingService.ArtistInfoDownloaded += _indexingService_ArtistInfoDownloaded;
-                _indexingService.RequestArtistInfoAsync(artistViewModel.Data, true, true);
+                await _indexingService.RequestArtistInfoAsync(artistViewModel.Data, true, true);
             }
             catch (Exception ex)
             {

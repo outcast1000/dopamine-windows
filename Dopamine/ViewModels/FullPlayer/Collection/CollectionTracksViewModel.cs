@@ -252,7 +252,10 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         protected async override Task EmptyListsAsync()
         {
-            this.ClearTracks();
+            await Task.Run(() =>
+            {
+                this.ClearTracks();
+            });
         }
 
         protected override void RefreshLanguage()

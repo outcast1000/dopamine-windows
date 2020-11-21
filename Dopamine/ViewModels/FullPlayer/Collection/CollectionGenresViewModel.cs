@@ -241,7 +241,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             ShuffleItemsCommand = new DelegateCommand(async () => await _playbackService.PlayGenresAsync(SelectedItems, PlaylistMode.Play, TrackOrder.Random));
             PlayItemsCommand = new DelegateCommand(async () => await _playbackService.PlayGenresAsync(SelectedItems, PlaylistMode.Play));
             EnqueueItemsCommand = new DelegateCommand(async () => await _playbackService.PlayGenresAsync(SelectedItems, PlaylistMode.Enqueue));
-            EnsureItemVisibleCommand = new DelegateCommand<GenreViewModel>(async (item) =>
+            EnsureItemVisibleCommand = new DelegateCommand<GenreViewModel>((item) =>
             {
                 _eventAggregator.GetEvent<LocateItem<GenreViewModel>>().Publish(item);
             });
@@ -258,7 +258,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 _eventAggregator.GetEvent<PerformSemanticJump>().Publish(new Tuple<string, string>("Genres", header));
             });
 
-            SetListItemSizeCommand = new DelegateCommand<string>(async (listItemSize) =>
+            SetListItemSizeCommand = new DelegateCommand<string>((listItemSize) =>
             {
                 if (int.TryParse(listItemSize, out int selectedListItemSize))
                 {

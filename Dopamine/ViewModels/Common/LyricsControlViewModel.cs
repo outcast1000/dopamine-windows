@@ -51,9 +51,6 @@ namespace Dopamine.ViewModels.Common
         //private bool isNowPlayingLyricsPageActive;
         private LyricsFactory lyricsFactory;
 
-        public DelegateCommand LoadedCommand { get; set; }
-        public DelegateCommand UnloadedCommand { get; set; }
-
         public DelegateCommand RefreshLyricsCommand { get; set; }
 
         public int ContentSlideInFrom
@@ -88,9 +85,6 @@ namespace Dopamine.ViewModels.Common
             this.i18NService = container.Resolve<II18nService>();
             this.infoRepository = container.Resolve<IInfoRepository>();
 
-            LoadedCommand = new DelegateCommand(() => { OnLoad(); });
-            UnloadedCommand = new DelegateCommand(() => { OnUnload(); });
-
             /*
             this.eventAggregator.GetEvent<IsNowPlayingSubPageChanged>().Subscribe(tuple =>
             {
@@ -114,8 +108,9 @@ namespace Dopamine.ViewModels.Common
 
         }
 
-        private void OnLoad()
+        protected override void OnLoad()
         {
+            base.OnLoad();
             this.highlightTimer.Interval = this.highlightTimerIntervalMilliseconds;
             this.highlightTimer.Elapsed += HighlightTimer_Elapsed;
 
@@ -137,20 +132,12 @@ namespace Dopamine.ViewModels.Common
 
             Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += SettingsClient_SettingChanged;
 
-
-
-
-            //this.isNowPlayingPageActive = SettingsClient.Get<bool>("FullPlayer", "IsNowPlayingSelected");
-            //this.isNowPlayingLyricsPageActive = ((NowPlayingSubPage)SettingsClient.Get<int>("FullPlayer", "SelectedNowPlayingSubPage")) == NowPlayingSubPage.Lyrics;
-
-
-
             this.ClearLyrics(null); // Makes sure the loading animation can be shown even at first start
 
             this.RestartRefreshTimer();
         }
 
-        private void OnUnload()
+        protected override void OnUnLoad()
         {
             this.highlightTimer.Elapsed -= HighlightTimer_Elapsed;
             this.updateLyricsAfterEditingTimer.Elapsed -= UpdateLyricsAfterEditingTimer_Elapsed;
@@ -167,6 +154,8 @@ namespace Dopamine.ViewModels.Common
             Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged -= SettingsClient_SettingChanged;
 
             _lastTrackIdOnRefreshLyrics = 0;
+
+            base.OnUnLoad();
 
         }
 

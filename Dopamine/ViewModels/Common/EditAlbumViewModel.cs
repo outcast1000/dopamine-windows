@@ -239,7 +239,7 @@ namespace Dopamine.ViewModels.Common
             try
             {
                 _indexingService.AlbumInfoDownloaded += _indexingService_AlbumInfoDownloaded;
-                _indexingService.RequestAlbumInfoAsync(albumViewModel.Data, true, true);
+                await _indexingService.RequestAlbumInfoAsync(albumViewModel.Data, true, true);
             }
             catch (Exception ex)
             {

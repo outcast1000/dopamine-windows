@@ -109,9 +109,13 @@ namespace Dopamine.ViewModels.Common
         }
 
 
-        private async void UpdateNowPlaying()
+        private void UpdateNowPlaying()
         {
-            await GetTracksAsync();
+            if (!this.isDroppingTracks)
+            {
+                _playlistItems = new ObservableCollection<PlaylistItem>(playbackService.PlaylistItems);
+                RefreshView();
+            }
         }
 
         private async Task ShufflePlaylistAsync()
@@ -125,6 +129,7 @@ namespace Dopamine.ViewModels.Common
         
         private ObservableCollection<PlaylistItem> _playlistItems;
 
+        /*
         protected async Task GetTracksAsync()
         {
             if (!this.isDroppingTracks)
@@ -133,9 +138,11 @@ namespace Dopamine.ViewModels.Common
                 RefreshView();
             }
         }
+        */
 
         private CollectionViewSource tracksCvs;
 
+        // WARNING: PlaylistControlViewModel should stop inherit TracksViewModelBase
         public CollectionViewSource TracksCvs
         {
             get { return this.tracksCvs; }
@@ -168,6 +175,7 @@ namespace Dopamine.ViewModels.Common
 
         private IList<PlaylistItem> selectedTracks;
 
+        // WARNING: PlaylistControlViewModel should stop inherit TracksViewModelBase
         public IList<PlaylistItem> SelectedTracks
         {
             get { return this.selectedTracks; }
@@ -189,6 +197,7 @@ namespace Dopamine.ViewModels.Common
             }
         }
 
+        // WARNING: PlaylistControlViewModel should stop inherit TracksViewModelBase
         protected async void CalculateSizeInformationAsync(CollectionViewSource source)
         {
             if (source == null)
@@ -207,25 +216,6 @@ namespace Dopamine.ViewModels.Common
             RaisePropertyChanged(nameof(this.TotalDurationInformation));
             RaisePropertyChanged(nameof(this.TotalSizeInformation));
             RaisePropertyChanged(nameof(this.TotalTracksInformation));
-        }
-
-        protected override async Task FilterListsAsync(string searchText)
-        {
-            // Not implemented here. Maybe we should stop inheriting this
-        }
-
-        protected override async Task FillListsAsync()
-        {
-            // Not implemented here. Maybe we should stop inheriting this
-        }
-
-        protected async override Task EmptyListsAsync()
-        {
-            // Not implemented here. Maybe we should stop inheriting this
-            /*await Task.Run(() =>
-            {
-                this.ClearTracks();
-            });*/
         }
 
         public void DragOver(IDropInfo dropInfo)
@@ -308,11 +298,13 @@ namespace Dopamine.ViewModels.Common
             }
         }
 
+        // WARNING: PlaylistControlViewModel should stop inherit TracksViewModelBase
         public bool IsMultipleItemsSelected
         {
             get { return selectedTracks?.Count > 1; }
         }
 
+        // WARNING: PlaylistControlViewModel should stop inherit TracksViewModelBase
         public bool IsSingleItemSelected
         {
             get { return selectedTracks?.Count == 1; }
@@ -374,8 +366,14 @@ namespace Dopamine.ViewModels.Common
             }
         }
 
+        protected override Task FillListsAsync()
+        {
+            throw new NotImplementedException();
+        }
 
-
-
+        protected override Task EmptyListsAsync()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
