@@ -671,6 +671,8 @@ namespace Dopamine.Services.Playback
                 int idx = tracks.IndexOf(track);
                 queueManager.Play(tracks, idx);
                 trackHistoryRepository.AddExecuted(track.Id);
+                this.PlaylistChanged(this, new EventArgs());
+                this.ResetSaveQueuedTracksTimer(); // Save queued tracks to the database
             });
             await TryPlayAsync(track, false, false);
         }
@@ -1021,7 +1023,7 @@ namespace Dopamine.Services.Playback
                 // Start playing
                 await this.StartPlaybackAsync(track, bStartPaused, isSilent);
 
-                Debug(PlaybackSuccess);
+                //Debug(PlaybackSuccess);
                 // Playing was successful
                 this.PlaybackSuccess(this, new PlaybackSuccessEventArgs()
                 {

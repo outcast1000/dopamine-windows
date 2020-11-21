@@ -27,6 +27,7 @@ namespace Dopamine.ViewModels.Common
 {
     public class PlaylistControlViewModel : TracksViewModelBase, IDropTarget
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private IPlaybackService playbackService;
         private IDialogService dialogService;
         private IFileService fileService;
@@ -66,13 +67,13 @@ namespace Dopamine.ViewModels.Common
         protected override void OnLoad()
         {
             base.OnLoad();
-            this.playbackService.PlaybackSuccess += PlaybackService_PlaybackSuccess;
+            //this.playbackService.PlaybackSuccess += PlaybackService_PlaybackSuccess;
             this.playbackService.PlaylistChanged += PlaybackService_PlaylistChanged;
             this.playbackService.PlaylistPositionChanged += PlaybackService_PlaylistPositionChanged;
         }
         protected override void OnUnLoad()
         {
-            this.playbackService.PlaybackSuccess -= PlaybackService_PlaybackSuccess;
+            //this.playbackService.PlaybackSuccess -= PlaybackService_PlaybackSuccess;
             this.playbackService.PlaylistChanged -= PlaybackService_PlaylistChanged;
             this.playbackService.PlaylistPositionChanged -= PlaybackService_PlaylistPositionChanged;
             base.OnUnLoad();
@@ -107,10 +108,6 @@ namespace Dopamine.ViewModels.Common
             this.UpdateNowPlaying();
         }
 
-        private void PlaybackService_PlaybackSuccess(object sender, PlaybackSuccessEventArgs e)
-        {
-            this.UpdateNowPlaying();
-        }
 
         private async void UpdateNowPlaying()
         {
@@ -130,8 +127,11 @@ namespace Dopamine.ViewModels.Common
 
         protected async Task GetTracksAsync()
         {
-            _playlistItems = new ObservableCollection<PlaylistItem>(playbackService.PlaylistItems);
-            RefreshView();
+            if (!this.isDroppingTracks)
+            {
+                _playlistItems = new ObservableCollection<PlaylistItem>(playbackService.PlaylistItems);
+                RefreshView();
+            }
         }
 
         private CollectionViewSource tracksCvs;
@@ -226,27 +226,6 @@ namespace Dopamine.ViewModels.Common
             {
                 this.ClearTracks();
             });*/
-        }
-
-        protected async override Task LoadedCommandAsync()
-        {
-            // Wait for the UI to slide in
-            await Task.Delay(Constants.NowPlayingListLoadDelay);  
-
-            // If there is a queue, get the tracks.
-            if (this.playbackService.HasQueue)
-            {
-                await this.GetTracksAsync();
-            }
-
-            // Listen to queue changes.
-            this.playbackService.PlaylistChanged += async (_, __) =>
-            {
-                if (!this.isDroppingTracks)
-                {
-                    await this.GetTracksAsync();
-                }
-            };
         }
 
         public void DragOver(IDropInfo dropInfo)

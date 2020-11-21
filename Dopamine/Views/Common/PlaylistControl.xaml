@@ -14,6 +14,8 @@
     mc:Ignorable="d"
     d:DesignHeight="300"
     d:DesignWidth="300"
+    Loaded="OnLoad"
+    Unloaded="OnUnload"
     prismMvvm:ViewModelLocator.AutoWireViewModel="True">
 
     <i:Interaction.Triggers>
@@ -91,7 +93,7 @@
                     TotalTracksInformation="{Binding TotalTracksInformation}" />
                 <dc:MultiSelectListBox
                     x:Name="ListBoxTracks"
-                    Margin="0,20,0,0"
+                    Margin="0,0,0,0"
                     dd:DragDrop.IsDragSource="True"
                     dd:DragDrop.IsDropTarget="True"
                     dd:DragDrop.DropHandler="{Binding}"
@@ -111,13 +113,14 @@
                     <dc:MultiSelectListBox.Resources>
                         <Storyboard x:Key="flash">
                             <!--
-                            <DoubleAnimation Storyboard.TargetName="ListBoxTracks" Storyboard.TargetProperty="Opacity" From="1" To="0" AutoReverse="True" Duration="0:0:0.4" RepeatBehavior="0:0:0.8" />
-                            -->
-                            <ColorAnimation Storyboard.TargetName="ListBoxTracks" Storyboard.TargetProperty="Background.Color" From="#0000" To="#80FFA500" Duration="0:0:0.2" RepeatBehavior="0:0:0.4" AutoReverse="True">
+                            <ThicknessAnimation Storyboard.TargetName="ListBoxTracks" Storyboard.TargetProperty="BorderThickness" From="0" To="2" AutoReverse="True" Duration="0:0:0.1" RepeatBehavior="0:0:0.2" />
+                            <DoubleAnimation Storyboard.TargetName="ListBoxTracks" Storyboard.TargetProperty="Opacity" From="1" To="0" AutoReverse="True" Duration="0:0:0.1" RepeatBehavior="0:0:0.2" />
+                            <ColorAnimation Storyboard.TargetName="ListBoxTracks" Storyboard.TargetProperty="BorderBrush.Color" From="#0000" To="#ff0" Duration="0:0:0.1" RepeatBehavior="0:0:0.2" AutoReverse="True">
                                 <ColorAnimation.EasingFunction>
                                     <SineEase/>
                                 </ColorAnimation.EasingFunction>
-                            </ColorAnimation> 
+                            </ColorAnimation>
+                            -->
                         </Storyboard>
                     </dc:MultiSelectListBox.Resources>
                     <dc:MultiSelectListBox.InputBindings>

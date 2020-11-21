@@ -18,6 +18,8 @@ using Dopamine.Services.Utils;
 using Dopamine.Data;
 using System.Collections.Specialized;
 using System.Windows.Media.Animation;
+using Prism.Events;
+using Prism;
 
 namespace Dopamine.Views.Common
 {
@@ -38,12 +40,41 @@ namespace Dopamine.Views.Common
             //((INotifyCollectionChanged)ListBoxTracks.Items).CollectionChanged += PlaylistControl_CollectionChanged;
         }
 
+
+        SubscriptionToken _stScrollToPlayingTrack;
+
+        void OnLoad(object sender, RoutedEventArgs e)
+        {
+            _stScrollToPlayingTrack = this.eventAggregator.GetEvent<ScrollToPlayingTrack>().Subscribe(async (_) => await this.ScrollToPlayingTrackAsync(this.ListBoxTracks));
+            //IPlaybackService playbackService = (IPlaybackService) ((PrismApplicationBase)Application.Current).Container.Resolve(typeof(IPlaybackService));
+            playbackService.PlaylistChanged += PlaybackService_PlaylistChanged;
+        }
+
+
+        void OnUnload(object sender, RoutedEventArgs e)
+        {
+            this.eventAggregator.GetEvent<ScrollToPlayingTrack>().Unsubscribe(_stScrollToPlayingTrack);
+            playbackService.PlaylistChanged -= PlaybackService_PlaylistChanged;
+        }
+
+        private void PlaybackService_PlaylistChanged(object sender, EventArgs e)
+        {
+            Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                Storyboard sb = ListBoxTracks.FindResource("flash") as Storyboard;
+                if (sb != null) { BeginStoryboard(sb); }
+            }));
+        }
+
+
+        /*
         //Playlist: When you enter something on the playlist , it would be good if the playlist would flash (to show something changed) #102
         private void PlaylistControl_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             Storyboard sb = ListBoxTracks.FindResource("flash") as Storyboard;
             if (sb != null) { BeginStoryboard(sb); }
         }
+        */
 
         private async void ListBoxTracks_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
