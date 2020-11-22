@@ -337,7 +337,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
             // Commands
             ToggleTrackOrderCommand = new DelegateCommand(async () => await ToggleTrackOrderAsync());
-            ToggleOrderCommand = new DelegateCommand(async () => await ToggleOrderAsync());
+            ToggleOrderCommand = new DelegateCommand(() => ToggleOrder());
             RemoveSelectedTracksCommand = new DelegateCommand(async () => await RemoveTracksFromCollectionAsync(SelectedTracks), () => !IsIndexing);
             AddItemsToPlaylistCommand = new DelegateCommand<string>(async (playlistName) => await AddItemsToPlaylistAsync(SelectedItems, playlistName));
             SelectedArtistsCommand = new DelegateCommand<object>(async (parameter) => await SelectedItemsHandlerAsync(parameter));
@@ -745,15 +745,11 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             await GetTracksCommonAsync(Tracks, TrackOrder);
         }
 
-        private async Task ToggleOrderAsync()
+        private void ToggleOrder()
         {
-            await Task.Run(() =>
-            {
-                ToggleArtistOrder();
-                SettingsClient.Set<int>(Settings_NameSpace, Setting_ItemOrder, (int)ArtistOrder);
-                OrderItems();
-                //EnsureVisible();
-            });
+            ToggleArtistOrder();
+            OrderItems();
+            SettingsClient.Set<int>(Settings_NameSpace, Setting_ItemOrder, (int)ArtistOrder);
         }
 
         protected async override Task FillListsAsync()
