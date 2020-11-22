@@ -83,7 +83,7 @@ namespace Dopamine.Services.Utils
             grid.ScrollIntoView(itemObject);
         }
 
-        public static async Task ScrollToPlayingTrackAsync(ListBox box)
+        public static async Task ScrollToPlayingTrackAsync(ListBox box, long playingTrackId)
         {
             if (box == null) return;
             if (box.Items.Count == 0) return;
@@ -99,7 +99,7 @@ namespace Dopamine.Services.Utils
                     {
                         for (int i = 0; i <= box.Items.Count - 1; i++)
                         {
-                            if (((TrackViewModel)box.Items[i]).IsPlaying)
+                            if (((TrackViewModel)box.Items[i]).Id == playingTrackId)
                             {
                                 itemObject = box.Items[i];
                                 break;
@@ -140,7 +140,7 @@ namespace Dopamine.Services.Utils
             }
         }
 
-        public static async Task ScrollToPlayingTrackAsync(DataGrid grid)
+        public static async Task ScrollToPlayingTrackAsync(DataGrid grid, long playingTrackId)
         {
             if (grid == null) return;
 
@@ -152,7 +152,7 @@ namespace Dopamine.Services.Utils
                 {
                     for (int i = 0; i <= grid.Items.Count - 1; i++)
                     {
-                        if (((TrackViewModel)grid.Items[i]).IsPlaying)
+                        if (((TrackViewModel)grid.Items[i]).Id == playingTrackId)
                         {
                             itemObject = grid.Items[i];
                             break;

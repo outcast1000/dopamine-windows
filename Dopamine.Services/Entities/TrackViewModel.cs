@@ -23,8 +23,6 @@ namespace Dopamine.Services.Entities
         private IScrobblingService scrobblingService;
         private IAlbumVRepository albumVRepository;
         private IIndexingService indexingService;
-        private bool isPlaying;
-        private bool isPaused;
         private bool showTrackNumber;
         private AlbumViewModel albumViewModel;
         private string _groupAlbumInfo;
@@ -310,18 +308,6 @@ namespace Dopamine.Services.Entities
         // History Log End } }
 
         //=== History Log End
-
-        public bool IsPlaying
-        {
-            get { return this.isPlaying; }
-            set { SetProperty<bool>(ref this.isPlaying, value); }
-        }
-
-        public bool IsPaused
-        {
-            get { return this.isPaused; }
-            set { SetProperty<bool>(ref this.isPaused, value); }
-        }
 
         public bool ShowTrackNumber
         {

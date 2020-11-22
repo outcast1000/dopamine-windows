@@ -349,6 +349,7 @@
                                     Foreground="{DynamicResource Brush_SecondaryText}" />
                                 <DockPanel>
                                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                        <!--
                                         <Label
                                             Style="{DynamicResource PlaybackIndicator}"
                                             Visibility="{Binding IsPlaying, Converter={StaticResource BooleanToCollapsedConverter}, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"
@@ -356,6 +357,7 @@
                                             Foreground="{DynamicResource Brush_Accent}"
                                             Margin="10,0,10,0"
                                             VerticalAlignment="Center" />
+                                        -->
                                         <pc:RatingButton
                                             VerticalAlignment="Center"
                                             Visibility="{Binding DataContext.EnableRating, UpdateSourceTrigger=PropertyChanged, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToCollapsedConverter}}"

@@ -25,15 +25,16 @@
                             <DockPanel Background="{TemplateBinding Background}"
                             Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ScrollContentPresenter}}}">
                                 <Grid>
+                                    <!--
                                     <Label x:Name="SpectrumAnimation"
                                            Style="{DynamicResource PlaybackIndicator}"
                                            Visibility="{Binding IsPlaying, Converter={StaticResource BooleanToCollapsedConverter}, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"
                                            Foreground="{DynamicResource Brush_Accent}" 
                                            Margin="10,0,10,0" 
                                            VerticalAlignment="Center"/>
+                                    -->
                                     <TextBlock 
                                         x:Name="FolderIcon"
-                                        Visibility="{Binding IsPlaying, Converter={StaticResource InvertingBooleanToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"
                                         DockPanel.Dock="Left"
                                         Text="&#xF12B;"
                                         Style="{StaticResource SegoeAssets}"

@@ -1201,24 +1201,11 @@ namespace Dopamine.Services.Playback
                     return;
                 int playListPosition = int.Parse(generalRepository.GetValue(GeneralRepositoryKeys.PlayListPosition, "-1"));
                 IList<TrackViewModel> existingTrackViewModels = await this.container.ResolveTrackViewModelsAsync(existingTracks);
-                
-                await this.PlayTracksAsync(existingTrackViewModels, PlaylistMode.Enqueue, TrackOrder.None);
+                queueManager.Enqueue(existingTrackViewModels);
                 if (playListPosition >= 0 && playListPosition < existingTrackViewModels.Count)
                 {
                     queueManager.Position = playListPosition;
                 }
-
-                if (!SettingsClient.Get<bool>("Startup", "RememberLastPlayedTrack"))
-                {
-                    return;
-                }
-
-                if (!this.canGetSavedQueuedTracks)
-                {
-                    LogClient.Info("Aborting getting of saved queued tracks");
-                    return;
-                }
-
 
                 TrackViewModel playingTrackViewModel = queueManager.CurrentItem;
 
@@ -1226,11 +1213,9 @@ namespace Dopamine.Services.Playback
                 {
                     return;
                 }
+                this.PlaylistChanged(this, new EventArgs());
 
                 int progressSeconds = int.Parse(generalRepository.GetValue(GeneralRepositoryKeys.PlayListPositionInTrack));
-
-
-
                 try
                 {
                     Logger.Info("Starting track {0} paused", playingTrackViewModel.Path);

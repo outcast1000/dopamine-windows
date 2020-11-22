@@ -154,6 +154,7 @@
                     </DataGridTextColumn.Header>
                 </DataGridTextColumn>
                 <!--  Playback indicator  -->
+                <!--
                 <DataGridTemplateColumn
                     Width="40"
                     IsReadOnly="True"
@@ -169,6 +170,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
+                -->
                 <!--  Rating  -->
                 <DataGridTemplateColumn
                     SortMemberPath="Rating"
