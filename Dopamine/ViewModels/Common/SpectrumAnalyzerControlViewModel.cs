@@ -16,7 +16,6 @@ namespace Dopamine.ViewModels.Common
         private IPlaybackService playbackService;
         private IAppearanceService appearanceService;
         private IEventAggregator eventAggregator;
-        private bool showSpectrumAnalyzer;
         private bool isPlaying;
         private double blurRadius;
         private int spectrumBarCount;
@@ -28,7 +27,6 @@ namespace Dopamine.ViewModels.Common
         private double spectrumOpacity;
         private int refreshInterval;
         private SpectrumAnimationStyle animationStyle;
-        private Brush spectrumBarBackground;
         private SpectrumStyle spectrumStyle;
 
         public bool IsPlaying

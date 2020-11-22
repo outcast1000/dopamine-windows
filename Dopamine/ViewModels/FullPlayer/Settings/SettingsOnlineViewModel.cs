@@ -59,7 +59,7 @@ namespace Dopamine.ViewModels.FullPlayer.Settings
             get { return this.selectedTimeout; }
             set
             {
-                if (value.Value != null)
+                if (value.Value != 0)
                 {
                     SettingsClient.Set<int>("Lyrics", "TimeoutSeconds", value.Value);
                 }

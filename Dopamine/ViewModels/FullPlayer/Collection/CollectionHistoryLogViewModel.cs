@@ -380,6 +380,7 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         }
 
+        // WARNING: (cs0108) Maybe even this control should stop inherit from tracksviewmodelBase
         public CollectionViewSource TracksCvs
         {
             get { return this.tracksCvs; }

@@ -31,7 +31,6 @@ namespace Dopamine.ViewModels.Common
         private IDialogService dialogService;
         private IInfoDownloadService infoDownloadService;
         private IIndexingService _indexingService;
-        private IFileStorage _fileStorage;
         private bool updateFileArtwork;
         private bool isBusy;
         private string artworkSize;

@@ -90,7 +90,7 @@ namespace Dopamine.Controls
 
         private void DoAnimation()
         {
-            if (this.FadeInTimeout != null && this.FadeIn)
+            if (this.FadeInTimeout != 0 && this.FadeIn)
             {
                 var da = new DoubleAnimation();
                 da.From = 0;
@@ -100,7 +100,7 @@ namespace Dopamine.Controls
             }
 
 
-            if (this.SlideInTimeout != null && this.SlideInTimeout > 0 && this.SlideIn)
+            if (this.SlideInTimeout != 0 && this.SlideInTimeout > 0 && this.SlideIn)
             {
                 if (!this.RightToLeft)
                 {
