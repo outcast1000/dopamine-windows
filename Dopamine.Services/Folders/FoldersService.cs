@@ -205,7 +205,7 @@ namespace Dopamine.Services.Folders
                             }
 
                             // If we're not browing the root folder, show a folder to go up 1 level.
-                            if (!subfolderPathToBrowse.ToSafePath().Equals(selectedRootFolder.Path))
+                            if (!subfolderPathToBrowse.Equals(selectedRootFolder.Path))
                             {
                                 subFolders.Add(new SubfolderViewModel(subfolderPathToBrowse, true));
                             }
