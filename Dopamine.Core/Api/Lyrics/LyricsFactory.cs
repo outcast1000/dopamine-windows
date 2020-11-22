@@ -8,6 +8,7 @@ namespace Dopamine.Core.Api.Lyrics
 {
     public class LyricsFactory
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private readonly IList<ILyricsApi> lyricsApis;
         private readonly IList<ILyricsApi> lyricsApisPipe;
 
@@ -26,6 +27,7 @@ namespace Dopamine.Core.Api.Lyrics
 
         public async Task<Lyrics> GetLyricsAsync(string artist, string title)
         {
+            Logger.Info($"GetLyricsAsync {artist} - {title}");
             Lyrics lyrics = null;
             foreach (var item in lyricsApis)
             {
@@ -37,11 +39,13 @@ namespace Dopamine.Core.Api.Lyrics
             {
                 try
                 {
+                    Logger.Info($"->Trying {api}");
                     lyrics = new Lyrics(await api.GetLyricsAsync(artist, title), api.SourceName);
+                    Logger.Info($"->Lyrics Found");
                 }
                 catch (Exception ex)
                 {
-                    LogClient.Error("Error while getting lyrics from '{0}'. Exception: {1}", api.SourceName, ex.Message);
+                    Logger.Error(ex, "Error while getting lyrics from '{0}'. Exception: {1}", api.SourceName, ex.Message);
                 }
 
                 api = this.GetRandomApi();

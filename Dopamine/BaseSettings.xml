@@ -433,7 +433,7 @@
 			<Value>True</Value>
 		</Setting>
 		<Setting Name="TimeoutSeconds">
-			<Value>0</Value>
+			<Value>10</Value>
 		</Setting>
 		<Setting Name="Providers">
 			<Value>lololyrics;lyricwikia;metrolyrics</Value>
