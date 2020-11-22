@@ -142,7 +142,7 @@ namespace Dopamine.ViewModels.Common
 
         private CollectionViewSource tracksCvs;
 
-        // WARNING: PlaylistControlViewModel should stop inherit TracksViewModelBase
+        // WARNING: (warning CS0108) PlaylistControlViewModel should stop inherit TracksViewModelBase
         public CollectionViewSource TracksCvs
         {
             get { return this.tracksCvs; }
@@ -175,7 +175,7 @@ namespace Dopamine.ViewModels.Common
 
         private IList<PlaylistItem> selectedTracks;
 
-        // WARNING: PlaylistControlViewModel should stop inherit TracksViewModelBase
+        // WARNING: (warning CS0108) PlaylistControlViewModel should stop inherit TracksViewModelBase
         public IList<PlaylistItem> SelectedTracks
         {
             get { return this.selectedTracks; }
@@ -197,7 +197,7 @@ namespace Dopamine.ViewModels.Common
             }
         }
 
-        // WARNING: PlaylistControlViewModel should stop inherit TracksViewModelBase
+        // WARNING: (warning CS0108) PlaylistControlViewModel should stop inherit TracksViewModelBase
         protected async void CalculateSizeInformationAsync(CollectionViewSource source)
         {
             if (source == null)
@@ -298,13 +298,13 @@ namespace Dopamine.ViewModels.Common
             }
         }
 
-        // WARNING: PlaylistControlViewModel should stop inherit TracksViewModelBase
+        // WARNING: (warning CS0108) PlaylistControlViewModel should stop inherit TracksViewModelBase
         public bool IsMultipleItemsSelected
         {
             get { return selectedTracks?.Count > 1; }
         }
 
-        // WARNING: PlaylistControlViewModel should stop inherit TracksViewModelBase
+        // WARNING: (warning CS0108) PlaylistControlViewModel should stop inherit TracksViewModelBase
         public bool IsSingleItemSelected
         {
             get { return selectedTracks?.Count == 1; }

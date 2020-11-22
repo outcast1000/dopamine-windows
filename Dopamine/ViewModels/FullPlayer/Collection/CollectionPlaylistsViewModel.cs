@@ -219,7 +219,8 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
                 }
                 else
                 {
-                    Task unAwaitedTask = this.ClearTracks();
+                    ClearTracks();
+                    //Task unAwaitedTask = this.ClearTracks();
                 }
             }
         }
@@ -309,11 +310,6 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
             }
         }
 
-        public async Task ClearTracks()
-        {
-            await this.GetTracksCommonAsync(new List<TrackViewModel>(), TrackOrder.None);
-        }
-
         protected void TrySelectFirstPlaylist()
         {
             try
@@ -337,8 +333,11 @@ namespace Dopamine.ViewModels.FullPlayer.Collection
 
         protected async override Task EmptyListsAsync()
         {
-            this.ClearPlaylists();
-            await this.ClearTracks();
+            await Task.Run(() =>
+            {
+                this.ClearPlaylists();
+                ClearTracks();
+            });
         }
 
         private async Task ConfirmDeletePlaylistAsync(PlaylistViewModel playlist)
