@@ -51,7 +51,7 @@
                     <Grid.Resources>
                         <BitmapImage x:Key="Dopamine" UriSource="/Icons/Dopamine.png" />
                     </Grid.Resources>
-                    <Image Width="30" Height="30" Source="{StaticResource Dopamine}" Panel.ZIndex="1" />
+                    <Image Width="30" Height="30" Source="{StaticResource Dopamine}" Panel.ZIndex="1" Visibility="{Binding ShowBackButton, Converter={StaticResource InvertingBooleanToCollapsedConverter}}"/>
                     <!--
                     <!- - Droplet - ->
                     <Viewbox Width="30" Height="30" Panel.ZIndex="0">
