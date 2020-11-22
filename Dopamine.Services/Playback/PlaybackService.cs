@@ -397,7 +397,7 @@ namespace Dopamine.Services.Playback
             {
                 if (this.Playlist.Count == 1)
                 {
-                    this.Stop();
+                    await this.StopAsync();
                 }
                 else
                 {
@@ -524,7 +524,7 @@ namespace Dopamine.Services.Playback
                 if (this.Playlist != null && this.Playlist.Count > 0)
                 {
                     // There are already tracks enqueued. Start playing immediately.
-                    queueManager.Position = 0;
+                    //queueManager.Position = 0;
                     await this.TryPlayAsync(this.queueManager.CurrentItem, false, false);
                 }
                 else
@@ -585,17 +585,18 @@ namespace Dopamine.Services.Playback
             }
         }
 
-        public void Stop()
+        public async Task StopAsync()
         {
             if (this.player != null && this.player.CanStop)
             {
-                this.player.Stop();
+                await Task.Run(() =>
+                {
+                    this.player.Stop();
+                });
             }
-
-            this.PlayingTrackChanged(this, new EventArgs());
-
             this.progressTimer.Stop();
             this.Progress = 0.0;
+            this.PlayingTrackChanged(this, new EventArgs());
             this.PlaybackStopped(this, new EventArgs());
         }
 
@@ -621,7 +622,7 @@ namespace Dopamine.Services.Playback
                 }
                 else
                 {
-                    this.Stop();
+                    await this.StopAsync();
                     playSuccess = true; // Otherwise we never get out of this While loop
                 }
             }
@@ -648,7 +649,7 @@ namespace Dopamine.Services.Playback
                 }
                 else
                 {
-                    this.Stop();
+                    await StopAsync();
                     playSuccess = true; // Otherwise we never get out of this While loop
                 }
             }
@@ -995,7 +996,7 @@ namespace Dopamine.Services.Playback
                 //  1. We clear the playlist
                 //  2. Delete the last track from the playlist
                 //  3. When we first start the application
-                Stop();
+                await StopAsync();
                 return true;
             }
 
@@ -1159,10 +1160,10 @@ namespace Dopamine.Services.Playback
         {
             // Playback was interrupted for some reason. Make sure we are in a correct state.
             // Use our context to trigger the work, because this event is fired on the Player's Playback thread.
-            this.context.Post(new SendOrPostCallback((state) =>
+            this.context.Post(new SendOrPostCallback(async (state) =>
             {
                 LogClient.Info("Track interrupted: {0}", this.CurrentTrack.Path);
-                this.Stop();
+                await StopAsync();
             }), null);
         }
 
@@ -1238,7 +1239,7 @@ namespace Dopamine.Services.Playback
                 catch (Exception ex)
                 {
                     Logger.Error("Could not set the playing track. Exception: {0}", ex.Message);
-                    this.Stop(); // Should not be required, but just in case.
+                    await StopAsync(); // Should not be required, but just in case.
                 }
             }
             catch (Exception ex)
@@ -1370,9 +1371,9 @@ namespace Dopamine.Services.Playback
             Logger.Trace("SetAudioDeviceAsync (END)");
         }
 
-        public void ClearPlaylist()
+        public async Task ClearPlaylistAsync()
         {
-            Stop();
+            await StopAsync();
             queueManager.Clear();
             PlaylistChanged(this, new EventArgs());
         }

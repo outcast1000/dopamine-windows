@@ -79,7 +79,6 @@ namespace Dopamine.Services.Playback
 
         bool ExclusiveMode { get; set; }
 
-        void Stop();
 
         void SkipProgress(double progress);
 
@@ -92,6 +91,8 @@ namespace Dopamine.Services.Playback
         Task PlayPreviousAsync();
 
         Task PlayOrPauseAsync();
+
+        Task StopAsync();
 
         Task PlayTracksAndStartOnTrack(IList<TrackViewModel> tracks, TrackViewModel track);
 
@@ -111,7 +112,7 @@ namespace Dopamine.Services.Playback
 
         Task RandomizePlaylistAsync();
 
-        void ClearPlaylist();
+        Task ClearPlaylistAsync();
 
         Task<bool> RemovePlaylistItems(IList<TrackViewModel> tracks);
 

@@ -599,7 +599,7 @@ namespace Dopamine
 
             // Stop playing (This avoids remaining processes in Task Manager)
             var playbackService = ServiceLocator.Current.GetInstance<IPlaybackService>();
-            playbackService.Stop();
+            playbackService.StopAsync();
 
             // Emergency save of the settings
             SettingsClient.Write();

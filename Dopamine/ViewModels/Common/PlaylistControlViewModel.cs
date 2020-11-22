@@ -61,7 +61,7 @@ namespace Dopamine.ViewModels.Common
             });
 
             ShufflePlaylistCommand = new DelegateCommand(async () => await ShufflePlaylistAsync());
-            ClearPlaylistCommand = new DelegateCommand(() => ClearPlaylist());
+            ClearPlaylistCommand = new DelegateCommand(async () => await ClearPlaylistAsync());
         }
 
         protected override void OnLoad()
@@ -70,6 +70,7 @@ namespace Dopamine.ViewModels.Common
             //this.playbackService.PlaybackSuccess += PlaybackService_PlaybackSuccess;
             this.playbackService.PlaylistChanged += PlaybackService_PlaylistChanged;
             this.playbackService.PlaylistPositionChanged += PlaybackService_PlaylistPositionChanged;
+            UpdateNowPlaying();
         }
         protected override void OnUnLoad()
         {
@@ -122,9 +123,9 @@ namespace Dopamine.ViewModels.Common
         {
             await playbackService.RandomizePlaylistAsync();
         }
-        private void ClearPlaylist()
+        private async Task ClearPlaylistAsync()
         {
-            playbackService.ClearPlaylist();
+            await playbackService.ClearPlaylistAsync();
         }
         
         private ObservableCollection<PlaylistItem> _playlistItems;

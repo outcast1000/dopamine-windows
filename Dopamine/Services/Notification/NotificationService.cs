@@ -65,7 +65,7 @@ namespace Dopamine.Services.Notification
                     await this.PlaybackService.PlayOrPauseAsync();
                     break;
                 case SystemMediaTransportControlsButton.Stop:
-                    this.PlaybackService.Stop();
+                    await this.PlaybackService.StopAsync();
                     break;
                 default:
                     // Never happens		

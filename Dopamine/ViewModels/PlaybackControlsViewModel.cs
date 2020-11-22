@@ -24,7 +24,9 @@ namespace Dopamine.ViewModels
         public DelegateCommand LoopCommand { get; set; }
         public DelegateCommand ShuffleCommand { get; set; }
         public DelegateCommand PlayCommand { get; set; }
-       
+        public DelegateCommand StopCommand { get; set; }
+
+
         public bool ShowPause
         {
             get { return this.showPause; }
@@ -85,6 +87,7 @@ namespace Dopamine.ViewModels
             this.LoopCommand = new DelegateCommand(() => this.SetPlayBackServiceLoop());
             this.ShuffleCommand = new DelegateCommand(() => this.SetPlayBackServiceShuffle(!this.shuffle));
             this.PlayCommand = new DelegateCommand(async () => await this.playbackService.PlayOrPauseAsync());
+            this.StopCommand = new DelegateCommand(async () => await this.playbackService.StopAsync());
 
             // Event handlers
             this.playbackService.PlaybackFailed += (_,__) => this.ShowPause = false;

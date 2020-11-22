@@ -80,6 +80,7 @@
 	<Text Key="Log_File">Log file</Text>
 	<Text Key="Play">Play</Text>
 	<Text Key="Pause">Pause</Text>
+	<Text Key="Stop">Stop</Text>
 	<Text Key="Next">Next</Text>
 	<Text Key="Previous">Previous</Text>
 	<Text Key="Loop">Loop</Text>

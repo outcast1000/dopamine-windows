@@ -48,7 +48,7 @@ namespace Dopamine.Services.Lifetime
 
             // Stop playing
             startTime = DateTime.Now;
-            this.playbackService.Stop();
+            await this.playbackService.StopAsync();
             LogClient.Info($"Stop playback. Time required: {Convert.ToInt64(DateTime.Now.Subtract(startTime).TotalMilliseconds)} ms");
 
             // Update file metadata
