@@ -67,6 +67,12 @@
                 Visibility="{Binding IsPlaylistEmpty, Converter={StaticResource BooleanToCollapsedConverter}}"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
+                dd:DragDrop.IsDragSource="False"
+                dd:DragDrop.IsDropTarget="True"
+                dd:DragDrop.DropHandler="{Binding}"
+                dd:DragDrop.UseDefaultDragAdorner="True"
+                dd:DragDrop.DefaultDragAdornerOpacity="0.5"
+                Background="#0000"
                 DockPanel.Dock="Top">
                 <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock
