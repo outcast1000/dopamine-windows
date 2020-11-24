@@ -119,6 +119,7 @@
                                     Foreground="{DynamicResource Brush_PrimaryText}"
                                     Text="{Binding Path=Biography}"
                                     Visibility="{Binding HasBiography, Converter={StaticResource BooleanToCollapsedConverter}}" />
+                                <!--
                                 <Button
                                     Margin="0,10,0,0"
                                     Style="{StaticResource LinkButton}"
@@ -126,6 +127,7 @@
                                     Content="{Binding UrlText}"
                                     Command="{Binding OpenLinkCommand}"
                                     CommandParameter="{Binding Path=Url}" />
+                                -->
                             </StackPanel>
                             <TextBlock
                                 Foreground="{DynamicResource Brush_PrimaryText}"

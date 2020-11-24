@@ -168,7 +168,6 @@
                                         IsChecked="{Binding CenterLyrics}" />
                                     <Separator />
                                     <MenuItem Command="{x:Static cp:ApplicationCommands.RefreshLyricsCommand}" Header="{DynamicResource Language_Search_Again}" />
-                                    <Separator />
                                     <MenuItem
                                         DisplayMemberPath="Name"
                                         Header="{DynamicResource Language_Search_Online}"

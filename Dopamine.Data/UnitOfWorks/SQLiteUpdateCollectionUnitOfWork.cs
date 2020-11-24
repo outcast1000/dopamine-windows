@@ -44,7 +44,7 @@ namespace Dopamine.Data.UnitOfWorks
             }
         }
 
-        public AddMediaFileResult AddMediaFile(MediaFileData mediaFileData, long folderId)
+        public AddMediaFileResult AddMediaFile(MediaFileData mediaFileData, long? folderId)
         {
             AddMediaFileResult result = new AddMediaFileResult() { Success=false };
             try
@@ -193,7 +193,7 @@ namespace Dopamine.Data.UnitOfWorks
         {
             UpdateMediaFileResult updateMediaFileResult = new UpdateMediaFileResult() { Success = false };
             long track_id = trackV.Id;
-            long folder_id = trackV.FolderID;
+            long? folder_id = trackV.FolderID;
             int success = conn.Update(new Track2()
             {
                 Id = track_id,

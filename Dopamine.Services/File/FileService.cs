@@ -6,6 +6,7 @@ using Dopamine.Core.IO;
 using Dopamine.Data;
 using Dopamine.Data.Entities;
 using Dopamine.Data.Repositories;
+using Dopamine.Data.UnitOfWorks;
 using Dopamine.Services.Cache;
 using Dopamine.Services.Entities;
 using Dopamine.Services.Extensions;
@@ -26,6 +27,7 @@ namespace Dopamine.Services.File
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
     public class FileService : IFileService
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private ITrackVRepository trackRepository;
         private IContainerProvider container;
         private IList<string> files;
@@ -33,11 +35,13 @@ namespace Dopamine.Services.File
         private Timer addFilesTimer;
         private int addFilesMilliseconds = 250;
         private string instanceGuid;
+        private IUnitOfWorksFactory unitOfWorksFactory;
 
         public FileService(ITrackVRepository trackRepository, IContainerProvider container)
         {
             this.trackRepository = trackRepository;
             this.container = container;
+            this.unitOfWorksFactory = container.Resolve<IUnitOfWorksFactory>();
 
             // Unique identifier which will be used by this instance only to create cached artwork.
             // This prevents the cleanup function to delete artwork which is in use by this instance.
@@ -143,6 +147,36 @@ namespace Dopamine.Services.File
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
         }
 
+        MediaFileData TrackV2MediaFileData(TrackV track)
+        {
+            return new MediaFileData()
+            {
+                Name = track.TrackTitle,
+                Path = track.Path,
+                Filesize = track.FileSize,
+                Bitrate = track.BitRate,
+                Samplerate = track.SampleRate,
+                Duration = track.Duration,
+                Year = track.Year,
+                Language = track.Language,
+                DateAdded = DateTime.Now.Ticks,
+                //DateFileDeleted = null,
+                DateFileCreated = track.DateFileCreated,
+                DateFileModified = track.DateFileModified,
+                //Rating = track.Rating,
+                //Love 
+                //DateIgnored
+                AlbumArtists = string.IsNullOrEmpty(track.AlbumArtists) ? null : track.AlbumArtists.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray(),
+                Artists = string.IsNullOrEmpty(track.Artists) ? null : track.Artists.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray(),
+                Genres = string.IsNullOrEmpty(track.Genres) ? null : track.Genres.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray(),
+                Album = track.AlbumTitle,
+                TrackNumber = track.TrackNumber,
+                TrackCount = track.TrackCount,
+                DiscNumber = track.DiscNumber,
+                DiscCount = track.DiscCount
+            };
+        }
+
         public async Task<TrackViewModel> CreateTrackAsync(string path)
         {
             TrackViewModel returnTrack = null;
@@ -150,7 +184,34 @@ namespace Dopamine.Services.File
             try
             {
                 TrackV track = await MetadataUtils.Path2TrackAsync(path);
-                returnTrack = container.ResolveTrackViewModel(track);
+                using (IUpdateCollectionUnitOfWork uow = unitOfWorksFactory.getUpdateCollectionUnitOfWork())
+                {
+                    TrackV dbTrack = uow.GetTrackWithPath(track.Path);
+                    if (dbTrack != null)
+                    {
+                        track.Id = dbTrack.Id;
+                        if (dbTrack.FolderID.HasValue)
+                        {
+                            // The file already exists in the collections
+                            track = dbTrack;
+                        }
+                        else
+                        {
+                            // The file has been already used (not in a collection). Since it is not monitored we should update it
+                            uow.UpdateMediaFile(dbTrack, TrackV2MediaFileData(track));
+                        }
+                    }
+                    else
+                    {
+                        // We see this file for the first time. Lets add it to the 'null' folder
+                        AddMediaFileResult result = uow.AddMediaFile(TrackV2MediaFileData(track), null);
+                        if (result.TrackId.HasValue)
+                            track.Id = result.TrackId.Value;
+                        else
+                            Logger.Warn("External file failed to get added {0}", track.Path);
+                    }
+                    returnTrack = container.ResolveTrackViewModel(track);
+                }
             }
             catch (Exception ex)
             {

@@ -24,7 +24,6 @@
     </i:Interaction.Triggers>
 
     <UserControl.Resources>
-        <BitmapImage x:Key="DefaultImage" UriSource="/Resources/Media/no_album_image.png" />
         <DataTemplate DataType="{x:Type pv:CoverArtViewModel}">
             <Grid Width="{Binding ActualWidth, ElementName=ThisControl}" Height="{Binding ActualHeight, ElementName=ThisControl}">
                 <Border
@@ -43,7 +42,7 @@
                     <Image.Source>
                         <Binding
                             Converter="{StaticResource KeyToPathConverter}"
-                            ConverterParameter="{StaticResource DefaultImage}"
+                            ConverterParameter="{StaticResource MissingImage}"
                             IsAsync="True"
                             Path="CoverArt" />
                     </Image.Source>

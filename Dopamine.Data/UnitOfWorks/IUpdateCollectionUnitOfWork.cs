@@ -70,7 +70,7 @@ namespace Dopamine.Data.UnitOfWorks
     public interface IUpdateCollectionUnitOfWork: IDisposable
     {
 
-        AddMediaFileResult AddMediaFile(MediaFileData mediaFileData, long folderId);
+        AddMediaFileResult AddMediaFile(MediaFileData mediaFileData, long? folderId);
         UpdateMediaFileResult UpdateMediaFile(TrackV trackV, MediaFileData mediaFileData);
         TrackV GetTrackWithPath(string path);
 

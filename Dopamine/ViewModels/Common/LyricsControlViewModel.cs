@@ -22,6 +22,7 @@ using Prism.Ioc;
 using Dopamine.Services.Entities;
 using Dopamine.Data.Repositories;
 using Dopamine.Views.Common.Base;
+using Dopamine.Services.Provider;
 
 namespace Dopamine.ViewModels.Common
 {
@@ -385,6 +386,11 @@ namespace Dopamine.ViewModels.Common
                 }
             }
             return null;
+        }
+
+        protected override SearchProvider.ProviderType? GetSearchProviderType()
+        {
+            return SearchProvider.ProviderType.Track;
         }
 
         private async Task<TrackLyrics> DownloadLyricsFromInternet(TrackViewModel track)

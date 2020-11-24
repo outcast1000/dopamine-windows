@@ -69,7 +69,7 @@ namespace Dopamine.Data.Entities
 
         public long? DateIgnored { get; set; }
 
-        public long FolderID { get; set; }
+        public long? FolderID { get; set; }
 
         public string Language { get; set; }
 

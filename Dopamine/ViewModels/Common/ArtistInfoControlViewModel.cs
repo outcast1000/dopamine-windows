@@ -170,7 +170,7 @@ namespace Dopamine.ViewModels.Common
 
                 await Task.Run(async () =>
                 {
-                    List<ArtistV> artists = _artistVRepository.GetArtistsOfTrack(track.Id);
+                    List<ArtistV> artists = _artistVRepository.GetArtistsOfTrack(track.Id, QueryOptions.IncludeAll());
                     if (artists.Count == 0)
                     {
                         ClearInfo();
