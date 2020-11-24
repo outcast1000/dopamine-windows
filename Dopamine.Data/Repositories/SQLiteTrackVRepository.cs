@@ -66,13 +66,13 @@ namespace Dopamine.Data.Repositories
             return GetTracksInternal(options);
         }
 
-        private List<TrackV> GetTracksInternal(QueryOptions queryOptions)
+        private List<TrackV> GetTracksInternal(QueryOptions queryOptions, bool bPlayListMode = false)
         {
             try
             {
                 using (var conn = GetConnectionHandler())
                 {
-                    return GetTracksInternal(conn.Connection, queryOptions);
+                    return GetTracksInternal(conn.Connection, queryOptions, bPlayListMode);
                 }
             }
             catch (Exception ex)
@@ -112,11 +112,11 @@ namespace Dopamine.Data.Repositories
 
 
 
-        private List<TrackV> GetTracksInternal(SQLiteConnection connection, QueryOptions queryOptions)
+        private List<TrackV> GetTracksInternal(SQLiteConnection connection, QueryOptions queryOptions, bool bPlayListMode)
         {
             try
             {
-                return RepositoryCommon.Query<TrackV>(connection, GetSQLTemplate(), queryOptions);
+                return RepositoryCommon.Query<TrackV>(connection, GetSQLTemplate(bPlayListMode), queryOptions);
             }
             catch (Exception ex)
             {
@@ -151,9 +151,9 @@ LEFT JOIN Folders ON Folders.id=t.folder_id
 #LIMIT#";
         }
 
-        private string GetSQLTemplate()
+        private string GetSQLTemplate(bool bPlayListMode)
         {
-            return @"
+            string sql = @"
 SELECT t.id as Id, 
 GROUP_CONCAT(DISTINCT Artists.name) as Artists, 
 GROUP_CONCAT(DISTINCT Genres.name) as Genres, 
@@ -198,6 +198,9 @@ LEFT JOIN TrackLyrics ON TrackLyrics.track_id=t.id #JOIN#
 #WHERE#
 GROUP BY t.id
 #LIMIT#";
+            if (bPlayListMode)
+                sql = String.Format($"SELECT FullTracks.* from PlaylistTracks LEFT JOIN ({sql}) FullTracks ON PlayListTracks.track_id = FullTracks.id");
+            return sql;
         }
 
         /*EXPERIMENTAL Queries
@@ -560,7 +563,7 @@ GROUP BY plays
             QueryOptions qo = QueryOptions.IncludeAll();
             qo.extraWhereClause.Add("t.id in (SELECT track_id from PlaylistTracks)");
             qo.DataRichness = DataRichnessEnum.History;
-            return GetTracksInternal(qo);
+            return GetTracksInternal(qo, true);
         }
         public void SavePlaylistTracks(IList<TrackV> tracks)
         {
