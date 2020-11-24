@@ -13,7 +13,7 @@
     d:DesignHeight="300"
     d:DesignWidth="300"
     prismMvvm:ViewModelLocator.AutoWireViewModel="True">
-    
+
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">
             <i:InvokeCommandAction Command="{Binding LoadedCommand}" />
@@ -49,12 +49,25 @@
                 <BitmapImage x:Key="DefaultImage" UriSource="/Resources/Media/no_album_image.png" />
             </DataTemplate.Resources>
             <Grid HorizontalAlignment="Center">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel DockPanel.Dock="Left" HorizontalAlignment="Center" Grid.Column="0" VerticalAlignment="Center">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock
+                    Grid.Row="0"
+                    HorizontalAlignment="Left"
+                    Margin="25,15,15,0"
+                    Text="{Binding ArtistName}"
+                    FontSize="30"
+                    FontWeight="Light"
+                    Foreground="{DynamicResource Brush_PrimaryText}" />
+                <Grid x:Name="InfoPanel" Grid.Row="1">
                     <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                    <Grid VerticalAlignment="Top">
                         <Image
                             Margin="20"
                             MaxHeight="300"
@@ -97,35 +110,30 @@
                                 Foreground="{DynamicResource Brush_CoverTileIcon}" />
                         </Border>
                     </Grid>
-                    <TextBlock
-                        HorizontalAlignment="Center"
-                        Margin="0,0,0,0"
-                        Text="{Binding ArtistName}"
-                        FontSize="22"
-                        FontWeight="Light"
-                        Foreground="{DynamicResource Brush_PrimaryText}" />
-                </StackPanel>
-                <ScrollViewer
-                    VerticalScrollBarVisibility="Auto"
-                    Padding="20,15,10,0"
-                    Grid.Column="1"
-                    PanningMode="Both">
-                    <StackPanel Margin="10,0,0,0">
-                        <Label
-                            Margin="0,0,0,20"
-                            Style="{StaticResource TitleLabel}"
-                            Content="{DynamicResource Language_Biography}" />
-                        <Grid>
-                            <StackPanel>
-                                <TextBlock
-                                    MaxWidth="500"
-                                    FontSize="16"
-                                    FontWeight="Light"
-                                    TextWrapping="Wrap"
-                                    Foreground="{DynamicResource Brush_PrimaryText}"
-                                    Text="{Binding Path=Biography}"
-                                    Visibility="{Binding HasBiography, Converter={StaticResource BooleanToCollapsedConverter}}" />
-                                <!--
+
+                    <ScrollViewer
+                        VerticalScrollBarVisibility="Visible"
+                        Padding="20,15,10,0"
+                        Grid.Column="1"
+                        Height="{Binding ElementName=InfoPanel, Path=ActualHeight}"
+                        VerticalAlignment="Stretch"
+                        PanningMode="Both">
+                        <StackPanel Margin="10,0,0,0">
+                            <Label
+                                Margin="0,0,0,20"
+                                Style="{StaticResource TitleLabel}"
+                                Content="{DynamicResource Language_Biography}" />
+                            <Grid>
+                                <StackPanel>
+                                    <TextBlock
+                                        MaxWidth="500"
+                                        FontSize="16"
+                                        FontWeight="Light"
+                                        TextWrapping="Wrap"
+                                        Foreground="{DynamicResource Brush_PrimaryText}"
+                                        Text="{Binding Path=Biography}"
+                                        Visibility="{Binding HasBiography, Converter={StaticResource BooleanToCollapsedConverter}}" />
+                                    <!--
                                 <Button
                                     Margin="0,10,0,0"
                                     Style="{StaticResource LinkButton}"
@@ -133,14 +141,14 @@
                                     Content="{Binding UrlText}"
                                     Command="{Binding OpenLinkCommand}"
                                     CommandParameter="{Binding Path=Url}" />
-                                -->
-                            </StackPanel>
-                            <TextBlock
-                                Foreground="{DynamicResource Brush_PrimaryText}"
-                                Text="{DynamicResource Language_Not_Available}"
-                                Visibility="{Binding HasBiography, Converter={StaticResource InvertingBooleanToCollapsedConverter}}" />
-                        </Grid>
-                        <!--
+                                    -->
+                                </StackPanel>
+                                <TextBlock
+                                    Foreground="{DynamicResource Brush_PrimaryText}"
+                                    Text="{DynamicResource Language_Not_Available}"
+                                    Visibility="{Binding HasBiography, Converter={StaticResource InvertingBooleanToCollapsedConverter}}" />
+                            </Grid>
+                            <!--
                         <Label
                             Margin="0,20,0,20"
                             Style="{StaticResource TitleLabel}"
@@ -155,9 +163,12 @@
                                 Text="{DynamicResource Language_Not_Available}"
                                 Visibility="{Binding HasSimilarArtists, Converter={StaticResource InvertingBooleanToCollapsedConverter}}" />
                         </Grid>
-                        -->
-                    </StackPanel>
-                </ScrollViewer>
+                            -->
+                        </StackPanel>
+                    </ScrollViewer>
+                    </Grid>
+
+                </Grid>
             </Grid>
         </DataTemplate>
     </UserControl.Resources>
