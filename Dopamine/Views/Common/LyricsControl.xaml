@@ -28,12 +28,16 @@
         <!--  Setting this CollectionViewSource as a ContextMenu resource doesn't work. Binding with ContextMenuPlaylists fails. No idea why.  -->
         <CollectionViewSource x:Key="PlaylistsDataSource" Source="{Binding ContextMenuPlaylists}" />
         <DataTemplate DataType="{x:Type commonviewmodels:LyricsViewModel}">
-            <DockPanel>
-                <Label
-                    DockPanel.Dock="Top"
-                    Margin="0,0,0,20"
-                    Style="{StaticResource TitleLabel}"
-                    Content="{DynamicResource Language_Lyrics}" />
+            <StackPanel Margin="0,0,0,20">
+                <!--
+                <StackPanel Orientation="Horizontal">
+                    <Label
+                        DockPanel.Dock="Top"
+                        Style="{StaticResource TitleLabel}"
+                        Content="{DynamicResource Language_Lyrics}" />
+
+                </StackPanel>
+                -->
                 <Grid>
 
                     <Border Panel.ZIndex="1" Visibility="{Binding IsNoLyricsTextVisible, Converter={StaticResource BooleanToCollapsedConverter}}">
@@ -202,119 +206,145 @@
                             Visibility="{Binding DataContext.IsDownloadingLyrics, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
                     </Grid>
                 </Grid>
-            </DockPanel>
+            </StackPanel>
 
         </DataTemplate>
     </UserControl.Resources>
 
-    <DockPanel
-        x:Name="PlaylistPanel"
-        HorizontalAlignment="Stretch"
-        VerticalAlignment="Stretch">
-        <!--  Cover  -->
-        <StackPanel
-            Width="290"
-            VerticalAlignment="Top"
-            DockPanel.Dock="Left">
-            <StackPanel.ContextMenu>
-                <ContextMenu>
-                    <ContextMenu.Resources>
-                        <utils:BindingProxy x:Key="NewPlaylistProxy" Data="{DynamicResource Language_New_Playlist}" />
-                    </ContextMenu.Resources>
-                    <MenuItem DisplayMemberPath="Name" Header="{DynamicResource Language_Add_To_Playlist}">
-                        <MenuItem.ItemContainerStyle>
-                            <Style TargetType="MenuItem">
-                                <Setter Property="Command" Value="{Binding DataContext.AddPlayingTrackToPlaylistCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
-                                <Setter Property="CommandParameter" Value="{Binding Name}" />
-                            </Style>
-                        </MenuItem.ItemContainerStyle>
-                        <MenuItem.ItemsSource>
-                            <CompositeCollection>
-                                <MenuItem Header="{Binding Source={StaticResource NewPlaylistProxy}, Path=Data, Converter={StaticResource AddEllipsisConverter}}" />
-                                <Separator />
-                                <CollectionContainer Collection="{Binding Source={StaticResource PlaylistsDataSource}}" />
-                            </CompositeCollection>
-                        </MenuItem.ItemsSource>
-                    </MenuItem>
-                </ContextMenu>
-            </StackPanel.ContextMenu>
-            <Border
-                x:Name="CoverArt"
-                Width="250"
-                Height="250"
-                Margin="20"
-                DockPanel.Dock="Left">
-                <commonviews:CoverArtControl />
-                <Border.Effect>
-                    <DropShadowEffect
-                        BlurRadius="20"
-                        Opacity="{DynamicResource Opacity_CoverArtShadow}"
-                        ShadowDepth="0"
-                        Color="{DynamicResource Color_Black}" />
-                </Border.Effect>
-            </Border>
-            <commonviews:PlaybackInfoControl
-                Height="50"
-                Margin="20,0,20,0"
-                ShowAlbumInfo="False"
-                TitleFontSize="22"
-                TitleFontWeight="Light" />
+    <Grid HorizontalAlignment="Center">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel HorizontalAlignment="Center">
+            <WrapPanel Margin="15,0,0,0" Grid.Row="0">
+                <TextBlock
+                    Grid.Row="0"
+                    VerticalAlignment="Center"
+                    Text="{Binding Track.TrackTitle}"
+                    FontSize="30"
+                    FontWeight="Light"
+                    Foreground="{DynamicResource Brush_PrimaryText}" />
+                <TextBlock
+                    Grid.Row="0"
+                    Margin="15,0,0,0"
+                    VerticalAlignment="Center"
+                    Text="{Binding Track.ArtistName}"
+                    FontSize="30"
+                    FontWeight="Light"
+                    Foreground="{DynamicResource Brush_SecondaryText}" />
+
+            </WrapPanel>
             <!--  Lyrics source  -->
             <Grid Visibility="{Binding LyricsViewModel.ShowSource, TargetNullValue=Hidden, FallbackValue=Hidden, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <!--  Source: online  -->
+                <StackPanel
+                            Margin="20,0,0,0"
+                            Orientation="Horizontal"
+                            Visibility="{Binding LyricsViewModel.SourceType, Converter={StaticResource LyricSourceVisibilityConverter}, ConverterParameter={x:Static lyrics:SourceTypeEnum.Online}}">
+                    <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="17"
+                                Foreground="{DynamicResource Brush_SecondaryText}"
+                                Style="{StaticResource SegoeAssets}"
+                                Text="&#xE753;" />
+                    <TextBlock
+                                Margin="5,0,0,0"
+                                VerticalAlignment="Center"
+                                Foreground="{DynamicResource Brush_SecondaryText}"
+                                Text="{Binding LyricsViewModel.Lyrics.Source}" />
+                </StackPanel>
                 <!--  Source: audio file  -->
                 <StackPanel
-                    Margin="20,0,0,0"
-                    Orientation="Horizontal"
-                    Visibility="{Binding LyricsViewModel.SourceType, Converter={StaticResource LyricSourceVisibilityConverter}, ConverterParameter={x:Static lyrics:SourceTypeEnum.Audio}}">
+                            Margin="20,0,0,0"
+                            Orientation="Horizontal"
+                            Visibility="{Binding LyricsViewModel.SourceType, Converter={StaticResource LyricSourceVisibilityConverter}, ConverterParameter={x:Static lyrics:SourceTypeEnum.Audio}}">
                     <TextBlock
-                        VerticalAlignment="Center"
-                        FontSize="17"
-                        Foreground="{DynamicResource Brush_SecondaryText}"
-                        Style="{StaticResource SegoeAssets}"
-                        Text="&#xE73E;" />
+                                VerticalAlignment="Center"
+                                FontSize="17"
+                                Foreground="{DynamicResource Brush_SecondaryText}"
+                                Style="{StaticResource SegoeAssets}"
+                                Text="&#xE73E;" />
                     <TextBlock
-                        Margin="5,0,0,0"
-                        VerticalAlignment="Center"
-                        Foreground="{DynamicResource Brush_SecondaryText}"
-                        Text="{DynamicResource Language_Audio_File}" />
+                                Margin="5,0,0,0"
+                                VerticalAlignment="Center"
+                                Foreground="{DynamicResource Brush_SecondaryText}"
+                                Text="{DynamicResource Language_Audio_File}" />
                 </StackPanel>
                 <!--  Source: LRC file  -->
                 <StackPanel
-                    Margin="20,0,0,0"
-                    Orientation="Horizontal"
-                    Visibility="{Binding LyricsViewModel.SourceType, Converter={StaticResource LyricSourceVisibilityConverter}, ConverterParameter={x:Static lyrics:SourceTypeEnum.Lrc}}">
+                            Margin="20,0,0,0"
+                            Orientation="Horizontal"
+                            Visibility="{Binding LyricsViewModel.SourceType, Converter={StaticResource LyricSourceVisibilityConverter}, ConverterParameter={x:Static lyrics:SourceTypeEnum.Lrc}}">
                     <TextBlock
-                        VerticalAlignment="Center"
-                        FontSize="17"
-                        Foreground="{DynamicResource Brush_SecondaryText}"
-                        Style="{StaticResource SegoeAssets}"
-                        Text="&#xE73E;" />
+                                VerticalAlignment="Center"
+                                FontSize="17"
+                                Foreground="{DynamicResource Brush_SecondaryText}"
+                                Style="{StaticResource SegoeAssets}"
+                                Text="&#xE73E;" />
                     <TextBlock
-                        Margin="5,0,0,0"
-                        VerticalAlignment="Center"
-                        Foreground="{DynamicResource Brush_SecondaryText}"
-                        Text="{DynamicResource Language_Lyrics_File}" />
+                                Margin="5,0,0,0"
+                                VerticalAlignment="Center"
+                                Foreground="{DynamicResource Brush_SecondaryText}"
+                                Text="{DynamicResource Language_Lyrics_File}" />
                 </StackPanel>
-                <!--  Source: online  -->
-                <StackPanel
-                    Margin="20,0,0,0"
-                    Orientation="Horizontal"
-                    Visibility="{Binding LyricsViewModel.SourceType, Converter={StaticResource LyricSourceVisibilityConverter}, ConverterParameter={x:Static lyrics:SourceTypeEnum.Online}}">
-                    <TextBlock
-                        VerticalAlignment="Center"
-                        FontSize="17"
-                        Foreground="{DynamicResource Brush_SecondaryText}"
-                        Style="{StaticResource SegoeAssets}"
-                        Text="&#xE753;" />
-                    <TextBlock
-                        Margin="5,0,0,0"
-                        VerticalAlignment="Center"
-                        Foreground="{DynamicResource Brush_SecondaryText}"
-                        Text="{Binding LyricsViewModel.Lyrics.Source}" />
-                </StackPanel>
+
             </Grid>
         </StackPanel>
-        <!--  Lyrics  -->
-        <ContentControl Margin="10,20,0,0" Content="{Binding LyricsViewModel}" />
-    </DockPanel>
+        <ScrollViewer
+            Grid.Row="1"
+            VerticalScrollBarVisibility="Auto"
+            Padding="0,0,0,0"
+            VerticalAlignment="Stretch"
+            PanningMode="Both">
+            <WrapPanel>
+                <WrapPanel.ContextMenu>
+                    <ContextMenu>
+                        <ContextMenu.Resources>
+                            <utils:BindingProxy x:Key="NewPlaylistProxy" Data="{DynamicResource Language_New_Playlist}" />
+                        </ContextMenu.Resources>
+                        <MenuItem DisplayMemberPath="Name" Header="{DynamicResource Language_Add_To_Playlist}">
+                            <MenuItem.ItemContainerStyle>
+                                <Style TargetType="MenuItem">
+                                    <Setter Property="Command" Value="{Binding DataContext.AddPlayingTrackToPlaylistCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
+                                    <Setter Property="CommandParameter" Value="{Binding Name}" />
+                                </Style>
+                            </MenuItem.ItemContainerStyle>
+                            <MenuItem.ItemsSource>
+                                <CompositeCollection>
+                                    <MenuItem Header="{Binding Source={StaticResource NewPlaylistProxy}, Path=Data, Converter={StaticResource AddEllipsisConverter}}" />
+                                    <Separator />
+                                    <CollectionContainer Collection="{Binding Source={StaticResource PlaylistsDataSource}}" />
+                                </CompositeCollection>
+                            </MenuItem.ItemsSource>
+                        </MenuItem>
+                    </ContextMenu>
+                </WrapPanel.ContextMenu>
+
+                <!--  Lyrics  -->
+                <StackPanel>
+                    
+                    <ContentControl Margin="10,20,0,0" Content="{Binding LyricsViewModel}" />
+                </StackPanel>
+                <Border
+                    x:Name="CoverArt"
+                    Width="250"
+                    Height="250"
+                    Margin="20"
+                    VerticalAlignment="Top">
+                    <commonviews:CoverArtControl />
+                    <Border.Effect>
+                        <DropShadowEffect
+                            BlurRadius="20"
+                            Opacity="{DynamicResource Opacity_CoverArtShadow}"
+                            ShadowDepth="0"
+                            Color="{DynamicResource Color_Black}" />
+                    </Border.Effect>
+                </Border>
+
+
+
+            </WrapPanel>
+        </ScrollViewer>
+    </Grid>
 </UserControl>

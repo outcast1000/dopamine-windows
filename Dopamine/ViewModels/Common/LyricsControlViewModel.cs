@@ -76,8 +76,18 @@ namespace Dopamine.ViewModels.Common
             }
         }
 
+        public TrackViewModel Track
+        {
+            get { return this.previousTrack; }
+            set
+            {
+                SetProperty<TrackViewModel>(ref this.previousTrack, value);
+            }
+        }
+
         public LyricsControlViewModel(IContainerProvider container) : base(container)
         {
+            Logger.Info("CREATING LyricsControlViewModel");
             this.container = container;
             this.info = container.Resolve<ILocalizationInfo>();
             this.metadataService = container.Resolve<IMetadataService>();
@@ -109,8 +119,16 @@ namespace Dopamine.ViewModels.Common
 
         }
 
+        private bool _IsAlreadyLoaded = false;
         protected override void OnLoad()
         {
+            if (_IsAlreadyLoaded)
+            {
+                Logger.Info("LyricsControlViewModel RELOADED(!)");
+                // https://stackoverflow.com/questions/3421303/loaded-event-of-a-wpf-user-control-fires-more-than-once
+                return;
+            }
+            _IsAlreadyLoaded = true;
             base.OnLoad();
             this.highlightTimer.Interval = this.highlightTimerIntervalMilliseconds;
             this.highlightTimer.Elapsed += HighlightTimer_Elapsed;
@@ -141,8 +159,10 @@ namespace Dopamine.ViewModels.Common
         protected override void OnUnLoad()
         {
             this.highlightTimer.Elapsed -= HighlightTimer_Elapsed;
+            this.highlightTimer.Stop();
             this.updateLyricsAfterEditingTimer.Elapsed -= UpdateLyricsAfterEditingTimer_Elapsed;
             this.refreshTimer.Elapsed -= RefreshTimer_Elapsed;
+            this.refreshTimer.Stop();
 
             this.playbackService.PlaybackPaused -= PlaybackService_PlaybackPaused;
             this.playbackService.PlaybackResumed -= PlaybackService_PlaybackResumed;
@@ -157,6 +177,7 @@ namespace Dopamine.ViewModels.Common
             _lastTrackIdOnRefreshLyrics = 0;
 
             base.OnUnLoad();
+            _IsAlreadyLoaded = false;
 
         }
 
@@ -280,7 +301,7 @@ namespace Dopamine.ViewModels.Common
                     return;
                 }
 
-                this.previousTrack = track;
+                Track = track;
                 this.StopHighlighting();
                 ClearLyrics(track);
 
@@ -443,13 +464,12 @@ namespace Dopamine.ViewModels.Common
                         while (i + j < this.LyricsViewModel.LyricsLines.Count && nextLyricsLineTime <= lyricsLineTime)
                         {
                             if (!this.canHighlight)
-                            {
                                 break;
-                            }
-
                             nextLyricsLineTime = this.LyricsViewModel.LyricsLines[i + j].Time.TotalMilliseconds;
                             j++;
                         }
+                        if (!this.canHighlight)
+                            break;
 
                         if (progressTime >= lyricsLineTime & (nextLyricsLineTime >= progressTime | nextLyricsLineTime == 0))
                         {
@@ -468,7 +488,7 @@ namespace Dopamine.ViewModels.Common
                 }
                 catch (Exception ex)
                 {
-                    LogClient.Error("Could not highlight the lyrics. Exception: {0}", ex.Message);
+                    Logger.Error(ex, "Could not highlight the lyrics. Exception: {0}", ex.Message);
                 }
 
             });

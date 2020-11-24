@@ -19,6 +19,7 @@ namespace Dopamine.ViewModels.Common
 {
     public class LyricsViewModel : ContextMenuViewModelBase
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private TrackViewModel track;
         private Lyrics lyrics;
         private Lyrics uneditedLyrics;
@@ -179,9 +180,7 @@ namespace Dopamine.ViewModels.Common
 
         private void ParseLyrics(Lyrics lyrics)
         {
-            Application.Current.Dispatcher.Invoke(() => this.lyricsLines = null);
-
-            Application.Current.Dispatcher.Invoke(() =>
+             Application.Current.Dispatcher.Invoke(() =>
             {
                 this.lyricsLines = new ObservableCollection<LyricsLineViewModel>(this.lyricsService.ParseLyrics(lyrics));
                 RaisePropertyChanged(nameof(this.LyricsLines));

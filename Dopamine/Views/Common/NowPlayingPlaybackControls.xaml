@@ -28,11 +28,6 @@
         <commonviews:ProgressControls DockPanel.Dock="Top"/>
         -->
         <Grid Margin="0,0,0,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
             <!-- Buttons -->
             <dc:Pivot Grid.Column="0" Margin="25,10,0,25" Visibility="{Binding HasPlaybackQueue,Converter={StaticResource BooleanToCollapsedConverter}}"
                       VerticalAlignment="Center" SelectedIndex="{Binding SelectedNowPlayingSubPage,Converter={StaticResource EnumConverter},ConverterParameter={x:Type enums:NowPlayingSubPage}}">
