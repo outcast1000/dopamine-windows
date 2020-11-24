@@ -369,12 +369,14 @@ namespace Dopamine.ViewModels.Common
 
         protected override Task FillListsAsync()
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            return Task.CompletedTask;
         }
 
         protected override Task EmptyListsAsync()
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            return Task.CompletedTask;
         }
     }
 }
