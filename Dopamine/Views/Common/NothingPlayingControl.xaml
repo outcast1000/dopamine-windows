@@ -20,7 +20,6 @@
         <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
             <TextBlock DockPanel.Dock="Top" HorizontalAlignment="Center" Text="{DynamicResource Language_Nothing_Is_Playing}" FontSize="24" FontWeight="Light" Foreground="{DynamicResource Brush_PrimaryText}"/>
             <StackPanel HorizontalAlignment="Center" Margin="30">
-                <commonviews:PlayAllControl Margin="5" HorizontalAlignment="Left"/>
                 <commonviews:ShuffleAllControl Margin="5" HorizontalAlignment="Left"/>
             </StackPanel>
         </DockPanel>

@@ -48,8 +48,12 @@
             <DataTemplate.Resources>
                 <BitmapImage x:Key="DefaultImage" UriSource="/Resources/Media/no_album_image.png" />
             </DataTemplate.Resources>
-            <DockPanel>
-                <StackPanel DockPanel.Dock="Left" HorizontalAlignment="Center">
+            <Grid HorizontalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel DockPanel.Dock="Left" HorizontalAlignment="Center" Grid.Column="0" VerticalAlignment="Center">
                     <Grid>
                         <Image
                             Margin="20"
@@ -104,6 +108,7 @@
                 <ScrollViewer
                     VerticalScrollBarVisibility="Auto"
                     Padding="20,15,10,0"
+                    Grid.Column="1"
                     PanningMode="Both">
                     <StackPanel Margin="10,0,0,0">
                         <Label
@@ -113,6 +118,7 @@
                         <Grid>
                             <StackPanel>
                                 <TextBlock
+                                    MaxWidth="500"
                                     FontSize="16"
                                     FontWeight="Light"
                                     TextWrapping="Wrap"
@@ -152,7 +158,7 @@
                         -->
                     </StackPanel>
                 </ScrollViewer>
-            </DockPanel>
+            </Grid>
         </DataTemplate>
     </UserControl.Resources>
 
