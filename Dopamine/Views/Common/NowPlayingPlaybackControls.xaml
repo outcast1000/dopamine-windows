@@ -42,7 +42,11 @@
                     <dc:PivotItem.HeaderTemplate>
                         <DataTemplate>
                             <Border ToolTip="{DynamicResource Language_Showcase}">
-                                <TextBlock Text="&#xEA69;" Style="{StaticResource SegoeAssets}" FontSize="16" Margin="6,0,6,0"/>
+                                <StackPanel Orientation="Horizontal">
+
+                                    <TextBlock Text="&#xEA69;" Style="{StaticResource SegoeAssets}" FontSize="16" Margin="6,0,6,0"/>
+                                    <TextBlock Text="{DynamicResource Language_Showcase}" FontSize="16" Margin="0,0,6,0"/>
+                                </StackPanel>
                             </Border>
                         </DataTemplate>
                     </dc:PivotItem.HeaderTemplate>
@@ -53,7 +57,10 @@
                     <dc:PivotItem.HeaderTemplate>
                         <DataTemplate>
                             <Border ToolTip="{DynamicResource Language_Lyrics}">
-                                <TextBlock Text="&#xE720;" Style="{StaticResource SegoeAssets}" FontSize="16" Margin="6,0,6,0"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE720;" Style="{StaticResource SegoeAssets}" FontSize="16" Margin="6,0,6,0"/>
+                                    <TextBlock Text="{DynamicResource Language_Lyrics}" FontSize="16" Margin="0,0,6,0"/>
+                                </StackPanel>
                             </Border>
                         </DataTemplate>
                     </dc:PivotItem.HeaderTemplate>
@@ -64,7 +71,10 @@
                     <dc:PivotItem.HeaderTemplate>
                         <DataTemplate>
                             <Border ToolTip="{DynamicResource Language_Artist_Information}">
-                                <TextBlock Text="&#xE13D;" Style="{StaticResource SegoeAssets}" FontSize="16" Margin="6,0,6,0"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE13D;" Style="{StaticResource SegoeAssets}" FontSize="16" Margin="6,0,6,0"/>
+                                    <TextBlock Text="{DynamicResource Language_Artist_Information}" FontSize="16" Margin="0,0,6,0"/>
+                                </StackPanel>
                             </Border>
                         </DataTemplate>
                     </dc:PivotItem.HeaderTemplate>

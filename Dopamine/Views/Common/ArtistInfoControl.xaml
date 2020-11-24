@@ -53,14 +53,16 @@
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock
-                    Grid.Row="0"
-                    HorizontalAlignment="Left"
-                    Margin="15,0,0,15"
-                    Text="{Binding ArtistName}"
-                    FontSize="30"
-                    FontWeight="Light"
-                    Foreground="{DynamicResource Brush_PrimaryText}" />
+                <WrapPanel Margin="15,0,0,0">
+                    <TextBlock
+                        Grid.Row="0"
+                        HorizontalAlignment="Left"
+                        Margin="15,0,0,5"
+                        Text="{Binding ArtistName}"
+                        FontSize="30"
+                        FontWeight="Light"
+                        Foreground="{DynamicResource Brush_PrimaryText}" />
+                </WrapPanel>
                 <ScrollViewer
                     Grid.Row="1"
                     VerticalScrollBarVisibility="Auto"
@@ -114,7 +116,8 @@
                         </Grid>
                         <StackPanel Margin="15">
                             <Label
-                                Margin="0,0,0,15"
+                        VerticalAlignment="Center"
+                                Margin="0,0,0,10"
                                 Style="{StaticResource TitleLabel}"
                                 Content="{DynamicResource Language_Biography}" />
                             <Grid>
