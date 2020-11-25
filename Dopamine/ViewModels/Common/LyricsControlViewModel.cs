@@ -151,8 +151,9 @@ namespace Dopamine.ViewModels.Common
 
             Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged += SettingsClient_SettingChanged;
 
-            this.ClearLyrics(null); // Makes sure the loading animation can be shown even at first start
+            //this.ClearLyrics(null); // Makes sure the loading animation can be shown even at first start
 
+            this.RefreshLyricsAsync(this.playbackService.CurrentTrack);
             this.RestartRefreshTimer();
         }
 
