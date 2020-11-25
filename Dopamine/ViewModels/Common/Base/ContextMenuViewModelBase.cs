@@ -67,6 +67,9 @@ namespace Dopamine.ViewModels.Common.Base
 
             LoadedCommand = new DelegateCommand(() => { OnLoad(); });
             UnloadedCommand = new DelegateCommand(() => { OnUnLoad(); });
+            _providerType = GetSearchProviderType();
+            if (_providerType.HasValue)
+                this.GetSearchProvidersAsync(_providerType.Value);
             // Initialize the playlists in the ContextMenu
             this.GetContextMenuPlaylistsAsync();
         }
@@ -112,12 +115,8 @@ namespace Dopamine.ViewModels.Common.Base
             this.playbackService.PlaybackResumed += PlaybackService_PlaybackResumed;
             this.playlistService.PlaylistFolderChanged += PlaylistService_PlaylistFolderChanged;
             // Initialize the search providers in the ContextMenu
-            _providerType = GetSearchProviderType();
             if (_providerType.HasValue)
-            {
                 this.providerService.SearchProvidersChanged += ProviderService_SearchProvidersChanged;
-                this.GetSearchProvidersAsync(_providerType.Value);
-            }
         }
 
         private void ProviderService_SearchProvidersChanged(object sender, EventArgs e)
@@ -134,6 +133,7 @@ namespace Dopamine.ViewModels.Common.Base
             this.playbackService.PlaybackPaused -= PlaybackService_PlaybackPaused;
             this.playbackService.PlaybackResumed -= PlaybackService_PlaybackResumed;
             this.playlistService.PlaylistFolderChanged -= PlaylistService_PlaylistFolderChanged;
+            this.providerService.SearchProvidersChanged -= ProviderService_SearchProvidersChanged;
         }
 
 
