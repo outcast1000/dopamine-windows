@@ -69,12 +69,12 @@
                             Orientation="Horizontal">
                             <Button
                                 Command="{Binding SaveCommand}"
-                                Content="{DynamicResource Language_Save_In_Audio_File}"
-                                Style="{StaticResource RegularButton}" />
+                                Content="{DynamicResource Language_Ok}"
+                                Style="{StaticResource RegularButtonAccent}" />
                             <Button
                                 Margin="10,0,0,0"
                                 Command="{Binding CancelEditCommand}"
-                                Content="{DynamicResource Language_Cancel_Edit}"
+                                Content="{DynamicResource Language_Cancel}"
                                 Style="{StaticResource RegularButton}" />
                         </StackPanel>
                         <Border Background="{DynamicResource Brush_ItemHovered}">
