@@ -323,27 +323,8 @@
 
                 <!--  Lyrics  -->
                 <StackPanel>
-                    
                     <ContentControl Margin="10,20,0,0" Content="{Binding LyricsViewModel}" />
                 </StackPanel>
-                <Border
-                    x:Name="CoverArt"
-                    Width="250"
-                    Height="250"
-                    Margin="20"
-                    VerticalAlignment="Top">
-                    <commonviews:CoverArtControl />
-                    <Border.Effect>
-                        <DropShadowEffect
-                            BlurRadius="20"
-                            Opacity="{DynamicResource Opacity_CoverArtShadow}"
-                            ShadowDepth="0"
-                            Color="{DynamicResource Color_Black}" />
-                    </Border.Effect>
-                </Border>
-
-
-
             </WrapPanel>
         </ScrollViewer>
     </Grid>
