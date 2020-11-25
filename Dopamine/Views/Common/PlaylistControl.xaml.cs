@@ -25,6 +25,7 @@ namespace Dopamine.Views.Common
 {
     public partial class PlaylistControl : CommonViewBase
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         public PlaylistControl()
         {
             InitializeComponent();
@@ -42,19 +43,59 @@ namespace Dopamine.Views.Common
 
 
         SubscriptionToken _stScrollToPlayingTrack;
-
+        private bool _bAlreadyLoaded = false;
         void OnLoad(object sender, RoutedEventArgs e)
         {
+            if (_bAlreadyLoaded)
+            {
+                Logger.Warn("RELOAD (without unload) EVENT. Applying workaround");
+                return;
+            }
+            _bAlreadyLoaded = true;
             _stScrollToPlayingTrack = this.eventAggregator.GetEvent<ScrollToPlayingTrack>().Subscribe(async (_) => await this.ScrollToPlayingTrackAsync(this.ListBoxTracks));
             //IPlaybackService playbackService = (IPlaybackService) ((PrismApplicationBase)Application.Current).Container.Resolve(typeof(IPlaybackService));
+            playbackService.PlaylistPositionChanged += PlaybackService_PlaylistPositionChanged;
             playbackService.PlaylistChanged += PlaybackService_PlaylistChanged;
+            EnsureVisiblePlayingTrack();
         }
+
 
 
         void OnUnload(object sender, RoutedEventArgs e)
         {
             this.eventAggregator.GetEvent<ScrollToPlayingTrack>().Unsubscribe(_stScrollToPlayingTrack);
             playbackService.PlaylistChanged -= PlaybackService_PlaylistChanged;
+            playbackService.PlaylistPositionChanged -= PlaybackService_PlaylistPositionChanged;
+            _bAlreadyLoaded = false;
+        }
+
+        private void PlaybackService_PlaylistPositionChanged(object sender, EventArgs e)
+        {
+            EnsureVisiblePlayingTrack();
+        }
+
+        private void EnsureVisiblePlayingTrack()
+        {
+            Application.Current.Dispatcher.BeginInvoke(new Action(async () =>
+            {
+                if (playbackService.CurrentPlaylistPosition.HasValue)
+                {
+                    for (int i = 0; i < 100; i++)
+                    {
+                        await Task.Delay(10); // Need some time to load the form
+                        if (playbackService.CurrentPlaylistPosition.Value <= ListBoxTracks.Items.Count)
+                        {
+                            Logger.Info("ITEM FOUND!");
+                            var item = ListBoxTracks.Items.GetItemAt(playbackService.CurrentPlaylistPosition.Value);
+                            if (item != null)
+                                ListBoxTracks.ScrollIntoView(item);
+                            break;
+                        }
+                        Logger.Info("Waiting for playlist to update...");
+
+                    }
+                }
+            }));
         }
 
         private void PlaybackService_PlaylistChanged(object sender, EventArgs e)
