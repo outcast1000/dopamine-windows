@@ -167,7 +167,7 @@
                             Command="{Binding DataContext.ShowZoomCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
                             Cursor="Hand"
                             DockPanel.Dock="Top"
-                            Style="{DynamicResource TransparentButton}"
+                            Style="{StaticResource TransparentButton}"
                             Visibility="{Binding IsHeader, Converter={StaticResource BooleanToCollapsedConverter}}">
                             <Grid
                                 Width="26"

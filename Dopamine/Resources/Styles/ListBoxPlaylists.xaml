@@ -98,7 +98,7 @@
                                         Visibility="Collapsed"
                                         DockPanel.Dock="Right"
                                         VerticalAlignment="Center"
-                                        Style="{DynamicResource TransparentButton}"
+                                        Style="{StaticResource TransparentButton}"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.DeletePlaylistCommand}"
                                         CommandParameter="{Binding}"
                                         ToolTip="{DynamicResource Language_Delete_This_Playlist}">

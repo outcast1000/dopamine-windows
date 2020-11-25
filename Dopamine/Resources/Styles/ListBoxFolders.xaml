@@ -44,7 +44,7 @@
                                 FontSize="16"/>
                             <Button 
                                 x:Name="DeleteFolderButton"
-                                Style="{DynamicResource TransparentButton}"
+                                Style="{StaticResource TransparentButton}"
                                     DockPanel.Dock="Right" 
                                     Margin="0,0,10,0" 
                                     VerticalAlignment="Center" 

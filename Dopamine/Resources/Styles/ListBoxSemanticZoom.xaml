@@ -34,7 +34,7 @@
                 <DataTemplate>
                     <Border>   
                         <Button 
-                            Style="{DynamicResource TransparentButton}"
+                            Style="{StaticResource TransparentButton}"
                             Cursor="Hand"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Top"
