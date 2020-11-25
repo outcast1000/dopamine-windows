@@ -35,6 +35,7 @@ namespace Dopamine.ViewModels.Common
         private IPlaybackService playbackService;
         private II18nService i18NService;
         private IInfoRepository infoRepository;
+        private IProviderService providerService;
         private LyricsViewModel lyricsViewModel;
         private TrackViewModel previousTrack;
         private int contentSlideInFrom;
@@ -53,6 +54,7 @@ namespace Dopamine.ViewModels.Common
         private LyricsFactory lyricsFactory;
 
         public DelegateCommand RefreshLyricsCommand { get; set; }
+        public DelegateCommand<string> SearchOnlineCommand { get; set; }
 
         public int ContentSlideInFrom
         {
@@ -95,6 +97,7 @@ namespace Dopamine.ViewModels.Common
             this.eventAggregator = container.Resolve<IEventAggregator>();
             this.i18NService = container.Resolve<II18nService>();
             this.infoRepository = container.Resolve<IInfoRepository>();
+            this.providerService = container.Resolve<IProviderService>();
 
             /*
             this.eventAggregator.GetEvent<IsNowPlayingSubPageChanged>().Subscribe(tuple =>
@@ -114,6 +117,7 @@ namespace Dopamine.ViewModels.Common
                     ApplyLyrics(track, trackLyrics, true, false);
 
             }, () => !this.IsDownloadingLyrics && playbackService.CurrentTrack != null);
+            this.SearchOnlineCommand = new DelegateCommand<string>((id) => this.SearchOnline(id));
 
             ApplicationCommands.RefreshLyricsCommand.RegisterCommand(this.RefreshLyricsCommand);
 
@@ -462,7 +466,7 @@ namespace Dopamine.ViewModels.Common
                     long lineCount = this.LyricsViewModel.LyricsLines.Count;
                     for (int i = 0; i < lineCount; i++)
                     {
-                        if (!this.canHighlight)
+                        if (!this.canHighlight || this.LyricsViewModel.LyricsLines == null)
                             break;
                         double progressTime = this.playbackService.GetCurrentTime.TotalMilliseconds;
                         double lyricsLineTime = this.LyricsViewModel.LyricsLines[i].Time.TotalMilliseconds;
@@ -472,7 +476,7 @@ namespace Dopamine.ViewModels.Common
 
                         while (i + j < this.LyricsViewModel.LyricsLines.Count && nextLyricsLineTime <= lyricsLineTime)
                         {
-                            if (!this.canHighlight)
+                            if (!this.canHighlight || this.LyricsViewModel.LyricsLines == null)
                                 break;
                             nextLyricsLineTime = this.LyricsViewModel.LyricsLines[i + j].Time.TotalMilliseconds;
                             j++;
@@ -485,7 +489,7 @@ namespace Dopamine.ViewModels.Common
                         }
                         else
                             this.LyricsViewModel.LyricsLines[i].IsHighlighted = false;
-                        if (!this.canHighlight)
+                        if (!this.canHighlight || this.LyricsViewModel.LyricsLines == null)
                             break;
                     }
                 }
@@ -496,10 +500,10 @@ namespace Dopamine.ViewModels.Common
 
             });
         }
-
         protected override void SearchOnline(string id)
         {
-            // No implementation required here
+            if (this.Track != null)
+                this.providerService.SearchOnline(id, new string[] { this.Track.ArtistName, this.Track.TrackTitle });
         }
     }
 }

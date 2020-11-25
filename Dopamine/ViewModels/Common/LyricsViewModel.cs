@@ -124,19 +124,22 @@ namespace Dopamine.ViewModels.Common
         private async Task SaveLyricsInAudioFileAsync()
         {
             this.IsEditing = false;
-            this.ParseLyrics(this.lyrics);
-
             if (this.track == null)
             {
                 return;
             }
-
-            // Save to the file
             var fmd = await this.metadataService.GetFileMetadataAsync(this.track.Path);
-            var lyricsMetaDataValue = new MetadataValue(this.lyrics.Text);
-            lyricsMetaDataValue.Value = this.lyrics.Text;
-            fmd.Lyrics = lyricsMetaDataValue;
-            infoRepository.SetTrackLyrics(new TrackLyrics() { TrackId = track.Id, Lyrics = this.lyrics.Text, OriginType = OriginType.User }, true);
+            await Task.Run(() =>
+            {
+                this.ParseLyrics(this.lyrics);
+                var lyricsMetaDataValue = new MetadataValue(this.lyrics.Text);
+                lyricsMetaDataValue.Value = this.lyrics.Text;
+                fmd.Lyrics = lyricsMetaDataValue;
+                if (string.IsNullOrEmpty(this.lyrics.Text))
+                    infoRepository.RemoveTrackLyrics(track.Id);
+                else
+                    infoRepository.SetTrackLyrics(new TrackLyrics() { TrackId = track.Id, Lyrics = this.lyrics.Text, OriginType = OriginType.User }, true);
+            });
             await this.metadataService.UpdateTracksAsync(new List<FileMetadata> { fmd }, false);
         }
 
@@ -190,12 +193,12 @@ namespace Dopamine.ViewModels.Common
 
         protected override void SearchOnline(string id)
         {
-            if (this.track == null)
-            {
-                return;
-            }
-
-            this.providerService.SearchOnline(id, new string[] { this.track.ArtistName, this.track.TrackTitle });
+            if (this.track != null)
+                this.providerService.SearchOnline(id, new string[] { this.track.ArtistName, this.track.TrackTitle });
+        }
+        protected override SearchProvider.ProviderType? GetSearchProviderType()
+        {
+            return SearchProvider.ProviderType.Track;
         }
     }
 }

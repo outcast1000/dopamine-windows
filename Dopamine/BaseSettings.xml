@@ -2,7 +2,7 @@
 <Settings>
 	<Namespace Name="Configuration">
 		<Setting Name="Version">
-			<Value>135</Value>
+			<Value>136</Value>
 		</Setting>
 		<Setting Name="IsPortable">
 			<Value>False</Value>
@@ -424,7 +424,7 @@
 			<Value>True</Value>
 		</Setting>
 		<Setting Name="CenterLyrics">
-			<Value>False</Value>
+			<Value>True</Value>
 		</Setting>
 		<Setting Name="FontSize">
 			<Value>16</Value>
