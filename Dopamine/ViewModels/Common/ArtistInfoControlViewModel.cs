@@ -11,6 +11,7 @@ using Dopamine.Services.Playback;
 using Prism.Commands;
 using Prism.Ioc;
 using Prism.Mvvm;
+using Prism.Mvvm;
 using System;
 using System.Threading.Tasks;
 using Dopamine.Data.Providers;
@@ -105,14 +106,12 @@ namespace Dopamine.ViewModels.Common
                 Logger.Warn("ArtistInfoControlViewModel Reloaded (!). Applying workaround");
                 return;
             }
+            _alreadyLoaded = true;
 
-            this.playbackService.PlaybackSuccess -= PlaybackService_PlaybackSuccess;
-            this.i18nService.LanguageChanged -= I18nService_LanguageChanged;
             this.playbackService.PlaybackSuccess += PlaybackService_PlaybackSuccess;
             this.i18nService.LanguageChanged += I18nService_LanguageChanged;
             _indexingService.ArtistInfoDownloaded += IndexingService_ArtistInfoDownloaded;
             ClearInfo();
-            _alreadyLoaded = true;
             // Defaults
             this.SlideDirection = SlideDirection.DownToUp;
             SlideDuration = _normalSlideDuration;

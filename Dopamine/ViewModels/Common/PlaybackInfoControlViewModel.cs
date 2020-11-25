@@ -16,6 +16,7 @@ namespace Dopamine.ViewModels.Common
 {
     public class PlaybackInfoControlViewModel : BindableBase
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private PlaybackInfoViewModel playbackInfoViewModel;
         private IPlaybackService playbackService;
         private IMetadataService metadataService;
@@ -113,8 +114,17 @@ namespace Dopamine.ViewModels.Common
             this.EnableLove = SettingsClient.Get<bool>("Behaviour", "EnableLove");
         }
 
+        private bool _alreadyLoaded = false;
         protected virtual void OnLoad()
         {
+            if (_alreadyLoaded == true)
+            {
+                // This is a workaround. I do not know why we get Load Again.
+                // The only different that I found in the call stack is that the "ogiginal" load comes form 'AnimatedRenderMessageHandler' and the later from 'RenderMessageHandler'
+                Logger.Warn("ArtistInfoControlViewModel Reloaded (!). Applying workaround");
+                return;
+            }
+            _alreadyLoaded = true;
             this.refreshTimer.Elapsed += RefreshTimer_Elapsed;
             this.playbackService.PlaybackSuccess += PlaybackService_PlaybackSuccess;
             this.playbackService.PlaybackStopped += PlaybackService_PlaybackStopped;
@@ -128,6 +138,7 @@ namespace Dopamine.ViewModels.Common
         protected virtual void OnUnLoad()
         {
             this.refreshTimer.Elapsed -= RefreshTimer_Elapsed;
+            this.refreshTimer.Stop();
             this.playbackService.PlaybackSuccess -= PlaybackService_PlaybackSuccess;
             this.playbackService.PlaybackStopped -= PlaybackService_PlaybackStopped;
             this.playbackService.PlaybackProgressChanged -= PlaybackService_PlaybackProgressChanged;
@@ -135,6 +146,7 @@ namespace Dopamine.ViewModels.Common
             this.metadataService.RatingChanged -= MetadataService_RatingChanged;
             this.metadataService.LoveChanged -= MetadataService_LoveChanged;
             Digimezzo.Foundation.Core.Settings.SettingsClient.SettingChanged -= SettingsClient_SettingChanged;
+            _alreadyLoaded = false;
         }
 
         private void SettingsClient_SettingChanged(object sender, Digimezzo.Foundation.Core.Settings.SettingChangedEventArgs e)
