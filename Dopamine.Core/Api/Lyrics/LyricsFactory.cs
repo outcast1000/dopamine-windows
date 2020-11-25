@@ -28,30 +28,32 @@ namespace Dopamine.Core.Api.Lyrics
         public async Task<Lyrics> GetLyricsAsync(string artist, string title)
         {
             Logger.Info($"GetLyricsAsync {artist} - {title}");
-            Lyrics lyrics = null;
             foreach (var item in lyricsApis)
-            {
                 lyricsApisPipe.Add(item);
-            }
             var api = this.GetRandomApi();
-
-            while (api != null && (lyrics == null || !lyrics.HasText))
+            while (api != null)
             {
                 try
                 {
-                    Logger.Info($"->Trying {api}");
-                    lyrics = new Lyrics(await api.GetLyricsAsync(artist, title), api.SourceName);
-                    Logger.Info($"->Lyrics Found");
+                    Logger.Info($"GetLyricsAsync. Trying '{api}'");
+                    string lyricsText = await api.GetLyricsAsync(artist, title);
+                    if (!string.IsNullOrEmpty(lyricsText))
+                    {
+                        Logger.Info($"GetLyricsAsync. Lyrics Found on '{api}'");
+                        return new Lyrics(lyricsText, api.SourceName);
+                    }
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error(ex, "Error while getting lyrics from '{0}'. Exception: {1}", api.SourceName, ex.Message);
+                    // No need to fill the log with known parse errors
+                    Logger.Info($"GetLyricsAsync: Exception on '{api}' ('{ex.Message}')");
+                    //Logger.Error(ex, $"GetLyricsAsync: Exception on '{api}' ('{ex.Message}')");
                 }
 
                 api = this.GetRandomApi();
             }
-
-            return lyrics;
+            Logger.Info($"GetLyricsAsync NOT FOUND {artist} - {title}");
+            return null;
         }
 
         private ILyricsApi GetRandomApi()

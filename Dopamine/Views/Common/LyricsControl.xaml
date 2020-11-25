@@ -220,6 +220,7 @@
             <WrapPanel Margin="15,0,0,0" Grid.Row="0">
                 <TextBlock
                     Grid.Row="0"
+                    Margin="0,0,15,0"
                     VerticalAlignment="Center"
                     Text="{Binding Track.TrackTitle}"
                     FontSize="30"
@@ -227,7 +228,7 @@
                     Foreground="{DynamicResource Brush_PrimaryText}" />
                 <TextBlock
                     Grid.Row="0"
-                    Margin="15,0,0,0"
+                    Margin="0,0,0,0"
                     VerticalAlignment="Center"
                     Text="{Binding Track.ArtistName}"
                     FontSize="30"
@@ -297,7 +298,7 @@
             Padding="0,0,0,0"
             VerticalAlignment="Stretch"
             PanningMode="Both">
-            <WrapPanel>
+            <WrapPanel HorizontalAlignment="Center">
                 <WrapPanel.ContextMenu>
                     <ContextMenu>
                         <ContextMenu.Resources>

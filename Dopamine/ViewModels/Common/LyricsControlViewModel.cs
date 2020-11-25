@@ -154,7 +154,6 @@ namespace Dopamine.ViewModels.Common
             //this.ClearLyrics(null); // Makes sure the loading animation can be shown even at first start
 
             this.RefreshLyricsAsync(this.playbackService.CurrentTrack);
-            this.RestartRefreshTimer();
         }
 
         protected override void OnUnLoad()
@@ -186,7 +185,9 @@ namespace Dopamine.ViewModels.Common
         private void PlaybackService_PlaybackSuccess(object sender, PlaybackSuccessEventArgs e)
         {
             this.ContentSlideInFrom = e.IsPlayingPreviousTrack ? -30 : 30;
-            this.RestartRefreshTimer();
+            RefreshLyricsAsync(playbackService.CurrentTrack);
+            if (this.playbackService.IsPlaying)
+                this.StartHighlighting();
         }
 
         private void SettingsClient_SettingChanged(object sender, Digimezzo.Foundation.Core.Settings.SettingChangedEventArgs e)
@@ -195,26 +196,26 @@ namespace Dopamine.ViewModels.Common
             {
                 if ((bool)e.Entry.Value)
                 {
-                    this.RestartRefreshTimer();
+                    if (Track != null)
+                        RefreshLyricsAsync(Track);
                 }
             }
         }
 
-
-
         private void MetadataService_MetadataChanged(MetadataChangedEventArgs obj)
         {
-            this.RestartRefreshTimer();
+            if (Track != null)
+                RefreshLyricsAsync(Track);
         }
 
         private void PlaybackService_PlaybackResumed(object sender, EventArgs e)
         {
-            this.highlightTimer.Start();
+            StartHighlighting();
         }
 
         private void PlaybackService_PlaybackPaused(object sender, PlaybackPausedEventArgs e)
         {
-            this.highlightTimer.Stop();
+            StopHighlighting();
         }
 
 
@@ -240,20 +241,17 @@ namespace Dopamine.ViewModels.Common
         private async void HighlightTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             this.highlightTimer.Stop();
-            await HighlightLyricsLineAsync();
-            this.highlightTimer.Start();
-        }
-
-        private void RestartRefreshTimer()
-        {
-            this.refreshTimer.Stop();
-            this.refreshTimer.Start();
+            if (this.canHighlight)
+                await HighlightLyricsLineAsync();
+            if (this.canHighlight)
+                this.highlightTimer.Start();
         }
 
         private void StartHighlighting()
         {
-            this.highlightTimer.Start();
+            this.highlightTimer.Stop();
             this.canHighlight = true;
+            this.highlightTimer.Start();
         }
 
         private void StopHighlighting()
@@ -284,14 +282,16 @@ namespace Dopamine.ViewModels.Common
                     return;
                 }
                 */
-                if (track == null)
-                {
-                    Logger.Debug("EXIT RefreshLyricsAsync (No current track)");
-                    return;
-                }
                 if (track.Id == _lastTrackIdOnRefreshLyrics)
                 {
                     Logger.Debug("EXIT RefreshLyricsAsync (Already did this track)");
+                    return;
+                }
+                StopHighlighting();
+                if (track == null)
+                {
+                    _lastTrackIdOnRefreshLyrics = 0;
+                    Logger.Debug("EXIT RefreshLyricsAsync (No current track)");
                     return;
                 }
                 _lastTrackIdOnRefreshLyrics = track.Id;
@@ -302,11 +302,8 @@ namespace Dopamine.ViewModels.Common
                     Logger.Debug("EXIT RefreshLyricsAsync (Editing mode, delay changing the lyrics.)");
                     return;
                 }
-
                 Track = track;
-                this.StopHighlighting();
                 ClearLyrics(track);
-
                 try
                 {
                     await Task.Run(async () =>
@@ -315,30 +312,36 @@ namespace Dopamine.ViewModels.Common
                         TrackLyrics trackLyrics = infoRepository.GetTrackLyrics(track.Id);
                         if (trackLyrics != null)
                         {
-                            Logger.Debug($"RefreshLyricsAsync. Lyrics added from the DB TrackID: {track.Id}");
+                            Logger.Info($"RefreshLyricsAsync. Lyrics added from the DB Track: {track.TrackTitle}");
                             ApplyLyrics(track, trackLyrics, false, false);
                         }
-                        if (trackLyrics == null)
-                        {
+                        else 
+                        {                       
+                            Logger.Info($"RefreshLyricsAsync. Lyrics not in DB. Check local lyrics fileLyrics Track: {track.TrackTitle}");
                             // If the audio file has no lyrics, try to find lyrics in a local lyrics file.
                             trackLyrics = await GetLyricsFromExternalFileAsync(track);
                             if (trackLyrics != null)
                             {
-                                Logger.Debug($"RefreshLyricsAsync. Lyrics added from an external file TrackID: {track.Id}");
+                                Logger.Debug($"RefreshLyricsAsync. Lyrics added from an external file Track: {track.TrackTitle}");
                                 ApplyLyrics(track, trackLyrics, true, false);
                             }
                         }
                         if (trackLyrics == null)
                         {
-                            // If we still don't have lyrics and the user enabled automatic download of lyrics: try to download them online.
+                                // If we still don't have lyrics and the user enabled automatic download of lyrics: try to download them online.
                             if (SettingsClient.Get<bool>("Lyrics", "DownloadLyrics"))
                             {
-                                Logger.Debug($"RefreshLyricsAsync. Lyrics downloaded TrackID: {track.Id}");
+                                Logger.Info($"RefreshLyricsAsync. Lyrics not Found. Check Online Track: {track.TrackTitle}");
                                 trackLyrics = await DownloadLyricsFromInternet(track);
                                 if (trackLyrics != null)
+                                {
+                                    Logger.Info($"RefreshLyricsAsync. Lyrics Found online Track: {track.TrackTitle}");
                                     ApplyLyrics(track, trackLyrics, true, false);
+                                }
                             }
                         }
+                        if (trackLyrics != null && playbackService.IsPlaying)
+                            StartHighlighting();
                     });
                 }
                 catch (Exception ex)
@@ -347,7 +350,7 @@ namespace Dopamine.ViewModels.Common
                     this.ClearLyrics(track);
                 }
 
-                this.StartHighlighting();
+                //this.StartHighlighting();
 
                 
             }
@@ -434,29 +437,33 @@ namespace Dopamine.ViewModels.Common
             return trackLyrics;
         }
 
+
         private async Task HighlightLyricsLineAsync()
         {
+            Logger.Info("HighlightLyricsLineAsync");
             if (!this.canHighlight)
             {
+                StopHighlighting();
                 return;
             }
 
             if (this.LyricsViewModel == null || this.LyricsViewModel.LyricsLines == null)
             {
+                StopHighlighting();
                 return;
             }
 
             await Task.Run(() =>
             {
+                Logger.Info("HighlightLyricsLineAsync (OnTask)");
+
                 try
                 {
-                    for (int i = 0; i < this.LyricsViewModel.LyricsLines.Count; i++)
+                    long lineCount = this.LyricsViewModel.LyricsLines.Count;
+                    for (int i = 0; i < lineCount; i++)
                     {
                         if (!this.canHighlight)
-                        {
                             break;
-                        }
-
                         double progressTime = this.playbackService.GetCurrentTime.TotalMilliseconds;
                         double lyricsLineTime = this.LyricsViewModel.LyricsLines[i].Time.TotalMilliseconds;
                         double nextLyricsLineTime = 0;
@@ -470,22 +477,16 @@ namespace Dopamine.ViewModels.Common
                             nextLyricsLineTime = this.LyricsViewModel.LyricsLines[i + j].Time.TotalMilliseconds;
                             j++;
                         }
-                        if (!this.canHighlight)
-                            break;
-
                         if (progressTime >= lyricsLineTime & (nextLyricsLineTime >= progressTime | nextLyricsLineTime == 0))
                         {
                             this.LyricsViewModel.LyricsLines[i].IsHighlighted = true;
-
                             if (this.LyricsViewModel.AutomaticScrolling & this.canHighlight)
-                            {
                                 this.eventAggregator.GetEvent<ScrollToHighlightedLyricsLine>().Publish(null);
-                            }
                         }
                         else
-                        {
                             this.LyricsViewModel.LyricsLines[i].IsHighlighted = false;
-                        }
+                        if (!this.canHighlight)
+                            break;
                     }
                 }
                 catch (Exception ex)
