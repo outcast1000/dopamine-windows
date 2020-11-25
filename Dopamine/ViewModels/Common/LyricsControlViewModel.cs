@@ -161,6 +161,7 @@ namespace Dopamine.ViewModels.Common
             this.highlightTimer.Elapsed -= HighlightTimer_Elapsed;
             this.highlightTimer.Stop();
             this.updateLyricsAfterEditingTimer.Elapsed -= UpdateLyricsAfterEditingTimer_Elapsed;
+            this.updateLyricsAfterEditingTimer.Stop();
             this.refreshTimer.Elapsed -= RefreshTimer_Elapsed;
             this.refreshTimer.Stop();
 
