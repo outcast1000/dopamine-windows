@@ -81,7 +81,7 @@
                 </Grid>
                 <!-- Main menu -->
                 <controls:TransitioningContentControl 
-                    FadeIn="True" FadeInTimeout="0.75" SlideIn="True" 
+                    FadeIn="True" FadeInTimeout="0.5" SlideIn="False" 
                     SlideInTimeout="0.75" SlideInFrom="{Binding SlideInFrom}" SlideInTo="0" x:Name="FullPlayerMenuRegion" 
                     prism:RegionManager.RegionName="{x:Static cp:RegionNames.FullPlayerMenuRegion}"/>
             </DockPanel>
@@ -90,7 +90,7 @@
                 <commonviews:IndexingStatus Panel.ZIndex="1"/>
             </Grid>
             <controls:TransitioningContentControl 
-                        FadeIn="True" FadeInTimeout="0.5" SlideIn="True" SlideInTimeout="0.5" 
+                        FadeIn="True" FadeInTimeout="0.5" SlideIn="False" SlideInTimeout="0.5" 
                         SlideInFrom="{Binding SlideInFrom}" SlideInTo="0" x:Name="FullPlayerRegion" 
                         prism:RegionManager.RegionName="{x:Static cp:RegionNames.FullPlayerRegion}"/>
         </DockPanel>

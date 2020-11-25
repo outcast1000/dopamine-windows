@@ -12,7 +12,7 @@
              Background="{DynamicResource Brush_MainWindowBackground}"
              prismMvvm:ViewModelLocator.AutoWireViewModel="True">
 
-    <pc:TransitioningContentControl FadeIn="True" FadeInTimeout="0.5" SlideIn="True" SlideInTimeout="0.5" 
+    <pc:TransitioningContentControl FadeIn="True" FadeInTimeout="0.5" SlideIn="False" SlideInTimeout="0.5" 
                                     SlideInFrom="{Binding SlideInFrom}" SlideInTo="0" x:Name="InformationRegion" 
                                     prism:RegionManager.RegionName="{x:Static cp:RegionNames.InformationRegion}"/>
 </UserControl>
