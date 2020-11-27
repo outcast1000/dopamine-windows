@@ -11,6 +11,7 @@ using System.Diagnostics;
 using Dopamine.Core.Alex;
 using SQLite;
 using Dopamine.Data.UnitOfWorks;
+using System.IO;
 
 namespace Dopamine.Data.Repositories
 {
@@ -66,8 +67,34 @@ namespace Dopamine.Data.Repositories
             return GetTracksInternal(options);
         }
 
+        void TestMSConn()
+        {
+            String appFolder = Dopamine.Core.Alex.SettingsClient.ApplicationFolder();
+            string path = Path.Combine(appFolder, ProductInformation.ApplicationName + ".db");
+
+            //string cs = "Data Source=:memory:";
+            string cs = @"Data Source=" + path;
+            string stm = @"SELECT name FROM Artists";
+
+            using (var con = new Microsoft.Data.Sqlite.SqliteConnection(cs))
+            {
+                con.Open();
+
+                using (var cmd = new Microsoft.Data.Sqlite.SqliteCommand(stm, con))
+                {
+                    string version = cmd.ExecuteScalar().ToString();
+                    Console.WriteLine($"SQLite version: {version}");
+                }
+
+            }
+
+        }
+
         private List<TrackV> GetTracksInternal(QueryOptions queryOptions, bool bPlayListMode = false)
         {
+            TestMSConn();
+
+
             try
             {
                 using (var conn = GetConnectionHandler())
