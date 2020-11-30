@@ -31,7 +31,8 @@ namespace Dopamine.Data.Repositories
                 qo = new QueryOptions();
             if (!string.IsNullOrEmpty(text))
             {
-                qo.extraWhereClause.Add("Artists.Name like ?");
+                text = text.ToLower();
+                qo.extraWhereClause.Add("LOWER_I(Artists.Name) like ?");
                 qo.extraWhereParams.Add("%" + text + "%");
             }
             return GetArtistsInternal(qo);
